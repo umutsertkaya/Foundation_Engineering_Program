@@ -1,0 +1,84 @@
+# Türkiye Bina Deprem Yönetmeliği 2018, Bölüm 16 (temeller ve dayanma yapıları).
+# Kaynak: Resmî Gazete 18.03.2018, 30364 (mükerrer), ek PDF 20180318M1-2-1.pdf.
+# Değeri yönetmelikte verilmeyen katsayılar null bırakılmıştır; motor bunları kullanmaya
+# çalışırsa hata verir. Mühendis bu dosyanın bir kopyasında değer girmelidir.
+id: tbdy2018
+label:
+  tr: "TBDY 2018 — Bölüm 16"
+  en: "TBDY 2018 (Turkish Seismic Code) — Chapter 16"
+approach: partial_factors
+reference: "Türkiye Bina Deprem Yönetmeliği (2018), Bölüm 16; Denk. 4.11-4.12"
+status: partially_verified
+
+factor_sources:
+  TBDY-static.load: {source: "TBDY 2018 16.7.3.1 — statik birleşimler ilgili yönetmelikten (TBDY değer vermez)", status: not_in_source}
+  TBDY-seismic.load: {source: "TBDY 2018 Denk. 4.11–4.12", status: verified}
+  TBDY-static.material: {source: "TBDY 2018 16.0, 16.13.3 — γRφ, γRc tanımlı, değer verilmemiş", status: not_in_source}
+  TBDY-seismic.material: {source: "TBDY 2018 16.0, 16.13.3 — γRφ, γRc tanımlı, değer verilmemiş", status: not_in_source}
+  TBDY-static.material.gamma: {source: "Birim hacim ağırlık katsayılanmaz (varsayım)", status: unverified}
+  TBDY-seismic.material.gamma: {source: "Birim hacim ağırlık katsayılanmaz (varsayım)", status: unverified}
+  TBDY-static.resistance: {source: "TBDY 2018 Tablo 16.2 (γRv, γRh, γRp)", status: verified}
+  TBDY-seismic.resistance: {source: "TBDY 2018 Tablo 16.2 (γRv, γRh, γRp)", status: verified}
+  TBDY-static.resistance.global_stability: {source: "TBDY 2018 16.13.4, Denk. 16.27 (γRk ≥ 1.0)", status: verified}
+  TBDY-seismic.resistance.global_stability: {source: "TBDY 2018 16.13.4, Denk. 16.27 (γRk ≥ 1.0)", status: verified}
+  TBDY-static.resistance.overturning: {source: "TBDY 2018 16.12.1.1, Denk. 16.21 (γRdev ≥ 1.3, mühendis seçer)", status: verified}
+  TBDY-seismic.resistance.overturning: {source: "TBDY 2018 16.12.1.1, Denk. 16.21 (γRdev ≥ 1.3, mühendis seçer)", status: verified}
+
+approaches:
+  TBDY: [TBDY-static, TBDY-seismic]
+
+combinations:
+  - id: TBDY-static
+    label: {tr: "Statik durum", en: "Static case"}
+    applies_to: [static]
+    # Statik yük birleşimleri "ilgili yönetmeliklerden" alınır (16.7.3.1) - TBDY değer vermez
+    load_factors: {G_unfav: null, G_fav: null, Q_unfav: null, Q_fav: 0.0}
+    material_factors: {tan_phi: null, c_eff: null, su: null, gamma: 1.0}
+    resistance_factors: {bearing: 1.4, sliding: 1.1, earth_resistance: 1.4, global_stability: 1.0, overturning: 1.3}
+    passive_participation: 0.3
+  - id: TBDY-seismic
+    label: {tr: "Depremli durum", en: "Seismic case"}
+    applies_to: [seismic]
+    # Denk. 4.11: G + Q + 0.2S + Ed(H) + 0.3Ed(Z);  Denk. 4.12: 0.9G + H + Ed(H) - 0.3Ed(Z)
+    load_factors: {G_unfav: 1.0, G_fav: 0.9, Q_unfav: 1.0, Q_fav: 0.0, EQ: 1.0}
+    material_factors: {tan_phi: null, c_eff: null, su: null, gamma: 1.0}
+    resistance_factors: {bearing: 1.4, sliding: 1.1, earth_resistance: 1.4, global_stability: 1.0, overturning: 1.3}
+    passive_participation: 0.3
+
+verification:
+  - item: "Tablo 16.2 dayanım katsayıları: taşıma gücü γRv, sürtünme γRh, pasif γRp"
+    value: "1.4, 1.1, 1.4"
+    status: verified
+    source: "TBDY 2018 16.8.2, Tablo 16.2 (Resmî Gazete 30364 mük.)"
+  - item: "Kaymada pasif direncin katkısı"
+    value: "V_th <= R_th + 0.3 R_pt"
+    status: verified
+    source: "TBDY 2018 16.8.4.1, Denk. 16.9; ayrıca 16.7.3.3"
+  - item: "Devrilme güvenlik katsayısı γRdev"
+    value: ">= 1.3 (mühendis seçer)"
+    status: verified
+    source: "TBDY 2018 16.12.1.1, Denk. 16.21"
+  - item: "Toptan göçme γRk (dayanım katsayıları uygulanmış parametrelerle)"
+    value: ">= 1.0"
+    status: verified
+    source: "TBDY 2018 16.13.3-16.13.4, Denk. 16.27"
+  - item: "Deprem yük birleşimleri"
+    value: "G + Q + 0.2S + Ed(H) + 0.3Ed(Z);  0.9G + H + Ed(H) - 0.3Ed(Z)"
+    status: verified
+    source: "TBDY 2018 4.4.4.1, Denk. 4.11-4.12"
+  - item: "Deprem katsayıları ve dinamik itkinin etki noktası"
+    value: "kh = 0.4 SDS / r, kv = 0.5 kh (Tablo 16.7: r = 2.0 / 1.5 / 1.0); dinamik bileşke H/2"
+    status: verified
+    source: "TBDY 2018 16.12.2.1, Denk. 16.22, Tablo 16.7, 16.12.2.8"
+  - item: "Taban sürtünme katsayısı üst sınırları tan δ"
+    value: "Yerinde dökme beton-sıkıştırılmış zemin 0.6; önüretimli 0.4; beton-beton 0.5; beton-kaya 0.5"
+    status: verified
+    source: "TBDY 2018 Tablo 16.3"
+  - item: "Malzeme dayanım katsayıları γRφ (tan φ'), γRc (c')"
+    value: "null"
+    status: not_in_source
+    note: "16.0 ve 16.13.3'te tanımlı, sayısal değer verilmemiş; proje mühendisi girmeli"
+  - item: "Statik yük katsayıları"
+    value: "null"
+    status: not_in_source
+    note: "16.7.3.1: ilgili yönetmeliklerden alınacak (TBDY değer vermez)"

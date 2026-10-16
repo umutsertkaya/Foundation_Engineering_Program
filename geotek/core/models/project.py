@@ -1,0 +1,75 @@
+"""Top-level project container (saved as a .gtk JSON file)."""
+
+from __future__ import annotations
+
+import datetime as dt
+from typing import Literal
+
+from pydantic import BaseModel, Field, model_validator
+
+from geotek.config.codes import FactorOverride
+from geotek.core.models.investigations import Investigations
+from geotek.core.models.profile import SoilProfile
+
+SCHEMA_VERSION = "1.1"
+
+
+class ProjectMeta(BaseModel):
+    name: str
+    number: str = ""
+    engineer: str = ""
+    date: dt.date = Field(default_factory=dt.date.today)
+    schema_version: str = SCHEMA_VERSION
+    language: Literal["tr", "en"] = "tr"
+    design_code: str = "asd"
+    """Id of the selected design code (see geotek.config.codes)."""
+    analysis_level: Literal["basic", "advanced"] = "basic"
+
+
+class SiteSeismic(BaseModel):
+    pga_g: float | None = Field(None, ge=0, le=3, description="Peak ground acceleration [g]")
+    mw: float | None = Field(None, ge=4, le=9.5, description="Moment magnitude")
+    sds: float | None = Field(None, ge=0, description="TBDY 2018 short-period design coefficient")
+    sd1: float | None = Field(None, ge=0)
+    site_class: str | None = None
+    source: Literal["user", "TBDY2018"] = "user"
+
+    @model_validator(mode="after")
+    def _pga_from_sds(self) -> SiteSeismic:
+        # TBDY 2018 approximation: PGA = 0.4 * S_DS
+        if self.source == "TBDY2018":
+            if self.sds is None:
+                raise ValueError("TBDY2018 source requires S_DS")
+            self.pga_g = 0.4 * self.sds
+        return self
+
+
+class Project(BaseModel):
+    meta: ProjectMeta
+    site: SiteSeismic = Field(default_factory=SiteSeismic)
+    investigations: Investigations = Field(default_factory=Investigations)
+    soil_profiles: list[SoilProfile] = Field(default_factory=list)
+    design_overrides: dict[str, dict[str, FactorOverride]] = Field(default_factory=dict)
+    """User factor values per design code id, keyed by factor path."""
+    module2_inputs: dict[str, dict] = Field(default_factory=dict)
+    """Last form values of the Module 2 pages ('wall', 'sheet_pile'), restored on opening."""
+
+    @model_validator(mode="after")
+    def _check_refs(self) -> Project:
+        ids = [p.id for p in self.soil_profiles]
+        if len(set(ids)) != len(ids):
+            raise ValueError("Soil profile ids must be unique")
+        known = {b.id for b in self.investigations.boreholes} | {
+            c.id for c in self.investigations.cpts
+        }
+        for profile in self.soil_profiles:
+            unknown = set(profile.source_ids) - known
+            if unknown:
+                raise ValueError(f"Profile {profile.id!r} references unknown sources {sorted(unknown)}")
+        return self
+
+    def profile(self, profile_id: str) -> SoilProfile:
+        for p in self.soil_profiles:
+            if p.id == profile_id:
+                return p
+        raise KeyError(profile_id)

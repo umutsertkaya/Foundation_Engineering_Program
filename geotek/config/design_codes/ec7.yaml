@@ -1,0 +1,75 @@
+# Eurocode 7 (EN 1997-1:2004) partial factor sets, Annex A recommended values.
+# National Annex values may differ; users can copy this file and edit it.
+id: ec7
+label:
+  tr: "Eurocode 7 — Kısmi katsayılar"
+  en: "Eurocode 7 — Partial factors"
+approach: partial_factors
+reference: "EN 1997-1:2004 Annex A (Tables A.1-A.4, A.13, A.14)"
+status: partially_verified
+
+factor_sources:
+  EQU: {source: "EN 1997-1 Tablo A.1–A.2 (EQU) — DSTU-N B EN 1997-1:2010 Ek A kopyası", status: secondary}
+  DA1-C1: {source: "EN 1997-1 Ek A, A1+M1+R1 (JRC EUR 26227 EN Tablo 4.3.2)", status: secondary}
+  DA1-C2: {source: "EN 1997-1 Ek A, A2+M2+R1 (JRC EUR 26227 EN Tablo 4.3.2)", status: secondary}
+  DA2: {source: "EN 1997-1 Ek A, A1+M1+R2 (JRC EUR 26227 EN Tablo 4.3.3)", status: secondary}
+  DA3: {source: "EN 1997-1 Ek A, A2+M2+R3 (JRC EUR 26227 EN Tablo 4.3.3)", status: secondary}
+  DA2.resistance.global_stability: {source: "EN 1997-1 Tablo A.14 γR;e (JRC EUR 26227 EN Tablo 3.2.2)", status: secondary}
+
+approaches:
+  DA1: [DA1-C1, DA1-C2]
+  DA2: [DA2]
+  DA3: [DA3]
+
+combinations:
+  - id: EQU
+    label: {tr: "EQU (devrilme)", en: "EQU (overturning)"}
+    load_factors:     {G_dst: 1.10, G_stb: 0.90, Q_dst: 1.50, Q_stb: 0.0}
+    material_factors: {tan_phi: 1.25, c_eff: 1.25, su: 1.40, gamma: 1.00}
+    resistance_factors: {}
+  - id: DA1-C1
+    label: {tr: "DA1 Kombinasyon 1 (A1+M1+R1)", en: "DA1 Combination 1 (A1+M1+R1)"}
+    load_factors:     {G_unfav: 1.35, G_fav: 1.00, Q_unfav: 1.50, Q_fav: 0.0}
+    material_factors: {tan_phi: 1.00, c_eff: 1.00, su: 1.00, gamma: 1.00}
+    resistance_factors: {bearing: 1.00, sliding: 1.00, earth_resistance: 1.00, global_stability: 1.00}
+  - id: DA1-C2
+    label: {tr: "DA1 Kombinasyon 2 (A2+M2+R1)", en: "DA1 Combination 2 (A2+M2+R1)"}
+    load_factors:     {G_unfav: 1.00, G_fav: 1.00, Q_unfav: 1.30, Q_fav: 0.0}
+    material_factors: {tan_phi: 1.25, c_eff: 1.25, su: 1.40, gamma: 1.00}
+    resistance_factors: {bearing: 1.00, sliding: 1.00, earth_resistance: 1.00, global_stability: 1.00}
+  - id: DA2
+    label: {tr: "DA2 (A1+M1+R2)", en: "DA2 (A1+M1+R2)"}
+    load_factors:     {G_unfav: 1.35, G_fav: 1.00, Q_unfav: 1.50, Q_fav: 0.0}
+    material_factors: {tan_phi: 1.00, c_eff: 1.00, su: 1.00, gamma: 1.00}
+    resistance_factors: {bearing: 1.40, sliding: 1.10, earth_resistance: 1.40, global_stability: 1.10}
+  - id: DA3
+    label: {tr: "DA3 (A2 geoteknik + M2 + R3)", en: "DA3 (A2 geotechnical + M2 + R3)"}
+    load_factors:     {G_unfav: 1.00, G_fav: 1.00, Q_unfav: 1.30, Q_fav: 0.0}
+    material_factors: {tan_phi: 1.25, c_eff: 1.25, su: 1.40, gamma: 1.00}
+    resistance_factors: {bearing: 1.00, sliding: 1.00, earth_resistance: 1.00, global_stability: 1.00}
+
+verification:
+  - item: "A1 / A2 action factors (G unfav, G fav, Q unfav, Q fav)"
+    value: "A1: 1.35, 1.0, 1.5, 0 | A2: 1.0, 1.0, 1.3, 0"
+    status: secondary
+    source: "JRC EUR 26227 EN (Bond et al. 2013) Tables 3.3.1, 4.3.2, 4.3.3 reproducing EN 1997-1 Annex A"
+  - item: "M1 / M2 material factors (tan phi', c', c_u, gamma)"
+    value: "M1: 1.0 | M2: 1.25, 1.25, 1.4, 1.0"
+    status: secondary
+    source: "JRC EUR 26227 EN Tables 3.3.3, 4.3.2, 4.3.3"
+  - item: "R1 / R2 / R3 retaining structures (bearing, sliding, earth resistance)"
+    value: "R1: 1.0, 1.0, 1.0 | R2: 1.4, 1.1, 1.4 | R3: 1.0, 1.0, 1.0"
+    status: secondary
+    source: "JRC EUR 26227 EN Tables 4.3.2, 4.3.3 (EN 1997-1 Table A.13)"
+  - item: "Slopes and overall stability gamma_R;e (R1 / R2 / R3)"
+    value: "1.0 / 1.1 / 1.0"
+    status: secondary
+    source: "JRC EUR 26227 EN Table 3.2.2 (EN 1997-1 Table A.14)"
+  - item: "Design approach definitions DA1-C1, DA1-C2, DA2, DA3"
+    value: "A1+M1+R1, A2+M2+R1, A1+M1+R2, (A1*|A2)+M2+R3"
+    status: secondary
+    source: "JRC EUR 26227 EN section 3.3"
+  - item: "EQU factors (G_dst, G_stb, Q_dst; tan phi', c', c_u)"
+    value: "1.1, 0.9, 1.5; 1.25, 1.25, 1.4"
+    status: secondary
+    source: "DSTU-N B EN 1997-1:2010 (national adoption of EN 1997-1), Annex A Tables A.1-A.2 (dnaop.com/html/61023_6.html)"

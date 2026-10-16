@@ -1,0 +1,30 @@
+# Allowable Stress Design: global factors of safety (FHWA-NHI-06-088 / common practice).
+# Values must be confirmed against the reference during Phase 0 before status becomes "verified".
+id: asd
+label:
+  tr: "ASD — Global güvenlik sayısı"
+  en: "ASD — Global factor of safety"
+approach: global_fs
+reference: "FHWA-NHI-06-088 (Soils and Foundations Reference Manual); NAVFAC DM-7.02"
+status: draft
+
+factor_sources:
+  safety: {source: "ASD — yaygın uygulama değeri (FHWA-NHI-06-088 ile karşılaştırılmadı)", status: unverified}
+  eccentricity: {source: "ASD — yaygın uygulama (statik B/6, depremde B/4); doğrulanmadı", status: unverified}
+
+safety_factors:            # minimum required FS
+  overturning:       {static: 2.0, seismic: 1.5}
+  sliding:           {static: 1.5, seismic: 1.1}
+  bearing_capacity:  {static: 3.0, seismic: 2.0}
+  global_stability:  {static: 1.5, seismic: 1.1}
+  sheet_pile_passive: {static: 1.5, seismic: 1.1}   # factor applied on Kp (or net passive)
+
+eccentricity_limits:       # maximum e as a fraction of base width B
+  soil: {static: 0.1667, seismic: 0.25}
+  rock: {static: 0.25, seismic: 0.3333}
+
+verification:
+  - item: "All global factors of safety and eccentricity limits"
+    value: "see above"
+    status: unverified
+    note: "Common practice values; FHWA-NHI-06-088 / NAVFAC DM-7.02 not yet checked"

@@ -1,0 +1,68 @@
+# AASHTO LRFD Bridge Design Specifications, retaining walls (Sections 3 and 11).
+# The AASHTO text itself was not available; see the verification block.
+id: aashto_lrfd
+label:
+  tr: "AASHTO LRFD"
+  en: "AASHTO LRFD"
+approach: lrfd
+reference: "AASHTO LRFD BDS Table 3.4.1-1, 3.4.1-2, 11.5.7-1; FHWA GEC-3 (FHWA-NHI-11-032)"
+status: partially_verified
+
+factor_sources:
+  load: {source: "AASHTO LRFD Tablo 3.4.1-1/-2 — doğrulanmadı", status: unverified}
+  load.DC: {source: "AASHTO LRFD Tablo 3.4.1-2 (eyalet DOT kılavuzlarında aynı)", status: secondary}
+  load.EV: {source: "AASHTO LRFD Tablo 3.4.1-2 (eyalet DOT kılavuzlarında aynı)", status: secondary}
+  load.EH_active: {source: "AASHTO LRFD Tablo 3.4.1-2 (eyalet DOT kılavuzlarında aynı)", status: secondary}
+  resistance: {source: "AASHTO LRFD Tablo 11.5.7-1 — doğrulanmadı", status: unverified}
+  resistance.strength.bearing: {source: "AASHTO LRFD Tablo 11.5.7-1 (MoDOT, WisDOT kılavuzları)", status: secondary}
+  resistance.strength.passive_resistance: {source: "AASHTO LRFD (WisDOT Tablo 14.4-2)", status: secondary}
+  eccentricity: {source: "AASHTO LRFD 11.6.3.3 — doğrulanmadı", status: unverified}
+
+load_factors:              # permanent load factors gamma_p: max / min
+  DC: {max: 1.25, min: 0.90}     # structural components
+  EV: {max: 1.35, min: 1.00}     # vertical earth pressure (retaining walls)
+  EH_active: {max: 1.50, min: 0.90}
+  EH_at_rest: {max: 1.35, min: 0.90}
+  ES: {max: 1.50, min: 0.75}     # earth surcharge
+  LS: {strength_I: 1.75, extreme_I: 0.50}  # live load surcharge; extreme gamma_EQ is project-specific
+  EQ: {extreme_I: 1.00}
+
+resistance_factors:
+  strength:
+    bearing: 0.55
+    sliding_cast_in_place_on_sand: 0.80
+    sliding_precast_on_sand: 0.90
+    passive_resistance: 0.50
+    sheet_pile_passive: 0.75
+    global_stability: 0.75
+    global_stability_supporting_structure: 0.65
+  extreme:
+    bearing: 1.00
+    sliding: 1.00
+    passive_resistance: 1.00
+    global_stability: 0.90
+
+eccentricity_limits:       # maximum e as a fraction of B
+  soil: {strength: 0.3333, extreme: 0.40}
+  rock: {strength: 0.45, extreme: 0.45}
+
+verification:
+  - item: "Permanent load factors DC, EH (active), EV (retaining walls) max / min"
+    value: "DC 1.25/0.90, EH 1.50/0.90, EV 1.35/1.00"
+    status: secondary
+    source: "Consistent across state DOT manuals quoting AASHTO Table 3.4.1-2 (WSDOT BDM Ch. 3, WisDOT Ch. 14, NHDOT Ch. 4, Caltrans BDP Ch. 3) - search excerpts only"
+  - item: "Bearing resistance factor, gravity / semi-gravity walls"
+    value: "0.55"
+    status: secondary
+    source: "MoDOT EPG 751.24 and WisDOT Ch. 14 citing AASHTO Table 11.5.7-1 - search excerpts only"
+  - item: "Passive resistance factor"
+    value: "0.50"
+    status: secondary
+    source: "WisDOT Ch. 14 Table 14.4-2 - search excerpt only"
+  - item: "Sliding factors (0.80 cast-in-place, 0.90 precast), overall stability (0.75 / 0.65), sheet pile passive 0.75"
+    value: "see resistance_factors"
+    status: unverified
+    note: "AASHTO Table 11.5.7-1 not accessible from this environment (dot.ca.gov blocked)"
+  - item: "LS 1.75 (Strength I), Extreme Event I factors, eccentricity limits"
+    value: "see above"
+    status: unverified
