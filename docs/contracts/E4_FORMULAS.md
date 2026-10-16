@@ -266,9 +266,8 @@ Düşey ön yüzde a=0 olur ve eski yatay kuvvet/konum sonucu korunur. Drenajsı
 
 Ön zemin üstündeki serbest su, kaldırma başına ve yatay su kuvvetine dahildir.
 Ön ayak üzerinde bu serbest suyun ağırlığı sayılmaz; bu korunumlu bir kabuldür.
-Kaldırma devrilme konvansiyonu: yukarı yönlü U'nun x_U*U momenti M_R'den
-çıkarılır; M_O'ya eklenmez. Bu mevcut konvansiyon korunmuştur; son seçimi
-proje mühendisi yapacaktır.
+Kaldırma momentinin devrilme kontrolündeki yeri WallSettings.uplift_moment ile
+seçilir; güvenli varsayılan ve alternatif formüller §6–§7'de verilmiştir.
 
 ## 6. Temel, pasif ve dış stabilite
 
@@ -276,7 +275,10 @@ Temel dayanımı tabandaki doğal katmanın onaylı değeridir. Drene ön örtü
 
 ```text
 q_front_eff = sigma_v_eff_front(H)-sigma_v_eff_front(H-D)
-gamma_foundation = gamma_sat-gamma_w, if front GWT <= H; otherwise gamma
+d_w = z_water_front-H; gamma_sub = gamma_sat-gamma_w
+gamma_foundation = gamma_sub                         [d_w <= 0]
+gamma_foundation = gamma_sub+(d_w/B)*(gamma-gamma_sub) [0 < d_w < B]
+gamma_foundation = gamma                             [d_w >= B]
 ```
 
 Drenajsız taban katmanında phi=0 ve c=s_u ile TOPLAM gerilme kullanılır:
@@ -295,10 +297,16 @@ Taşıma gücünün eğik yük girdisi V ve talep paydası kaldırma düşülmem
 yükü kullanır. Mevcut kaldırmalı temas eksantrisitesi/B_eff konvansiyonu korunur;
 kayma/devrilme ve temas qmax/qmin hesaplarında kaldırma mevcut biçimde etkindir.
 Kısmi katsayı hesabında aynı ayrım, tüm olumsuz yükler katsayılandıktan sonra
-uygulanır. Drene temel hesabı değişmez.
+uygulanır. Drene temel net düşey yükü ve yukarıdaki N_gamma YASS geçişini kullanır.
 
-Bu formül kazılmış üst katmanları çıkarır. Su tabanın altındaysa N_gamma terimi
-için geçiş bölgesi düzeltmesi yoktur (mevcut temel profil adaptörünün yaklaşımı).
+Örtü gerilmesi formülü kazılmış üst katmanları çıkarır. Yukarıdaki N_gamma
+yeraltı suyu geçişi yalnız drene temel ve katmanlı adaptörde uygulanır;
+WallSettings.gwt_bearing_correction=True güvenli varsayılandır. False seçilirse
+tabanda/üstünde gamma_sub, taban altındaki su için gamma kullanılır (eski davranış).
+Geçiş gerçek B genişliğini kullanır, B_eff kullanılmaz; d_w=0 ve d_w=B'de süreklidir.
+Drenajsız toplam gerilme hesabında N_gamma=0 olduğundan bu seçenek etkisizdir.
+Seçim raporda Assumption olarak kaydedilir. Kaynak etiketi:
+"Das, Principles of Foundation Engineering, taşıma gücüne yeraltı suyu etkisi (Durum III)".
 Tabanın B altına kadar daha düşük phi', c' veya s_u içeren katmanlar uyarılır;
 farklı drenaj türleri doğrudan sayısal karşılaştırılmayıp olası zayıflık uyarısı
 alır. Profil B'yi kapsamıyorsa ayrıca uyarı verilir. İki katmanlı taşıma gücü yoktur.
@@ -317,9 +325,11 @@ Dış denge mevcut ASD motorunu kullanır:
 
 ```text
 V=-sum(Fy); H_load=-sum(Fx)
-M_R=-sum(x*Fy); M_O=-sum(y*Fx)
-x_R=(M_R-M_O)/V; e=B/2-x_R; B_eff=B-2*abs(e)
-FS_overturning=M_R/M_O
+M_R_net=-sum(x*Fy); M_O=-sum(y*Fx)
+M_U=sum(x*Fy for base uplift WA with Fy>0); M_R=M_R_net+M_U
+x_R=(M_R_net-M_O)/V; e=B/2-x_R; B_eff=B-2*abs(e)
+FS_overturning=M_R/(M_O+M_U)       [uplift_moment="overturning", varsayılan]
+FS_overturning=(M_R-M_U)/M_O       [uplift_moment="resisting"]
 R_sliding=V*tan(delta_base)+adhesion*max(B_eff,0)  [drained]
 R_sliding=s_u*max(B_eff,0)                     [undrained]
 FS_sliding=(R_sliding+reduced_passive)/H_load
@@ -334,7 +344,12 @@ verify_wall_layered adaptörlerinde H_load=-sum(Fx)<=0 ise
 "Önden baskın yatay yük: ters yönde kayma/devrilme tahkiki bu sürümde yok"
 GeoTekError hatası verilir; sonsuz GS raporlanmaz. Pasif kayma direnci bu etki
 toplamına katılmaz. Kısmi katsayılarda tasarım etki grupları da denetlenir.
-Eski evaluate_checks davranışı değişmez.
+Kaldırma seçimi yalnız adı Uplift, türü WA, Fy>0 ve y=0 olan kuvveti yeniden
+sınıflandırır; deprem düşey ataletini veya yüzeydeki su bileşenlerini değiştirmez.
+Temas bileşkesi, eksantrisite ve net düşey yük her iki seçimde aynıdır.
+Seçim Türkçe Assumption ile, "Mühendis seçimi; varsayılan güvenli taraf" kaynağıyla
+kaydedilir. §11 el hesabında varsayılan 910.62/(323.4829896986029+156.96)≈1.895,
+resisting ise (910.62−156.96)/323.4829896986029≈2.330 verir.
 
 Taşıma gücü mevcut bearing_capacity fonksiyonudur (şerit temel):
 
@@ -378,11 +393,15 @@ Kayma/eksantrisite dengeleyici, taşıma gücü tüm olumsuz yük grubunu kullan
 ODF_sliding = [R_base/gamma_R_sliding
               + participation*Pp_reduced/gamma_R_passive] / H_d
 ODF_bearing = Q_ult_d/(gamma_R_bearing*V_d)
-ODF_overturning = M_R_d/(gamma_R_overturning*M_O_d) [TBDY]
+ODF_overturning = M_R_d/[gamma_R_overturning*(M_O_d+M_U_d)] [varsayılan, TBDY]
+ODF_overturning = (M_R_d-M_U_d)/(gamma_R_overturning*M_O_d) [resisting, TBDY]
 ```
 
 EC7 EQU için kendi malzeme ve G_stb/G_dst/Q_stb/Q_dst katsayılarıyla devrilme
 ayrıca hesaplanır. LRFD direnç katsayısı phi, bölen 1/phi olarak temsil edilir.
+EQU'da aynı kullanıcı seçimi kullanılır: varsayılan M_R_d/(M_O_d+M_U_d),
+alternatif (M_R_d−M_U_d)/M_O_d. M_U_d, açık WA katsayısı uygulanmış kaldırma
+momentidir; temas bileşkesi hesabı bu yeniden sınıflandırmadan etkilenmez.
 Katsayı kaynak ve durum etiketleri mevcut YAML + kullanıcı override kayıtlarıdır;
 E4 sayısal katsayı üretmez. Bilinmeyen veya eşleştirilmemiş yük türü hata verir.
 
@@ -428,7 +447,8 @@ F=sum[(c*b+max(W-u*b,0)*tan(phi))/m_alpha] /
 Kaynak: Bishop (1955), The use of the slip circle in the stability analysis of
 slopes; mevcut stability.py. Arama: x_c=-H..B+H, y_c=0.5H..3H,
 tanjant kotu=-2H..-0.05; 12×12×12 tarama, 40 dilim ve mevcut yerel iyileştirme.
-retained_bands=None olduğunda eski global model aynen kullanılır.
+Varsayılan yük katsayıları 1.0 ve retained_bands=None olduğunda eski global
+model ve dondurulmuş Bishop sonuçları korunur.
 
 Kayma modelinin tek su kotu vardır: y_water=H-min(z_water_front,z_water_retained).
 Bu yüksek su zarfı bir sızma çözümü değildir. Bantlar yataydır; ön tarafta taban
@@ -437,8 +457,20 @@ ağırlığı seçeneğinin global bant yaklaşımı da böyledir; dış stabili
 ön profil kullanılır. Ayrı iki boyutlu zemin bölgeleri bu pakette yoktur. Son bant
 sonsuz uzar; dairelerin sonlu profilin altında zayıf bir katman olasılığını
 dışladığı söylenemez. Kısmi katsayıda tasarım dayanımlarıyla F hesaplanır ve
-F/gamma_R_global >= 1 aranır; mevcut global yöntem yükleri ayrıca katsayılamaz,
-kv'yi kayma dilimlerine uygulamaz. Bu sınırlar raporda Assumption olarak yer alır.
+F/gamma_R_global >= 1 aranır. Sürşarj yüzey yükü kombinasyonun elverişsiz
+γ_Q (LS) katsayısıyla; taban izine aktarılan beton ve taşınan zemin ağırlıkları
+ayrı elverişsiz γ_G (DC/EV) katsayılarıyla çarpılır. Farklı DC/EV katsayılarında
+tasarım ağırlık merkezi yeniden hesaplanır. Aynı kombinasyon/FactorLog yolları
+kullanılır: EC7/TBDY <kombinasyon>.load.Q_unfav ve .G_unfav; LRFD
+load.LS.strength_I/extreme_I, load.DC.max, load.EV.max. Kullanılan katsayılar
+sonuçta kaydedilir; eksikler required_factors / MissingFactorsError ile bildirilir.
+ASD'de yük katsayıları 1.0'dır.
+
+Kayma kütlesindeki zemin öz ağırlığı karakteristik kalır (EC7 DA1-C2/DA3'te
+geoteknik kalıcı etkiler için 1.0). DA1-C1/DA2 zemin öz ağırlığı katsayılaması
+uygulanmaz; bu nedenle bu yaklaşımlarda tam bir faktörlü zemin ağırlığı çözümü
+iddia edilmez. k_v kayma dilimlerine uygulanmaz. Bu sınırlar raporda Assumption
+olarak yer alır. Taban izindeki taşınan zemin EV yükü bu öz ağırlık sınırından ayrıdır.
 
 ## 9. Palplanş yapı servisi
 
@@ -555,7 +587,8 @@ verification/test_walls_layered_hand.py bu sayıları mutlak 1e-6 toleransla ist
   mühendis kararı gerekir. E4 bunu bir yönetmelik değeri olarak sunmaz.
 - Drenajsız deprem itkisi, M-O sınırı dışındaki katmanlar, hidrodinamik/sızma,
   iki tabakalı taşıma gücü ve iki boyutlu farklı ön/arka global bölgeleri kapsam dışıdır.
-- Doğrulama: 523 test geçti; 5 m BASIC duvar B=4.60 m ve yönetici seismic:bearing
+- Kapı 2 öncesi doğrulama: 523 test geçti; 5 m BASIC duvar B=4.60 m ve yönetici seismic:bearing
   korundu; regresyondaki en büyük bağıl fark 3.6e-15'tir.
 - İki bağımsız inceleme (Claude Opus, gpt-6-astra) el hesabını yeniden hesapladı.
-  Formül seçimi gerektiren bulgular onay kapısı 2'de mühendis kararını bekler.
+  Kapı 2 kararıyla kaldırma momenti seçimi, N_gamma YASS geçişi ve global yük
+  katsayıları §6–§8 uyarınca eklendi; bu değişikliklerin testleri yerelde yeniden çalıştırılmalıdır.

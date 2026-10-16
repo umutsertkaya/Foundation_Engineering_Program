@@ -214,6 +214,7 @@ def evaluate_checks(
     else:
         q_max, q_min = math.inf, 0.0
 
+    m_res, m_ot = overturning_moments(forces, m_res, m_ot, settings)
     checks: dict[str, CheckResult] = {}
     req = log.value(f"safety.overturning.{case}")
     fs_ot = m_res / m_ot if m_ot > 0 else math.inf
@@ -266,3 +267,13 @@ def evaluate_checks(
         m_overturning=m_ot, eccentricity=e, q_max=q_max, q_min=q_min, bearing=bearing,
         checks=checks, warnings=warnings, factors_used=log.as_list(),
     )
+
+
+def overturning_moments(forces, m_res, m_ot, settings):
+    """Reclassify only base uplift; the net moment and contact resultant are unchanged."""
+    if settings.uplift_moment == "overturning":
+        uplift = sum(f.x * f.fy for f in forces
+                     if f.kind == "WA" and f.name == "Uplift" and f.fy > 0 and f.y == 0.0)
+        if uplift:
+            return m_res + uplift, m_ot + uplift
+    return m_res, m_ot

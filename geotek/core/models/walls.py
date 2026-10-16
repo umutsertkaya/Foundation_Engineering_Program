@@ -114,6 +114,10 @@ class WallLoads(BaseModel):
 
 
 class WallSettings(BaseModel):
+    uplift_moment: Literal["overturning", "resisting"] = "overturning"
+    """Put base uplift in overturning demand (safe default), or deduct it from resistance."""
+    gwt_bearing_correction: bool = True
+    """Interpolate the drained N_gamma unit weight for groundwater within B below the base."""
     design_code: str = "asd"
     bearing_method: Literal["meyerhof", "hansen", "vesic"] = "vesic"
     use_passive: bool = False

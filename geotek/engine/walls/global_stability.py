@@ -54,6 +54,8 @@ def wall_global_stability(
     cohesion_factor: float = 1.0,
     required: float | None = None,
     retained_bands: list[SoilBand] | None = None,
+    surcharge_factor: float = 1.0,
+    footprint_factors: dict[str, float] | None = None,
 ) -> tuple[SlipResult, CheckResult]:
     """Critical Bishop circle and the global stability check.
 
@@ -63,6 +65,9 @@ def wall_global_stability(
 
     ``retained_bands`` supplies the horizontally layered retained mass above the base.
     Its first band extends upward to the sloping surface. None keeps the legacy model.
+    ``surcharge_factor`` applies to the surface surcharge; ``footprint_factors``
+    supplies unfavourable DC/EV factors for carried loads. Slice soil weights stay
+    characteristic; DA1-C1/DA2 soil-weight factoring and vertical inertia are not modelled.
     """
     loads = loads or WallLoads()
     settings = settings or WallSettings()
@@ -87,22 +92,22 @@ def wall_global_stability(
     carried_soil = []
     if isinstance(geometry, CantileverGeometry):
         base, stem, heel_soil, toe_soil = cantilever_polygons(geometry, backfill.slope)
-        parts = [(base, gc), (stem, gc), (heel_soil, backfill.gamma)]
+        parts = [(base, gc, "DC"), (stem, gc, "DC"), (heel_soil, backfill.gamma, "EV")]
         if settings.include_toe_soil and toe_soil:
-            parts.append((toe_soil, backfill.gamma))
+            parts.append((toe_soil, backfill.gamma, "EV"))
         if retained_bands is not None:
             carried_soil = [heel_soil] + ([toe_soil] if settings.include_toe_soil and toe_soil else [])
-            parts = [(base, gc), (stem, gc)]
+            parts = [(base, gc, "DC"), (stem, gc, "DC")]
         H, B = geometry.height, geometry.width
         x_ground0 = geometry.x_stem_back
     else:
-        parts = [(gravity_wall_polygon(geometry), gc)]
+        parts = [(gravity_wall_polygon(geometry), gc, "DC")]
         H, B = geometry.height, geometry.base_width
         x_ground0 = B - geometry.back_offset
         if geometry.back_offset > 0:
             poly = [(x_ground0, H), (B, 0.0), (B, H + geometry.back_offset * tan_b)]
             if retained_bands is None:
-                parts.append((poly, backfill.gamma))
+                parts.append((poly, backfill.gamma, "EV"))
             else:
                 carried_soil.append(poly)
     if retained_bands is not None:
@@ -115,11 +120,14 @@ def wall_global_stability(
                 lower = ordered[i + 1].top if i + 1 < len(ordered) else 0.0
                 clipped = clip_polygon_y(poly, lower, upper)
                 if len(clipped) >= 3:
-                    parts.append((clipped, band.gamma))
-    for poly, gamma in parts:
+                    parts.append((clipped, band.gamma, "EV"))
+    for poly, gamma, kind in parts:
         a, cx, _ = polygon_area_centroid(poly)
         if a > 0:
-            weights.append((gamma * a, cx))
+            weight = gamma * a
+            if footprint_factors is not None:
+                weight *= footprint_factors[kind]
+            weights.append((weight, cx))
 
     D = geometry.embedment
     L = 4 * H
@@ -127,7 +135,8 @@ def wall_global_stability(
     surface = [(-L, D), (-EPS, D), (0.0, 0.0), (B, 0.0), (B + EPS, y_back), (B + L, y_back + L * tan_b)]
     surf_loads = _footprint_load(weights, B)
     if loads.surcharge > 0:
-        surf_loads.append(SurfaceLoad(B, B + L, loads.surcharge, loads.surcharge))
+        q = loads.surcharge * surcharge_factor
+        surf_loads.append(SurfaceLoad(B, B + L, q, q))
 
     bands = [SoilBand(top=y_back + L * tan_b + 1.0, gamma=backfill.gamma, c=0.0, phi=backfill.phi)]
     if retained_bands is not None:

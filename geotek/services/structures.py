@@ -77,6 +77,9 @@ def _settings(project, structure):
         overrides.update(structure.settings.factor_overrides)
         if not basic:
             return structure.settings.model_copy(update={"factor_overrides": overrides})
+        return WallSettings(design_code=code, bearing_method="vesic", factor_overrides=overrides,
+                            uplift_moment=structure.settings.uplift_moment,
+                            gwt_bearing_correction=structure.settings.gwt_bearing_correction)
     return WallSettings(design_code=code, bearing_method="vesic", factor_overrides=overrides)
 
 
@@ -110,6 +113,8 @@ def required_factors(project: Project, structure_id: str) -> list[MissingFactor]
             settings, approach=structure.approach, seismic=seismic,
             water=_water(structure.soil, base, case),
             include_equ=isinstance(structure, RetainingWallStructure),
+            include_global=(isinstance(structure, RetainingWallStructure)
+                            and structure.inputs.include_global_stability),
         ):
             missing[factor.path] = factor
     return list(missing.values())
@@ -159,8 +164,18 @@ def _assumptions(structure, settings, D):
         Assumption(text="Taban delta_base değeri verilmemişse mevcut FoundationSoil varsayılanıyla "
                         "delta_base=phi kullanılır; aderans 0 alınır", source="FoundationSoil sözleşmesi"),
         Assumption(text=f"Taşıma gücü yöntemi: {settings.bearing_method}; eğik yük ve B'=B-2|e| dahil; "
-                        "taban/ön arazi eğimi çarpanları 1; YASS taban altındaysa N_gamma geçiş "
-                        "düzeltmesi yok", source="Mevcut bearing_capacity/profil adaptörü; Bowles, 5. baskı, Tablo 4-1/4-5"),
+                        "taban/ön arazi eğimi çarpanları 1",
+                   source="Mevcut bearing_capacity/profil adaptörü; Bowles, 5. baskı, Tablo 4-1/4-5"),
+        Assumption(text=("Kaldırma momenti devrilme talebine eklenir: FS_ot=M_R/(M_O+M_U)"
+                         if settings.uplift_moment == "overturning" else
+                         "Kaldırma momenti dirençten düşülür: FS_ot=(M_R−M_U)/M_O"),
+                   source="Mühendis seçimi; varsayılan güvenli taraf"),
+        Assumption(text=("Drene N_gamma YASS düzeltmesi açık: d_w ön suyun taban altı derinliği; "
+                         "d_w≤0 için γ', 0<d_w<B için γ'+(d_w/B)(γ−γ'), d_w≥B için γ"
+                         if settings.gwt_bearing_correction else
+                         "Drene N_gamma YASS geçiş düzeltmesi kullanıcı seçimiyle kapalı; "
+                         "tabanda/üstünde su için γ', taban altında γ kullanılır"),
+                   source="Das, Principles of Foundation Engineering, taşıma gücüne yeraltı suyu etkisi (Durum III)"),
         Assumption(text=f"Gömülme D = {D:.2f} m; boyut araması 0.05 m adımla B ≤ 1.2H",
                    source=SRC_SIZING),
         Assumption(text="Boyutlandırmada kesit oranları mevcut proportion_for fonksiyonundan alınır",
@@ -209,8 +224,15 @@ def _assumptions(structure, settings, D):
                                    "eşdeğer yük olarak yayılır; kayma modelinde tek yatay su kotu için "
                                    "ön/arka YASS'ın yükseği alınır; bantlar yatay ve en alt bant sonsuzdur; "
                                    "ön taraftaki taban üstü ince şerit de tutulan taraf bantlarıyla temsil edilir; "
-                                   "global dilimlerde k_v ve kısmi yük katsayıları uygulanmaz",
+                                   "global dilimlerde k_v uygulanmaz",
                               source="Bishop (1955); mevcut wall_global_stability yaklaşımı; E4 model varsayımı"))
+        if layered_design_code(settings).approach != "global_fs":
+            out.append(Assumption(
+                text="Kısmi katsayılı global stabilitede sürşarj γ_Q (LS), taban izindeki beton/taşınan "
+                     "zemin yükleri elverişsiz γ_G (DC/EV) ile çarpılır. Dilim zemini öz ağırlığı "
+                     "karakteristik tutulur (DA1-C2/DA3 için 1.0); DA1-C1/DA2 zemin öz ağırlığı "
+                     "katsayılaması uygulanmaz",
+                source="EC7 tasarım yaklaşımı; E4 model sınırı"))
     else:
         out.append(Assumption(text="Toptan göçme tahkiki kullanıcı girdisiyle kapalıdır", source="WallDesignInputs"))
     return out
@@ -255,6 +277,8 @@ def _evaluate_wall(structure, geometry, settings, loads, reporter, start, span, 
                     geometry, backfill, foundation, loads, settings, seismic=seismic,
                     water_level=water_level, retained_bands=retained,
                     required=case.r_global if case is not None else None,
+                    surcharge_factor=case.unfavourable["LS"] if case is not None else 1.0,
+                    footprint_factors=case.unfavourable if case is not None else None,
                 )
                 key = state if case is None else f"{state}:{case.name}"
                 if case is not None:

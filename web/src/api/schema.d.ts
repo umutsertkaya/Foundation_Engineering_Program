@@ -2396,6 +2396,17 @@ export interface components {
         /** WallSettings */
         WallSettings: {
             /**
+             * Uplift Moment
+             * @default overturning
+             * @enum {string}
+             */
+            uplift_moment: "overturning" | "resisting";
+            /**
+             * Gwt Bearing Correction
+             * @default true
+             */
+            gwt_bearing_correction: boolean;
+            /**
              * Design Code
              * @default asd
              */

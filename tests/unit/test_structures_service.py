@@ -25,6 +25,80 @@ BASIC = BasicWallInput(wall_type="cantilever", height=5.0, backfill_gamma=18.0, 
                        foundation_phi=30.0, foundation_gamma=19.0, surcharge=10.0, sds=0.5)
 
 
+@pytest.mark.parametrize("advanced,code", [(False, "asd"), (True, "asd"), (True, "ec7")])
+def test_engineer_choices_are_honoured_and_reported_in_both_levels(advanced, code):
+    project = _project(advanced=advanced, code=code, sds=None)
+    structure = project.structure("wall")
+    structure.soil.profile.layers[0].gamma_sat = 21
+    structure.soil.gwt_front = GroundwaterCondition(depth_insitu=5 + structure.geometry.width / 2)
+    default = check_structure(project, "wall")
+    structure.settings.uplift_moment = "resisting"
+    structure.settings.gwt_bearing_correction = False
+    before = project.model_dump_json()
+    alternative = check_structure(project, "wall")
+    assert project.model_dump_json() == before
+    assert default.result_hash != alternative.result_hash
+    key = "static" if code == "asd" else "static:DA1-C2"
+    assert default.analyses[key].bearing.q_ult < alternative.analyses[key].bearing.q_ult
+    for result, formula, water_choice in [(default, "M_R/(M_O+M_U)", "açık"),
+                                           (alternative, "(M_R−M_U)/M_O", "kapalı")]:
+        assert any(formula in a.text and a.source == "Mühendis seçimi; varsayılan güvenli taraf"
+                   for a in result.assumptions)
+        assert any(water_choice in a.text and a.source ==
+                   "Das, Principles of Foundation Engineering, taşıma gücüne yeraltı suyu etkisi (Durum III)"
+                   for a in result.assumptions)
+
+
+def test_partial_global_service_passes_and_logs_combination_load_factors(monkeypatch):
+    from geotek.engine.stability import SlipResult
+    from geotek.engine.walls.base import CheckResult
+    from geotek.services import structures as service
+
+    project = _project(with_global=True, advanced=True, code="ec7", sds=None)
+    project.design_overrides["ec7"] = {
+        "DA1-C1.load.G_unfav": FactorOverride(value=1.4, note="E4 G test"),
+        "DA1-C2.load.Q_unfav": FactorOverride(value=1.6, note="E4 Q test")}
+    captured = []
+
+    def capture(*args, **kwargs):
+        captured.append(kwargs)
+        return (SlipResult(fs=2, xc=1, yc=8, radius=10, x_entry=10, x_exit=-2),
+                CheckResult("global_stability", 2, kwargs["required"], True))
+
+    monkeypatch.setattr(service, "wall_global_stability", capture)
+    before = project.model_dump_json()
+    result = check_structure(project, "wall")
+    assert project.model_dump_json() == before
+    assert len(captured) == 2
+    assert captured[0]["footprint_factors"]["DC"] == captured[0]["footprint_factors"]["EV"] == 1.4
+    assert captured[1]["surcharge_factor"] == 1.6
+    for key, path, value in [("static:DA1-C1", "DA1-C1.load.G_unfav", 1.4),
+                              ("static:DA1-C2", "DA1-C2.load.Q_unfav", 1.6)]:
+        assert any(f.path == path and f.value == value and f.status == "user"
+                   for f in result.global_stability[key].factors_used)
+        assert any(f.path == path and f.value == value for f in result.factors_used)
+    assert any("DA1-C1/DA2" in a.text and "karakteristik" in a.text for a in result.assumptions)
+
+
+@pytest.mark.parametrize("factor", ["G_unfav", "Q_unfav"])
+@pytest.mark.parametrize("omitted", [False, True])
+def test_missing_partial_global_action_factors_surface_before_calculation(monkeypatch, factor, omitted):
+    from geotek.engine import limit_state
+
+    project = _project(with_global=True, advanced=True, code="ec7", sds=None)
+    code = limit_state.layered_design_code(project.structure("wall").settings)
+    if omitted:
+        code.combination("DA1-C2").load_factors.pop(factor)
+    else:
+        code.combination("DA1-C2").load_factors[factor] = None
+    monkeypatch.setattr(limit_state, "layered_design_code", lambda settings: code)
+    path = f"DA1-C2.load.{factor}"
+    assert path in {m.path for m in required_factors(project, "wall")}
+    with pytest.raises(MissingFactorsError) as error:
+        check_structure(project, "wall")
+    assert path in {m.path for m in error.value.missing}
+
+
 def _project(*, with_global=False, sds=0.5, advanced=False, code="asd", geometry=True):
     structure = RetainingWallStructure(
         id="wall", wall_type="cantilever", height=5, embedment=0.6,

@@ -10198,6 +10198,20 @@
       },
       "WallSettings": {
         "properties": {
+          "uplift_moment": {
+            "type": "string",
+            "enum": [
+              "overturning",
+              "resisting"
+            ],
+            "title": "Uplift Moment",
+            "default": "overturning"
+          },
+          "gwt_bearing_correction": {
+            "type": "boolean",
+            "title": "Gwt Bearing Correction",
+            "default": true
+          },
           "design_code": {
             "type": "string",
             "title": "Design Code",

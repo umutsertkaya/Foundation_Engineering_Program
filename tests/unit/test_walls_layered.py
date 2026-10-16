@@ -14,8 +14,8 @@ from geotek.core.models.walls import Backfill, CantileverGeometry, GravityGeomet
 from geotek.engine.earth_pressure.coefficients import rankine_ka, tbdy_seismic_coefficients, TBDY_R
 from geotek.engine.earth_pressure.distribution import lateral_pressure
 from geotek.engine.earth_pressure.wedge import trial_wedge
-from geotek.engine.limit_state import _factor_forces, verify_wall_layered
-from geotek.engine.walls.base import Force
+from geotek.engine.limit_state import _factor_forces, limit_state_cases, verify_wall_global_stability, verify_wall_layered
+from geotek.engine.walls.base import Force, evaluate_checks
 from geotek.engine.walls.global_stability import wall_global_stability
 from geotek.engine.walls.layered import (
     analyze_wall_layered, bands_from_structure, foundation_from_structure,
@@ -23,6 +23,141 @@ from geotek.engine.walls.layered import (
 )
 from geotek.engine.walls.walls import analyze_cantilever_wall, analyze_gravity_wall, wall_forces
 from geotek.services.walls_basic import BasicWallInput, _foundation, proportion_for
+
+
+@pytest.mark.parametrize("partial", [False, True])
+def test_hand_uplift_overturning_choices(partial, unit_partial_case):
+    """Reuse the verification hand case within the authorised E4 unit-test scope."""
+    soil = _soil([_layer("upper", 0, 2, phi=30, gamma=18, gamma_sat=20),
+                  _layer("lower", 2, 6, phi=20, gamma=19, gamma_sat=21)], retained_water=3)
+    code = "ec7" if partial else "asd"
+    results = []
+    for choice in ("overturning", "resisting"):
+        settings = WallSettings(design_code=code, uplift_moment=choice)
+        result = (verify_wall_layered(_geometry(), soil, WallLoads(), settings,
+                                      seismic=False, approach=None)[0] if partial else
+                  analyze_wall_layered(_geometry(), soil, WallLoads(), settings, seismic=False))
+        results.append(result)
+    assert WallSettings().uplift_moment == "overturning"
+    assert results[0].checks["overturning"].value == pytest.approx(
+        910.62 / (323.4829896986029 + 156.96), abs=1e-10)
+    assert results[1].checks["overturning"].value == pytest.approx(
+        (910.62 - 156.96) / 323.4829896986029, abs=1e-10)
+    assert results[0].sum_v == results[1].sum_v
+    assert results[0].eccentricity == results[1].eccentricity
+    assert results[0].q_max == results[1].q_max
+    assert results[0].checks["bearing"].value == results[1].checks["bearing"].value
+
+
+@pytest.mark.parametrize("name,kind,fy,y", [
+    ("Uplift", "WA", 10, 0), ("Vertical seismic", "EQ", 10, 0),
+    ("Water (front)", "WA", 10, 1), ("Uplift", "DC", 10, 0),
+    ("Uplift", "WA", -10, 0), ("Uplift", "WA", 10, 1),
+])
+def test_uplift_choice_only_reclassifies_upward_base_uplift(name, kind, fy, y):
+    from geotek.core.models.walls import FoundationSoil
+
+    forces = [Force("Weight", 0, -200, 2, 0), Force("Earth", -10, 0, 4, 2),
+              Force(name, 0, fy, 1, y, kind)]
+    foundation = FoundationSoil(phi=30, gamma=19)
+    checks = [evaluate_checks(case="static", width=4, forces=forces, passive=None,
+                              foundation=foundation, embedment=1, warnings=[],
+                              settings=WallSettings(uplift_moment=choice))
+              for choice in ("overturning", "resisting")]
+    if name == "Uplift" and kind == "WA" and fy > 0 and y == 0:
+        assert checks[0].checks["overturning"].value == pytest.approx(400 / 30)
+        assert checks[1].checks["overturning"].value == pytest.approx(390 / 20)
+    else:
+        assert checks[0].checks["overturning"].value == checks[1].checks["overturning"].value
+    assert checks[0].eccentricity == checks[1].eccentricity
+
+
+@pytest.mark.parametrize("choice", ["overturning", "resisting"])
+def test_equ_uses_factored_uplift_moment_choice(choice):
+    settings = WallSettings(design_code="ec7", uplift_moment=choice, factor_overrides={
+        f"{combo}.load.WA": FactorOverride(value=1.1, note="E4 test")
+        for combo in ("DA1-C1", "DA1-C2", "EQU")})
+    equ = next(a for a in verify_wall_layered(_geometry(), _soil(retained_water=3),
+                                             WallLoads(), settings, seismic=False, approach=None)
+               if a.case == "EQU")
+    uplift = next(f for f in equ.forces if f.name == "Uplift")
+    mu = uplift.x * uplift.fy
+    mr = -sum(f.x * f.fy for f in equ.forces if f.name != "Uplift")
+    mo = -sum(f.y * f.fx for f in equ.forces)
+    assert uplift.fy == pytest.approx(1.1 * 58.86)
+    expected = mr / (mo + mu) if choice == "overturning" else (mr - mu) / mo
+    assert equ.checks["overturning"].value == pytest.approx(expected)
+
+
+def test_bearing_groundwater_transition_is_continuous_and_monotone():
+    B, H, eps = 4.0, 6.0, 1e-7
+    depths = [-eps, 0, eps, B / 4, B / 2, 3 * B / 4, B - eps, B, B + eps]
+    gammas = [foundation_from_structure(_soil(front_water=H + dw), 5, H, B)[0].gamma
+              for dw in depths]
+    submerged = 20 - GAMMA_W
+    expected = [submerged + min(max(dw / B, 0), 1) * (19 - submerged) for dw in depths]
+    assert gammas == pytest.approx(expected, abs=1e-12)
+    assert all(a <= b for a, b in zip(gammas, gammas[1:]))
+    assert gammas[0] == gammas[1] == pytest.approx(submerged)
+    assert gammas[2] == pytest.approx(gammas[1], abs=1e-6)
+    assert gammas[-3] == pytest.approx(gammas[-2], abs=1e-6)
+    assert gammas[-2] == gammas[-1] == 19
+
+
+@pytest.mark.parametrize("dw,expected", [(-1, 20 - GAMMA_W), (0, 20 - GAMMA_W), (2, 19), (4, 19)])
+def test_bearing_groundwater_transition_can_be_disabled(dw, expected):
+    foundation, _ = foundation_from_structure(_soil(front_water=6 + dw), 5, 6, 4,
+                                               gwt_bearing_correction=False)
+    assert foundation.gamma == pytest.approx(expected)
+
+
+def test_da1_c2_global_surcharge_factoring_reduces_fs():
+    soil, geometry = _soil(), _geometry()
+    retained, foundation = bands_from_structure(soil, geometry.height)
+    settings, loads = WallSettings(design_code="ec7"), WallLoads(surcharge=30)
+    backfill = Backfill(gamma=19, phi=30)
+    case = next(c for c in limit_state_cases("ec7") if c.name == "DA1-C2")
+    # Both use the same design strengths; only surface action factors differ.
+    unfactored, _ = wall_global_stability(
+        geometry, backfill, foundation, loads, settings, retained_bands=retained,
+        tan_phi_factor=case.tan_phi, cohesion_factor=case.cohesion, required=case.r_global)
+    factored = dict(verify_wall_global_stability(
+        geometry, backfill, foundation, loads, settings, retained_bands=retained))["DA1-C2"]
+    assert math.isfinite(unfactored.fs) and math.isfinite(factored.value)
+    assert factored.value * case.r_global < unfactored.fs
+    factors = {f.path: f.value for f in factored.factors_used}
+    assert factors["DA1-C2.load.Q_unfav"] == case.unfavourable["LS"] > 1
+    assert factors["DA1-C2.load.G_unfav"] == case.unfavourable["DC"] == 1
+
+
+def test_global_load_factors_preserve_characteristic_soil_and_factored_centroid(monkeypatch):
+    from geotek.engine.stability import SlipResult, SurfaceLoad
+    from geotek.engine.walls import global_stability as engine
+
+    captured, weights_used = [], []
+    footprint = engine._footprint_load
+
+    def capture_weights(weights, width):
+        weights_used.append(weights)
+        return footprint(weights, width)
+
+    def capture(model, **kwargs):
+        captured.append(model)
+        return SlipResult(fs=2, xc=1, yc=8, radius=10, x_entry=10, x_exit=-2)
+
+    monkeypatch.setattr(engine, "search_critical_circle", capture)
+    monkeypatch.setattr(engine, "_footprint_load", capture_weights)
+    geometry, soil = _geometry(), _soil()
+    retained, foundation = bands_from_structure(soil, geometry.height)
+    for factors, qfactor in [(None, 1), ({"DC": 1.2, "EV": 1.5}, 1.3)]:
+        wall_global_stability(geometry, Backfill(gamma=19, phi=30), foundation,
+                              WallLoads(surcharge=10), retained_bands=retained,
+                              footprint_factors=factors, surcharge_factor=qfactor)
+    assert captured[0].layers == captured[1].layers
+    # The hand geometry's concrete W=102.96, M=170.712; carried dry soil W=266.76, M=720.252.
+    assert sum(w for w, x in weights_used[1]) == pytest.approx(1.2 * 102.96 + 1.5 * 266.76)
+    assert sum(w * x for w, x in weights_used[1]) == pytest.approx(1.2 * 170.712 + 1.5 * 720.252)
+    assert captured[1].loads[-1] == SurfaceLoad(geometry.width, geometry.width + 4 * geometry.height, 13, 13)
 
 
 def _layer(id, top, bottom, phi=30.0, gamma=18.0, gamma_sat=20.0, **kwargs):

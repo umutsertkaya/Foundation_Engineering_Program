@@ -51,7 +51,8 @@ def soil_from_basic(inp: BasicWallInput, D: float) -> StructureSoilModel:
 
 
 def foundation_from_structure(soil: StructureSoilModel, front_depth: float, base_depth: float,
-                              width: float, gwt_case: GwtCase = "design") -> tuple[FoundationSoil, list[str]]:
+                              width: float, gwt_case: GwtCase = "design", *,
+                              gwt_bearing_correction: bool = True) -> tuple[FoundationSoil, list[str]]:
     """Base stratum only; front q is effective (drained) or total (undrained)."""
     soil.zones(front_depth, base_depth)
     if width <= 0:
@@ -62,6 +63,9 @@ def foundation_from_structure(soil: StructureSoilModel, front_depth: float, base
     gwt = profile.gwt.depth_for(gwt_case)
     undrained = layer.behaviour == "undrained"
     gamma = (layer.gamma_sat if undrained else layer.gamma_sat - GAMMA_W) if gwt <= base_depth else layer.gamma
+    if gwt_bearing_correction and not undrained and base_depth < gwt < base_depth + width:
+        gamma_sub = layer.gamma_sat - GAMMA_W
+        gamma = gamma_sub + (gwt - base_depth) / width * (layer.gamma - gamma_sub)
     stress_index = 0 if undrained else 2
     q = float(profile.stresses(base_depth, gwt_case)[stress_index]
               - profile.stresses(front_depth, gwt_case)[stress_index])
@@ -389,7 +393,8 @@ def analyze_wall_layered(geometry, soil, loads, settings, *, seismic, backfill_s
                              backfill_slope=backfill_slope, gwt_case=gwt_case)
     _check_forward_loading(wf.forces)
     foundation, warnings = foundation_from_structure(
-        soil, geometry.height - geometry.embedment, geometry.height, geometry.width, gwt_case)
+        soil, geometry.height - geometry.embedment, geometry.height, geometry.width, gwt_case,
+        gwt_bearing_correction=settings.gwt_bearing_correction)
     passive = next((f for f in wf.forces if f.kind == "PASSIVE"), None)
     forces = [f for f in wf.forces if f.kind != "PASSIVE"]
     result = evaluate_checks(

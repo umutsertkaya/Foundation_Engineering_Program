@@ -44,7 +44,7 @@ from geotek.core.models.walls import (
 from geotek.engine.bearing import bearing_capacity
 from geotek.engine.sheet_pile import SheetPileResult, anchored_sheet_pile, cantilever_sheet_pile
 from geotek.engine.stability import SoilBand
-from geotek.engine.walls.base import CheckResult, Force, WallAnalysis, passive_force
+from geotek.engine.walls.base import CheckResult, Force, WallAnalysis, overturning_moments, passive_force
 from geotek.engine.walls.global_stability import wall_global_stability
 from geotek.engine.walls.walls import wall_forces
 
@@ -354,13 +354,24 @@ def layered_design_code(settings: WallSettings) -> DesignCode:
 
 
 def required_layered_inputs(settings: WallSettings, *, approach=None, seismic=False, water=False,
-                            include_equ=True):
+                            include_equ=True, include_global=False):
     """The existing code path/source mechanism, scoped to actions present in this wall."""
     # Lazy import: walls_advanced itself imports the legacy engines in this module.
     from geotek.services.walls_advanced import HINTS, MissingFactor, _paths
 
     code = layered_design_code(settings)
-    paths = _paths(code, approach, seismic)
+    paths = list(_paths(code, approach, seismic))
+    if include_global:
+        # Enumerate required surface-action paths even if a code table omits a key.
+        if code.approach == "partial_factors":
+            key = approach or next(iter(code.approaches))
+            state = "seismic" if seismic else "static"
+            for cid in code.approaches[key]:
+                if state in code.combination(cid).applies_to:
+                    paths += [f"{cid}.load.G_unfav", f"{cid}.load.Q_unfav"]
+        elif code.approach == "lrfd":
+            paths += ["load.DC.max", "load.EV.max",
+                      f"load.LS.{'extreme_I' if seismic else 'strength_I'}"]
     if not include_equ:
         paths = [p for p in paths if not p.startswith("EQU.")]
     paths = [p for p in paths if not (p.endswith(".load.WA") or p.startswith("load.WA.")) or water]
@@ -443,7 +454,8 @@ def verify_wall_layered(geometry, soil, loads, settings, *, seismic: bool,
         wf = wall_forces_layered(geometry, design_soil, loads, settings, seismic=seismic,
                                  backfill_slope=backfill_slope)
         fd, warnings = foundation_from_structure(
-            design_soil, geometry.height - geometry.embedment, geometry.height, geometry.width)
+            design_soil, geometry.height - geometry.embedment, geometry.height, geometry.width,
+            gwt_bearing_correction=settings.gwt_bearing_correction)
         forces = [f for f in wf.forces if f.kind != "PASSIVE"]
         _check_forward_loading(forces)
         passive = next((f for f in wf.forces if f.kind == "PASSIVE"), None)
@@ -469,7 +481,9 @@ def verify_wall_layered(geometry, soil, loads, settings, *, seismic: bool,
             rd += case.passive_participation * passive.fx / case.r_passive
         checks["sliding"] = _odf("sliding", rd, h, detail)
         if case.r_overturning is not None:
-            checks["overturning"] = _odf("overturning", mr / case.r_overturning, mo, "M_R / gamma_Rdev")
+            mr_ot, mo_ot = overturning_moments(stab, mr, mo, settings)
+            checks["overturning"] = _odf("overturning", mr_ot / case.r_overturning, mo_ot,
+                                         f"M_R / gamma_Rdev; uplift_moment={settings.uplift_moment}")
         unf = _factor_forces(forces, case.unfavourable)
         _check_forward_loading(unf)
         vb, hb, mrb, mob = _sums(unf)
@@ -517,11 +531,13 @@ def verify_wall_layered(geometry, soil, loads, settings, *, seismic: bool,
         v, h, mr, mo = _sums(forces)
         if v <= 0:
             raise GeoTekError("EQU: net vertical load is not compressive")
+        mr_ot, mo_ot = overturning_moments(forces, mr, mo, settings)
         results.append(WallAnalysis(
             case="EQU", width=wf.width, forces=forces, sum_v=v, sum_h=h,
             m_resisting=mr, m_overturning=mo, eccentricity=wf.width / 2 - (mr - mo) / v,
             q_max=math.nan, q_min=math.nan, bearing=None,
-            checks={"overturning": _odf("overturning", mr, mo, "M_stb,d / M_dst,d")},
+            checks={"overturning": _odf("overturning", mr_ot, mo_ot,
+                                        f"M_stb,d / M_dst,d; uplift_moment={settings.uplift_moment}")},
             warnings=list(wf.warnings), factors_used=log.as_list(),
         ))
     return results
@@ -537,15 +553,29 @@ def verify_wall_global_stability(
     seismic: bool = False,
     approach: str | None = None,
     water_level: float | None = None,
+    retained_bands: list[SoilBand] | None = None,
 ) -> list[tuple[str, CheckResult]]:
-    """Bishop with design strengths; ODF = F_d / gamma_R,e (EC7) or F x phi (LRFD)."""
+    """Bishop with design strengths; retained bands select E4 surface-action factoring.
+
+    ODF = F_d / gamma_R,e (EC7) or F x phi (LRFD). None keeps the legacy path.
+    """
     settings = settings or WallSettings()
-    code = resolve_code(settings.design_code, settings.factor_overrides)
+    layered = retained_bands is not None
+    if layered:
+        missing = required_layered_inputs(settings, approach=approach, seismic=seismic,
+                                          include_equ=False, include_global=True)
+        if missing:
+            raise MissingFactorsError(missing)
+    code = (layered_design_code(settings) if layered else
+            resolve_code(settings.design_code, settings.factor_overrides))
     out = []
     for case in limit_state_cases(code, seismic=seismic, approach=approach):
         slip, chk = wall_global_stability(
             geometry, backfill, foundation_bands, loads, settings, seismic=seismic, water_level=water_level,
             tan_phi_factor=case.tan_phi, cohesion_factor=case.cohesion, required=case.r_global,
+            retained_bands=retained_bands,
+            surcharge_factor=case.unfavourable["LS"] if layered else 1.0,
+            footprint_factors=case.unfavourable if layered else None,
         )
         odf = slip.fs / case.r_global
         out.append((case.name, CheckResult("global_stability", odf, 1.0, odf >= 1.0,
