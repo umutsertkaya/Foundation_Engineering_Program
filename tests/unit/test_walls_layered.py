@@ -344,14 +344,15 @@ def test_front_water_normal_to_actual_gravity_face(top_width):
 
 
 @pytest.mark.parametrize("code", ["asd", "aashto_lrfd"])
-def test_undrained_base_total_overburden_and_gross_bearing_load(code):
+@pytest.mark.parametrize("method", ["vesic", "meyerhof"])
+def test_undrained_base_total_overburden_and_gross_bearing_load(code, method):
     clay = SoilLayer(id="clay", top=0, bottom=30, gamma=19, gamma_sat=21, behaviour="undrained",
                      design=DesignParameters(su=100))
     # A heel-biased gross resultant makes increasing front head an adverse
     # contact-eccentricity case; its apparent bearing safety must not grow.
     soil = _soil([_layer("fill", 0, 6, phi=45)], layers=[clay])
     overrides = {"load.WA.strength_I": FactorOverride(value=1.0, note="E4 test input")} if code != "asd" else {}
-    settings = WallSettings(design_code=code, factor_overrides=overrides)
+    settings = WallSettings(design_code=code, factor_overrides=overrides, bearing_method=method)
     results = []
     for depth, expected_q in [(100.0, 19.0), (5.0, 21.0), (4.0, 21.0 + GAMMA_W)]:
         soil.gwt_front = GroundwaterCondition(depth_insitu=depth)
@@ -366,6 +367,7 @@ def test_undrained_base_total_overburden_and_gross_bearing_load(code):
         results.append(result)
         if code == "asd":
             gross_v = -sum(f.fy for f in result.forces if f.name != "Uplift" and f.kind != "PASSIVE")
+            hb = result.sum_h
             assert result.checks["bearing"].value == pytest.approx(result.bearing.Q_ult / gross_v)
             if depth < 6:
                 assert gross_v > result.sum_v  # sliding/overturning still include U
@@ -375,13 +377,21 @@ def test_undrained_base_total_overburden_and_gross_bearing_load(code):
             raw = wall_forces_layered(_geometry(), soil, WallLoads(), settings, seismic=False).forces
             unf = _factor_forces(raw, case.unfavourable)
             gross_v = -sum(f.fy for f in unf if f.name != "Uplift")
-            net_v, _, mr, mo = _sums(unf)
+            net_v, hb, mr, mo = _sums(unf)
             e = 2 - (mr - mo) / net_v
             assert result.bearing.B_eff == pytest.approx(4 - 2 * abs(e))
             assert result.checks["bearing"].value == pytest.approx(result.bearing.Q_ult / (case.r_bearing * gross_v))
+        if method == "vesic":
+            expected_qult = 5.14 * 100 * 1.1 * (1 - 2 * hb / (result.bearing.B_eff * 100 * 5.14)) + expected_q
+        else:
+            inclination = (1 - math.degrees(math.atan2(hb, gross_v)) / 90)**2
+            expected_qult = (5.14 * 100 * 1.05 + expected_q) * inclination
+        assert result.bearing.q_ult == pytest.approx(expected_qult, rel=1e-10)
     assert all(math.isfinite(r.checks["bearing"].value) and r.checks["bearing"].value > 0 for r in results)
+    # Water rising from deep to the front ground must not improve undrained bearing. Ponded water
+    # above the front ground is a genuine total-stress surcharge and reduces the net horizontal load,
+    # so no monotonic trend is required for that case (Meyerhof's inclination factor improves).
     assert results[1].checks["bearing"].value <= results[0].checks["bearing"].value
-    assert results[2].checks["bearing"].value <= results[1].checks["bearing"].value
 
 
 @pytest.mark.parametrize("retained_depth,front_depth,tops,gammas", [
@@ -394,6 +404,52 @@ def test_foundation_band_weights_use_bishop_water_envelope(retained_depth, front
     _, bands = bands_from_structure(soil, 6)
     assert [b.top for b in bands] == tops
     assert [b.gamma for b in bands] == gammas
+
+
+@pytest.mark.parametrize("higher_side", ["retained", "front"])
+@pytest.mark.parametrize("water_depth,tops,gammas", [
+    (3.0, [0.0, -3.0], [21.0, 23.0]),
+    (6.0, [0.0, -3.0], [21.0, 23.0]),
+    (8.0, [0.0, -2.0, -3.0], [19.0, 21.0, 23.0]),
+    (9.0, [0.0, -3.0], [19.0, 23.0]),
+    (100.0, [0.0, -3.0], [19.0, 20.0]),
+])
+def test_multilayer_foundation_weights_match_bishop_model_water_level(
+        monkeypatch, higher_side, water_depth, tops, gammas):
+    from geotek.engine.stability import SlipResult
+    from geotek.engine.walls import global_stability as global_engine
+
+    soil = _soil(
+        fill=[_layer("fill", 0, 6, gamma=17, gamma_sat=20)],
+        layers=[_layer("upper-natural", 0, 9, gamma=19, gamma_sat=21),
+                _layer("lower-natural", 9, 30, gamma=20, gamma_sat=23)],
+        retained_water=water_depth if higher_side == "retained" else 100,
+        front_water=water_depth if higher_side == "front" else 100,
+    )
+    before = soil.model_dump_json()
+    retained, foundation = bands_from_structure(soil, 6)
+    assert [b.top for b in foundation] == tops
+    assert [b.gamma for b in foundation] == gammas
+    models = []
+
+    def capture(model, **kwargs):
+        models.append(model)
+        return SlipResult(fs=2, xc=1, yc=8, radius=10, x_entry=10, x_exit=-2)
+
+    monkeypatch.setattr(global_engine, "search_critical_circle", capture)
+    water_level = 6 - min(soil.gwt_retained.depth_for("design"), soil.gwt_front.depth_for("design"))
+    global_engine.wall_global_stability(
+        _geometry(), Backfill(gamma=17, phi=30), foundation,
+        water_level=water_level, retained_bands=retained,
+    )
+    model = models[0]
+    assert model.water_level == 6 - water_depth
+    for depth, gamma, gamma_sat in [(7, 19, 21), (8.5, 19, 21), (10, 20, 23)]:
+        assert model.band_at(6 - depth).gamma == (gamma_sat if depth > water_depth else gamma)
+    # The retained mass keeps its own head when only the front side is wet.
+    assert retained[0].gamma == 17
+    assert retained[-1].gamma == (20 if higher_side == "retained" and water_depth < 6 else 17)
+    assert soil.model_dump_json() == before
 
 
 def test_two_layer_dry_seismic_thrust_uses_each_layers_coefficient():
@@ -473,8 +529,8 @@ def test_frozen_legacy_default_two_layer_lateral_pressure():
 
 
 @pytest.mark.parametrize("seismic,expected", [
-    (False, None),  # FILL: frozen pre-E4 BASIC B=4.60 static Bishop FS
-    (True, None),  # FILL: frozen pre-E4 BASIC B=4.60 seismic Bishop FS
+    (False, 1.7713828462819479),  # computed at pre-E4 commit 17a6da7
+    (True, 1.298580922529976),  # computed at pre-E4 commit 17a6da7
 ])
 def test_frozen_legacy_global_default_basic_B460(seismic, expected):
     from geotek.engine.stability import SoilBand
@@ -485,9 +541,6 @@ def test_frozen_legacy_global_default_basic_B460(seismic, expected):
         geometry, Backfill(gamma=18, phi=32), [SoilBand(top=0, gamma=19, c=0, phi=30)],
         loads, WallSettings(), seismic=seismic,
     )  # retained_bands intentionally omitted: freeze the legacy default path.
-    assert math.isfinite(slip.fs) and slip.fs > 0
-    if expected is None:
-        pytest.skip(f"FILL frozen {'seismic' if seismic else 'static'} FS from pre-E4 run; current={slip.fs:.17g}")
     assert slip.fs == pytest.approx(expected, rel=1e-12)
 
 

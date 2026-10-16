@@ -200,7 +200,7 @@ def _assumptions(structure, settings, D):
                            source="StructureSoilModel; depth_seismic, yoksa depth_insitu"),
                 Assumption(text=f"k_h=0.4·S_DS/r, k_v=0.5·k_h, r={r:g}; dinamik itki artımı H_v/2'de",
                            source=SRC_TBDY_SEISMIC),
-                Assumption(text="M-O katman bazında; hidrostatik su depremde değişmez; hidrodinamik "
+                Assumption(text="M-O katman bazında; deprem YASS'ında su hidrostatiktir; hidrodinamik "
                                 "basınç, sıvılaşma ve fazla boşluk suyu basıncı hesaplanmaz; "
                                 "drenajsız deprem itkisi ve M-O geçerlilik sınırı dışı durumlar durdurulur",
                            source="Mononobe & Matsuo (1929), Okabe (1926); FHWA GEC-3; E4 kapsam sınırı")]
@@ -306,9 +306,8 @@ def _finish(project, structure, geometry, settings, loads, kh, kv, evaluated, it
         wet_foundation = any(l.bottom > max(geometry.height, water_depth) for l in foundation.layers)
         if wet_retained or wet_foundation:
             warnings.append(
-                "Deprem durumunda su tablası altında tutulan veya temel katmanı var ve r kullanıcı tarafından "
-                "girilmedi. TBDY 2018 16.12.2.2 / coefficients.py notu: fazla boşluk suyu basıncı "
-                "gelişebilen yerlerde r ≤ 1 gerekebilir; varsayılan r değiştirilmedi, mühendis değerlendirmeli")
+                "coefficients.py notu: TBDY 2018 16.12.2.2 — boşluk suyu basıncı artışı olabilecek "
+                "durumlarda r ≤ 1 gerekebilir; r değerini kontrol edin.")
     if structure.soil.source_profile_id is not None:
         source = next((p for p in project.soil_profiles if p.id == structure.soil.source_profile_id), None)
         if structure.soil.is_stale(source):

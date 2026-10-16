@@ -1,10 +1,11 @@
 # E4 — Katmanlı dayanma yapıları: formüller ve mühendis incelemesi
 
 Bu belge P1 sözleşmesinin 5. bölümünü uygular. Hesap bir metre duvar boyu içindir;
-birimler m, kN/m, kNm/m, kPa, kN/m³ ve derecedir. Hesap motoru ve aşağıdaki el
-hesabı testleri hazırlanmıştır; bu çalışma ortamında Python/pytest çalıştırılmamıştır.
-Sayısal el hesabı değerleri test beklentileridir, çalıştırılmış test sonuçları değildir.
-İkinci onay kapısındaki iki bağımsız mühendislik incelemesi henüz yapılmamıştır.
+birimler m, kN/m, kNm/m, kPa, kN/m³ ve derecedir. İnceleme düzeltmelerinden sonra
+523 test geçmektedir; B=4.60 m, yönetici seismic:bearing regresyonu dahildir
+(en büyük bağıl fark 3.6e-15). Eski varsayılan yolun Bishop GS değerleri E4 öncesi
+commit'te (17a6da7) hesaplanıp testte sabitlenmiştir ve birebir aynıdır. İki bağımsız
+inceleme (Claude Opus, gpt-6-astra) aşağıdaki el hesabını yeniden hesaplamıştır.
 
 ## 1. Koordinatlar, profiller ve sanal düzlem
 
@@ -163,8 +164,18 @@ Sürşarjlı kama hesabı, mevcut trial_wedge gibi sürşarjın kama gövde kuvv
 katıldığı konvansiyonu korur. Topuk üzerindeki sürşarj ağırlığına ayrıca atalet
 eklenmez (mevcut temel seviye davranışı).
 
-Hidrostatik su basıncı seçilen gwt_case içinde depremde değişmez. Hidrodinamik
-basınç, sıvılaşma ve fazla boşluk suyu basıncı hesabı yoktur.
+Duvar servisinde statik durum inputs.gwt_case değerini kullanır. Deprem durumu
+daima gwt_case="seismic", yani depth_seismic kullanır; ön ve arka taraftaki ayrı
+gwt_front/gwt_retained değerleri de bu senaryodan seçilir. Bu alanlar yoksa profil
+YASS'ı, depth_seismic yoksa modelin mevcut depth_insitu varsayılanı geçerlidir.
+Aynı seçim dış dengeye, diyagramlara, temel/bant adaptörlerine, global stabiliteye
+ve eksik WA katsayısı denetimine uygulanır. Seçilen durumdaki su hidrostatiktir;
+hidrodinamik basınç, sıvılaşma ve fazla boşluk suyu basıncı hesabı yoktur.
+
+Deprem YASS'ının altında tutulan veya temel katmanı varsa ve inputs.r=None ise
+Türkçe uyarı verilir: TBDY 2018 16.12.2.2 / coefficients.py notuna göre fazla
+boşluk suyu basıncı gelişebilen yerlerde r ≤ 1 gerekebilir. Bu bir sıvılaşma
+tespiti değildir; varsayılan r değiştirilmez, değerlendirme mühendise aittir.
 
 ## 4. Drenajsız katmanlar
 
@@ -185,6 +196,23 @@ drenajlı komşu katmanların basınç sıçramaları açıkça korunur. Statik 
 arka katmanlar yalnız yatay yüzey/düşey düzlemde desteklenir. Drenajsız deprem
 itkisi için yayınlanmış bir katsayı bu kaynak paketinde uygulanmadığından hesap
 açık hata verir; s_u sessizce phi'ya çevrilmez ve deprem etkisi atlanmaz.
+
+Drenajsız tutulan katmanlardaki negatif aktif basınç sıfırlanır. Su dolu çekme
+çatlağı modeli veya minimum eşdeğer akışkan basıncı (minimum EFP) uygulanmaz.
+
+Ön zemin z_f=H-D kotunda ve ön YASS z_w<z_f ise serbest suyun toplam-gerilme
+sınır yükü q_pond=gamma_w*(z_f-z_w)'dir. E4 ön/pasif adaptörü bu yükü
+layerwise=True, total_stress_surcharge=q_pond ile yalnız drenajsız katmanlara
+aktarır; varsayılan lateral_pressure çağrısı değişmez. Kullanılan gerilme:
+
+```text
+sigma_v_front_total(z) = sigma_v_front(z)-sigma_v_front(z_f)+q_pond
+p_passive_total(z) = sigma_v_front_total(z)+2*s_u
+```
+
+Örneğin z_f=5, z_w=4 için q_pond=9.81 kPa'dır. Drenajsız zemin aralığında ayrı
+yatay u bileşeni sıfırdır; yalnız z_w..z_f serbest su aralığının yatay kuvveti
+ayrıca eklenir. Böylece su toplam gerilmede ve ayrı yatay kuvvette iki kez sayılmaz.
 
 ## 5. Ağırlıklar, su ve kaldırma
 
@@ -223,14 +251,51 @@ bu yayının her geometri için zorunlu/doğrulanmış çözümü olduğu iddias
 Ön su pasif direncin açık olmasına bağlı değildir ve passive_reduction ile azaltılmaz.
 Toplam gerilme ile temsil edilen ön katmanlarda yatay su ikinci kez eklenmez.
 
+Ağırlık duvarında ön yüz x=a*y, a=(B-back_offset-top_width)/H'dir. Ön su
+basıncı gerçek ıslak yüzün normalinde integre edilir; yatay izdüşüm diyagramının
+F ve z_resultant değerlerinden:
+
+```text
+Fx_front=F; Fy_front=-a*F
+y_front=H-z_resultant; x_front=a*y_front
+M_front=-(1+a^2)*F*y_front
+```
+
+Düşey ön yüzde a=0 olur ve eski yatay kuvvet/konum sonucu korunur. Drenajsız
+ön katmanlarda ayrı su diyagramının dışladığı aralıklar bu integralde de dışlanır.
+
+Ön zemin üstündeki serbest su, kaldırma başına ve yatay su kuvvetine dahildir.
+Ön ayak üzerinde bu serbest suyun ağırlığı sayılmaz; bu korunumlu bir kabuldür.
+Kaldırma devrilme konvansiyonu: yukarı yönlü U'nun x_U*U momenti M_R'den
+çıkarılır; M_O'ya eklenmez. Bu mevcut konvansiyon korunmuştur; son seçimi
+proje mühendisi yapacaktır.
+
 ## 6. Temel, pasif ve dış stabilite
 
-Temel dayanımı tabandaki doğal katmanın onaylı değeridir. Ön örtü gerilmesi:
+Temel dayanımı tabandaki doğal katmanın onaylı değeridir. Drene ön örtü gerilmesi:
 
 ```text
 q_front_eff = sigma_v_eff_front(H)-sigma_v_eff_front(H-D)
 gamma_foundation = gamma_sat-gamma_w, if front GWT <= H; otherwise gamma
 ```
+
+Drenajsız taban katmanında phi=0 ve c=s_u ile TOPLAM gerilme kullanılır:
+
+```text
+q_front_total = sigma_v_front(H)-sigma_v_front(H-D)
+                + gamma_w*max(H-D-z_water_front,0)
+gamma_foundation = gamma_sat, if front GWT <= H; otherwise gamma
+V_bearing_total = -sum(Fy excluding Uplift)
+FS_bearing = Q_ult/V_bearing_total
+```
+
+Gerilmeler front_profile() katmanlarından alınır; sondaki terim ön zemin
+üstündeki serbest suyu sınır yükü olarak geri ekler. Nq=1, Ngamma=0'dır.
+Taşıma gücünün eğik yük girdisi V ve talep paydası kaldırma düşülmemiş toplam
+yükü kullanır. Mevcut kaldırmalı temas eksantrisitesi/B_eff konvansiyonu korunur;
+kayma/devrilme ve temas qmax/qmin hesaplarında kaldırma mevcut biçimde etkindir.
+Kısmi katsayı hesabında aynı ayrım, tüm olumsuz yükler katsayılandıktan sonra
+uygulanır. Drene temel hesabı değişmez.
 
 Bu formül kazılmış üst katmanları çıkarır. Su tabanın altındaysa N_gamma terimi
 için geçiş bölgesi düzeltmesi yoktur (mevcut temel profil adaptörünün yaklaşımı).
@@ -244,6 +309,9 @@ katılır. ASD'de azaltılmış Pp eklenir; kısmi katsayıda ayrıca kodun pasi
 ve direnç böleni uygulanır. Varsayılan passive_reduction=0.5 için mevcut kaynak
 paketinde doğrulanmış normatif değer yoktur; bu bir ayardır, standart katsayısı
 olarak etiketlenmez. Kapalıysa pasif sıfırdır ve ön dayanım parametresi istenmez.
+Etkin olduğunda raporda şu Assumption kaydı bulunur:
+"Pasif azaltma katsayısı = {x} — mühendis seçimi (yayımlanmış kaynak gösterilmedi)";
+kaynak etiketi "Kullanıcı girdisi"dir. Katsayı yönetmelik değeri olarak sunulmaz.
 
 Dış denge mevcut ASD motorunu kullanır:
 
@@ -261,20 +329,27 @@ delta_base verilmemişse mevcut FoundationSoil sözleşmesi gereği phi kullanı
 BASIC aktarımı delta_base=atan(min(tan(phi),0.6)) yazar (TBDY Tablo16.3).
 |e|<=B/6 ise qmax/min=V/B*(1±6|e|/B). B/6<|e|<B/2 ise
 qmax=2V/[3(B/2-|e|)], qmin=0. Bileşke taban dışındaysa taşıma gücü sağlanmaz.
-V<=0 halinde net basınç kaybı açık hata verir. Tek yönde dış denge kabulü korunur;
-önden baskın su yükü için ters yönde ayrı duvar tasarımı yapılmış sayılmaz.
+V<=0 halinde net basınç kaybı açık hata verir. E4 analyze_wall_layered /
+verify_wall_layered adaptörlerinde H_load=-sum(Fx)<=0 ise
+"Önden baskın yatay yük: ters yönde kayma/devrilme tahkiki bu sürümde yok"
+GeoTekError hatası verilir; sonsuz GS raporlanmaz. Pasif kayma direnci bu etki
+toplamına katılmaz. Kısmi katsayılarda tasarım etki grupları da denetlenir.
+Eski evaluate_checks davranışı değişmez.
 
 Taşıma gücü mevcut bearing_capacity fonksiyonudur (şerit temel):
 
 ```text
 q_ult = c*Nc*dc*ic + q_front_eff*Nq*dq*iq
         + 0.5*gamma_foundation*B_eff*Ngamma*dg*ig
-Q_ult=q_ult*B_eff; FS_bearing=Q_ult/V
+Q_ult=q_ult*B_eff; FS_bearing=Q_ult/V_bearing
 Nq=exp(pi*tan(phi))*tan(45+phi/2)^2; Nc=(Nq-1)/tan(phi)
 Ngamma=(Nq-1)*tan(1.4phi) [Meyerhof]
 Ngamma=1.5*(Nq-1)*tan(phi) [Hansen]
 Ngamma=2*(Nq+1)*tan(phi) [Vesic]
 ```
+
+Bu gösterimde drene durumda q_front_eff ve net V; drenajsız durumda yukarıdaki
+q_front_total ve kaldırma düşülmemiş V_bearing_total kullanılır.
 
 Şerit temel şekil çarpanları 1'dir. k=D/B (D/B<=1), aksi halde atan(D/B).
 Vesic/Hansen drene kolda dq=1+2tan(phi)*(1-sin(phi))^2*k, dg=1;
@@ -333,7 +408,9 @@ Palplanşta kullanılmayan EQU birleşiminin katsayıları istenmez.
 ## 8. Global stabilite
 
 bands_from_structure tutulan profilin taban üstü bantlarını ve doğal profilin
-taban altı bantlarını verir; band_top=H-layer_top. Ağırlıklar seçilen YASS'ta
+taban altı bantlarını verir; band_top=H-layer_top. Tutulan bant ağırlıkları kendi
+seçilen YASS'ında, temel bant ağırlıkları ise Bishop modelindeki aynı yüksek su
+zarfında z_water=min(z_front,z_retained), y_water=H-z_water olacak biçimde
 gamma/gamma_sat olarak bölünür. YASS z=0 ise eğimli yüzeyin z=0 üstündeki
 kısmında kuru ağırlığı korumak için sıfır kalınlıklı bir üst bant işareti tutulur.
 Duvar ve taşıdığı zemin yükü, toplam kuvvet ve
@@ -478,7 +555,7 @@ verification/test_walls_layered_hand.py bu sayıları mutlak 1e-6 toleransla ist
   mühendis kararı gerekir. E4 bunu bir yönetmelik değeri olarak sunmaz.
 - Drenajsız deprem itkisi, M-O sınırı dışındaki katmanlar, hidrodinamik/sızma,
   iki tabakalı taşıma gücü ve iki boyutlu farklı ön/arka global bölgeleri kapsam dışıdır.
-- Beklenen zorunlu regresyon: 5 m BASIC duvar, B=4.60 m, yönetici seismic:bearing;
-  her kontrol size_wall'a göre bağıl 1e-4 içinde. Bu ortamda çalıştırılarak teyit edilmedi.
-- Kullanıcının çalıştıracağı komut: `.venv\Scripts\python.exe -m pytest -q`.
-  Test raporu ve iki bağımsız inceleme, onay kapısı 2 için açık kabul işleridir.
+- Doğrulama: 523 test geçti; 5 m BASIC duvar B=4.60 m ve yönetici seismic:bearing
+  korundu; regresyondaki en büyük bağıl fark 3.6e-15'tir.
+- İki bağımsız inceleme (Claude Opus, gpt-6-astra) el hesabını yeniden hesapladı.
+  Formül seçimi gerektiren bulgular onay kapısı 2'de mühendis kararını bekler.

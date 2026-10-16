@@ -341,3 +341,70 @@ def test_passive_reduction_is_labelled_as_engineer_input():
     assert len(assumptions) == 1 and assumptions[0].source == "Kullanıcı girdisi"
     structure.settings.use_passive = False
     assert not any(a.text.startswith("Pasif azaltma katsayısı =") for a in check_structure(project, "wall").assumptions)
+
+
+@pytest.mark.parametrize("static_case,static_depth", [("insitu", 4.0), ("design", 3.0)])
+@pytest.mark.parametrize("override_side", [None, "retained", "front"])
+def test_seismic_heads_keep_profile_fallback_with_one_side_override(static_case, static_depth, override_side):
+    project = _project(advanced=True)
+    structure = project.structure("wall")
+    structure.inputs.gwt_case = static_case
+    structure.soil.profile.gwt = GroundwaterCondition(depth_insitu=4, depth_design=3, depth_seismic=2)
+    structure.soil.gwt_retained = structure.soil.gwt_front = None
+    if override_side is not None:
+        setattr(structure.soil, f"gwt_{override_side}", GroundwaterCondition(
+            depth_insitu=3.5, depth_design=2.5, depth_seismic=1.5))
+    before = project.model_dump_json()
+    result = check_structure(project, "wall")
+    assert project.model_dump_json() == before
+    for state, profile_depth in [("static", static_depth), ("seismic", 2.0)]:
+        retained_depth = profile_depth - 0.5 if override_side == "retained" else profile_depth
+        front_depth = profile_depth - 0.5 if override_side == "front" else profile_depth
+        water = next(f for f in result.analyses[state].forces if f.name == "Water (retained)")
+        uplift = next(f for f in result.analyses[state].forces if f.name == "Uplift")
+        assert -water.fx == pytest.approx(GAMMA_W * (5 - retained_depth)**2 / 2)
+        assert result.pressures[f"{state}:retained"].component("water")[0] == pytest.approx(-water.fx)
+        assert uplift.fy == pytest.approx(
+            structure.geometry.width * GAMMA_W * ((5 - front_depth) + (5 - retained_depth)) / 2)
+
+
+@pytest.mark.parametrize("sds,r,seismic_depth,expected_warning", [
+    (0.5, None, 19.0, True),  # Only the foundation is wet in the seismic case.
+    (0.5, None, 20.0, False),  # Water at the profile bottom wets no finite layer.
+    (0.5, None, 100.0, False),  # Static saturation must not trigger this warning.
+    (0.5, 0.8, 19.0, False),  # Preserve an explicitly chosen r, including r < 1.
+    (None, None, 19.0, False),  # No seismic analysis, even with a wet profile.
+])
+def test_default_r_warning_uses_seismic_layer_overlap_and_preserves_input(sds, r, seismic_depth, expected_warning):
+    project = _project(advanced=True, sds=sds)
+    structure = project.structure("wall")
+    structure.inputs.r = r
+    structure.soil.profile.gwt = GroundwaterCondition(depth_insitu=3, depth_design=3, depth_seismic=seismic_depth)
+    structure.soil.gwt_retained = structure.soil.gwt_front = None
+    before = project.model_dump_json()
+    result = check_structure(project, "wall")
+    warnings = [w for w in result.warnings if "16.12.2.2" in w]
+    assert len(warnings) == int(expected_warning)
+    if warnings:
+        assert ("TBDY 2018 16.12.2.2 — boşluk suyu basıncı artışı olabilecek durumlarda "
+                "r ≤ 1 gerekebilir; r değerini kontrol edin.") in warnings[0]
+    assert project.model_dump_json() == before
+    if sds is None:
+        assert result.kh is None and result.kv is None
+    else:
+        kh = 0.4 * sds / (r if r is not None else 1.5)
+        assert result.kh == pytest.approx(kh)
+        assert result.kv == pytest.approx(kh / 2)
+
+
+@pytest.mark.parametrize("reduction", [0.25, 0.75])
+def test_passive_engineer_assumption_reports_custom_reduction_once(reduction):
+    project = _project(advanced=True, sds=None)
+    structure = project.structure("wall")
+    structure.settings.use_passive = True
+    structure.settings.passive_reduction = reduction
+    result = check_structure(project, "wall")
+    assumptions = [a for a in result.assumptions if a.text.startswith("Pasif azaltma katsayısı =")]
+    assert [(a.text, a.source) for a in assumptions] == [
+        (f"Pasif azaltma katsayısı = {reduction:g} — mühendis seçimi (yayımlanmış kaynak gösterilmedi)",
+         "Kullanıcı girdisi")]

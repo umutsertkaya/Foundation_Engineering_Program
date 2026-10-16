@@ -476,6 +476,7 @@ def verify_wall_layered(geometry, soil, loads, settings, *, seismic: bool,
         if vb <= 0:
             raise GeoTekError(f"{case.name}: bearing vertical load is not compressive")
         eb = B / 2 - (mrb - mob) / vb
+        vb_contact = vb
         vb = _bearing_vertical_load(unf, fd)
         bearing = None
         if abs(eb) < B / 2:
@@ -489,9 +490,9 @@ def verify_wall_layered(geometry, soil, loads, settings, *, seismic: bool,
                                      f"q_ult = {bearing.q_ult:.3f} kPa, B' = {bearing.B_eff:.3f} m")
         else:
             checks["bearing"] = CheckResult("bearing", 0.0, 1.0, False, "Resultant outside the base")
-        qmax = (vb / B * (1 + 6 * abs(eb) / B) if abs(eb) <= B / 6 else
-                2 * vb / (3 * (B / 2 - abs(eb))) if abs(eb) < B / 2 else math.inf)
-        qmin = max(vb / B * (1 - 6 * abs(eb) / B), 0.0) if abs(eb) <= B / 6 else 0.0
+        qmax = (vb_contact / B * (1 + 6 * abs(eb) / B) if abs(eb) <= B / 6 else
+                2 * vb_contact / (3 * (B / 2 - abs(eb))) if abs(eb) < B / 2 else math.inf)
+        qmin = max(vb_contact / B * (1 - 6 * abs(eb) / B), 0.0) if abs(eb) <= B / 6 else 0.0
         results.append(WallAnalysis(
             case=case.name, width=B, forces=stab + ([passive] if passive is not None else []),
             sum_v=v, sum_h=h, m_resisting=mr, m_overturning=mo, eccentricity=e,
