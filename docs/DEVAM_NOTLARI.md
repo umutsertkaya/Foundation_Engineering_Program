@@ -1,6 +1,6 @@
 # GeoTek v2: devam notları
 
-Son güncelleme: 2026-10-17 (E4 chunk C tamamlandı). Arka planda çalışan ajan ya da model yok.
+Son güncelleme: 2026-10-17. Kapı 2 onaylandı. Modüler yeniden yapılanma `restructure/modules` dalında sürüyor; plan `docs/plans/MODULER_YAPI.md`.
 
 Yönergeler:
 - Orkestra yönergesi: `docs/ORKESTRA_PROMPT.md`.
@@ -16,7 +16,8 @@ Yönergeler:
 | E1 model + göç 1.2 | Tamam |
 | F1 web iskeleti | Tamam. Kapı 3 **onaylanmadı**; kullanıcı zemin yönetimini istedi, bkz. "Zemin arayüzü" |
 | Zemin arayüzü (F3'ün öne çekilen kısmı) | Tamam: zemin kolonu ve desenler, katman editörü, profil ana-detay ekranı, duvar Zemin adımında bölgeli kesit. Ekran görüntüleri `docs/qa/soil/`. Kullanıcının görsel onayı bekleniyor |
-| E4 katmanlı duvar motoru | Tamam: chunk C dahil (620 pytest, 35 web testi, typecheck geçiyor). **Kapı 2 kapanışı kullanıcı onayı bekliyor** |
+| E4 katmanlı duvar motoru | Tamam: chunk C dahil (620 pytest, 35 web testi, typecheck geçiyor). Kapı 2 kullanıcı tarafından onaylandı (2026-10-17) |
+| Modüler yapı (başlangıç ekranı → ana menü → modüller) | Sürüyor; parçalar ve yapı kapıları Y1/Y2 için `docs/plans/MODULER_YAPI.md`. ORKESTRA_PROMPT karar 7'deki iş akışı çubuğunun yerini alır |
 | E2, E3, A1, F2, F4–F6, T1, Q1, K1, D1 | Başlamadı |
 
 ## Kapı 2'de kullanıcının verdiği kararlar
