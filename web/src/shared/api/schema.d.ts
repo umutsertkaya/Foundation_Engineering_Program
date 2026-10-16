@@ -79,6 +79,9 @@ export interface paths {
         /**
          * Put Settings
          * @description Persist library_dir and language (recent is server-managed and ignored).
+         *
+         *     The new library is resolved and created before anything is persisted; failure
+         *     returns 400 invalid_path and leaves the old settings in place.
          */
         put: operations["put_settings"];
         post?: never;
@@ -143,7 +146,7 @@ export interface paths {
         put?: never;
         /**
          * Open Library Project
-         * @description Open a library project as the current project.
+         * @description Open a library project as the current project (the old one stays on failure).
          */
         post: operations["open_library_project"];
         delete?: never;
@@ -203,7 +206,7 @@ export interface paths {
         put?: never;
         /**
          * Export Library Project
-         * @description Copy the stored project file to a destination outside the library.
+         * @description Copy the stored project file outside the library; 409 file_exists unless overwrite.
          */
         post: operations["export_library_project"];
         delete?: never;
@@ -1472,6 +1475,12 @@ export interface components {
         ExportRequest: {
             /** Dest */
             dest: string;
+            /**
+             * Overwrite
+             * @description Replace an existing destination file.
+             * @default false
+             */
+            overwrite: boolean;
         };
         /**
          * ExportResponse

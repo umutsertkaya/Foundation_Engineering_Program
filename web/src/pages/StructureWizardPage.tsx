@@ -29,6 +29,7 @@ import {
   size_wall,
   update_structure,
 } from "../shared/api/client";
+// TODO: this page moves into the walls module; replace the mock default geometry with module-owned defaults then.
 import { MOCK_CANTILEVER_5M } from "../shared/api/mock/data";
 import type {
   CantileverGeometry,

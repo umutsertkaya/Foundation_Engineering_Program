@@ -1,7 +1,8 @@
 import i18n from "i18next";
 import { initReactI18next } from "react-i18next";
 import { get_i18n } from "../shared/api/client";
-import { getMockCatalog } from "../shared/api/mock";
+import enCatalog from "../../../geotek/i18n/en.json";
+import trCatalog from "../../../geotek/i18n/tr.json";
 import type { Language } from "../shared/api/types";
 
 const LANG_STORAGE_KEY = "geotek.lang";
@@ -11,7 +12,7 @@ const moduleFragments = import.meta.glob<Record<string, string>>(
 );
 
 export function getBundledCatalog(lang: Language): Record<string, string> {
-  const catalog = { ...getMockCatalog(lang) };
+  const catalog: Record<string, string> = { ...(lang === "en" ? enCatalog : trCatalog) };
   for (const [path, fragment] of Object.entries(moduleFragments)) {
     if (path.endsWith(`/${lang}.json`)) Object.assign(catalog, fragment);
   }

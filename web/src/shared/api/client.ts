@@ -1,4 +1,3 @@
-import { mockRequest } from "./mock";
 import type {
   ActiveProfileUpdate,
   CPTProcessedDTO,

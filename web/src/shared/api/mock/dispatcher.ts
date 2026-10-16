@@ -19,7 +19,7 @@ export function rewriteModulePath(path: string): string {
   if (!match) return path;
   const [, moduleId, rest] = match;
   if (moduleId === "soil") return rest;
-  if (moduleId === "liquefaction") return rest.startsWith("/run") ? `/liquefaction${rest.slice(4)}` : path;
+  if (moduleId === "liquefaction") return path.split("?")[0] === "/m/liquefaction/run" ? "/liquefaction" : path;
   return rest.startsWith("/structures/") ? rest : path;
 }
 
@@ -39,5 +39,19 @@ export async function mockRequest(method: string, path: string, body?: unknown):
     const result = await handler(method, path, body);
     if (result !== NOT_HANDLED) return result as MockResponse;
   }
-  return legacyMockRequest(method, rewriteModulePath(path), body);
+  const rewritten = rewriteModulePath(path);
+  const response = await legacyMockRequest(method, rewritten, body);
+  if (response.status === 501 && rewritten !== path) {
+    // The legacy mock has no handler for this module route: name the real path, not the rewritten one.
+    return {
+      status: 501,
+      data: {
+        code: "not_implemented",
+        message: `Mock endpoint not implemented: ${method.toUpperCase()} ${path.split("?")[0]} (Mock)`,
+        details: {},
+        missing_factors: [],
+      },
+    };
+  }
+  return response;
 }

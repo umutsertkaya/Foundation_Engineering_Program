@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   ActionIcon,
   Badge,
@@ -11,6 +11,7 @@ import {
   NumberInput,
   Paper,
   SegmentedControl,
+  Select,
   SimpleGrid,
   Stack,
   Table,
@@ -30,13 +31,14 @@ import {
 } from "@tabler/icons-react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
-import { set_project_site, update_project_meta } from "../../shared/api/client";
-import type { Language, SiteSeismic } from "../../shared/api/types";
+import { list_codes, set_project_site, update_project_meta } from "../../shared/api/client";
+import type { DesignCodeSummary, Language, ProjectMetaPatch, SiteSeismic } from "../../shared/api/types";
 import { EmptyState } from "../../shared/components/EmptyState";
 import { ErrorAlert } from "../../shared/components/ErrorAlert";
 import { loadLanguageCatalog } from "../i18n";
 import { useModules } from "../moduleRegistry";
 import { useProjectSession } from "../ProjectProvider";
+import { ThemeToggle } from "../ThemeToggle";
 
 const LANG_STORAGE_KEY = "geotek.lang";
 
@@ -48,6 +50,10 @@ interface SiteDraft {
   site_class: string;
 }
 
+function siteKey(site: Omit<SiteSeismic, "source">): string {
+  return JSON.stringify([site.pga_g ?? null, site.mw ?? null, site.sds ?? null, site.sd1 ?? null, site.site_class ?? null]);
+}
+
 function toNullableNumber(val: number | string): number | null {
   if (typeof val === "number") {
     return Number.isFinite(val) ? val : null;
@@ -56,6 +62,16 @@ function toNullableNumber(val: number | string): number | null {
   if (!trimmed) return null;
   const parsed = Number(trimmed);
   return Number.isFinite(parsed) ? parsed : null;
+}
+
+function draftToSite(draft: SiteDraft): Omit<SiteSeismic, "source"> {
+  return {
+    pga_g: toNullableNumber(draft.pga_g),
+    mw: toNullableNumber(draft.mw),
+    sds: toNullableNumber(draft.sds),
+    sd1: toNullableNumber(draft.sd1),
+    site_class: draft.site_class.trim() || null,
+  };
 }
 
 export function LauncherPage() {
@@ -80,6 +96,14 @@ export function LauncherPage() {
   const [metaNumber, setMetaNumber] = useState("");
   const [metaEngineer, setMetaEngineer] = useState("");
   const [metaDesignCode, setMetaDesignCode] = useState("");
+  const [metaError, setMetaError] = useState<unknown>(null);
+  const [codes, setCodes] = useState<DesignCodeSummary[]>([]);
+
+  useEffect(() => {
+    void list_codes().then(setCodes).catch(() => undefined);
+  }, []);
+  const defaultCode = codes[0]?.id ?? "";
+  const codeOptions = useMemo(() => codes.map((c) => ({ value: c.id, label: c.name })), [codes]);
 
   // Site seismic form state
   const initialSiteDraft: SiteDraft = {
@@ -92,9 +116,17 @@ export function LauncherPage() {
   const [siteDraft, setSiteDraft] = useState<SiteDraft>(initialSiteDraft);
   const siteDraftRef = useRef<SiteDraft>(initialSiteDraft);
   const [savingSite, setSavingSite] = useState(false);
+  // Last site values known to be on the server; blur only saves when the draft differs from them.
+  const baselineSiteKey = useRef<string>(project ? siteKey(project.site) : "");
+  const siteFocused = useRef(false);
 
   useEffect(() => {
     if (!project) return;
+    const serverKey = siteKey(project.site);
+    const draftKey = siteKey(draftToSite(siteDraftRef.current));
+    // Never overwrite what the user is typing, nor an unsaved (e.g. failed) draft.
+    if (siteFocused.current || (draftKey !== baselineSiteKey.current && draftKey !== serverKey)) return;
+    baselineSiteKey.current = serverKey;
     const nextDraft: SiteDraft = {
       pga_g: project.site.pga_g ?? "",
       mw: project.site.mw ?? "",
@@ -162,7 +194,8 @@ export function LauncherPage() {
     setMetaNameError(false);
     setMetaNumber(project?.meta.number ?? "");
     setMetaEngineer(project?.meta.engineer ?? "");
-    setMetaDesignCode(project?.meta.design_code ?? "asd");
+    setMetaDesignCode(project?.meta.design_code || defaultCode);
+    setMetaError(null);
     setEditMetaOpen(true);
   };
 
@@ -172,39 +205,42 @@ export function LauncherPage() {
       setMetaNameError(true);
       return;
     }
+    // Only send what actually changed; an unchanged form is not an edit.
+    const current = project?.meta;
+    const patch: ProjectMetaPatch = {};
+    if (trimmedName !== (current?.name ?? "")) patch.name = trimmedName;
+    if (metaNumber.trim() !== (current?.number ?? "")) patch.number = metaNumber.trim();
+    if (metaEngineer.trim() !== (current?.engineer ?? "")) patch.engineer = metaEngineer.trim();
+    const code = metaDesignCode.trim();
+    if (code && code !== (current?.design_code ?? "")) patch.design_code = code;
+    if (Object.keys(patch).length === 0) {
+      setEditMetaOpen(false);
+      return;
+    }
     setSavingMeta(true);
-    setError(null);
+    setMetaError(null);
     try {
-      await update_project_meta({
-        name: trimmedName,
-        number: metaNumber.trim(),
-        engineer: metaEngineer.trim(),
-        design_code: metaDesignCode.trim() || undefined,
-      });
-      await refresh();
+      await update_project_meta(patch);
+      await refresh({ silent: true });
       setEditMetaOpen(false);
     } catch (err) {
-      setError(err);
+      setMetaError(err);
     } finally {
       setSavingMeta(false);
     }
   };
 
   const handleSaveSite = async () => {
-    const draft = siteDraftRef.current;
-    const payload: SiteSeismic = {
-      pga_g: toNullableNumber(draft.pga_g),
-      mw: toNullableNumber(draft.mw),
-      sds: toNullableNumber(draft.sds),
-      sd1: toNullableNumber(draft.sd1),
-      site_class: draft.site_class.trim() || null,
-      source: project?.site.source ?? "TBDY2018",
-    };
+    const site = draftToSite(siteDraftRef.current);
+    const key = siteKey(site);
+    if (key === baselineSiteKey.current) return;
+    const payload: SiteSeismic = { ...site, source: project?.site.source ?? "TBDY2018" };
     setSavingSite(true);
     setError(null);
     try {
       await set_project_site(payload);
-      await refresh();
+      baselineSiteKey.current = key;
+      await refresh({ silent: true });
     } catch (err) {
       setError(err);
     } finally {
@@ -251,6 +287,7 @@ export function LauncherPage() {
                   { value: "en", label: "EN" },
                 ]}
               />
+              <ThemeToggle />
               <Button
                 size="xs"
                 variant="subtle"
@@ -264,7 +301,7 @@ export function LauncherPage() {
           </Group>
         </Paper>
 
-        {error != null && <ErrorAlert error={error} onRetry={() => void refresh()} />}
+        {error != null && <ErrorAlert error={error} onRetry={() => void refresh({ silent: true }).catch(() => undefined)} />}
 
         {/* Main 2-column content */}
         <Grid gutter="md" align="flex-start">
@@ -321,7 +358,7 @@ export function LauncherPage() {
                           pr={0}
                           style={{ textTransform: "uppercase" }}
                         >
-                          {project?.meta.design_code || "asd"}
+                          {project?.meta.design_code || defaultCode || t("web.common.none")}
                         </Table.Td>
                       </Table.Tr>
                     </Table.Tbody>
@@ -344,7 +381,13 @@ export function LauncherPage() {
 
               {/* Site Seismic Card */}
               <Card withBorder padding="md" radius="sm">
-                <Stack gap="xs">
+                <Stack
+                  gap="xs"
+                  onFocus={() => { siteFocused.current = true; }}
+                  onBlur={(event) => {
+                    siteFocused.current = event.currentTarget.contains(event.relatedTarget as Node | null);
+                  }}
+                >
                   <Group justify="space-between" align="center">
                     <Title order={4}>{t("launcher.site_heading")}</Title>
                     <Tooltip label={t("ui.apply")}>
@@ -482,6 +525,7 @@ export function LauncherPage() {
         size="md"
       >
         <Stack gap="sm">
+          {metaError != null && <ErrorAlert error={metaError} />}
           <TextInput
             required
             label={t("web.project.name")}
@@ -504,11 +548,21 @@ export function LauncherPage() {
             value={metaEngineer}
             onChange={(e) => setMetaEngineer(e.currentTarget.value)}
           />
-          <TextInput
-            label={t("start.new.design_code")}
-            value={metaDesignCode}
-            onChange={(e) => setMetaDesignCode(e.currentTarget.value)}
-          />
+          {codeOptions.length > 0 ? (
+            <Select
+              label={t("start.new.design_code")}
+              value={metaDesignCode || null}
+              onChange={(val) => { if (val) setMetaDesignCode(val); }}
+              data={codeOptions}
+              allowDeselect={false}
+            />
+          ) : (
+            <TextInput
+              label={t("start.new.design_code")}
+              value={metaDesignCode}
+              onChange={(e) => setMetaDesignCode(e.currentTarget.value)}
+            />
+          )}
           <Group justify="flex-end" gap="xs" mt="xs">
             <Button variant="default" onClick={() => setEditMetaOpen(false)}>
               {t("web.common.cancel")}

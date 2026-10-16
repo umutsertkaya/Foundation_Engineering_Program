@@ -17,7 +17,7 @@ Yönergeler:
 | F1 web iskeleti | Tamam. Kapı 3 **onaylanmadı**; kullanıcı zemin yönetimini istedi, bkz. "Zemin arayüzü" |
 | Zemin arayüzü (F3'ün öne çekilen kısmı) | Tamam: zemin kolonu ve desenler, katman editörü, profil ana-detay ekranı, duvar Zemin adımında bölgeli kesit. Ekran görüntüleri `docs/qa/soil/`. Kullanıcının görsel onayı bekleniyor |
 | E4 katmanlı duvar motoru | Tamam: chunk C dahil (620 pytest, 35 web testi, typecheck geçiyor). Kapı 2 kullanıcı tarafından onaylandı (2026-10-17) |
-| Modüler yapı (başlangıç ekranı → ana menü → modüller) | Sürüyor; parçalar ve yapı kapıları Y1/Y2 için `docs/plans/MODULER_YAPI.md`. ORKESTRA_PROMPT karar 7'deki iş akışı çubuğunun yerini alır |
+| Modüler yapı (başlangıç ekranı → ana menü → modüller) | C0–C6, W1–W4 tamam (`restructure/modules` dalı). Başlangıç/kütüphane, ana menü, 4 modül kabuğu, gerçek oturum+kütüphane API'si, şema 1.3, modül i18n parçaları. İncelemeler (gpt-6-astra backend, Opus web, Sonnet görsel QA) düzeltildi. 827 pytest, 69 web testi. Ekranlar `docs/qa/shell/`. **Yapı kapısı Y1 kullanıcı onayı bekliyor**; sonra M1 (zemin sayfalarının modüle taşınması). Plan `docs/plans/MODULER_YAPI.md`, sözleşme `docs/contracts/CORE_SHELL_API.md` |
 | E2, E3, A1, F2, F4–F6, T1, Q1, K1, D1 | Başlamadı |
 
 ## Kapı 2'de kullanıcının verdiği kararlar

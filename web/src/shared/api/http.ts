@@ -1,4 +1,3 @@
-import { mockRequest } from "./mock/index";
 import type { ApiErrorDTO, MissingFactorDTO } from "./types";
 
 const BASE_URL = "/api";
@@ -72,6 +71,8 @@ export function parseApiError(status: number, body: unknown): ApiError {
 
 export async function request<T>(method: string, path: string, body?: unknown): Promise<T> {
   if (isMockMode()) {
+    // Dynamic import keeps the mock out of the production bundle's main chunk.
+    const { mockRequest } = await import("./mock/index");
     const { status, data } = await mockRequest(method, path, body);
     if (status >= 400) {
       throw parseApiError(status, data);

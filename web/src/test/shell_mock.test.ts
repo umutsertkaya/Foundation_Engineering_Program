@@ -1,5 +1,5 @@
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { ApiError, get_project, setMockMode, update_project_meta } from "../shared/api/client";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { ApiError, get_project, set_project_site, setMockMode, update_project_meta } from "../shared/api/client";
 import {
   close_project,
   create_library_project,
@@ -25,6 +25,7 @@ beforeEach(() => {
 });
 
 afterEach(() => {
+  vi.restoreAllMocks();
   resetCoreMock();
   setMockMode(null);
 });
@@ -55,7 +56,7 @@ describe("core shell mock", () => {
     const project = await create_library_project({ name: "İğdır Şev Çözümü", number: "W2-1", engineer: "Özgür", language: "en" });
     expect(project.file).toBe("igdir-sev-cozumu.gtk");
     expect(await list_library()).toContainEqual(project);
-    expect(await get_session()).toEqual({ open: true, file: project.file, dirty: true });
+    expect(await get_session()).toEqual({ open: true, file: project.file, dirty: false });
     expect((await get_project()).meta).toMatchObject({ name: project.name, number: "W2-1", engineer: "Özgür", language: "en" });
     expect((await get_project()).counts.profiles).toBeGreaterThan(0);
     const second = await create_library_project({ name: "İğdır Şev Çözümü" });
@@ -66,17 +67,59 @@ describe("core shell mock", () => {
   it("renames, duplicates and deletes while refusing to delete the open project", async () => {
     const project = await create_library_project({ name: "Deneme", number: "42", engineer: "Ece" });
     const renamed = await rename_library_project(project.file, "Yeni Ad");
-    expect(renamed).toMatchObject({ file: project.file, name: "Yeni Ad", number: "42", engineer: "Ece" });
+    // The file follows the name and the open session follows the file; none of this is an edit.
+    expect(renamed).toMatchObject({ file: "yeni-ad.gtk", name: "Yeni Ad", number: "42", engineer: "Ece" });
+    expect((await list_library()).some(({ file }) => file === project.file)).toBe(false);
+    expect(await get_session()).toEqual({ open: true, file: renamed.file, dirty: false });
     expect((await get_project()).meta.name).toBe("Yeni Ad");
-    const copy = await duplicate_library_project(project.file);
-    expect(copy.file).not.toBe(project.file);
+    const copy = await duplicate_library_project(renamed.file);
+    expect(copy.file).not.toBe(renamed.file);
     expect(copy).toMatchObject({ number: "42", engineer: "Ece" });
     expect(await list_library()).toContainEqual(copy);
-    expect((await get_session()).file).toBe(project.file);
-    await expect(delete_library_project(project.file)).rejects.toMatchObject({ status: 409, code: "project_open" });
+    expect(await get_session()).toEqual({ open: true, file: renamed.file, dirty: false });
+    await expect(delete_library_project(renamed.file)).rejects.toMatchObject({ status: 409, code: "project_open" });
     expect((await delete_library_project(copy.file)).trash_path).toContain(`.trash/${copy.file}`);
     expect((await list_library()).some(({ file }) => file === copy.file)).toBe(false);
     await expect(open_library_project(copy.file)).rejects.toMatchObject({ status: 404, code: "not_found" });
+    expect((await get_session()).dirty).toBe(false);
+  });
+
+  it("does not mark the session dirty for library operations on a dirty-free session", async () => {
+    await import_library_project("C:/Export/other.gtk");
+    await duplicate_library_project("caglayan-sev.gtk");
+    await rename_library_project("kiyi-iksa.gtk", "Başka Ad");
+    await delete_library_project("caglayan-sev.gtk");
+    expect(await get_session()).toEqual({ open: true, file: "ornek-proje.gtk", dirty: false });
+  });
+
+  it("marks PATCH meta and PUT site dirty only when a value changes", async () => {
+    const project = await get_project();
+    await update_project_meta({ name: project.meta.name, engineer: project.meta.engineer });
+    await set_project_site({ ...project.site });
+    expect((await get_session()).dirty).toBe(false);
+    await set_project_site({ ...project.site, pga_g: 0.42 });
+    expect((await get_session()).dirty).toBe(true);
+    await save_current_project();
+    await set_project_site({ ...project.site, pga_g: 0.42 });
+    expect((await get_session()).dirty).toBe(false);
+    await update_project_meta({ name: "Başka" });
+    expect((await get_session()).dirty).toBe(true);
+  });
+
+  it("refuses to overwrite an existing export unless asked and validates the suffix", async () => {
+    const file = "ornek-proje.gtk";
+    expect(await export_library_project(file, "C:/Export/a")).toEqual({ path: "C:/Export/a.gtk" });
+    await expect(export_library_project(file, "C:/Export/a.gtk")).rejects.toMatchObject({ status: 409, code: "file_exists" });
+    expect(await export_library_project(file, "C:/Export/a.gtk", true)).toEqual({ path: "C:/Export/a.gtk" });
+    await expect(export_library_project(file, "C:/Export/a.txt", true)).rejects.toMatchObject({ status: 400, code: "invalid_path" });
+    const body = vi.fn();
+    vi.spyOn(globalThis, "fetch").mockImplementation(async (_url, init) => {
+      body(JSON.parse(String(init?.body)));
+      return new Response(JSON.stringify({ path: "x" }), { status: 200 });
+    });
+    setMockMode(false);
+    await export_library_project(file, "C:/Export/b.gtk", true);
+    expect(body).toHaveBeenCalledWith({ dest: "C:/Export/b.gtk", overwrite: true });
   });
 
   it("rejects GET /project after close and restores metadata on reopen", async () => {

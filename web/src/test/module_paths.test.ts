@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { discoverModules } from "../app/moduleRegistry";
-import { list_investigations, list_profiles, list_wall_types, setMockMode } from "../shared/api/client";
+import { list_investigations, list_profiles, list_wall_types, run_liquefaction, setMockMode } from "../shared/api/client";
 import { rewriteModulePath } from "../shared/api/mock/dispatcher";
 import { mockRequest } from "../shared/api/mock";
 
@@ -16,6 +16,25 @@ describe("module API paths in the mock", () => {
     expect(rewriteModulePath("/m/sheet_pile/structures/s1/design")).toBe("/structures/s1/design");
     expect(rewriteModulePath("/structures/s1")).toBe("/structures/s1");
     expect(rewriteModulePath("/m/walls/wall-types")).toBe("/m/walls/wall-types");
+    // Only the exact run route is rewritten, never a prefix match.
+    expect(rewriteModulePath("/m/liquefaction/runs")).toBe("/m/liquefaction/runs");
+    expect(rewriteModulePath("/m/liquefaction/run/extra")).toBe("/m/liquefaction/run/extra");
+  });
+
+  it("answers routes without a legacy handler with a clear not_implemented 501", async () => {
+    for (const [method, path] of [
+      ["POST", "/m/liquefaction/run"],
+      ["POST", "/m/sheet_pile/structures/s1/design"],
+      ["GET", "/m/soil/cpts/c1/processed"],
+      ["POST", "/m/soil/layering/cpt/c1"],
+      ["GET", "/m/liquefaction/runs"],
+    ]) {
+      const response = await mockRequest(method, path);
+      expect(response.status, path).toBe(501);
+      expect(response.data, path).toMatchObject({ code: "not_implemented" });
+      expect((response.data as { message: string }).message).toContain(path);
+    }
+    await expect(run_liquefaction({} as never)).rejects.toMatchObject({ status: 501, code: "not_implemented" });
   });
 
   it("serves the client wrappers through the module paths", async () => {

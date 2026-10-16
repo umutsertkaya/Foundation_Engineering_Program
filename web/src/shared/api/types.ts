@@ -758,6 +758,12 @@ export interface SessionInfo {
   dirty: boolean;
 }
 
+export interface LibraryExportRequest {
+  dest: string;
+  /** Default false: an existing destination file is a 409 file_exists. */
+  overwrite?: boolean;
+}
+
 export interface NewProjectRequest {
   name: string;
   number?: string;

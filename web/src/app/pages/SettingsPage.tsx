@@ -113,9 +113,10 @@ export function SettingsPage() {
                 <Button
                   variant="light"
                   leftSection={<IconRotate size={16} />}
+                  disabled={libraryDir === initialLibraryDir}
                   onClick={() => setLibraryDir(initialLibraryDir)}
                 >
-                  {t("settings.reset_default")}
+                  {t("settings.revert")}
                 </Button>
               </Group>
 

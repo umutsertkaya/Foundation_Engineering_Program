@@ -59,7 +59,8 @@ export function resetCoreMock(): void {
 resetCoreMock();
 setMockMutationListener((path) => {
   if (path === "/project/new" || path === "/project/open") {
-    session = { open: true, file: null, dirty: true };
+    // Path-based compatibility routes open a project outside the library; opening is never an edit.
+    session = { open: true, file: null, dirty: false };
   } else if (session.open) {
     session.dirty = true;
   }
@@ -72,10 +73,6 @@ function ok(data: unknown): { status: number; data: unknown } {
 // Match legacy's error envelope; http.request converts it into an ApiError.
 function error(status: number, code: string, message: string): { status: number; data: unknown } {
   return { status, data: { code, message: `${message} (Mock)`, details: {}, missing_factors: [] } };
-}
-
-function markDirty(): void {
-  if (session.open) session.dirty = true;
 }
 
 function slug(name: string): string {
@@ -99,6 +96,15 @@ function validFile(file: string): boolean {
 
 function libraryPath(file: string): string {
   return `${settings.library_dir.replace(/[\\/]+$/, "")}/${file}`;
+}
+
+/** A suffix-less destination gets .gtk appended; any other suffix is rejected, never replaced. */
+function exportDestination(dest: string): string | null {
+  const name = dest.split(/[\\/]/).pop() ?? "";
+  if (!name) return null;
+  const dot = name.lastIndexOf(".");
+  if (dot <= 0) return `${dest}.gtk`;
+  return name.slice(dot).toLowerCase() === ".gtk" ? dest : null;
 }
 
 function openRecord(record: LibraryRecord): void {
@@ -148,7 +154,6 @@ export const coreMockHandler: MockHandler = (method, path, body) => {
     });
     library.set(file, record);
     openRecord(record);
-    markDirty();
     return ok(record.entry);
   }
   if (verb === "POST" && cleanPath === "/library/import") {
@@ -162,7 +167,6 @@ export const coreMockHandler: MockHandler = (method, path, body) => {
     const file = uniqueFile(name.slice(0, -4));
     const record = makeRecord(file, meta);
     library.set(file, record);
-    markDirty();
     return ok(record.entry);
   }
 
@@ -181,7 +185,6 @@ export const coreMockHandler: MockHandler = (method, path, body) => {
   if (verb === "DELETE") {
     if (session.open && session.file === file) return error(409, "project_open", "The project is open.");
     library.delete(file);
-    markDirty();
     return ok({ trash_path: libraryPath(`.trash/${file}`) });
   }
   if (match[2] === "open") {
@@ -192,25 +195,40 @@ export const coreMockHandler: MockHandler = (method, path, body) => {
     const copyFile = uniqueFile(`${file.slice(0, -4)}-copy`);
     const copy = makeRecord(copyFile, { ...record.meta, name: `${record.meta.name} (Kopya)` });
     library.set(copyFile, copy);
-    markDirty();
     return ok(copy.entry);
   }
   if (match[2] === "rename") {
     if (typeof payload.name !== "string" || !payload.name.trim()) {
       return error(400, "invalid_file_name", "Project name is required.");
     }
-    const renamed = makeRecord(file, { ...record.meta, name: payload.name });
-    library.set(file, renamed);
-    if (session.file === file) setMockProjectMeta({ name: payload.name });
-    markDirty();
+    // Like the backend: the file follows the new name and an open session follows the file.
+    const stem = slug(payload.name);
+    library.delete(file);
+    const renamedFile = stem === file.slice(0, -4) ? file : uniqueFile(stem);
+    const renamed = makeRecord(renamedFile, { ...record.meta, name: payload.name });
+    library.set(renamedFile, renamed);
+    if (session.open && session.file === file) {
+      session = { ...session, file: renamedFile };
+      setMockProjectMeta({ name: payload.name });
+    }
+    if (renamedFile !== file) {
+      const oldPath = libraryPath(file);
+      const newPath = libraryPath(renamedFile);
+      settings.recent = settings.recent.map((recent) => (recent === oldPath ? newPath : recent));
+    }
     return ok(renamed.entry);
   }
   if (match[2] === "export") {
     if (typeof payload.dest !== "string" || !payload.dest) {
       return error(400, "invalid_file_name", "Export destination is required.");
     }
-    exportsByPath.set(payload.dest, { ...record.meta });
-    return ok({ path: payload.dest });
+    const dest = exportDestination(payload.dest);
+    if (!dest) return error(400, "invalid_path", "Export destination must be a .gtk file path.");
+    if (exportsByPath.has(dest) && payload.overwrite !== true) {
+      return error(409, "file_exists", "The destination file already exists.");
+    }
+    exportsByPath.set(dest, { ...record.meta });
+    return ok({ path: dest });
   }
   return NOT_HANDLED;
 };

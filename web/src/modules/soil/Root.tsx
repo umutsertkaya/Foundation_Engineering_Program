@@ -1,5 +1,5 @@
 import { useTranslation } from "react-i18next";
-import { Route, Routes } from "react-router-dom";
+import { Navigate, Route, Routes } from "react-router-dom";
 import { EmptyState } from "../../shared/components/EmptyState";
 
 function Placeholder({ labelKey }: { labelKey: string }) {
@@ -14,6 +14,7 @@ export default function Root() {
       <Route path="profiles" element={<Placeholder labelKey="soil.nav.profiles" />} />
       <Route path="parameters" element={<Placeholder labelKey="soil.nav.parameters" />} />
       <Route path="classification" element={<Placeholder labelKey="soil.nav.classification" />} />
+      <Route path="*" element={<Navigate to="" replace />} />
     </Routes>
   );
 }

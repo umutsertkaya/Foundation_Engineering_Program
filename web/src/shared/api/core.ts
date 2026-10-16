@@ -1,5 +1,7 @@
 import { request } from "./http";
-import type { AppSettings, LibraryEntry, ModuleInfo, NewProjectRequest, SessionInfo } from "./types";
+import type {
+  AppSettings, LibraryEntry, LibraryExportRequest, ModuleInfo, NewProjectRequest, SessionInfo,
+} from "./types";
 
 export function list_modules(): Promise<ModuleInfo[]> {
   return request<ModuleInfo[]>("GET", "/modules");
@@ -33,8 +35,13 @@ export function rename_library_project(file: string, name: string): Promise<Libr
   return request<LibraryEntry>("POST", `/library/${encodeURIComponent(file)}/rename`, { name });
 }
 
-export function export_library_project(file: string, dest: string): Promise<{ path: string }> {
-  return request<{ path: string }>("POST", `/library/${encodeURIComponent(file)}/export`, { dest });
+export function export_library_project(
+  file: string,
+  dest: string,
+  overwrite = false,
+): Promise<{ path: string }> {
+  const payload: LibraryExportRequest = { dest, overwrite };
+  return request<{ path: string }>("POST", `/library/${encodeURIComponent(file)}/export`, payload);
 }
 
 export function delete_library_project(file: string): Promise<{ trash_path: string }> {

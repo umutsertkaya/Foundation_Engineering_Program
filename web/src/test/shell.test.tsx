@@ -3,7 +3,7 @@ import { MantineProvider } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
 import { IconBox } from "@tabler/icons-react";
 import { act, cleanup, fireEvent, render, renderHook, screen, waitFor } from "@testing-library/react";
-import { MemoryRouter, Route, Routes, useLocation } from "react-router-dom";
+import { MemoryRouter, Navigate, Route, Routes, useLocation } from "react-router-dom";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { App } from "../app/App";
 import i18n, { loadLanguageCatalog } from "../app/i18n";
@@ -138,5 +138,105 @@ describe("module registry sorting", () => {
     expect(sortManifests(manifests).map(({ id }) => id)).toEqual(["a", "b", "z"]);
     expect(manifests.map(({ id }) => id)).toEqual(["z", "b", "a"]);
     expect(sortManifests([])).toEqual([]);
+  });
+});
+
+describe("project session refresh", () => {
+  const refreshManifest: WebModuleManifest = {
+    ...fakeManifest,
+    id: "refreshy",
+    Root: lazy(async () => ({ default: function RefreshRoot() {
+      const { refresh, markDirty, session } = useProjectSession();
+      return <Routes>
+        <Route index element={<div>
+          <input aria-label="Draft field" />
+          <output data-testid="dirty">{String(session.dirty)}</output>
+          <button onClick={() => { void refresh({ silent: true }); }}>silent refresh</button>
+          <button onClick={() => { void refresh(); }}>full refresh</button>
+          <button onClick={markDirty}>mark dirty</button>
+        </div>} />
+        <Route path="*" element={<Navigate to="" replace />} />
+      </Routes>;
+    } })),
+  };
+
+  it("keeps the module mounted (focus and typing survive) across refreshes", async () => {
+    renderApp("/m/refreshy", [refreshManifest]);
+    const input = await screen.findByRole("textbox", { name: "Draft field" });
+    input.focus();
+    fireEvent.change(input, { target: { value: "typing" } });
+    for (const name of ["silent refresh", "full refresh"]) {
+      fireEvent.click(screen.getByRole("button", { name }));
+      expect(screen.queryByRole("progressbar")).not.toBeInTheDocument();
+      await act(async () => { await new Promise((resolve) => setTimeout(resolve, 20)); });
+      expect(screen.getByRole("textbox", { name: "Draft field" })).toBe(input);
+      expect(input).toHaveValue("typing");
+    }
+  });
+
+  it("only reports loading during the initial load", async () => {
+    const seen: boolean[] = [];
+    const { result } = renderHook(() => {
+      const value = useProjectSession();
+      seen.push(value.loading);
+      return value;
+    }, { wrapper: ProjectProvider });
+    await waitFor(() => expect(result.current.loading).toBe(false));
+    const afterInitial = seen.length;
+    await act(async () => { await result.current.refresh(); });
+    await act(async () => { await result.current.refresh({ silent: true }); });
+    expect(seen.slice(afterInitial).every((loading) => !loading)).toBe(true);
+  });
+
+  it("updates only the session through markDirty and refreshSession", async () => {
+    const { result } = renderHook(() => useProjectSession(), { wrapper: ProjectProvider });
+    await waitFor(() => expect(result.current.loading).toBe(false));
+    const project = result.current.project;
+    await update_project_meta({ name: "Changed elsewhere" });
+    expect(result.current.session.dirty).toBe(false);
+    act(() => { result.current.markDirty(); });
+    await waitFor(() => expect(result.current.session.dirty).toBe(true));
+    expect(result.current.project).toBe(project);
+    expect(result.current.loading).toBe(false);
+  });
+
+  it("ignores stale refresh responses that finish after a newer one", async () => {
+    setMockMode(false);
+    const pending: Array<(session: unknown) => void> = [];
+    vi.spyOn(globalThis, "fetch").mockImplementation(async (input) => {
+      const url = String(input);
+      if (url.endsWith("/api/session")) {
+        const session = await new Promise<unknown>((resolve) => { pending.push(resolve); });
+        return new Response(JSON.stringify(session), { status: 200 });
+      }
+      return new Response(JSON.stringify({ meta: { name: "P" }, site: {}, counts: {} }), { status: 200 });
+    });
+    const { result } = renderHook(() => useProjectSession(), { wrapper: ProjectProvider });
+    await waitFor(() => expect(pending).toHaveLength(1));
+    await act(async () => { pending[0]({ open: true, file: "initial.gtk", dirty: false }); });
+    await waitFor(() => expect(result.current.loading).toBe(false));
+
+    let older!: Promise<void>;
+    let newer!: Promise<void>;
+    act(() => {
+      older = result.current.refresh({ silent: true });
+      newer = result.current.refresh({ silent: true });
+    });
+    await waitFor(() => expect(pending).toHaveLength(3));
+    await act(async () => { pending[2]({ open: true, file: "newer.gtk", dirty: true }); await newer; });
+    await act(async () => { pending[1]({ open: true, file: "stale.gtk", dirty: false }); await older; });
+    expect(result.current.session).toEqual({ open: true, file: "newer.gtk", dirty: true });
+  });
+
+  it("shows the unsaved badge after a module marks the session dirty and redirects unknown subroutes", async () => {
+    renderApp("/m/refreshy/does/not/exist", [refreshManifest]);
+    expect(await screen.findByRole("textbox", { name: "Draft field" })).toBeInTheDocument();
+    expect(screen.getByTestId("location")).toHaveTextContent("/m/refreshy");
+    expect(screen.queryByText(i18n.t("shell.unsaved"))).not.toBeInTheDocument();
+    await update_project_meta({ name: "Badge" });
+    fireEvent.click(screen.getByRole("button", { name: "mark dirty" }));
+    expect(await screen.findByText(i18n.t("shell.unsaved"))).toBeInTheDocument();
+    expect(screen.getByTestId("dirty")).toHaveTextContent("true");
+    expect(screen.getByRole("button", { name: i18n.t("shell.menu_toggle") })).toBeInTheDocument();
   });
 });

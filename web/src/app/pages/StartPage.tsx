@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   ActionIcon,
+  Alert,
   Badge,
   Button,
   Card,
@@ -32,7 +33,7 @@ import {
 } from "@tabler/icons-react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
-import { list_codes } from "../../shared/api/client";
+import { ApiError, list_codes } from "../../shared/api/client";
 import {
   delete_library_project,
   duplicate_library_project,
@@ -52,6 +53,7 @@ import { EmptyState } from "../../shared/components/EmptyState";
 import { ErrorAlert } from "../../shared/components/ErrorAlert";
 import { loadLanguageCatalog } from "../i18n";
 import { useProjectSession } from "../ProjectProvider";
+import { ThemeToggle } from "../ThemeToggle";
 
 const LANG_STORAGE_KEY = "geotek.lang";
 
@@ -63,7 +65,7 @@ function formatModified(iso: string, lang: string): string {
 export function StartPage() {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
-  const { openFromLibrary, createInLibrary, refresh: refreshSession } = useProjectSession();
+  const { session, openFromLibrary, createInLibrary, refresh: refreshSession } = useProjectSession();
 
   const currentLang: Language = i18n.language === "en" ? "en" : "tr";
 
@@ -81,23 +83,32 @@ export function StartPage() {
   const [newNumber, setNewNumber] = useState("");
   const [newEngineer, setNewEngineer] = useState("");
   const [newLang, setNewLang] = useState<Language>(currentLang);
-  const [newCode, setNewCode] = useState<string>("asd");
+  const [newCode, setNewCode] = useState<string>("");
+  const [newApiError, setNewApiError] = useState<unknown>(null);
+
+  // Replacing an open project with unsaved changes needs an explicit go-ahead.
+  const [pendingReplace, setPendingReplace] = useState<(() => Promise<void>) | null>(null);
 
   // Import modal state
   const [importOpen, setImportOpen] = useState(false);
   const [importPath, setImportPath] = useState("");
+  const [importApiError, setImportApiError] = useState<unknown>(null);
 
   // Rename modal state
   const [renameTarget, setRenameTarget] = useState<LibraryEntry | null>(null);
   const [renameValue, setRenameValue] = useState("");
   const [renameError, setRenameError] = useState(false);
+  const [renameApiError, setRenameApiError] = useState<unknown>(null);
 
   // Export modal state
   const [exportTarget, setExportTarget] = useState<LibraryEntry | null>(null);
   const [exportDest, setExportDest] = useState("");
+  const [exportApiError, setExportApiError] = useState<unknown>(null);
+  const [exportConflict, setExportConflict] = useState(false);
 
   // Delete confirm modal state
   const [deleteTarget, setDeleteTarget] = useState<LibraryEntry | null>(null);
+  const [deleteApiError, setDeleteApiError] = useState<unknown>(null);
 
   const loadData = useCallback(async () => {
     setLoading(true);
@@ -141,9 +152,6 @@ export function StartPage() {
   );
 
   const codeOptions = useMemo(() => {
-    if (codes.length === 0) {
-      return [{ value: "asd", label: "ASD" }];
-    }
     return codes.map((c) => ({ value: c.id, label: c.name }));
   }, [codes]);
 
@@ -157,7 +165,9 @@ export function StartPage() {
     void loadLanguageCatalog(nextLang);
   };
 
-  const handleOpen = async (file: string) => {
+  const hasUnsavedProject = session.open && session.dirty;
+
+  const performOpen = async (file: string) => {
     setBusy(true);
     setError(null);
     try {
@@ -170,24 +180,28 @@ export function StartPage() {
     }
   };
 
+  const handleOpen = async (file: string) => {
+    if (hasUnsavedProject) {
+      setPendingReplace(() => () => performOpen(file));
+      return;
+    }
+    await performOpen(file);
+  };
+
   const openNewModal = () => {
     setNewName("");
     setNewNameError(false);
     setNewNumber("");
     setNewEngineer("");
     setNewLang(currentLang);
-    setNewCode(codes[0]?.id ?? "asd");
+    setNewCode(codes[0]?.id ?? "");
+    setNewApiError(null);
     setNewOpen(true);
   };
 
-  const handleCreateProject = async () => {
-    const trimmedName = newName.trim();
-    if (!trimmedName) {
-      setNewNameError(true);
-      return;
-    }
+  const performCreate = async (trimmedName: string) => {
     setBusy(true);
-    setError(null);
+    setNewApiError(null);
     try {
       await createInLibrary({
         name: trimmedName,
@@ -199,24 +213,37 @@ export function StartPage() {
       setNewOpen(false);
       navigate("/launcher");
     } catch (err) {
-      setError(err);
+      setNewApiError(err);
     } finally {
       setBusy(false);
     }
+  };
+
+  const handleCreateProject = async () => {
+    const trimmedName = newName.trim();
+    if (!trimmedName) {
+      setNewNameError(true);
+      return;
+    }
+    if (hasUnsavedProject) {
+      setPendingReplace(() => () => performCreate(trimmedName));
+      return;
+    }
+    await performCreate(trimmedName);
   };
 
   const handleImport = async () => {
     const trimmed = importPath.trim();
     if (!trimmed) return;
     setBusy(true);
-    setError(null);
+    setImportApiError(null);
     try {
       const imported = await import_library_project(trimmed);
       await refreshLibrary();
       setImportOpen(false);
       notifications.show({ message: imported.name || imported.file, color: "green" });
     } catch (err) {
-      setError(err);
+      setImportApiError(err);
     } finally {
       setBusy(false);
     }
@@ -226,6 +253,7 @@ export function StartPage() {
     setRenameTarget(entry);
     setRenameValue(entry.name);
     setRenameError(false);
+    setRenameApiError(null);
   };
 
   const handleRename = async () => {
@@ -236,15 +264,16 @@ export function StartPage() {
       return;
     }
     setBusy(true);
-    setError(null);
+    setRenameApiError(null);
     try {
       const updated = await rename_library_project(renameTarget.file, trimmed);
       await refreshLibrary();
-      void refreshSession().catch(() => undefined);
+      // The open session follows the renamed file, so its name may have changed.
+      void refreshSession({ silent: true }).catch(() => undefined);
       setRenameTarget(null);
-      notifications.show({ message: updated.name, color: "green" });
+      notifications.show({ message: t("start.renamed", { name: updated.name }), color: "green" });
     } catch (err) {
-      setError(err);
+      setRenameApiError(err);
     } finally {
       setBusy(false);
     }
@@ -256,7 +285,7 @@ export function StartPage() {
     try {
       const copy = await duplicate_library_project(file);
       await refreshLibrary();
-      notifications.show({ message: copy.name, color: "green" });
+      notifications.show({ message: t("start.duplicated", { name: copy.name }), color: "green" });
     } catch (err) {
       setError(err);
     } finally {
@@ -267,6 +296,8 @@ export function StartPage() {
   const openExportModal = (entry: LibraryEntry) => {
     setExportTarget(entry);
     setExportDest("");
+    setExportApiError(null);
+    setExportConflict(false);
   };
 
   const handleExport = async () => {
@@ -274,13 +305,18 @@ export function StartPage() {
     const dest = exportDest.trim();
     if (!dest) return;
     setBusy(true);
-    setError(null);
+    setExportApiError(null);
     try {
-      const res = await export_library_project(exportTarget.file, dest);
+      const res = await export_library_project(exportTarget.file, dest, exportConflict);
       setExportTarget(null);
       notifications.show({ message: res.path, color: "green" });
     } catch (err) {
-      setError(err);
+      if (!exportConflict && err instanceof ApiError && err.code === "file_exists") {
+        // Ask before replacing; the next attempt retries with overwrite=true.
+        setExportConflict(true);
+      } else {
+        setExportApiError(err);
+      }
     } finally {
       setBusy(false);
     }
@@ -289,13 +325,13 @@ export function StartPage() {
   const handleDelete = async () => {
     if (!deleteTarget) return;
     setBusy(true);
-    setError(null);
+    setDeleteApiError(null);
     try {
       await delete_library_project(deleteTarget.file);
       await refreshLibrary();
       setDeleteTarget(null);
     } catch (err) {
-      setError(err);
+      setDeleteApiError(err);
     } finally {
       setBusy(false);
     }
@@ -315,6 +351,7 @@ export function StartPage() {
           <Group gap="xs">
             <SegmentedControl
               size="xs"
+              aria-label={t("web.header.lang_switch")}
               value={currentLang}
               onChange={(val) => handleLanguageChange(val as Language)}
               data={[
@@ -322,6 +359,7 @@ export function StartPage() {
                 { value: "en", label: "EN" },
               ]}
             />
+            <ThemeToggle />
             <Tooltip label={t("start.settings_tooltip")}>
               <ActionIcon
                 variant="default"
@@ -345,6 +383,7 @@ export function StartPage() {
             leftSection={<IconFileImport size={16} />}
             onClick={() => {
               setImportPath("");
+              setImportApiError(null);
               setImportOpen(true);
             }}
           >
@@ -423,7 +462,7 @@ export function StartPage() {
                                   <Menu.Target>
                                     <ActionIcon
                                       variant="subtle"
-                                      aria-label={entry.name || entry.file}
+                                      aria-label={t("start.row_actions", { name: entry.name || entry.file })}
                                       data-testid={`row-actions-${entry.file}`}
                                     >
                                       <IconDotsVertical size={16} />
@@ -461,7 +500,7 @@ export function StartPage() {
                                     <Menu.Item
                                       color="red"
                                       leftSection={<IconTrash size={14} />}
-                                      onClick={() => setDeleteTarget(entry)}
+                                      onClick={() => { setDeleteApiError(null); setDeleteTarget(entry); }}
                                     >
                                       {t("start.action.delete")}
                                     </Menu.Item>
@@ -496,10 +535,15 @@ export function StartPage() {
         size="md"
       >
         <Stack gap="sm">
+          {newApiError != null && <ErrorAlert error={newApiError} />}
           <TextInput
             required
+            data-autofocus
             label={t("start.new.name")}
             value={newName}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && !e.nativeEvent.isComposing) void handleCreateProject();
+            }}
             error={newNameError ? t("start.new.name_required") : null}
             onChange={(e) => {
               setNewName(e.currentTarget.value);
@@ -538,6 +582,7 @@ export function StartPage() {
             }}
             data={codeOptions}
             allowDeselect={false}
+            disabled={codeOptions.length === 0}
           />
           <Group justify="flex-end" gap="xs" mt="xs">
             <Button variant="default" onClick={() => setNewOpen(false)}>
@@ -558,10 +603,14 @@ export function StartPage() {
         size="sm"
       >
         <Stack gap="sm">
+          {importApiError != null && <ErrorAlert error={importApiError} />}
           <TextInput
             label={t("start.import")}
             value={importPath}
             onChange={(e) => setImportPath(e.currentTarget.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && !e.nativeEvent.isComposing) void handleImport();
+            }}
           />
           <Group justify="flex-end" gap="xs">
             <Button variant="default" onClick={() => setImportOpen(false)}>
@@ -582,10 +631,14 @@ export function StartPage() {
         size="sm"
       >
         <Stack gap="sm">
+          {renameApiError != null && <ErrorAlert error={renameApiError} />}
           <TextInput
             required
             label={t("start.rename.label")}
             value={renameValue}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && !e.nativeEvent.isComposing) void handleRename();
+            }}
             error={renameError ? t("start.new.name_required") : null}
             onChange={(e) => {
               setRenameValue(e.currentTarget.value);
@@ -613,17 +666,33 @@ export function StartPage() {
         size="sm"
       >
         <Stack gap="sm">
+          {exportApiError != null && <ErrorAlert error={exportApiError} />}
+          {exportConflict && (
+            <Alert color="yellow" variant="light" role="alert">
+              {t("start.export.exists_confirm")}
+            </Alert>
+          )}
           <TextInput
             label={t("start.action.export")}
             value={exportDest}
-            onChange={(e) => setExportDest(e.currentTarget.value)}
+            onChange={(e) => {
+              setExportDest(e.currentTarget.value);
+              setExportConflict(false);
+            }}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && !e.nativeEvent.isComposing) void handleExport();
+            }}
           />
           <Group justify="flex-end" gap="xs">
             <Button variant="default" onClick={() => setExportTarget(null)}>
               {t("start.new.cancel")}
             </Button>
-            <Button loading={busy} onClick={() => void handleExport()}>
-              {t("start.action.export")}
+            <Button
+              color={exportConflict ? "red" : undefined}
+              loading={busy}
+              onClick={() => void handleExport()}
+            >
+              {exportConflict ? t("start.export.overwrite") : t("start.action.export")}
             </Button>
           </Group>
         </Stack>
@@ -637,6 +706,7 @@ export function StartPage() {
         size="sm"
       >
         <Stack gap="sm">
+          {deleteApiError != null && <ErrorAlert error={deleteApiError} />}
           <Text size="sm">
             {t("start.delete_confirm.body", {
               name: deleteTarget?.name || deleteTarget?.file || "",
@@ -648,6 +718,34 @@ export function StartPage() {
             </Button>
             <Button color="red" loading={busy} onClick={() => void handleDelete()}>
               {t("start.action.delete")}
+            </Button>
+          </Group>
+        </Stack>
+      </Modal>
+
+      {/* Replace-open-project confirm */}
+      <Modal
+        opened={pendingReplace !== null}
+        onClose={() => setPendingReplace(null)}
+        title={t("shell.unsaved")}
+        size="sm"
+      >
+        <Stack gap="sm">
+          <Text size="sm">{t("start.open_unsaved_confirm")}</Text>
+          <Group justify="flex-end" gap="xs">
+            <Button variant="default" onClick={() => setPendingReplace(null)}>
+              {t("start.new.cancel")}
+            </Button>
+            <Button
+              color="red"
+              loading={busy}
+              onClick={() => {
+                const run = pendingReplace;
+                setPendingReplace(null);
+                if (run) void run();
+              }}
+            >
+              {t("start.continue")}
             </Button>
           </Group>
         </Stack>

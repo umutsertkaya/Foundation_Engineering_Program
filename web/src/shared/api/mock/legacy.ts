@@ -345,9 +345,13 @@ export async function mockRequest(
   path: string,
   body?: unknown,
 ): Promise<{ status: number; data: unknown }> {
-  const response = await handleMockRequest(method, path, body);
   const cleanPath = path.split("?")[0];
-  if (response.status < 400 && ["POST", "PUT", "PATCH", "DELETE"].includes(method.toUpperCase())
+  // Like the backend, PATCH meta / PUT site only count as edits when a value actually changes.
+  const trackChange = cleanPath === "/project/meta" || cleanPath === "/project/site";
+  const before = trackChange ? JSON.stringify([store.meta, store.site]) : "";
+  const response = await handleMockRequest(method, path, body);
+  const changed = !trackChange || JSON.stringify([store.meta, store.site]) !== before;
+  if (response.status < 400 && changed && ["POST", "PUT", "PATCH", "DELETE"].includes(method.toUpperCase())
     && /^\/(project|profiles|structures)(\/|$)/.test(cleanPath)) {
     mutationListener?.(cleanPath);
   }
@@ -391,7 +395,9 @@ async function handleMockRequest(
 
   // PATCH /project/meta
   if (upperMethod === "PATCH" && cleanPath === "/project/meta") {
-    const patch = body as ProjectMetaPatch;
+    const patch = Object.fromEntries(
+      Object.entries(body as ProjectMetaPatch).filter(([, value]) => value !== undefined),
+    ) as ProjectMetaPatch;
     store.meta = { ...store.meta, ...patch };
     return { status: 200, data: { ...store.meta } };
   }

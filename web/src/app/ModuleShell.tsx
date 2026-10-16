@@ -1,10 +1,9 @@
-import { Suspense, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import {
-  ActionIcon, AppShell, Badge, Button, Group, Loader, NavLink, SegmentedControl,
-  Text, useComputedColorScheme, useMantineColorScheme,
+  AppShell, Badge, Burger, Button, Group, Loader, NavLink, SegmentedControl, Text,
 } from "@mantine/core";
+import { useDisclosure } from "@mantine/hooks";
 import { notifications } from "@mantine/notifications";
-import { IconMoon, IconSun } from "@tabler/icons-react";
 import { useTranslation } from "react-i18next";
 import { matchPath, NavLink as RouterNavLink, useLocation, useNavigate, useParams } from "react-router-dom";
 import type { Language } from "../shared/api/types";
@@ -13,6 +12,7 @@ import { ErrorAlert } from "../shared/components/ErrorAlert";
 import { loadLanguageCatalog } from "./i18n";
 import { useModules } from "./moduleRegistry";
 import { useProjectSession } from "./ProjectProvider";
+import { ThemeToggle } from "./ThemeToggle";
 
 export function ModuleShell() {
   const { moduleId } = useParams();
@@ -21,10 +21,11 @@ export function ModuleShell() {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
-  const { setColorScheme } = useMantineColorScheme();
-  const computedScheme = useComputedColorScheme("light");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<unknown>(null);
+  const [navOpened, { toggle: toggleNav, close: closeNav }] = useDisclosure(false);
+  useEffect(() => { setError(null); }, [moduleId]);
+  useEffect(() => { closeNav(); }, [location.pathname, closeNav]);
   const backButton = <Button onClick={() => navigate("/launcher")}>{t("shell.back_to_menu")}</Button>;
 
   if (!manifest) {
@@ -47,10 +48,17 @@ export function ModuleShell() {
   };
 
   return (
-    <AppShell header={{ height: 100 }} navbar={{ width: 240, breakpoint: "sm" }} padding="md">
+    <AppShell header={{ height: 100 }} navbar={{ width: 240, breakpoint: "sm", collapsed: { mobile: !navOpened } }} padding="md">
       <AppShell.Header px="md" py="xs">
         <Group h="100%" justify="space-between">
           <Group gap="xs">
+            <Burger
+              opened={navOpened}
+              onClick={toggleNav}
+              hiddenFrom="sm"
+              size="sm"
+              aria-label={t("shell.menu_toggle")}
+            />
             <ModuleIcon size={24} />
             <Text fw={700}>{t(manifest.titleKey)}</Text>
             <Text size="sm">{t("shell.project_label", { name: project?.meta.name ?? session.file ?? "" })}</Text>
@@ -65,14 +73,7 @@ export function ModuleShell() {
               onChange={(value) => { void loadLanguageCatalog(value as Language); }}
               data={[{ value: "tr", label: "TR" }, { value: "en", label: "EN" }]}
             />
-            <ActionIcon
-              variant="default"
-              aria-label={t("web.header.theme_toggle")}
-              title={computedScheme === "dark" ? t("ui.theme.light") : t("ui.theme.dark")}
-              onClick={() => setColorScheme(computedScheme === "dark" ? "light" : "dark")}
-            >
-              {computedScheme === "dark" ? <IconSun size={16} /> : <IconMoon size={16} />}
-            </ActionIcon>
+            <ThemeToggle />
             {backButton}
           </Group>
         </Group>
