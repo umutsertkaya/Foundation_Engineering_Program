@@ -1,4 +1,5 @@
 import { Badge, Card, Group, Progress, SimpleGrid, Stack, Text } from "@mantine/core";
+import { useMediaQuery } from "@mantine/hooks";
 import { useTranslation } from "react-i18next";
 import type { CheckDTO } from "../api/types";
 import { utilisationColor } from "../utils/utilisation";
@@ -17,9 +18,11 @@ function formatNumber(val: number | null): string {
 
 export function UtilisationCards({ checks, governing }: UtilisationCardsProps) {
   const { t } = useTranslation();
+  // 2 columns below 1600 px viewport width, 3 above (cards sit next to the section).
+  const wide = useMediaQuery("(min-width: 1600px)") ?? false;
 
   return (
-    <SimpleGrid cols={{ base: 1, sm: 2, lg: 3 }} spacing="xs">
+    <SimpleGrid cols={wide ? 3 : { base: 1, xs: 2 }} spacing="xs">
       {checks.map((check) => {
         const key = `${check.case}:${check.name}`;
         const isGoverning = governing === key;
@@ -47,25 +50,31 @@ export function UtilisationCards({ checks, governing }: UtilisationCardsProps) {
             }
           >
             <Stack gap={6}>
-              <Group justify="space-between" gap={4} wrap="nowrap">
-                <Group gap={6} wrap="nowrap">
+              <Group justify="space-between" gap={4} wrap="nowrap" align="flex-start">
+                <Group gap={6} wrap="wrap" style={{ minWidth: 0 }}>
                   <Badge
                     size="xs"
                     variant="light"
                     color={check.case === "seismic" ? "orange" : "blue"}
+                    style={{ flexShrink: 0, overflow: "visible" }}
                   >
                     {t(`case.${check.case}`)}
                   </Badge>
-                  <Text size="sm" fw={600}>
+                  <Text size="sm" fw={600} style={{ overflowWrap: "anywhere" }}>
                     {t(`check.${check.name}`)}
                   </Text>
                 </Group>
-                <Badge size="xs" color={check.passed ? "green" : "red"} variant="light">
+                <Badge
+                  size="xs"
+                  color={check.passed ? "green" : "red"}
+                  variant="light"
+                  style={{ flexShrink: 0, overflow: "visible" }}
+                >
                   {check.passed ? t("ui.ok") : t("ui.not_ok")}
                 </Badge>
               </Group>
 
-              <Group justify="space-between" align="baseline">
+              <Group justify="space-between" align="baseline" gap={4} wrap="wrap">
                 <Text size="sm" ff="monospace" fw={700}>
                   {formatNumber(check.value)} {symbol} {check.required.toFixed(2)}
                 </Text>
@@ -77,12 +86,12 @@ export function UtilisationCards({ checks, governing }: UtilisationCardsProps) {
 
               <Progress value={pct} color={color} size="sm" radius="xs" />
 
-              <Group justify="space-between" gap={4}>
-                <Text size="xs" c="dimmed" lineClamp={1} title={check.detail}>
+              <Group justify="space-between" gap={4} wrap="nowrap" align="flex-start">
+                <Text size="xs" c="dimmed" lineClamp={2} title={check.detail} style={{ minWidth: 0 }}>
                   {check.detail}
                 </Text>
                 {isGoverning && (
-                  <Badge size="xs" color="blue" variant="filled">
+                  <Badge size="xs" color="blue" variant="filled" style={{ flexShrink: 0, overflow: "visible" }}>
                     {t("web.wizard.governing_badge")}
                   </Badge>
                 )}

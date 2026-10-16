@@ -10,6 +10,7 @@ import {
   useComputedColorScheme,
   useMantineColorScheme,
 } from "@mantine/core";
+import { useMediaQuery } from "@mantine/hooks";
 import { IconMoon, IconSun } from "@tabler/icons-react";
 import { useTranslation } from "react-i18next";
 import { Outlet } from "react-router-dom";
@@ -27,6 +28,8 @@ export function AppShellLayout({ children }: AppShellLayoutProps) {
   const { setColorScheme } = useMantineColorScheme();
   const computedScheme = useComputedColorScheme("light");
   const currentLang: Language = i18n.language === "en" ? "en" : "tr";
+  // Full product name only when there is room next to the workflow bar.
+  const wideHeader = useMediaQuery("(min-width: 1500px)") ?? false;
 
   const handleToggleScheme = () => {
     setColorScheme(computedScheme === "dark" ? "light" : "dark");
@@ -37,8 +40,8 @@ export function AppShellLayout({ children }: AppShellLayoutProps) {
       <AppShell.Header px="md">
         <Group h="100%" justify="space-between" wrap="nowrap">
           <Group gap="xs" wrap="nowrap">
-            <Text fw={700} size="sm">
-              {t("app.title")}
+            <Text fw={700} size="sm" style={{ whiteSpace: "nowrap" }} title={t("app.title")}>
+              {wideHeader ? t("app.title") : t("web.header.app_short")}
             </Text>
             {isMockMode() && (
               <Badge color="amber" variant="light" size="xs">
@@ -76,7 +79,7 @@ export function AppShellLayout({ children }: AppShellLayoutProps) {
       </AppShell.Header>
 
       <AppShell.Main>
-        <Container size="xl" py="xs">
+        <Container fluid maw={1880} py="xs" px="md">
           {children ?? <Outlet />}
         </Container>
       </AppShell.Main>

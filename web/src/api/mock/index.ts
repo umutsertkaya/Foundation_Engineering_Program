@@ -20,13 +20,17 @@ import type {
   ProjectNew,
   ProjectSummary,
   RetainingWallStructure,
+  SheetPileStructure,
   SiteSeismic,
   SoilProfile,
   Structure,
   StructureCreate,
+  StructureSoilModel,
   StructureSummary,
   WallResultDTO,
 } from "../types";
+import { validateGwt, validateLayers, validateStructureSoil } from "../../soil/layerOps";
+import { mockProfileHash } from "./hash";
 import {
   buildMockWallResult,
   MOCK_BOREHOLE,
@@ -60,19 +64,30 @@ interface MockStore {
   structures: Structure[];
   jobs: Map<string, MockJobInternal>;
   jobSeq: number;
+  profileSeq: number;
 }
 
 function createInitialStore(): MockStore {
+  const profiles = structuredClone(MOCK_PROFILES);
+  const structures: Structure[] = structuredClone(MOCK_INITIAL_STRUCTURES);
+  // D-1 starts up to date with its source profile; D-2 keeps its mismatching (stale) hash.
+  for (const s of structures) {
+    if (s.soil.source_hash === null || s.soil.source_hash === undefined) {
+      const src = profiles.find((p) => p.id === s.soil.source_profile_id);
+      s.soil.source_hash = src ? mockProfileHash(src) : null;
+    }
+  }
   return {
     meta: { ...MOCK_DEFAULT_META },
     site: { ...MOCK_DEFAULT_SITE },
     active_profile_id: MOCK_PROFILES[0].id,
     boreholes: [structuredClone(MOCK_BOREHOLE)],
     cpts: [structuredClone(MOCK_CPT)],
-    profiles: structuredClone(MOCK_PROFILES),
-    structures: structuredClone(MOCK_INITIAL_STRUCTURES),
+    profiles,
+    structures,
     jobs: new Map<string, MockJobInternal>(),
     jobSeq: 0,
+    profileSeq: profiles.length,
   };
 }
 
@@ -86,10 +101,36 @@ export function getMockCatalog(lang: Language): Record<string, string> {
   return lang === "en" ? { ...enCatalog } : { ...trCatalog };
 }
 
+function isStructureStale(s: Structure): boolean {
+  if (!s.soil.source_profile_id) return false;
+  const source = store.profiles.find((p) => p.id === s.soil.source_profile_id);
+  return !source || mockProfileHash(source) !== s.soil.source_hash;
+}
+
+function validationError(message: string, details: Record<string, unknown>): { status: number; data: ApiErrorDTO } {
+  return {
+    status: 422,
+    data: { code: "validation", message: `${message} (Mock)`, details, missing_factors: [] },
+  };
+}
+
+function notFound(what: string): { status: number; data: ApiErrorDTO } {
+  return {
+    status: 404,
+    data: { code: "not_found", message: `${what} not found (Mock).`, details: {}, missing_factors: [] },
+  };
+}
+
+function structureBaseDepth(s: Structure): number {
+  return (s.kind ?? "retaining_wall") === "retaining_wall"
+    ? (s as RetainingWallStructure).height
+    : (s as SheetPileStructure).retained_height;
+}
+
 function toStructureSummary(s: Structure): StructureSummary {
   const isWall = (s.kind ?? "retaining_wall") === "retaining_wall";
   const wall = isWall ? (s as RetainingWallStructure) : null;
-  const stale = s.soil.source_hash === "stale-hash-mock";
+  const stale = isStructureStale(s);
   return {
     id: s.id,
     name: s.name ?? s.id,
@@ -357,29 +398,93 @@ export async function mockRequest(
   // POST /profiles
   if (upperMethod === "POST" && cleanPath === "/profiles") {
     const payload = body as ProfileCreate;
+    const layers = structuredClone(payload.layers ?? MOCK_PROFILES[0].layers);
+    const issues = [...validateLayers(layers, { mustStartAtZero: true }), ...validateGwt(payload.gwt)];
+    if (issues.length > 0) {
+      return validationError("Invalid soil profile", { issues });
+    }
+    let seq = store.profileSeq + 1;
+    while (store.profiles.some((p) => p.id === `prof-mock-${seq}`)) seq += 1;
+    store.profileSeq = seq;
     const newProfile: SoilProfile = {
-      id: `prof-mock-${store.profiles.length + 1}`,
+      id: `prof-mock-${seq}`,
       name: payload.name,
       origin: payload.origin,
-      source_ids: payload.source_ids,
-      gwt: payload.gwt,
-      layers: payload.layers ?? MOCK_PROFILES[0].layers,
+      source_ids: [...payload.source_ids],
+      layering: null,
+      gwt: { ...payload.gwt },
+      layers,
     };
     store.profiles.push(newProfile);
     return { status: 200, data: structuredClone(newProfile) };
   }
 
-  // GET /profiles/{id}
+  // GET / PUT / DELETE /profiles/{id}
   const profileMatch = /^\/profiles\/([^/]+)$/.exec(cleanPath);
-  if (upperMethod === "GET" && profileMatch) {
-    const prof = store.profiles.find((p) => p.id === profileMatch[1]);
-    if (!prof) {
-      return {
-        status: 404,
-        data: { code: "not_found", message: "Profile not found (Mock).", details: {}, missing_factors: [] },
-      };
+  if (profileMatch) {
+    const profileId = decodeURIComponent(profileMatch[1]);
+    const index = store.profiles.findIndex((p) => p.id === profileId);
+    if (index < 0) return notFound("Profile");
+    if (upperMethod === "GET") {
+      return { status: 200, data: structuredClone(store.profiles[index]) };
     }
-    return { status: 200, data: structuredClone(prof) };
+    if (upperMethod === "PUT") {
+      const updated = structuredClone(body as SoilProfile);
+      const issues = [...validateLayers(updated.layers ?? [], { mustStartAtZero: true }), ...validateGwt(updated.gwt)];
+      if (issues.length > 0) {
+        return validationError("Invalid soil profile", { issues });
+      }
+      updated.id = profileId;
+      store.profiles[index] = updated;
+      return { status: 200, data: structuredClone(updated) };
+    }
+    if (upperMethod === "DELETE") {
+      store.profiles.splice(index, 1);
+      if (store.active_profile_id === profileId) store.active_profile_id = store.profiles[0]?.id ?? null;
+      const res: DeletionResponse = { id: profileId, deleted: true };
+      return { status: 200, data: res };
+    }
+  }
+
+  // PUT /structures/{id}/soil
+  const soilMatch = /^\/structures\/([^/]+)\/soil$/.exec(cleanPath);
+  if (upperMethod === "PUT" && soilMatch) {
+    const structId = decodeURIComponent(soilMatch[1]);
+    const target = store.structures.find((s) => s.id === structId);
+    if (!target) return notFound("Structure");
+    const soil = structuredClone(body as StructureSoilModel);
+    const base = structureBaseDepth(target);
+    const checks = validateStructureSoil(soil.retained_fill ?? [], soil.profile?.layers ?? [], base);
+    const gwtIssues = [
+      ...validateGwt(soil.profile?.gwt),
+      ...validateGwt(soil.gwt_retained),
+      ...validateGwt(soil.gwt_front),
+    ];
+    if (checks.fill.length + checks.profile.length + gwtIssues.length > 0) {
+      return validationError("Invalid structure soil model", {
+        fill: checks.fill,
+        profile: checks.profile,
+        gwt: gwtIssues,
+      });
+    }
+    target.soil = soil;
+    return { status: 200, data: structuredClone(target) };
+  }
+
+  // POST /structures/{id}/soil/resync
+  const resyncMatch = /^\/structures\/([^/]+)\/soil\/resync$/.exec(cleanPath);
+  if (upperMethod === "POST" && resyncMatch) {
+    const structId = decodeURIComponent(resyncMatch[1]);
+    const target = store.structures.find((s) => s.id === structId);
+    if (!target) return notFound("Structure");
+    const source = store.profiles.find((p) => p.id === target.soil.source_profile_id);
+    if (!source) return notFound("Source profile");
+    target.soil = {
+      ...target.soil,
+      profile: structuredClone(source),
+      source_hash: mockProfileHash(source),
+    };
+    return { status: 200, data: structuredClone(target) };
   }
 
   // GET /structures
@@ -406,7 +511,7 @@ export async function mockRequest(
         geometry: payload.geometry ?? { ...MOCK_CANTILEVER_5M },
         soil: payload.soil ?? {
           source_profile_id: sourceProfile.id,
-          source_hash: "mock-profile-hash-1",
+          source_hash: mockProfileHash(sourceProfile),
           profile: structuredClone(sourceProfile),
           retained_fill: structuredClone(MOCK_INITIAL_STRUCTURES[0].soil.retained_fill ?? []),
           gwt_retained: null,

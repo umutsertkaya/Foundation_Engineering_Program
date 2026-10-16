@@ -1,10 +1,11 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   Alert,
   Badge,
   Button,
   Card,
   Checkbox,
+  Grid,
   Group,
   NumberInput,
   Progress,
@@ -24,6 +25,7 @@ import {
   ApiError,
   check_wall,
   get_structure,
+  list_structures,
   size_wall,
   update_structure,
 } from "../api/client";
@@ -33,15 +35,19 @@ import type {
   FactorOverride,
   GravityGeometry,
   RetainingWallStructure,
-  SoilLayer,
+  StructureSoilModel,
   WallResultDTO,
   WallType,
 } from "../api/types";
 import { EmptyState } from "../components/EmptyState";
 import { MissingFactorsForm } from "../components/MissingFactorsForm";
+import { StructureSoilSection } from "../components/StructureSoilSection";
 import { UtilisationCards } from "../components/UtilisationCards";
-import { WallSection } from "../components/WallSection";
 import { useJob } from "../hooks/useJob";
+import { useUndoable } from "../hooks/useUndoable";
+import { validateGwt, validateStructureSoil } from "../soil/layerOps";
+import type { GwtCase } from "../soil/zones";
+import { StructureSoilStep, type SoilStepValidation } from "./wizard/StructureSoilStep";
 
 type GeometrySource = "draft" | "suggested" | "user";
 
@@ -52,51 +58,6 @@ const DEFAULT_GRAVITY_5M: GravityGeometry = {
   back_offset: 0.2,
   embedment: 0.6,
 };
-
-function renderLayerTable(layers: SoilLayer[], t: (key: string) => string) {
-  return (
-    <Table withTableBorder withColumnBorders verticalSpacing={4}>
-      <Table.Thead>
-        <Table.Tr>
-          <Table.Th>{t("ui.layer.id")}</Table.Th>
-          <Table.Th>{t("ui.layer.top")}</Table.Th>
-          <Table.Th>{t("ui.layer.bottom")}</Table.Th>
-          <Table.Th>{t("ui.layer.uscs")}</Table.Th>
-          <Table.Th>{t("ui.layer.gamma")}</Table.Th>
-          <Table.Th>{t("ui.layer.phi_eff")}</Table.Th>
-          <Table.Th>{t("ui.layer.c_eff")}</Table.Th>
-        </Table.Tr>
-      </Table.Thead>
-      <Table.Tbody>
-        {layers.map((layer) => (
-          <Table.Tr key={layer.id}>
-            <Table.Td ff="monospace" fw={600}>
-              {layer.id}
-            </Table.Td>
-            <Table.Td ff="monospace">{layer.top.toFixed(1)}</Table.Td>
-            <Table.Td ff="monospace">{layer.bottom.toFixed(1)}</Table.Td>
-            <Table.Td>
-              <Badge size="xs" variant="outline">
-                {layer.uscs ?? t("web.common.none")}
-              </Badge>
-            </Table.Td>
-            <Table.Td ff="monospace">{layer.gamma.toFixed(1)}</Table.Td>
-            <Table.Td ff="monospace">
-              {layer.design?.phi_eff !== null && layer.design?.phi_eff !== undefined
-                ? layer.design.phi_eff.toFixed(1)
-                : t("web.common.none")}
-            </Table.Td>
-            <Table.Td ff="monospace">
-              {layer.design?.c_eff !== undefined
-                ? layer.design.c_eff.toFixed(1)
-                : t("web.common.none")}
-            </Table.Td>
-          </Table.Tr>
-        ))}
-      </Table.Tbody>
-    </Table>
-  );
-}
 
 export function StructureWizardPage() {
   const { id } = useParams<{ id: string }>();
@@ -132,6 +93,21 @@ export function StructureWizardPage() {
 
   const job = useJob<WallResultDTO>();
 
+  const soilDraft = useUndoable<StructureSoilModel | null>(null);
+  const [stale, setStale] = useState<boolean>(false);
+  const [gwtView, setGwtView] = useState<GwtCase>("design");
+  const [runBlocked, setRunBlocked] = useState<string | null>(null);
+
+  const refreshStale = useCallback(async () => {
+    if (!id) return;
+    try {
+      const list = await list_structures();
+      setStale(Boolean(list.find((s) => s.id === id)?.stale));
+    } catch {
+      // the badge keeps its last value when the list cannot be loaded
+    }
+  }, [id]);
+
   const loadStructure = useCallback(async () => {
     if (!id) return;
     setLoading(true);
@@ -140,6 +116,9 @@ export function StructureWizardPage() {
       const s = await get_structure(id);
       const wall = s as RetainingWallStructure;
       setStructure(wall);
+      soilDraft.reset(wall.soil);
+      setGwtView(wall.inputs?.gwt_case ?? "design");
+      void refreshStale();
       setWallType(wall.wall_type);
       setHeight(wall.height);
       setEmbedment(wall.embedment ?? 0.6);
@@ -164,7 +143,8 @@ export function StructureWizardPage() {
     } finally {
       setLoading(false);
     }
-  }, [id]);
+    // soilDraft.reset is a stable callback
+  }, [id, refreshStale]);
 
   useEffect(() => {
     void loadStructure();
@@ -198,6 +178,26 @@ export function StructureWizardPage() {
           embedment,
         };
 
+  const soilValidation: SoilStepValidation = useMemo(() => {
+    const soil = soilDraft.value;
+    if (!soil) {
+      return { fill: [], profile: [], gwtRetained: [], gwtFront: [], gwtProfile: [], count: 0 };
+    }
+    const checks = validateStructureSoil(soil.retained_fill ?? [], soil.profile.layers, height);
+    const gwtProfile = validateGwt(soil.profile.gwt);
+    const gwtRetained = validateGwt(soil.gwt_retained);
+    const gwtFront = validateGwt(soil.gwt_front);
+    return {
+      fill: checks.fill,
+      profile: checks.profile,
+      gwtRetained,
+      gwtFront,
+      gwtProfile,
+      count:
+        checks.fill.length + checks.profile.length + gwtProfile.length + gwtRetained.length + gwtFront.length,
+    };
+  }, [soilDraft.value, height]);
+
   const handleCantileverEdit = (field: keyof CantileverGeometry, val: string | number) => {
     const num = typeof val === "number" ? val : Number.parseFloat(val);
     if (!Number.isFinite(num)) return;
@@ -214,8 +214,16 @@ export function StructureWizardPage() {
 
   const syncStructureBeforeRun = async (): Promise<RetainingWallStructure | null> => {
     if (!structure) return null;
+    // Unsaved soil edits go with the run when valid; invalid edits block the run.
+    if (soilDraft.dirty && soilValidation.count > 0) {
+      setRunBlocked(t("web.wizard.run_blocked_soil"));
+      return null;
+    }
+    setRunBlocked(null);
+    const soilForRun = soilDraft.dirty && soilDraft.value ? soilDraft.value : structure.soil;
     const updated: RetainingWallStructure = {
       ...structure,
+      soil: soilForRun,
       wall_type: wallType,
       height,
       embedment,
@@ -236,20 +244,21 @@ export function StructureWizardPage() {
     };
     const saved = (await update_structure(structure.id, updated)) as RetainingWallStructure;
     setStructure(saved);
+    if (soilDraft.dirty) soilDraft.reset(saved.soil);
     return saved;
   };
 
   const handleSuggest = async () => {
     if (!structure) return;
     setLastRunMode("suggest");
-    await syncStructureBeforeRun();
+    if (!(await syncStructureBeforeRun())) return;
     await job.start(() => size_wall(structure.id));
   };
 
   const handleCheck = async () => {
     if (!structure) return;
     setLastRunMode("check");
-    await syncStructureBeforeRun();
+    if (!(await syncStructureBeforeRun())) return;
     await job.start(() => check_wall(structure.id));
   };
 
@@ -352,7 +361,8 @@ export function StructureWizardPage() {
       >
         {/* Step 0: Tip/geometri */}
         <Stepper.Step label={t("web.wizard.step.geometry")}>
-          <SimpleGrid cols={{ base: 1, md: 2 }} spacing="sm" mt="sm">
+          <Grid gutter="sm" mt="sm">
+            <Grid.Col span={{ base: 12, md: 5 }}>
             <Card withBorder padding="sm" radius="sm">
               <Stack gap="xs">
                 <Text fw={600} size="sm">
@@ -495,62 +505,41 @@ export function StructureWizardPage() {
                 )}
               </Stack>
             </Card>
+            </Grid.Col>
 
-            <WallSection
+            <Grid.Col span={{ base: 12, md: 7 }}>
+            <StructureSoilSection
               wallType={wallType}
               geometry={currentGeometry}
               height={height}
               backfillSlope={backfillSlope}
+              soil={soilDraft.value}
+              gwtCase={gwtView}
             />
-          </SimpleGrid>
+            </Grid.Col>
+          </Grid>
         </Stepper.Step>
 
         {/* Step 1: Zemin */}
         <Stepper.Step label={t("web.wizard.step.soil")}>
-          <Stack gap="sm" mt="sm">
-            <Card withBorder padding="sm" radius="sm">
-              <Group justify="space-between">
-                <Text size="sm" fw={600}>
-                  {t("web.wizard.soil_source_profile")}:{" "}
-                  <Text span ff="monospace">
-                    {structure.soil.source_profile_id ?? structure.soil.profile.id}
-                  </Text>
-                </Text>
-                <Badge
-                  size="xs"
-                  color={
-                    structure.soil.source_hash === "stale-hash-mock" ? "amber" : "green"
-                  }
-                >
-                  {structure.soil.source_hash === "stale-hash-mock"
-                    ? t("web.structures.badge.stale")
-                    : t("web.structures.badge.fresh")}
-                </Badge>
-              </Group>
-            </Card>
-
-            <SimpleGrid cols={{ base: 1, md: 2 }} spacing="sm">
-              <Card withBorder padding="sm" radius="sm">
-                <Stack gap="xs">
-                  <Text fw={600} size="sm">
-                    {t("web.wizard.retained_fill")}
-                  </Text>
-                  {renderLayerTable(structure.soil.retained_fill ?? [], t)}
-                </Stack>
-              </Card>
-
-              <Card withBorder padding="sm" radius="sm">
-                <Stack gap="xs">
-                  <Text fw={600} size="sm">
-                    {t("web.wizard.foundation_layers")}
-                  </Text>
-                  {renderLayerTable(structure.soil.profile.layers, t)}
-                </Stack>
-              </Card>
-            </SimpleGrid>
-          </Stack>
+          <StructureSoilStep
+            structure={structure}
+            draft={soilDraft}
+            validation={soilValidation}
+            stale={stale}
+            wallType={wallType}
+            geometry={currentGeometry}
+            height={height}
+            backfillSlope={backfillSlope}
+            gwtView={gwtView}
+            onGwtViewChange={setGwtView}
+            onSaved={(saved) => {
+              setStructure(saved);
+              soilDraft.reset(saved.soil);
+              void refreshStale();
+            }}
+          />
         </Stepper.Step>
-
         {/* Step 2: Yükler/deprem */}
         <Stepper.Step label={t("web.wizard.step.loads")}>
           <SimpleGrid cols={{ base: 1, md: 2 }} spacing="sm" mt="sm">
@@ -798,6 +787,17 @@ export function StructureWizardPage() {
               </Stack>
             </Card>
 
+            {runBlocked && (
+              <Alert color="orange" variant="light" withCloseButton onClose={() => setRunBlocked(null)}>
+                <Group justify="space-between" gap="xs">
+                  <Text size="xs">{runBlocked}</Text>
+                  <Button size="compact-xs" variant="light" onClick={() => setActiveStep(1)}>
+                    {t("web.wizard.step.soil")}
+                  </Button>
+                </Group>
+              </Alert>
+            )}
+
             {missingFactors.length > 0 && (
               <MissingFactorsForm
                 missingFactors={missingFactors}
@@ -814,11 +814,13 @@ export function StructureWizardPage() {
             )}
 
             <SimpleGrid cols={{ base: 1, lg: 2 }} spacing="sm">
-              <WallSection
+              <StructureSoilSection
                 wallType={wallType}
                 geometry={currentGeometry}
                 height={height}
                 backfillSlope={backfillSlope}
+                soil={soilDraft.value}
+                gwtCase={gwtView}
               />
               {lastResult && (
                 <Stack gap="xs">
@@ -874,11 +876,14 @@ export function StructureWizardPage() {
                 </Alert>
 
                 <SimpleGrid cols={{ base: 1, lg: 2 }} spacing="sm">
-                  <WallSection
+                  <StructureSoilSection
                     wallType={wallType}
                     geometry={lastResult.geometry}
                     height={height}
                     backfillSlope={backfillSlope}
+                    soil={soilDraft.value}
+                    gwtCase={gwtView}
+                    title={t("web.wizard.result_section_title")}
                   />
                   <UtilisationCards
                     checks={lastResult.checks}
