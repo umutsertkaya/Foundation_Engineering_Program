@@ -139,6 +139,8 @@ y_EQ = seismic_increment_height*H_v
 
 Katsayı her drene katmanda ayrı hesaplanır. phi-beta-psi<0 ise mevcut katsayı
 fonksiyonu hata verir; E4 buna uydurma bir katsayı veya homojen kama ikamesi eklemez.
+Su altı hesabında bu hata açıkça TBDY Denk. 16.24b'yi belirtir; bu kol için mevcut
+katsayı fonksiyonunun reddettiği durumda bir ikame çözüm üretilmez.
 Duvar servisinde seismic_increment_height=0.5'tir; düşük seviyeli motor 0.6 dahil
 kullanıcının WallLoads değerini korur. Statik EH ve LS bileşkeleri kendi integral
 konumlarında, yalnız deprem ARTIMI belirtilen yüksekliktedir. M-O tanı diyagramının
@@ -169,8 +171,68 @@ daima gwt_case="seismic", yani depth_seismic kullanır; ön ve arka taraftaki ay
 gwt_front/gwt_retained değerleri de bu senaryodan seçilir. Bu alanlar yoksa profil
 YASS'ı, depth_seismic yoksa modelin mevcut depth_insitu varsayılanı geçerlidir.
 Aynı seçim dış dengeye, diyagramlara, temel/bant adaptörlerine, global stabiliteye
-ve eksik WA katsayısı denetimine uygulanır. Seçilen durumdaki su hidrostatiktir;
-hidrodinamik basınç, sıvılaşma ve fazla boşluk suyu basıncı hesabı yoktur.
+ve eksik WA katsayısı denetimine uygulanır. Statik su hidrostatiktir; tutulan
+dolgudaki dinamik su aşağıdaki Denk. 16.20 ile eklenir. Sıvılaşma ve fazla boşluk
+suyu basıncı hesabı yoktur.
+
+### Su altındaki tutulan dolgu — TBDY 2018 §16.12.3.2
+
+Kaynak: [TBDY 2018, Denk. 16.23–16.26 ve 16.20](https://www.resmigazete.gov.tr/eskiler/2018/03/20180318M1-2-1.pdf),
+basılı s.354–357; birincil metnin incelenmiş kaydı
+`docs/research/submerged_seismic_thrust.md` §1.1 ve §5.
+EN 1998-5:2004 Ek E.5–E.7 ile uyumludur. Bu bölümde `theta_face` arka yüz
+eğikliği, `psi` ise TBDY'nin sismik θ açısıdır; birbirine karıştırılmaz.
+
+```text
+gamma_star = gamma_sat - gamma_w
+Su tabanın altında (16.26a): tan(psi) = kh/(1-kv); mevcut kuru M-O yolu
+impervious (16.26b): tan(psi) = gamma_sat/gamma_star * kh/(1-kv)
+pervious   (16.26c): tan(psi) = gamma/gamma_star * kh/(1-kv)
+K_AE = mevcut M-O(psi); uygulamada kh_equivalent = numerator/gamma_star * kh
+K_horizontal = (1-kv)*K_AE*cos(delta+theta_face)
+Delta P_soil = integral(K_horizontal*(sigma_v_eff+q_plane) - p_static_eff)
+Tam batık homojen dolgu: Delta P_soil = (1-kv)*K_AE*gamma_star*H_v^2/2 - P_static
+  (yatay bileşen için cos(delta+theta_face) uygulanır; bu satır q=0 içindir)
+impervious: Delta P_su = 0
+pervious: Delta P_su = (7/12)*water_kh*gamma_w*d_su^2   (16.20)
+water_kh = 0.4*S_DS (r=1; zemin kh değerinden bağımsız)
+d_su = H_v - z_water_virtual
+z_dynamic_water = z_water_virtual + 0.6*d_su; y_dynamic_water = 0.4*d_su
+```
+
+Zemin artımı mevcut kaldırma etkisinden arındırılmış etkin gerilmeyi kullanır;
+statik hidrostatik kuvvet ayrıca kalır. `1-kv` işaret konvansiyonu değiştirilmedi.
+Dinamik su yataydır, yük türü EQ, adı `Dinamik su itkisi (TBDY Denk. 16.20)`;
+arka düzlemde belirtilen derinliğe uygulanır. M-O tanı diyagramındaki su bileşeni
+hidrostatik kalır; dinamik suyun tam kuvveti ve konumu `forces` listesindedir.
+Düşük seviyeli motorda geçirimli/zarf hesabı için `water_kh` açık girilmelidir;
+None değerinden azaltılmamış katsayı tahmin edilmez; servis S_DS'den atar.
+
+**TBDY–EC8 farkı:** 16.26c payında TBDY'nin doğal (su üstü) `SoilLayer.gamma`
+değeri kullanılır. EN 1998-5 E.7 payında kuru γ_d kullanır. Bu uygulama TBDY'nin
+doğal γ değerini esas alır; doygun γ_sat veya EC8 kuru γ_d sessizce yerine konmaz.
+
+`WallSettings.submerged_seismic` mühendis tarafından değiştirilebilir:
+
+- `envelope` (varsayılan): tüm su altı katmanlar için iki formül ayrı hesaplanır;
+  **zemin artımı + dinamik su toplam yatay talebi** büyük olan seçilir ve uyarıda
+  yöneten impervious/pervious kaydedilir. Bileşenler ayrı ayrı zarf yapılmaz.
+- `impervious` / `pervious`: seçilen formül yalnız su altındaki bölümlere uygulanır.
+- `by_permeability`: her katmanda k<5e-4 m/s geçirimsiz, k≥5e-4 geçirimlidir.
+  `permeability=None` için uyarıyla zarf kullanılır; bilinen sınıflar korunarak
+  belirsiz katmanların seçenekleri toplam yatay talebi büyütecek şekilde seçilir.
+  Karışık sınıflarda herhangi bir geçirimli su altı katman varsa tam su yüksekliği
+  için Denk.16.20 bir kez eklenir; bu güvenli mühendislik varsayımı ayrıca uyarılır.
+
+YASS katmanı kesiyorsa o noktada iki düğümle kuru/su altı katsayısı sıçraması
+korunur; üst bölümde eski kuru M-O aynen kalır. Bu **kısmi batıklık** yönetmelikte
+tanımlı bir katmanlı çözüm değildir; her hesapta açık Türkçe mühendislik yargısı
+uyarısı verilir. Taban sanal arka düzlemin alt ucudur (konsolda temel altı);
+zemin/su karışımının katmanlar arası dinamiği çözülmez. Duvar dışındaki serbest
+suyun hidrodinamik etkisi kapsam dışıdır. **KDYY Tasarım ve Uygulama Esasları'nın
+16.07.2026 değişikliği eki okunmamıştır**; ek şartların kontrolü her su altı deprem
+hesabında uyarılır, bu belgeye uygunluk iddiası yoktur. Varsayım kaynağı sonuçta
+`TBDY 2018 16.12.3.2, Denk. 16.26 ve 16.20` olarak kaydedilir.
 
 Deprem YASS'ının altında tutulan veya temel katmanı varsa ve inputs.r=None ise
 Türkçe uyarı verilir: TBDY 2018 16.12.2.2 / coefficients.py notuna göre fazla

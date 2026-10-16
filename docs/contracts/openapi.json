@@ -9631,6 +9631,19 @@
             "title": "Gamma Sat",
             "description": "Below GWT [kN/m3]"
           },
+          "permeability": {
+            "anyOf": [
+              {
+                "type": "number",
+                "exclusiveMinimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Permeability",
+            "description": "Hydraulic conductivity k [m/s]"
+          },
           "params": {
             "additionalProperties": {
               "$ref": "#/components/schemas/DerivedParameter"
@@ -10198,6 +10211,17 @@
       },
       "WallSettings": {
         "properties": {
+          "submerged_seismic": {
+            "type": "string",
+            "enum": [
+              "envelope",
+              "impervious",
+              "pervious",
+              "by_permeability"
+            ],
+            "title": "Submerged Seismic",
+            "default": "envelope"
+          },
           "uplift_moment": {
             "type": "string",
             "enum": [

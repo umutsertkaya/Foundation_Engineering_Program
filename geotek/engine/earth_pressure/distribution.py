@@ -143,6 +143,7 @@ def lateral_pressure(
     layerwise: bool = False,
     delta_ratio: float | None = None,
     total_stress_surcharge: float = 0.0,
+    submerged_kh: dict[str, float] | None = None,
 ) -> PressureDistribution:
     """Pressure on a vertical plane from depth ``top`` to ``top + height`` of the profile.
 
@@ -156,10 +157,12 @@ def lateral_pressure(
     Undrained layers use total stress without an additional water component.
     ``total_stress_surcharge`` is an optional boundary load on undrained layers
     only, e.g. free water above an excavated front ground.
+    ``submerged_kh`` optionally supplies equivalent M-O kh by layer below GWT:
+    psi=atan(kh_equivalent/(1-kv)); face lean ``theta`` is unchanged.
     """
     if height <= 0 or top < 0:
         raise GeoTekError("Height must be positive")
-    if (theta or kh or kv or delta_ratio is not None) and method != "coulomb":
+    if (theta or kh or kv or delta_ratio is not None or submerged_kh is not None) and method != "coulomb":
         raise GeoTekError("Face lean and seismic coefficients require the Coulomb method")
     bottom = top + height
     if bottom > profile.bottom + 1e-9:
@@ -176,12 +179,31 @@ def lateral_pressure(
         layer_delta = (delta_ratio * layer.design.phi_eff
                        if delta_ratio is not None and mode == "drained" and layer.design.phi_eff is not None
                        else delta)
-        coeffs.append(_layer_coefficients(layer, state, method, layer_delta, beta, mode, warnings,
-                                          theta=theta, kh=kh, kv=kv))
-        modes.append(mode)
-        pts = [a, b] + ([gwt] if a < gwt < b else [])
-        z_nodes += sorted(pts)
-        seg_nodes += [len(coeffs) - 1] * len(pts)
+        if submerged_kh is not None and layer.id in submerged_kh:
+            cuts = [a] + ([gwt] if a < gwt < b else []) + [b]
+            for lo, hi in zip(cuts, cuts[1:]):
+                wet = lo >= gwt
+                try:
+                    coeff = _layer_coefficients(
+                        layer, state, method, layer_delta, beta, mode, warnings,
+                        theta=theta, kh=submerged_kh[layer.id] if wet else kh, kv=kv)
+                except (GeoTekError, ValueError, ArithmeticError) as exc:
+                    if wet and mode == "drained":
+                        raise GeoTekError(
+                            f"Katman {layer.id}: TBDY Denk. 16.24b dahil M-O sınırını kontrol edin; {exc}"
+                        ) from exc
+                    raise
+                coeffs.append(coeff)
+                modes.append(mode)
+                z_nodes += [lo, hi]
+                seg_nodes += [len(coeffs) - 1] * 2
+        else:
+            coeffs.append(_layer_coefficients(layer, state, method, layer_delta, beta, mode, warnings,
+                                              theta=theta, kh=kh, kv=kv))
+            modes.append(mode)
+            pts = [a, b] + ([gwt] if a < gwt < b else [])
+            z_nodes += sorted(pts)
+            seg_nodes += [len(coeffs) - 1] * len(pts)
     z = np.array(z_nodes)
     seg = np.array(seg_nodes)
 

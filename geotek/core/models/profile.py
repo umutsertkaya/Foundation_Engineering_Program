@@ -56,6 +56,7 @@ class SoilLayer(BaseModel):
     behaviour: Literal["drained", "undrained"] = "drained"
     gamma: float = Field(gt=5, lt=30, description="Unit weight above GWT [kN/m3]")
     gamma_sat: float | None = Field(None, gt=5, lt=30, description="Below GWT [kN/m3]")
+    permeability: float | None = Field(None, gt=0, description="Hydraulic conductivity k [m/s]")
     params: dict[str, DerivedParameter] = Field(default_factory=dict)
     design: DesignParameters = Field(default_factory=DesignParameters)
     selections: dict[str, ParameterSelection] = Field(default_factory=dict)

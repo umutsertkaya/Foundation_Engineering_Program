@@ -175,7 +175,96 @@ def _plane_profile(profile, rise):
     return profile.model_copy(update={"layers": layers, "gwt": gwt})
 
 
-def _retained_pressures(geometry, soil, loads, seismic, slope, gwt_case):
+def _submerged_dynamic(profile, hv, loads, settings, q, common, static):
+    """TBDY 16.26; compare horizontal soil increments plus ONE 16.20 water force.
+
+    Mixed permeability uses the full water head if any wetted layer is pervious
+    (conservative engineering judgement; no layered hydrodynamic model is claimed).
+    """
+    gwt = profile.gwt.depth_for(common["gwt_case"])
+    wet = [l for l in profile.layers if min(l.bottom, hv) > max(l.top, gwt)]
+    mode = settings.submerged_seismic
+    unknown, fixed = [], {}
+    if mode == "by_permeability":
+        for layer in wet:
+            if layer.permeability is None:
+                unknown.append(layer.id)
+            else:
+                fixed[layer.id] = "impervious" if layer.permeability < 5e-4 else "pervious"
+    else:
+        unknown = [l.id for l in wet]
+
+    def diagram(choices):
+        equivalent = {}
+        for layer in wet:
+            buoyant = layer.gamma_sat - GAMMA_W
+            if buoyant <= 0:
+                raise GeoTekError(f"Katman {layer.id}: TBDY Denk. 16.26 için γ_sat > γ_w olmalıdır")
+            numerator = layer.gamma_sat if choices[layer.id] == "impervious" else layer.gamma
+            # Existing M-O computes psi=atan(kh/(1-kv)); keep face lean separate.
+            equivalent[layer.id] = numerator / buoyant * loads.kh
+        return lateral_pressure(profile, hv, surcharge=q, kh=loads.kh, kv=loads.kv,
+                                submerged_kh=equivalent, **common)
+
+    def choices(branch):
+        return {**fixed, **dict.fromkeys(unknown, branch)}
+
+    candidates = []
+    if mode in ("impervious", "pervious"):
+        selected = choices(mode)
+        candidates.append((selected, diagram(selected)))
+    else:
+        ci, cp = choices("impervious"), choices("pervious")
+        di, dp = diagram(ci), diagram(cp)
+        if mode == "envelope":
+            candidates = [(ci, di), (cp, dp)]
+        elif unknown:
+            # Local soil forces are independent of the other layers' choices.
+            # Maximise their sum, then enforce at least one pervious layer for
+            # the candidate containing the single full-head dynamic water load.
+            fi = _integrals(di, di.sigma_h_eff, profile)
+            fp = _integrals(dp, dp.sigma_h_eff, profile)
+            best = {**fixed, **{key: "impervious" if fi[key][0] >= fp[key][0] else "pervious"
+                               for key in unknown}}
+            variants = [ci, best]
+            if "pervious" not in best.values():
+                variants += [{**best, key: "pervious"} for key in unknown]
+            candidates = [(c, diagram(c)) for c in variants]
+        else:
+            candidates = [(ci, di)]
+
+    if any("pervious" in c.values() for c, _ in candidates) and loads.water_kh is None:
+        raise GeoTekError("TBDY Denk. 16.20 için WallLoads.water_kh=0.4·S_DS girilmelidir (r=1)")
+    d_su = hv - gwt
+    water = (7 / 12) * (loads.water_kh or 0.0) * GAMMA_W * d_su**2
+    static_soil = static.component("effective")[0]
+    selected, dynamic = max(candidates, key=lambda item:
+                            item[1].component("effective")[0] - static_soil
+                            + (water if "pervious" in item[0].values() else 0.0))
+    dynamic_water = water if "pervious" in selected.values() else 0.0
+    governing = list(dict.fromkeys(selected.values()))
+    for branch in governing:
+        dynamic.warnings.append(
+            "Su altındaki dolgu: deprem itkisi TBDY 2018 Denk. 16.26 ile hesaplandı "
+            f"(EN 1998-5 Ek E ile uyumlu); seçim: {mode}, yöneten: {branch}.")
+    if mode == "by_permeability":
+        for layer in wet:
+            dynamic.warnings.append(f"Katman {layer.id}: su altı deprem sınıfı {selected[layer.id]}.")
+        for key in unknown:
+            dynamic.warnings.append(
+                f"Katman {key}: permeabilite k girilmedi; su altı deprem hesabında envelope zarfı kullanıldı.")
+    if len(governing) > 1:
+        dynamic.warnings.append("Karışık geçirgenlik: dinamik su itkisi tam su yüksekliği için bir kez "
+                                "eklendi; katmanlar arası su hareketi modellenmedi — sonucu kontrol edin.")
+    if 0 < gwt < hv:
+        dynamic.warnings.append("Kısmen su altındaki dolgu yönetmelik formüllerinin kapsamı dışındadır; "
+                                "katman bazında mühendislik yargısı uygulandı — sonucu kontrol edin.")
+    dynamic.warnings.append("Kazı Destek Yapıları Tasarım ve Uygulama Esasları (16.07.2026 değişikliği) "
+                            "ek şartları kontrol edilmelidir; bu belge yazılımda incelenmedi.")
+    return dynamic, dynamic_water
+
+
+def _retained_pressures(geometry, soil, loads, settings, seismic, slope, gwt_case):
     H = geometry.height
     if not 0 <= geometry.embedment < H:
         raise GeoTekError("Need 0 <= embedment < wall height")
@@ -193,9 +282,13 @@ def _retained_pressures(geometry, soil, loads, seismic, slope, gwt_case):
     q = loads.surcharge / (1 + math.tan(math.radians(theta)) * math.tan(math.radians(slope)))
     zero = lateral_pressure(profile, hv, **common)
     static = lateral_pressure(profile, hv, surcharge=q, **common) if q else zero
-    dynamic = (lateral_pressure(profile, hv, surcharge=q, kh=loads.kh, kv=loads.kv, **common)
-               if seismic and (loads.kh or loads.kv) else static)
-    return profile, hv, theta, zero, static, dynamic
+    dynamic_water = 0.0
+    if seismic and profile.gwt.depth_for(gwt_case) < hv:
+        dynamic, dynamic_water = _submerged_dynamic(profile, hv, loads, settings, q, common, static)
+    else:
+        dynamic = (lateral_pressure(profile, hv, surcharge=q, kh=loads.kh, kv=loads.kv, **common)
+                   if seismic and (loads.kh or loads.kv) else static)
+    return profile, hv, theta, zero, static, dynamic, dynamic_water
 
 
 def _integrals(dist, values, profile):
@@ -321,8 +414,8 @@ def wall_pressures_layered(geometry, soil, loads, settings, *, seismic, backfill
                            gwt_case: GwtCase = "design") -> dict[str, PressureDistribution]:
     """Unfactored diagnostic diagrams; retained depths are from the virtual plane top."""
     selected = soil_at_case(soil, gwt_case)
-    _, _, _, zero, static, dynamic = _retained_pressures(
-        geometry, selected, loads, seismic, backfill_slope, "design")
+    _, _, _, zero, static, dynamic, _ = _retained_pressures(
+        geometry, selected, loads, settings, seismic, backfill_slope, "design")
     front = _front_pressure(geometry, selected, settings)
     return {"retained": dynamic, "retained_static": static, "retained_soil": zero, "front": front,
             "front_water": front_water_distribution(selected, geometry.height - geometry.embedment,
@@ -333,8 +426,8 @@ def wall_forces_layered(geometry, soil: StructureSoilModel, loads: WallLoads, se
                         *, seismic: bool, backfill_slope: float = 0.0,
                         gwt_case: GwtCase = "design") -> WallForces:
     selected = soil_at_case(soil, gwt_case)
-    profile, hv, theta, zero, static, dynamic = _retained_pressures(
-        geometry, selected, loads, seismic, backfill_slope, "design")
+    profile, hv, theta, zero, static, dynamic, dynamic_water = _retained_pressures(
+        geometry, selected, loads, settings, seismic, backfill_slope, "design")
     gc, H, B = settings.concrete_unit_weight, geometry.height, geometry.width
     warnings = list(dict.fromkeys(zero.warnings + static.warnings + dynamic.warnings))
     if isinstance(geometry, GravityGeometry):
@@ -352,6 +445,11 @@ def wall_forces_layered(geometry, soil: StructureSoilModel, loads: WallLoads, se
             forces.append(Force("Surcharge over heel", 0.0, -loads.surcharge * geometry.heel,
                                 geometry.x_stem_back + geometry.heel / 2, hv, "LS"))
     forces += _thrusts(geometry, profile, hv, theta, zero, static, dynamic, loads, seismic, backfill_slope)
+    if dynamic_water > 0:
+        d_su = hv - profile.gwt.depth_for("design")
+        y = 0.4 * d_su
+        forces.append(Force("Dinamik su itkisi (TBDY Denk. 16.20)", -dynamic_water, 0.0,
+                            B - y * math.tan(math.radians(theta)), y, "EQ"))
     uf = GAMMA_W * max(H - selected.front_profile().gwt.depth_for("design"), 0.0)
     ur = GAMMA_W * max(H - selected.retained_profile().gwt.depth_for("design"), 0.0)
     if uf + ur > 0:

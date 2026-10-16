@@ -482,3 +482,53 @@ def test_passive_engineer_assumption_reports_custom_reduction_once(reduction):
     assert [(a.text, a.source) for a in assumptions] == [
         (f"Pasif azaltma katsayısı = {reduction:g} — mühendis seçimi (yayımlanmış kaynak gösterilmedi)",
          "Kullanıcı girdisi")]
+
+
+@pytest.mark.parametrize("advanced", [False, True])
+@pytest.mark.parametrize("r", [1., 2.])
+def test_submerged_service_uses_unreduced_water_kh_and_honours_mode(advanced, r):
+    from geotek.services import structures as service
+
+    project = _project(advanced=advanced)
+    structure = project.structure("wall")
+    structure.inputs.r = r
+    structure.settings.submerged_seismic = "pervious"
+    structure.soil.gwt_retained = GroundwaterCondition(depth_insitu=100, depth_seismic=2.)
+    before = project.model_dump_json()
+    loads, kh, kv = service._loads(structure)
+    assert loads.water_kh == .4 * structure.inputs.sds
+    assert kh == loads.water_kh / r and kv == kh / 2
+    result = check_structure(project, "wall")
+    assert project.model_dump_json() == before
+    water = next(f for f in result.analyses["seismic"].forces
+                 if f.name == "Dinamik su itkisi (TBDY Denk. 16.20)")
+    assert water.fx == pytest.approx(-(7 / 12) * .2 * GAMMA_W * 3**2)
+    assert water.fy == 0 and water.kind == "EQ" and water.y == pytest.approx(1.2)
+    assert not any(f.name == water.name for f in result.analyses["static"].forces)
+    assert any("seçim: pervious, yöneten: pervious." in w for w in result.warnings)
+    assert any("Kısmen su altındaki dolgu" in w for w in result.warnings)
+    assert any("16.07.2026 değişikliği" in w for w in result.warnings)
+    assert any(a.source == "TBDY 2018 16.12.3.2, Denk. 16.26 ve 16.20"
+               and "pervious" in a.text for a in result.assumptions)
+    assert not any("hidrodinamik basınç, sıvılaşma" in a.text for a in result.assumptions)
+
+
+def test_submerged_service_default_envelope_and_missing_permeability_warning():
+    project = _project()
+    structure = project.structure("wall")
+    structure.soil.gwt_retained = GroundwaterCondition(depth_insitu=100, depth_seismic=0.)
+    default = check_structure(project, "wall")
+    assert structure.settings.submerged_seismic == "envelope"
+    assert any("seçim: envelope, yöneten:" in w for w in default.warnings)
+    assert not any("Kısmen su altındaki dolgu" in w for w in default.warnings)
+    structure.settings.submerged_seismic = "by_permeability"
+    classified = check_structure(project, "wall")
+    assert any("k girilmedi" in w and "envelope" in w for w in classified.warnings)
+    assert classified.analyses["seismic"].forces == default.analyses["seismic"].forces
+    assert classified.result_hash != default.result_hash
+
+
+def test_dry_service_does_not_report_submerged_assumptions_or_warnings():
+    result = check_structure(_project(), "wall")
+    assert not any(a.source == "TBDY 2018 16.12.3.2, Denk. 16.26 ve 16.20" for a in result.assumptions)
+    assert not any("Su altındaki dolgu:" in w or "16.07.2026 değişikliği" in w for w in result.warnings)

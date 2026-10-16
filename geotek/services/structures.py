@@ -79,7 +79,8 @@ def _settings(project, structure):
             return structure.settings.model_copy(update={"factor_overrides": overrides})
         return WallSettings(design_code=code, bearing_method="vesic", factor_overrides=overrides,
                             uplift_moment=structure.settings.uplift_moment,
-                            gwt_bearing_correction=structure.settings.gwt_bearing_correction)
+                            gwt_bearing_correction=structure.settings.gwt_bearing_correction,
+                            submerged_seismic=structure.settings.submerged_seismic)
     return WallSettings(design_code=code, bearing_method="vesic", factor_overrides=overrides)
 
 
@@ -132,6 +133,7 @@ def _loads(structure):
     if inp.sds is not None:
         kh, kv = tbdy_seismic_coefficients(inp.sds, inp.r if inp.r is not None else TBDY_R["gravity_80sds_mm"])
     loads = WallLoads(surcharge=inp.surcharge, kh=kh or 0.0, kv=kv or 0.0, seismic_increment_height=0.5,
+                      water_kh=0.4 * inp.sds if inp.sds is not None else None,
                       surcharge_resists=inp.surcharge_resists if structure.analysis_level == "advanced" else False)
     return loads, kh, kv
 
@@ -215,10 +217,21 @@ def _assumptions(structure, settings, D):
                            source="StructureSoilModel; depth_seismic, yoksa depth_insitu"),
                 Assumption(text=f"k_h=0.4·S_DS/r, k_v=0.5·k_h, r={r:g}; dinamik itki artımı H_v/2'de",
                            source=SRC_TBDY_SEISMIC),
-                Assumption(text="M-O katman bazında; deprem YASS'ında su hidrostatiktir; hidrodinamik "
-                                "basınç, sıvılaşma ve fazla boşluk suyu basıncı hesaplanmaz; "
+                Assumption(text="M-O katman bazında; statik su hidrostatiktir; sıvılaşma ve fazla "
+                                "boşluk suyu basıncı hesaplanmaz; "
                                 "drenajsız deprem itkisi ve M-O geçerlilik sınırı dışı durumlar durdurulur",
                            source="Mononobe & Matsuo (1929), Okabe (1926); FHWA GEC-3; E4 kapsam sınırı")]
+        retained = structure.soil.retained_profile()
+        if retained.gwt.depth_for("seismic") < structure.height:
+            out.append(Assumption(
+                text=f"Su altı deprem seçimi: {settings.submerged_seismic}; γ*=γ_sat−γ_w; "
+                     "geçirimsiz tanψ=γ_sat/γ*·kh/(1−kv), geçirimli tanψ=γ/γ*·kh/(1−kv) "
+                     "(γ doğal birim ağırlık); dinamik su kh=0.4·S_DS (r=1). "
+                     "Taban sanal arka düzlemin altıdır; kısmi batıklık katman bazında mühendislik "
+                     "yargısıdır; karışık geçirgenlikte herhangi bir geçirimli katman için tam su "
+                     "yüksekliği bir kez kullanılır; dış serbest su modellenmez. Yöneten seçim "
+                     "durum uyarılarında; dinamik suyun kuvvet ve konumu forces içindedir.",
+                source="TBDY 2018 16.12.3.2, Denk. 16.26 ve 16.20"))
     if structure.inputs.include_global_stability:
         out.append(Assumption(text="Bishop daireleri taban altından geçer; taşınan ağırlık taban izine "
                                    "eşdeğer yük olarak yayılır; kayma modelinde tek yatay su kotu için "

@@ -61,6 +61,7 @@ Corroboration of the equation images: IMO/AFAD training deck "TBDY-2018 Kisim 16
 
 **[NOT VERIFIED].** I could read only the regulation body (Articles 1-6), which contains no technical rule on earth pressure or water. I could not open either the 2022 annex, the 2026 replacement annex, or the Tasarim El Kitabi, so I cannot confirm or deny that they (a) refer to TBDY 16.12, (b) fix kh differently, or (c) add water rules. Search results (secondary) suggest the handbook has figures for active and passive seismic pressure envelopes and a pseudo-static method, which is consistent with a TBDY-based approach, but nothing on pore water was seen.
 Because the annex was entirely replaced in July 2026 and the handbook dates from 2023, any handbook reading should be checked against the 2026 annex.
+Annex file locations found: the 2022 original annex is https://www.resmigazete.gov.tr/eskiler/2022/12/20221218-2-1.pdf (over 10 MB, fetch refused; superseded by the 2026 annex) and mevzuat.gov.tr serves the annex only as 7.5.39898-Ek.zip (the 7.5.39898.pdf is the 123 KB regulation body only).
 Action for whoever continues: obtain the three PDFs locally (these are public, large files) and search for: deprem, pseudo-statik, kh, yeraltı suyu, hidrodinamik, geçirimli, boşluk suyu.
 
 ---------------------------------------------------------------------
@@ -91,6 +92,8 @@ The numbering the question gives (E.6 impervious, E.7 pervious) matches EN 1998-
 | kh | alpha S / r | 0.4 S_DS / r |
 | kv | +/-0.5 kh or +/-0.33 kh | 0.5 kh (sign to be taken as unfavourable) |
 | r with excess pore pressure | <= 1.0, and liquefaction FS >= 2 | <= 1.0 (no FS statement inside 16.12.2.2) |
+| kv for non-gravity walls | 7.3.2.2(7): vertical acceleration may be neglected | no such exemption found in 16.12; keep kv = 0.5 kh |
+| r for cantilever / embedded unanchored walls | Table 7.1: r = 1 (flexural walls) | Tablo 16.7 lists only gravity and anchored walls; r = 1.0 by analogy is an [INFER] |
 | Impervious threshold | k < 5x10^-4 m/s | k < 5x10^-4 m/s (in case (b)) |
 | Impervious tan(theta) | gamma_sat/(gamma_sat - gamma_w) kh/(1-/+kv) | same |
 | gamma* | gamma - gamma_w | gamma_d(sat) - gamma_su, same |
@@ -98,13 +101,13 @@ The numbering the question gives (E.6 impervious, E.7 pervious) matches EN 1998-
 | Pervious water force | (7/12) kh gamma_w H'^2 | (7/12)(0.4 S_DS) gamma_su d_su^2, acts 0.6 d_su below water surface |
 | Free water outside the wall | E.8 (7/8) kh gamma_w sqrt(hz), r = 1 | not in 16.12 |
 
-[INFER] The TBDY pervious numerator "gamma" is probably a drafting variation. EC8 physically needs the dry unit weight (the solid skeleton's mass, since the pore water moves independently). Using TBDY's natural unit weight gives slightly larger theta, so it is conservative; the gamma versus gamma_d choice can change theta by a few degrees only. The TBDY water term uses 0.4 S_DS directly (equivalent to r = 1, no kv), consistent with EC8 E.8.
+[INFER] The TBDY pervious numerator (natural unit weight, gamma) is probably a drafting variation. EC8 physically needs the dry unit weight (the solid skeleton's mass, since the pore water moves independently). Using TBDY's natural unit weight gives a slightly larger theta, so it is the conservative choice; the difference is a few degrees. The TBDY water term uses 0.4 S_DS directly (equivalent to r = 1, no kv, whatever r the soil part uses), consistent with EC8 E.8.
 
 ### 3.4 Illustration (my calculation; kh = 0.20, kv = 0.5kh, gamma_sat = 20, gamma_d = 16, gamma_w = 9.81 kN/m3, sign 1 - kv)
 - Dry soil or water below wall base: theta about 12.5 deg.
 - Impervious submerged: theta about 23.6 deg, gamma* = 10.19 kN/m3.
-- Pervious submerged: theta about 19.2 deg, gamma* = 10.19 kN/m3, plus a dynamic water force of (7/12)(0.2)(9.81) H'^2 = 1.14 H'^2 kN/m.
-The large rise in theta in the impervious case is what makes the submerged case governing in effective-weight terms, but the buoyant weight (gamma*) is small, so the thrust is not necessarily larger in absolute terms than the dry case; the static water pressure Psu is a separate and usually larger term.
+- Pervious submerged: theta about 19.2 deg, gamma* = 10.19 kN/m3, plus a dynamic water force of (7/12)(0.2)(9.81) H'^2 = 1.14 H'^2 kN/m (here 0.2 stands for 0.4 S_DS, i.e. kh with r = 1; TBDY uses 0.4 S_DS whatever r is).
+[INFER] The large rise in theta in the impervious case partly offsets the low buoyant weight gamma*, so the soil part of the thrust is not necessarily larger than the dry case; the static water pressure Psu is a separate and usually larger term. Note also that with phi' near 30 deg and theta near 24 deg, beta > phi' - theta is easily met, so Denk. (16.24b) (EC8 E.3) is a normal branch, not an edge case.
 
 ---------------------------------------------------------------------
 
@@ -124,7 +127,10 @@ Use TBDY 16.12 as written, because it is the binding Turkish building code, and 
 1. kh = 0.4 S_DS / r, kv = 0.5 kh (Denk. 16.22), r from Tablo 16.7. For excavation support walls that are anchored or propped and allow no displacement, r = 1.0. If saturated soil can build high excess pore pressure, r <= 1.0 regardless (16.12.2.2).
 2. Water table below the wall base: theta = atan[kh/(1 -/+ kv)], gamma* = gamma, no water term.
 3. Water table above the wall base, soil with k < 5x10^-4 m/s (clays, silts, silty and fine sands): treat as dynamically impervious: theta = atan[gamma_sat/(gamma_sat - gamma_w) x kh/(1 -/+ kv)], gamma* = gamma_sat - gamma_w, dPsu = 0. Static water pressure Psu still acts in Denk. (16.23).
-4. Water table above the wall base, soil with k >= 5x10^-4 m/s (clean coarse sand, gravel, rockfill): treat as dynamically pervious: theta = atan[gamma_d(dry)/(gamma_sat - gamma_w) x kh/(1 -/+ kv)], gamma* = gamma_sat - gamma_w, plus dPsu = (7/12)(0.4 S_DS) gamma_w d_su^2 at 0.6 d_su below the water surface. Use the EC8 dry unit weight in the numerator (more physical) or the TBDY literal natural unit weight (slightly conservative); show which one was used.
+4. Water table above the wall base, soil with k >= 5x10^-4 m/s (clean coarse sand, gravel, rockfill): treat as dynamically pervious: theta = atan[gamma/(gamma_sat - gamma_w) x kh/(1 -/+ kv)] with gamma the natural (above-water) unit weight exactly as TBDY (16.26c) writes it, gamma* = gamma_sat - gamma_w, plus dPsu = (7/12)(0.4 S_DS) gamma_w d_su^2 at 0.6 d_su below the water surface. Default = TBDY literal (binding and conservative). Offer the EC8 dry unit weight gamma_d only as a clearly labelled override. The software must take the natural unit weight gamma as its own input for this case; if users type gamma_sat there, case (c) collapses into case (b) plus dPsu.
+   Implementation note: both Mononobe-Okabe branches, Denk. (16.24a) for beta <= phi' - theta and (16.24b) for beta > phi' - theta, must be coded; do not take the square root of a negative number.
+   kv: keep kv = 0.5 kh for non-gravity (excavation support) walls; EC8 7.3.2.2(7) would allow neglecting it, TBDY 16.12 gives no such allowance.
+   r for unanchored cantilever / embedded walls is not in Tablo 16.7; [INFER] use r = 1.0 by analogy with EC8 Table 7.1.
 5. Use the Denk. (16.24) coefficient with theta, subtract the static (theta = 0) coefficient to get the dynamic increment, apply the dynamic resultant at mid-height (flexible or tied-back walls) and keep wall friction delta <= (2/3) phi'.
 6. Layers with differing permeability: classify each by its own k; if the layers disagree, take the case giving the higher total thrust.
 
@@ -138,7 +144,7 @@ Use TBDY 16.12 as written, because it is the binding Turkish building code, and 
 ### 5.3 Suggested warning text for the software (English; Turkish equivalent to follow)
 "Submerged backfill: the seismic thrust follows TBDY 2018 Denk. (16.26) (consistent with EN 1998-5 Annex E.5-E.7). Soil with k < 5x10^-4 m/s is treated as dynamically impervious (no hydrodynamic water force; inertia of the soil+water mass in the seismic angle). Soil with k >= 5x10^-4 m/s is treated as dynamically pervious (Westergaard-type dynamic water force added). Partially submerged backfill, free water outside the wall, and excess pore pressure/liquefaction are outside the code formulas and require engineering judgement; r is capped at 1.0 for soils that may build high pore pressure. Static water pressure must be added separately. Check the applicable Kazi Destek Yapilari Tasarim ve Uygulama Esaslari (amended 16.07.2026) for any additional requirement."
 
-"Zemin su altindaysa deprem itkisi TBDY 2018 Denk.(16.26) ile (EN 1998-5 Ek E.5-E.7 ile uyumlu) hesaplanir. k < 5x10^-4 m/s olan zemin dinamik olarak geçirimsiz (hidrodinamik su kuvveti yok, birim agirlik ve sismik aci duzeltilir), k >= 5x10^-4 m/s olan zemin dinamik olarak geçirimli kabul edilir (Westergaard tipi ek dinamik su kuvveti eklenir). Kismen su altindaki dolgu, duvar disindaki serbest su ve asiri boşluk suyu basinci / sivilasma yönetmelik formullerinin disindadir, muhendislik yargisi gerektirir. Statik su basinci ayrica eklenmelidir."
+"Zemin yeraltı suyu altında kalıyorsa deprem itkisi TBDY 2018 Denk. (16.26) ile (EN 1998-5 Ek E.5-E.7 ile uyumlu) hesaplanır. Permeabilite katsayısı k < 5x10^-4 m/s olan zemin dinamik olarak geçirimsiz kabul edilir (hidrodinamik su kuvveti yoktur; birim hacim ağırlık ve sismik açı düzeltilir). k >= 5x10^-4 m/s olan zemin dinamik olarak geçirimli kabul edilir (Westergaard tipi ek dinamik su kuvveti eklenir). Kısmen su altındaki dolgu, duvar dışındaki serbest su ve aşırı boşluk suyu basıncı/sıvılaşma yönetmelik formüllerinin dışındadır ve mühendislik yargısı gerektirir. Statik su basıncı ayrıca eklenmelidir. Kazı Destek Yapıları Tasarım ve Uygulama Esasları'nın (16.07.2026 değişikliği) ek şartları ayrıca kontrol edilmelidir."
 
 ---------------------------------------------------------------------
 

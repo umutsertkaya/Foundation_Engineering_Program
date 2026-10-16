@@ -2211,6 +2211,11 @@ export interface components {
              * @description Below GWT [kN/m3]
              */
             gamma_sat?: number | null;
+            /**
+             * Permeability
+             * @description Hydraulic conductivity k [m/s]
+             */
+            permeability?: number | null;
             /** Params */
             params?: {
                 [key: string]: components["schemas"]["DerivedParameter"];
@@ -2395,6 +2400,12 @@ export interface components {
         };
         /** WallSettings */
         WallSettings: {
+            /**
+             * Submerged Seismic
+             * @default envelope
+             * @enum {string}
+             */
+            submerged_seismic: "envelope" | "impervious" | "pervious" | "by_permeability";
             /**
              * Uplift Moment
              * @default overturning

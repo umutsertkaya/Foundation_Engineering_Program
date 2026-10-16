@@ -11,7 +11,7 @@ from geotek.core.errors import GeoTekError, MissingFactorsError
 from geotek.core.models.profile import DesignParameters, GroundwaterCondition, SoilLayer, SoilProfile
 from geotek.core.models.structures import StructureSoilModel
 from geotek.core.models.walls import Backfill, CantileverGeometry, GravityGeometry, WallLoads, WallSettings
-from geotek.engine.earth_pressure.coefficients import rankine_ka, tbdy_seismic_coefficients, TBDY_R
+from geotek.engine.earth_pressure.coefficients import mononobe_okabe_kae, rankine_ka, tbdy_seismic_coefficients, TBDY_R
 from geotek.engine.earth_pressure.distribution import lateral_pressure
 from geotek.engine.earth_pressure.wedge import trial_wedge
 from geotek.engine.limit_state import _factor_forces, limit_state_cases, verify_wall_global_stability, verify_wall_layered
@@ -177,6 +177,136 @@ def _soil(fill=None, layers=None, retained_water=100.0, front_water=100.0):
 def _geometry():
     return CantileverGeometry(stem_height=5.4, stem_top=0.3, stem_bottom=0.4,
                                toe=1.0, heel=2.6, base_thickness=0.6, embedment=1.0)
+
+
+def _submerged_case(mode, *, water_depth=0.0, water_kh=0.2, fill=None):
+    soil = _soil(fill or [_layer("fill", 0, 6)], retained_water=water_depth)
+    loads = WallLoads(kh=0.1, kv=0.05, water_kh=water_kh, seismic_increment_height=0.5)
+    settings = WallSettings(submerged_seismic=mode)
+    return wall_forces_layered(_geometry(), soil, loads, settings, seismic=True)
+
+
+@pytest.mark.parametrize("mode,kae,increment,water", [
+    ("impervious", 0.478923138363240, 22.3118779366562, 0.0),
+    ("pervious", 0.461484663757904, 19.2732411751510, 41.202),
+])
+def test_submerged_tbdy_closed_form(mode, kae, increment, water):
+    """H=6, phi=30, gamma=18, gamma_sat=20, gamma_w=9.81, kh=.1, kv=.05.
+
+    gamma*=10.19, static=61.14 kN/m. Impervious: psi=11.6731239102854 deg,
+    KAE=.478923138363240, Pt_soil=83.4518779366562, increment=22.3118779366562.
+    Pervious: psi=10.5333299100496, KAE=.461484663757904, Pt_soil=80.413241175151,
+    increment=19.273241175151; water_kh=.2 -> deltaPsu=41.202 at y=2.4 m.
+    Total seismic demands: 22.3118779366562 / 60.475241175151 kN/m.
+    """
+    result = _submerged_case(mode)
+    static = -sum(f.fx for f in result.forces if f.kind == "EH")
+    soil_increment = -sum(f.fx for f in result.forces if f.name.startswith("Seismic increment"))
+    assert static == pytest.approx(61.14, abs=1e-10)
+    assert soil_increment == pytest.approx(kae * 0.95 * 0.5 * 10.19 * 6**2 - static, abs=1e-10)
+    assert soil_increment == pytest.approx(increment, abs=1e-10)
+    water_forces = [f for f in result.forces if f.name == "Dinamik su itkisi (TBDY Denk. 16.20)"]
+    assert len(water_forces) == int(mode == "pervious")
+    assert -sum(f.fx for f in water_forces) == pytest.approx(water)
+    assert -sum(f.fx for f in result.forces if f.name.startswith("Seismic increment")
+                or f in water_forces) == pytest.approx(increment + water, abs=1e-10)
+
+
+@pytest.mark.parametrize("water_kh,governing", [(0.001, "impervious"), (0.2, "pervious")])
+def test_submerged_envelope_compares_soil_plus_water(water_kh, governing):
+    branches = {mode: _submerged_case(mode, water_kh=water_kh) for mode in ("impervious", "pervious")}
+    envelope = _submerged_case("envelope", water_kh=water_kh)
+    def demand(r):
+        return -sum(f.fx for f in r.forces if f.kind in ("EH", "EQ"))
+
+    assert demand(envelope) == max(map(demand, branches.values()))
+    assert envelope.forces == branches[governing].forces
+    assert any(f"seçim: envelope, yöneten: {governing}." in w for w in envelope.warnings)
+
+
+@pytest.mark.parametrize("k,governing", [(4.999e-4, "impervious"), (5e-4, "pervious"),
+                                       (1e-3, "pervious"), (None, "pervious")])
+def test_submerged_permeability_classification_and_unknown_fallback(k, governing):
+    layer = _layer("fill", 0, 6).model_copy(update={"permeability": k})
+    result = _submerged_case("by_permeability", fill=[layer])
+    reference = _submerged_case("envelope" if k is None else governing, fill=[layer])
+    assert result.forces == reference.forces
+    assert any(f"Katman fill: su altı deprem sınıfı {governing}." == w for w in result.warnings)
+    assert any("k girilmedi" in w and "envelope" in w for w in result.warnings) == (k is None)
+
+
+def test_submerged_permeability_is_per_layer_and_water_added_once():
+    layers = [_layer("low", 0, 2).model_copy(update={"permeability": 1e-5}),
+              _layer("high", 2, 4).model_copy(update={"permeability": 5e-4}),
+              _layer("unknown", 4, 6)]
+    result = _submerged_case("by_permeability", fill=layers)
+    for key, branch in [("low", "impervious"), ("high", "pervious"), ("unknown", "impervious")]:
+        assert f"Katman {key}: su altı deprem sınıfı {branch}." in result.warnings
+    water = [f for f in result.forces if f.name == "Dinamik su itkisi (TBDY Denk. 16.20)"]
+    assert len(water) == 1 and -water[0].fx == pytest.approx(41.202)
+    assert any("Karışık geçirgenlik" in w for w in result.warnings)
+    soil = _soil(layers, retained_water=0)
+    dist = wall_pressures_layered(_geometry(), soil, WallLoads(kh=.1, kv=.05, water_kh=.2),
+                                  WallSettings(submerged_seismic="by_permeability"), seismic=True)["retained"]
+    for key, numerator, midpoint in [("low", 20, 1), ("high", 18, 3), ("unknown", 20, 5)]:
+        lo, hi = midpoint - 1, midpoint + 1
+        expected = .95 * mononobe_okabe_kae(30, kh=numerator / 10.19 * .1, kv=.05)
+        assert dist.K[(dist.z >= lo) & (dist.z <= hi)][1:-1] == pytest.approx(expected)
+
+
+@pytest.mark.parametrize("mode", ["impervious", "pervious", "envelope", "by_permeability"])
+@pytest.mark.parametrize("water_depth", [6., 100.])
+def test_dry_seismic_path_is_bit_identical(mode, water_depth):
+    soil, geometry = _soil([_layer("fill", 0, 6)], retained_water=water_depth), _geometry()
+    loads = WallLoads(surcharge=10, kh=.1, kv=.05)
+    old = lateral_pressure(soil.retained_profile(), 6, method="coulomb", beta=0., theta=0.,
+                           layerwise=True, gwt_case="design", delta=0., surcharge=10, kh=.1, kv=.05)
+    current = wall_pressures_layered(geometry, soil, loads, WallSettings(submerged_seismic=mode),
+                                     seismic=True)["retained"]
+    for name in ("z", "K", "sigma_v_eff", "sigma_h_eff", "u", "sigma_h"):
+        assert getattr(current, name).tobytes() == getattr(old, name).tobytes()
+    assert current.force == old.force and current.z_resultant == old.z_resultant
+    baseline = wall_forces_layered(geometry, soil, loads, WallSettings(), seismic=True)
+    result = wall_forces_layered(geometry, soil, loads, WallSettings(submerged_seismic=mode), seismic=True)
+    assert result.forces == baseline.forces and result.warnings == baseline.warnings
+
+
+@pytest.mark.parametrize("water_depth", [0., 2.])
+def test_dynamic_water_location_and_partial_submergence_warning(water_depth):
+    result = _submerged_case("pervious", water_depth=water_depth)
+    water = next(f for f in result.forces if f.name == "Dinamik su itkisi (TBDY Denk. 16.20)")
+    d_su = 6 - water_depth
+    assert (6 - water.y) - water_depth == pytest.approx(.6 * d_su)
+    assert water.fx == pytest.approx(-(7 / 12) * .2 * GAMMA_W * d_su**2)
+    assert water.fy == 0 and water.kind == "EQ" and water.x == _geometry().width
+    warning = ("Kısmen su altındaki dolgu yönetmelik formüllerinin kapsamı dışındadır; "
+               "katman bazında mühendislik yargısı uygulandı — sonucu kontrol edin.")
+    assert (warning in result.warnings) == (water_depth > 0)
+    assert ("Kazı Destek Yapıları Tasarım ve Uygulama Esasları (16.07.2026 değişikliği) "
+            "ek şartları kontrol edilmelidir; bu belge yazılımda incelenmedi.") in result.warnings
+
+
+def test_partial_submergence_keeps_dry_mo_above_water_and_splits_one_layer():
+    soil = _soil([_layer("fill", 0, 6)], retained_water=2.)
+    dist = wall_pressures_layered(_geometry(), soil, WallLoads(kh=.1, kv=.05, water_kh=.2),
+                                  WallSettings(submerged_seismic="impervious"), seismic=True)["retained"]
+    dry_k = .95 * mononobe_okabe_kae(30, kh=.1, kv=.05)
+    wet_k = .95 * mononobe_okabe_kae(30, kh=20 / 10.19 * .1, kv=.05)
+    assert list(dist.z) == [0., 2., 2., 6.]
+    assert dist.K == pytest.approx([dry_k, dry_k, wet_k, wet_k])
+
+
+def test_submerged_mo_domain_error_names_tbdy_1624b():
+    with pytest.raises(GeoTekError, match=r"TBDY Denk\. 16\.24b"):
+        wall_forces_layered(_geometry(), _soil([_layer("fill", 0, 6)], retained_water=0),
+                            WallLoads(kh=.1, kv=.05, water_kh=.2), WallSettings(),
+                            seismic=True, backfill_slope=20.)
+
+
+def test_pervious_requires_explicit_unreduced_water_kh_but_impervious_does_not():
+    with pytest.raises(GeoTekError, match=r"water_kh=0.4"):
+        _submerged_case("pervious", water_kh=None)
+    assert _submerged_case("impervious", water_kh=None).forces
 
 
 @pytest.mark.parametrize("wall_type", ["cantilever", "gravity"])
