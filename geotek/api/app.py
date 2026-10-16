@@ -129,7 +129,8 @@ def update_project_meta(payload: dto.ProjectMetaPatch, session: SessionDep) -> P
     """Update supplied metadata fields; omission preserves the existing value."""
     with session.lock:
         current = session.require_project()
-        merged = {**current.meta.model_dump(), **payload.model_dump(exclude_unset=True)}
+        before = current.meta.model_dump()
+        merged = {**before, **payload.model_dump(exclude_unset=True)}
         try:
             current.meta = ProjectMeta.model_validate(merged)
         except ValidationError as exc:
@@ -137,7 +138,8 @@ def update_project_meta(payload: dto.ProjectMetaPatch, session: SessionDep) -> P
                 {"loc": list(item["loc"]), "msg": item["msg"], "type": item["type"]}
                 for item in exc.errors()
             ])
-        session.dirty = True
+        if current.meta.model_dump() != before:
+            session.dirty = True
         return current.meta
 
 
@@ -146,8 +148,10 @@ def set_project_site(payload: SiteSeismic, session: SessionDep) -> SiteSeismic:
     """Replace site seismic settings."""
     with session.lock:
         current = session.require_project()
+        changed = current.site.model_dump() != payload.model_dump()
         current.site = payload
-        session.dirty = True
+        if changed:
+            session.dirty = True
         return current.site
 
 

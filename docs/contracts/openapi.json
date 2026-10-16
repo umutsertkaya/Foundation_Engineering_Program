@@ -446,7 +446,7 @@
           "library"
         ],
         "summary": "Put Settings",
-        "description": "Persist library_dir and language (recent is server-managed and ignored).",
+        "description": "Persist library_dir and language (recent is server-managed and ignored).\n\nThe new library is resolved and created before anything is persisted; failure\nreturns 400 invalid_path and leaves the old settings in place.",
         "operationId": "put_settings",
         "requestBody": {
           "content": {
@@ -886,7 +886,7 @@
           "library"
         ],
         "summary": "Open Library Project",
-        "description": "Open a library project as the current project.",
+        "description": "Open a library project as the current project (the old one stays on failure).",
         "operationId": "open_library_project",
         "parameters": [
           {
@@ -1235,7 +1235,7 @@
           "library"
         ],
         "summary": "Export Library Project",
-        "description": "Copy the stored project file to a destination outside the library.",
+        "description": "Copy the stored project file outside the library; 409 file_exists unless overwrite.",
         "operationId": "export_library_project",
         "parameters": [
           {
@@ -8461,6 +8461,12 @@
             "type": "string",
             "minLength": 1,
             "title": "Dest"
+          },
+          "overwrite": {
+            "type": "boolean",
+            "title": "Overwrite",
+            "description": "Replace an existing destination file.",
+            "default": false
           }
         },
         "additionalProperties": false,

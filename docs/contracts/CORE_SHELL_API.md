@@ -36,13 +36,13 @@ interface NewProjectRequest {       // subset of ProjectMeta
 |---|---|---|---|
 | GET | `/modules` | – | `ModuleInfo[]` sorted by order |
 | GET | `/settings` | – | `AppSettings` |
-| PUT | `/settings` | `AppSettings` (library_dir, language; recent ignored) | `AppSettings` |
+| PUT | `/settings` | `AppSettings` (library_dir, language; recent ignored) | `AppSettings` — the new library directory is created first; failure is 400 `invalid_path` and the old settings stay |
 | GET | `/library` | – | `LibraryEntry[]` (modified desc) |
 | POST | `/library` | `NewProjectRequest` | `LibraryEntry` — creates the file **and opens it** as the current project |
 | POST | `/library/{file}/open` | – | `SessionInfo` (also pushes to recent) |
 | POST | `/library/{file}/duplicate` | – | `LibraryEntry` |
 | POST | `/library/{file}/rename` | `{name: string}` | `LibraryEntry` |
-| POST | `/library/{file}/export` | `{dest: string}` | `{path: string}` |
+| POST | `/library/{file}/export` | `{dest: string, overwrite?: boolean}` (default `false`) | `{path: string}` — never overwrites silently, see below |
 | DELETE | `/library/{file}` | – | `{trash_path: string}` (moves to `.trash`; refused with code `project_open` if it is the open project) |
 | POST | `/library/import` | `{path: string}` | `LibraryEntry` |
 | GET | `/session` | – | `SessionInfo` |
@@ -50,6 +50,10 @@ interface NewProjectRequest {       // subset of ProjectMeta
 | POST | `/project/close` | – | `SessionInfo` (`open: false`) |
 | GET | `/project` | – | `Project`; when nothing is open: 409 `{code: "no_project_open"}` |
 
-Error codes: `no_project_open` (409), `invalid_file_name` (400), `not_found` (404), `project_open` (409), `invalid_project_file` (422).
+Error codes: `no_project_open` (409), `invalid_file_name` (400), `not_found` (404), `project_open` (409), `invalid_project_file` (422), `file_exists` (409), `invalid_path` (400).
+
+Export destination: an existing directory gets `<dir>/<file>`; otherwise a `dest` without a suffix gets `.gtk` appended; any other suffix is 400 `invalid_path` (the suffix is never replaced). An existing destination file is 409 `file_exists` unless `overwrite` is true. Writes are atomic (temp file + replace).
+
+File names: the `.gtk` suffix is matched case-insensitively and names resolve case-insensitively on Windows (the on-disk spelling is returned in `LibraryEntry.file`). Windows reserved names (`CON`, `PRN`, `AUX`, `NUL`, `COM1-9`, `LPT1-9`) and names ending in a dot or space are 400 `invalid_file_name`. `open`/`create` leave the current session untouched when they fail; updating `recent` is best effort.
 
 The existing `/project/new` and `/project/open {path}` stay for compatibility (path-based, outside the library).

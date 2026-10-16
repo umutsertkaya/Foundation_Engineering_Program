@@ -31,7 +31,11 @@ def _catalog(lang: str) -> dict[str, str]:
             continue
         with open(fragment_path, encoding="utf-8") as fh:
             fragment = json.load(fh)
-        for key in fragment:
+        if not isinstance(fragment, dict):
+            raise ValueError(f"Fragment {fragment_path}: must be a JSON object")
+        for key, value in fragment.items():
+            if not isinstance(value, str):
+                raise ValueError(f"Fragment {fragment_path}: value of {key!r} must be a string")
             if key in core_keys:
                 raise ValueError(f"Fragment {fragment_path}: key {key!r} collides with core")
             if not key.startswith(f"{module_id}."):

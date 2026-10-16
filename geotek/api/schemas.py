@@ -523,6 +523,7 @@ class ExportRequest(DTO):
     """Destination file or directory outside the library."""
 
     dest: str = Field(min_length=1)
+    overwrite: bool = Field(default=False, description="Replace an existing destination file.")
 
 
 class ExportResponse(DTO):

@@ -280,11 +280,11 @@ def test_export_directory_and_file(library: ProjectLibrary, tmp_path: Path) -> N
     directory = tmp_path / "exports"
     directory.mkdir()
     assert library.export(file, directory) == directory / file
-    dest = library.export(file, tmp_path / "nested" / "renamed.txt")
+    dest = library.export(file, tmp_path / "nested" / "renamed")
     assert dest == tmp_path / "nested" / "renamed.gtk"
     assert load_project(dest) == project
     assert dest.read_bytes() == library.path_of(file).read_bytes()
-    assert library.export(file, library.path_of(file)) == library.path_of(file)
+    assert library.export(file, library.path_of(file), overwrite=True) == library.path_of(file)
 
 
 @pytest.mark.parametrize("file", [
