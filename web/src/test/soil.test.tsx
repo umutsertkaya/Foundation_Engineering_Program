@@ -13,13 +13,13 @@ import {
   set_structure_soil,
   setMockMode,
   update_profile,
-} from "../api/client";
-import { resetMockState } from "../api/mock";
-import type { SoilLayer, StructureSoilModel } from "../api/types";
+} from "../shared/api/client";
+import { resetMockState } from "../shared/api/mock";
+import type { SoilLayer, StructureSoilModel } from "../shared/api/types";
 import "../i18n";
 import { SoilModelsPage } from "../pages/SoilModelsPage";
 import { StructureWizardPage } from "../pages/StructureWizardPage";
-import { niceTicks, spreadLabels } from "../soil/axis";
+import { niceTicks, spreadLabels } from "../shared/soil/axis";
 import {
   insertBelow,
   LAYER_ERROR_CODES,
@@ -34,10 +34,10 @@ import {
   validateLayers,
   validateStructureSoil,
   type LayerIssue,
-} from "../soil/layerOps";
-import { layerParamStatus } from "../soil/layerStatus";
-import { familyStyle, SOIL_FAMILIES, SOIL_FAMILY_LABEL_KEY, soilFamily } from "../soil/soilStyle";
-import { computeZones, retainedLayers } from "../soil/zones";
+} from "../shared/soil/layerOps";
+import { layerParamStatus } from "../shared/soil/layerStatus";
+import { familyStyle, SOIL_FAMILIES, SOIL_FAMILY_LABEL_KEY, soilFamily } from "../shared/soil/soilStyle";
+import { computeZones, retainedLayers } from "../shared/soil/zones";
 import { theme } from "../theme";
 
 function layer(id: string, top: number, bottom: number, extra: Partial<SoilLayer> = {}): SoilLayer {

@@ -18,9 +18,9 @@ import { notifications } from "@mantine/notifications";
 import { IconArrowRight, IconPlus } from "@tabler/icons-react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
-import { ApiError, create_structure, list_structures } from "../api/client";
-import type { StructureSummary, WallType } from "../api/types";
-import { EmptyState } from "../components/EmptyState";
+import { ApiError, create_structure, list_structures } from "../shared/api/client";
+import type { StructureSummary, WallType } from "../shared/api/types";
+import { EmptyState } from "../shared/components/EmptyState";
 
 export function StructuresPage() {
   const { t } = useTranslation();

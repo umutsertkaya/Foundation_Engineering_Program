@@ -11,13 +11,13 @@ import {
   parseApiError,
   setMockMode,
   size_wall,
-} from "../api/client";
-import { resetMockState } from "../api/mock";
-import type { WallResultDTO } from "../api/types";
+} from "../shared/api/client";
+import { resetMockState } from "../shared/api/mock";
+import type { WallResultDTO } from "../shared/api/types";
 import { WorkflowBar } from "../components/WorkflowBar";
 import "../i18n";
 import { theme } from "../theme";
-import { utilisationColor } from "../utils/utilisation";
+import { utilisationColor } from "../shared/utils/utilisation";
 
 afterEach(() => {
   setMockMode(null);

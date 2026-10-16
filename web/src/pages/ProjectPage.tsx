@@ -13,8 +13,8 @@ import {
 } from "@mantine/core";
 import { IconPlus, IconRefresh } from "@tabler/icons-react";
 import { useTranslation } from "react-i18next";
-import { ApiError, get_project, new_project } from "../api/client";
-import type { Language, ProjectSummary } from "../api/types";
+import { ApiError, get_project, new_project } from "../shared/api/client";
+import type { Language, ProjectSummary } from "../shared/api/types";
 
 export function ProjectPage() {
   const { t, i18n } = useTranslation();

@@ -11,9 +11,9 @@ import {
   Title,
 } from "@mantine/core";
 import { useTranslation } from "react-i18next";
-import { ApiError, list_investigations } from "../api/client";
-import type { InvestigationsDTO } from "../api/types";
-import { EmptyState } from "../components/EmptyState";
+import { ApiError, list_investigations } from "../shared/api/client";
+import type { InvestigationsDTO } from "../shared/api/types";
+import { EmptyState } from "../shared/components/EmptyState";
 
 export function SiteDataPage() {
   const { t } = useTranslation();

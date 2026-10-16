@@ -25,7 +25,7 @@ import {
   IconX,
 } from "@tabler/icons-react";
 import { useTranslation } from "react-i18next";
-import { ApiError, resync_structure_soil, set_structure_soil } from "../../api/client";
+import { ApiError, resync_structure_soil, set_structure_soil } from "../api/client";
 import type {
   CantileverGeometry,
   GravityGeometry,
@@ -33,14 +33,14 @@ import type {
   SoilLayer,
   StructureSoilModel,
   WallType,
-} from "../../api/types";
-import { StructureSoilSection } from "../../components/StructureSoilSection";
-import type { Undoable } from "../../hooks/useUndoable";
-import { GwtOverrideEditor } from "../../soil/GwtEditor";
-import { IssueList, LayerEditor } from "../../soil/LayerEditor";
-import { LayerLegend } from "../../soil/LayerLegend";
-import { blankLayer, layerErrorKey, nextLayerId, type LayerIssue } from "../../soil/layerOps";
-import type { GwtCase, LayerOrigin } from "../../soil/zones";
+} from "../api/types";
+import { StructureSoilSection } from "./StructureSoilSection";
+import type { Undoable } from "../hooks/useUndoable";
+import { GwtOverrideEditor } from "../soil/GwtEditor";
+import { IssueList, LayerEditor } from "../soil/LayerEditor";
+import { LayerLegend } from "../soil/LayerLegend";
+import { blankLayer, layerErrorKey, nextLayerId, type LayerIssue } from "../soil/layerOps";
+import type { GwtCase, LayerOrigin } from "../soil/zones";
 
 export interface SoilStepValidation {
   fill: LayerIssue[];

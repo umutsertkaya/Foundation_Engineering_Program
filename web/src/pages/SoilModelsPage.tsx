@@ -35,16 +35,16 @@ import {
   list_profiles,
   set_active_profile,
   update_profile,
-} from "../api/client";
-import type { ProfileOrigin, ProfileSummary, SoilLayer, SoilProfile } from "../api/types";
-import { EmptyState } from "../components/EmptyState";
-import { useUndoable } from "../hooks/useUndoable";
-import { CommitTextInput } from "../soil/CommitInputs";
-import { GwtEditor } from "../soil/GwtEditor";
-import { LayerEditor } from "../soil/LayerEditor";
-import { LayerLegend } from "../soil/LayerLegend";
-import { blankLayer, layerErrorKey, validateGwt, validateLayers } from "../soil/layerOps";
-import { SoilColumn } from "../soil/SoilColumn";
+} from "../shared/api/client";
+import type { ProfileOrigin, ProfileSummary, SoilLayer, SoilProfile } from "../shared/api/types";
+import { EmptyState } from "../shared/components/EmptyState";
+import { useUndoable } from "../shared/hooks/useUndoable";
+import { CommitTextInput } from "../shared/soil/CommitInputs";
+import { GwtEditor } from "../shared/soil/GwtEditor";
+import { LayerEditor } from "../shared/soil/LayerEditor";
+import { LayerLegend } from "../shared/soil/LayerLegend";
+import { blankLayer, layerErrorKey, validateGwt, validateLayers } from "../shared/soil/layerOps";
+import { SoilColumn } from "../shared/soil/SoilColumn";
 
 const NEW_ID = "__new__";
 

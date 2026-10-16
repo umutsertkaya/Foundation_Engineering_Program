@@ -1,8 +1,8 @@
 import i18n from "i18next";
 import { initReactI18next } from "react-i18next";
-import { get_i18n } from "./api/client";
-import { getMockCatalog } from "./api/mock";
-import type { Language } from "./api/types";
+import { get_i18n } from "./shared/api/client";
+import { getMockCatalog } from "./shared/api/mock";
+import type { Language } from "./shared/api/types";
 
 const LANG_STORAGE_KEY = "geotek.lang";
 

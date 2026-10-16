@@ -28,8 +28,8 @@ import {
   list_structures,
   size_wall,
   update_structure,
-} from "../api/client";
-import { MOCK_CANTILEVER_5M } from "../api/mock/data";
+} from "../shared/api/client";
+import { MOCK_CANTILEVER_5M } from "../shared/api/mock/data";
 import type {
   CantileverGeometry,
   FactorOverride,
@@ -38,16 +38,16 @@ import type {
   StructureSoilModel,
   WallResultDTO,
   WallType,
-} from "../api/types";
-import { EmptyState } from "../components/EmptyState";
-import { MissingFactorsForm } from "../components/MissingFactorsForm";
-import { StructureSoilSection } from "../components/StructureSoilSection";
-import { UtilisationCards } from "../components/UtilisationCards";
-import { useJob } from "../hooks/useJob";
-import { useUndoable } from "../hooks/useUndoable";
-import { validateGwt, validateStructureSoil } from "../soil/layerOps";
-import type { GwtCase } from "../soil/zones";
-import { StructureSoilStep, type SoilStepValidation } from "./wizard/StructureSoilStep";
+} from "../shared/api/types";
+import { EmptyState } from "../shared/components/EmptyState";
+import { MissingFactorsForm } from "../shared/components/MissingFactorsForm";
+import { StructureSoilSection } from "../shared/structureSoil/StructureSoilSection";
+import { UtilisationCards } from "../shared/components/UtilisationCards";
+import { useJob } from "../shared/hooks/useJob";
+import { useUndoable } from "../shared/hooks/useUndoable";
+import { validateGwt, validateStructureSoil } from "../shared/soil/layerOps";
+import type { GwtCase } from "../shared/soil/zones";
+import { StructureSoilStep, type SoilStepValidation } from "../shared/structureSoil/StructureSoilStep";
 
 type GeometrySource = "draft" | "suggested" | "user";
 

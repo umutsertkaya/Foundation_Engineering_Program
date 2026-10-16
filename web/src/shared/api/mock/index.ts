@@ -1,5 +1,5 @@
-import trCatalog from "../../../../geotek/i18n/tr.json";
-import enCatalog from "../../../../geotek/i18n/en.json";
+import trCatalog from "../../../../../geotek/i18n/tr.json";
+import enCatalog from "../../../../../geotek/i18n/en.json";
 import type {
   ActiveProfileUpdate,
   ApiErrorDTO,

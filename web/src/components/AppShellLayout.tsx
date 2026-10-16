@@ -14,8 +14,8 @@ import { useMediaQuery } from "@mantine/hooks";
 import { IconMoon, IconSun } from "@tabler/icons-react";
 import { useTranslation } from "react-i18next";
 import { Outlet } from "react-router-dom";
-import { isMockMode } from "../api/client";
-import type { Language } from "../api/types";
+import { isMockMode } from "../shared/api/client";
+import type { Language } from "../shared/api/types";
 import { loadLanguageCatalog } from "../i18n";
 import { WorkflowBar } from "./WorkflowBar";
 
