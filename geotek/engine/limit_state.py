@@ -90,6 +90,8 @@ def _partial_case(code: DesignCode, combo_id: str, seismic: bool) -> LimitStateC
         tan_phi=f("material", "tan_phi"), cohesion=f("material", "c_eff"), su=f("material", "su"),
         stabilising={"DC": g_fav, "EV": g_fav, "EH": g_unf, "LS": q_unf, "LS_v": q_fav, "EQ": eq},
         unfavourable={"DC": g_unf, "EV": g_unf, "EH": g_unf, "LS": q_unf, "LS_v": q_unf, "EQ": eq},
+        # Legacy water scalar only: WA is never inferred from G. E4 always
+        # installs an explicit WA factor via layered_limit_state_cases.
         water=g_unf,
         r_bearing=f("resistance", "bearing"), r_sliding=f("resistance", "sliding"),
         r_passive=f("resistance", "earth_resistance"), r_global=f("resistance", "global_stability"),
@@ -98,6 +100,7 @@ def _partial_case(code: DesignCode, combo_id: str, seismic: bool) -> LimitStateC
         passive_participation=c.passive_participation,
         e_limit=1 / 3, seismic=seismic,
     )
+    assert "WA" not in case.stabilising and "WA" not in case.unfavourable, "E4 must set WA explicitly"
     case.factors_used = log.as_list()
     return case
 
@@ -420,7 +423,8 @@ def verify_wall_layered(geometry, soil, loads, settings, *, seismic: bool,
                         gwt_case="design") -> list[WallAnalysis]:
     """External stability of the structure copy, using design strengths in every layer."""
     from geotek.engine.walls.layered import (
-        analyze_wall_layered, foundation_from_structure, soil_at_case, wall_forces_layered,
+        _bearing_vertical_load, _check_forward_loading, analyze_wall_layered,
+        foundation_from_structure, soil_at_case, wall_forces_layered,
     )
 
     code = layered_design_code(settings)
@@ -441,8 +445,10 @@ def verify_wall_layered(geometry, soil, loads, settings, *, seismic: bool,
         fd, warnings = foundation_from_structure(
             design_soil, geometry.height - geometry.embedment, geometry.height, geometry.width)
         forces = [f for f in wf.forces if f.kind != "PASSIVE"]
+        _check_forward_loading(forces)
         passive = next((f for f in wf.forces if f.kind == "PASSIVE"), None)
         stab = _factor_forces(forces, case.stabilising)
+        _check_forward_loading(stab)
         v, h, mr, mo = _sums(stab)
         if v <= 0:
             raise GeoTekError(f"{case.name}: net vertical load is not compressive")
@@ -465,10 +471,12 @@ def verify_wall_layered(geometry, soil, loads, settings, *, seismic: bool,
         if case.r_overturning is not None:
             checks["overturning"] = _odf("overturning", mr / case.r_overturning, mo, "M_R / gamma_Rdev")
         unf = _factor_forces(forces, case.unfavourable)
+        _check_forward_loading(unf)
         vb, hb, mrb, mob = _sums(unf)
         if vb <= 0:
             raise GeoTekError(f"{case.name}: bearing vertical load is not compressive")
         eb = B / 2 - (mrb - mob) / vb
+        vb = _bearing_vertical_load(unf, fd)
         bearing = None
         if abs(eb) < B / 2:
             bearing = bearing_capacity(
@@ -503,6 +511,8 @@ def verify_wall_layered(geometry, soil, loads, settings, *, seismic: bool,
         if water:
             factors["WA"] = log.value("EQU.load.WA")
         forces = _factor_forces([f for f in wf.forces if f.kind != "PASSIVE"], factors)
+        _check_forward_loading(wf.forces)
+        _check_forward_loading(forces)
         v, h, mr, mo = _sums(forces)
         if v <= 0:
             raise GeoTekError("EQU: net vertical load is not compressive")

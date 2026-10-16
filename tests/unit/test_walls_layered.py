@@ -5,6 +5,7 @@ import math
 import numpy as np
 import pytest
 
+from geotek.config.codes import FactorOverride
 from geotek.core.constants import GAMMA_W
 from geotek.core.errors import GeoTekError, MissingFactorsError
 from geotek.core.models.profile import DesignParameters, GroundwaterCondition, SoilLayer, SoilProfile
@@ -15,6 +16,7 @@ from geotek.engine.earth_pressure.distribution import lateral_pressure
 from geotek.engine.earth_pressure.wedge import trial_wedge
 from geotek.engine.limit_state import _factor_forces, verify_wall_layered
 from geotek.engine.walls.base import Force
+from geotek.engine.walls.global_stability import wall_global_stability
 from geotek.engine.walls.layered import (
     analyze_wall_layered, bands_from_structure, foundation_from_structure,
     soil_from_basic, wall_forces_layered, wall_pressures_layered,
@@ -278,3 +280,340 @@ def test_absent_design_parameters_are_not_invented():
     bad.design.phi_eff = None
     with pytest.raises(GeoTekError, match="phi"):
         wall_forces_layered(_geometry(), _soil([bad]), WallLoads(), WallSettings(), seismic=False)
+
+
+@pytest.mark.parametrize("code", ["asd", "ec7"])
+def test_front_dominant_water_rejected_by_layered_adapters(code):
+    soil = _soil([_layer("fill", 0, 6, phi=40, gamma=10)], front_water=0)
+    overrides = {f"{case}.load.WA": FactorOverride(value=1.0, note="E4 test input")
+                 for case in ("DA1-C1", "DA1-C2", "EQU")} if code == "ec7" else {}
+    settings = WallSettings(design_code=code, factor_overrides=overrides)
+    message = "Önden baskın yatay yük: ters yönde kayma/devrilme tahkiki bu sürümde yok"
+    if code == "asd":
+        with pytest.raises(GeoTekError, match=message):
+            analyze_wall_layered(_geometry(), soil, WallLoads(), settings, seismic=False)
+    with pytest.raises(GeoTekError, match=message):
+        verify_wall_layered(_geometry(), soil, WallLoads(), settings, seismic=False, approach=None)
+
+
+def test_exactly_balanced_horizontal_actions_are_rejected(monkeypatch):
+    from geotek.engine.walls import layered
+    from geotek.engine.walls.walls import WallForces
+
+    forces = [Force("Weight", 0, -500, 2, 0), Force("Back", -10, 0, 4, 2, "EH"),
+              Force("Water (front)", 10, 0, 0, 1, "WA")]
+    monkeypatch.setattr(layered, "wall_forces_layered", lambda *args, **kwargs: WallForces(forces, 4, 1, []))
+    with pytest.raises(GeoTekError, match="Önden baskın yatay yük"):
+        analyze_wall_layered(_geometry(), _soil(), WallLoads(), WallSettings(), seismic=False)
+
+
+def test_ponded_front_water_loads_undrained_passive_boundary_once():
+    clay = SoilLayer(id="clay", top=0, bottom=30, gamma=19, gamma_sat=21, behaviour="undrained",
+                     design=DesignParameters(su=25))
+    soil = _soil([_layer("fill", 0, 6)], layers=[clay], front_water=4)
+    settings = WallSettings(use_passive=True, passive_reduction=0.4)
+    diagrams = wall_pressures_layered(_geometry(), soil, WallLoads(), settings, seismic=False)
+    front = diagrams["front"]  # ground z=5; ponded head = 5-4 = 1 m
+    np.testing.assert_allclose(front.sigma_v_eff, [GAMMA_W, GAMMA_W + 21], atol=1e-10)
+    np.testing.assert_allclose(front.sigma_h_eff, [GAMMA_W + 50, GAMMA_W + 71], atol=1e-10)
+    assert np.all(front.u == 0)
+    # Only free water z=4..5 is a separate horizontal force; soil z=5..6
+    # already includes water in its total-stress pressure.
+    assert diagrams["front_water"].force == pytest.approx(GAMMA_W / 2)
+    forces = wall_forces_layered(_geometry(), soil, WallLoads(), settings, seismic=False).forces
+    passive = next(f for f in forces if f.kind == "PASSIVE")
+    water = next(f for f in forces if f.name == "Water (front)")
+    assert passive.fx == pytest.approx(0.4 * (GAMMA_W + 50 + 21 / 2))
+    assert water.fx == pytest.approx(GAMMA_W / 2)
+    assert water.y == pytest.approx(4 / 3)
+
+
+@pytest.mark.parametrize("top_width", [1.0, 3.5])
+def test_front_water_normal_to_actual_gravity_face(top_width):
+    geometry = GravityGeometry(height=6, base_width=4, top_width=top_width, back_offset=0.5, embedment=1)
+    soil = _soil([_layer("fill", 0, 6)], front_water=4)
+    forces = wall_forces_layered(geometry, soil, WallLoads(), WallSettings(), seismic=False).forces
+    front = next(f for f in forces if f.name == "Water (front)")
+    a = (4 - 0.5 - top_width) / 6
+    fx = GAMMA_W * 2**2 / 2
+    assert front.fx == pytest.approx(fx)
+    assert front.fy == pytest.approx(-a * fx)
+    assert front.y == pytest.approx(2 / 3)
+    assert front.x == pytest.approx(a * 2 / 3)
+    assert front.moment == pytest.approx(-(1 + a**2) * fx * 2 / 3)
+
+
+@pytest.mark.parametrize("code", ["asd", "aashto_lrfd"])
+def test_undrained_base_total_overburden_and_gross_bearing_load(code):
+    clay = SoilLayer(id="clay", top=0, bottom=30, gamma=19, gamma_sat=21, behaviour="undrained",
+                     design=DesignParameters(su=100))
+    # A heel-biased gross resultant makes increasing front head an adverse
+    # contact-eccentricity case; its apparent bearing safety must not grow.
+    soil = _soil([_layer("fill", 0, 6, phi=45)], layers=[clay])
+    overrides = {"load.WA.strength_I": FactorOverride(value=1.0, note="E4 test input")} if code != "asd" else {}
+    settings = WallSettings(design_code=code, factor_overrides=overrides)
+    results = []
+    for depth, expected_q in [(100.0, 19.0), (5.0, 21.0), (4.0, 21.0 + GAMMA_W)]:
+        soil.gwt_front = GroundwaterCondition(depth_insitu=depth)
+        fd, _ = foundation_from_structure(soil, 5, 6, 4)
+        assert fd.drainage == "undrained"
+        assert fd.overburden == pytest.approx(expected_q)
+        result = verify_wall_layered(_geometry(), soil, WallLoads(), settings,
+                                     seismic=False, approach=None)[0]
+        assert result.bearing is not None
+        assert result.bearing.factors["Nq"] == 1
+        assert result.bearing.factors["Ngamma"] == 0
+        results.append(result)
+        if code == "asd":
+            gross_v = -sum(f.fy for f in result.forces if f.name != "Uplift" and f.kind != "PASSIVE")
+            assert result.checks["bearing"].value == pytest.approx(result.bearing.Q_ult / gross_v)
+            if depth < 6:
+                assert gross_v > result.sum_v  # sliding/overturning still include U
+        else:
+            from geotek.engine.limit_state import _factor_forces, _sums, layered_limit_state_cases
+            case = layered_limit_state_cases(settings, water=depth < 6)[0]
+            raw = wall_forces_layered(_geometry(), soil, WallLoads(), settings, seismic=False).forces
+            unf = _factor_forces(raw, case.unfavourable)
+            gross_v = -sum(f.fy for f in unf if f.name != "Uplift")
+            net_v, _, mr, mo = _sums(unf)
+            e = 2 - (mr - mo) / net_v
+            assert result.bearing.B_eff == pytest.approx(4 - 2 * abs(e))
+            assert result.checks["bearing"].value == pytest.approx(result.bearing.Q_ult / (case.r_bearing * gross_v))
+    assert all(math.isfinite(r.checks["bearing"].value) and r.checks["bearing"].value > 0 for r in results)
+    assert results[1].checks["bearing"].value <= results[0].checks["bearing"].value
+    assert results[2].checks["bearing"].value <= results[1].checks["bearing"].value
+
+
+@pytest.mark.parametrize("retained_depth,front_depth,tops,gammas", [
+    (3.0, 100.0, [0.0], [20.0]),
+    (7.0, 10.0, [0.0, -1.0], [19.0, 20.0]),
+    (10.0, 7.0, [0.0, -1.0], [19.0, 20.0]),
+])
+def test_foundation_band_weights_use_bishop_water_envelope(retained_depth, front_depth, tops, gammas):
+    soil = _soil([_layer("fill", 0, 6)], retained_water=retained_depth, front_water=front_depth)
+    _, bands = bands_from_structure(soil, 6)
+    assert [b.top for b in bands] == tops
+    assert [b.gamma for b in bands] == gammas
+
+
+def test_two_layer_dry_seismic_thrust_uses_each_layers_coefficient():
+    from geotek.engine.earth_pressure.coefficients import mononobe_okabe_kae
+
+    soil = _soil([_layer("upper", 0, 2, phi=32, gamma=18), _layer("lower", 2, 6, phi=25, gamma=19)])
+    loads = WallLoads(surcharge=10, kh=0.1, kv=0.05, seismic_increment_height=0.5)
+    forces = wall_forces_layered(_geometry(), soil, loads, WallSettings(), seismic=True).forces
+    k1 = 0.95 * mononobe_okabe_kae(32, kh=0.1, kv=0.05)
+    k2 = 0.95 * mononobe_okabe_kae(25, kh=0.1, kv=0.05)
+    expected = k1 * (18 * 2**2 / 2 + 10 * 2) + k2 * ((36 + 10) * 4 + 19 * 4**2 / 2)
+    thrusts = [f for f in forces if f.kind in ("EH", "LS") or f.name.startswith("Seismic increment")]
+    assert -sum(f.fx for f in thrusts) == pytest.approx(expected, rel=1e-10)
+    assert len([f for f in thrusts if f.name.startswith("Seismic increment")]) == 2
+    assert all(f.y == pytest.approx(3) for f in thrusts if f.kind == "EQ")
+    assert not any(f.kind == "WA" for f in forces)
+
+
+def test_layered_gravity_wall_keeps_layer_directions_and_application_points():
+    from geotek.engine.earth_pressure.coefficients import coulomb_ka
+
+    geometry = GravityGeometry(height=6, base_width=4, top_width=1, back_offset=0.5, embedment=1)
+    soil = _soil([_layer("upper", 0, 2, phi=30, gamma=18), _layer("lower", 2, 6, phi=25, gamma=19)])
+    result = analyze_wall_layered(geometry, soil, WallLoads(), WallSettings(), seismic=False)
+    forces = [f for f in result.forces if f.kind == "EH"]
+    theta = math.degrees(math.atan(0.5 / 6))
+    for force, phi, integral in zip(forces, [30, 25], [18 * 2**2 / 2, 36 * 4 + 19 * 4**2 / 2]):
+        angle = math.radians(2 * phi / 3 + theta)
+        expected = coulomb_ka(phi, delta=2 * phi / 3, theta=theta) * math.cos(angle) * integral
+        assert -force.fx == pytest.approx(expected, rel=1e-10)
+        assert force.fy == pytest.approx(force.fx * math.tan(angle))
+        assert force.x == pytest.approx(4 - force.y * 0.5 / 6)
+    assert len(forces) == 2
+    assert all(math.isfinite(c.value) for c in result.checks.values())
+
+
+def test_sloping_layered_backfill_water_uses_shifted_virtual_plane_head():
+    geometry = _geometry()
+    soil = _soil([_layer("upper", 0, 2, phi=32), _layer("lower", 2, 6, phi=25)], retained_water=3)
+    loads, settings = WallLoads(), WallSettings()
+    rise = geometry.heel * math.tan(math.radians(10))
+    diagrams = wall_pressures_layered(geometry, soil, loads, settings, seismic=False, backfill_slope=10)
+    dist = diagrams["retained"]
+    assert dist.z[-1] == pytest.approx(6 + rise)
+    assert any(np.isclose(dist.z, 3 + rise))
+    assert dist.u[-1] == pytest.approx(3 * GAMMA_W)
+    forces = wall_forces_layered(geometry, soil, loads, settings, seismic=False, backfill_slope=10).forces
+    water = next(f for f in forces if f.name == "Water (retained)")
+    assert water.fx == pytest.approx(-GAMMA_W * 3**2 / 2)
+    assert water.y == pytest.approx(1)
+    assert water.x == geometry.width
+    assert water.fy == 0
+    earth = [f for f in forces if f.kind == "EH"]
+    assert -sum(f.fx for f in earth) == pytest.approx(dist.component("effective")[0])
+    assert sum(f.fy for f in earth) == pytest.approx(sum(f.fx for f in earth) * math.tan(math.radians(10)))
+
+
+def test_layered_bishop_fs_is_finite_and_weaker_retained_band_reduces_it():
+    soil = _soil([_layer("upper", 0, 2, phi=35), _layer("lower", 2, 6, phi=30)])
+    retained, foundation = bands_from_structure(soil, 6)
+    from geotek.engine.stability import SoilBand
+    weak = [retained[0], SoilBand(top=retained[1].top, gamma=retained[1].gamma, phi=8)]
+    args = (_geometry(), Backfill(gamma=18, phi=35), foundation, WallLoads(surcharge=10), WallSettings())
+    strong_slip, _ = wall_global_stability(*args, retained_bands=retained)
+    weak_slip, _ = wall_global_stability(*args, retained_bands=weak)
+    assert math.isfinite(strong_slip.fs) and strong_slip.fs > 0
+    assert math.isfinite(weak_slip.fs) and 0 < weak_slip.fs < strong_slip.fs
+
+
+def test_frozen_legacy_default_two_layer_lateral_pressure():
+    # Frozen from the existing hand case; no E4 kwargs and no live expected-value solver.
+    soil = _soil([_layer("upper", 0, 2, phi=30, gamma=18, gamma_sat=20),
+                  _layer("lower", 2, 6, phi=20, gamma=19, gamma_sat=21)], retained_water=3)
+    dist = lateral_pressure(soil.retained_profile(), 6)
+    assert dist.force == pytest.approx(184.0397535671462, rel=1e-12)
+    assert dist.z_resultant == pytest.approx(4.242320023643254, rel=1e-12)
+
+
+@pytest.mark.parametrize("seismic,expected", [
+    (False, None),  # FILL: frozen pre-E4 BASIC B=4.60 static Bishop FS
+    (True, None),  # FILL: frozen pre-E4 BASIC B=4.60 seismic Bishop FS
+])
+def test_frozen_legacy_global_default_basic_B460(seismic, expected):
+    from geotek.engine.stability import SoilBand
+    geometry = proportion_for("cantilever", 5, 4.6, 0.6)
+    kh, kv = tbdy_seismic_coefficients(0.5, TBDY_R["gravity_80sds_mm"])
+    loads = WallLoads(surcharge=10, kh=kh, kv=kv, seismic_increment_height=0.5)
+    slip, _ = wall_global_stability(
+        geometry, Backfill(gamma=18, phi=32), [SoilBand(top=0, gamma=19, c=0, phi=30)],
+        loads, WallSettings(), seismic=seismic,
+    )  # retained_bands intentionally omitted: freeze the legacy default path.
+    assert math.isfinite(slip.fs) and slip.fs > 0
+    if expected is None:
+        pytest.skip(f"FILL frozen {'seismic' if seismic else 'static'} FS from pre-E4 run; current={slip.fs:.17g}")
+    assert slip.fs == pytest.approx(expected, rel=1e-12)
+
+
+@pytest.fixture
+def unit_partial_case(monkeypatch):
+    """Unit factors isolate layered verification from code-specific factor tables."""
+    from types import SimpleNamespace
+    from geotek.engine import limit_state
+
+    factors = {kind: 1.0 for kind in ("DC", "EV", "EH", "LS", "WA", "EQ")}
+    case = SimpleNamespace(name="unit", stabilising=factors, unfavourable=factors,
+                           tan_phi=1.0, cohesion=1.0, su=1.0, e_limit=1 / 6,
+                           r_sliding=1.0, r_passive=1.0, passive_participation=1.0,
+                           r_overturning=1.0, r_bearing=1.0, factors_used=[])
+    monkeypatch.setattr(limit_state, "layered_design_code",
+                        lambda settings: SimpleNamespace(approach="partial", combinations=[]))
+    monkeypatch.setattr(limit_state, "required_layered_inputs", lambda *a, **kw: [])
+    monkeypatch.setattr(limit_state, "layered_limit_state_cases", lambda *a, **kw: [case])
+    monkeypatch.setattr(limit_state, "_design_structure_soil", lambda soil, case: soil)
+
+
+@pytest.mark.parametrize("horizontal", [0.0, -1.0])
+@pytest.mark.parametrize("partial", [False, True])
+def test_reverse_or_zero_horizontal_load_rejected(monkeypatch, unit_partial_case, horizontal, partial):
+    from types import SimpleNamespace
+    from geotek.engine.walls import layered
+
+    forces = [Force("Wall", 0, -500, 2, 2, "DC"),
+              Force("Water (front)", -horizontal, 0, 0, 1, "WA")]
+    monkeypatch.setattr(layered, "wall_forces_layered", lambda *a, **kw:
+                        SimpleNamespace(forces=forces, width=4.0, embedment=1.0, warnings=[]))
+    message = "Önden baskın yatay yük: ters yönde kayma/devrilme tahkiki bu sürümde yok"
+    with pytest.raises(GeoTekError) as error:
+        if partial:
+            verify_wall_layered(_geometry(), _soil(), WallLoads(), WallSettings(),
+                                seismic=False, approach="unit")
+        else:
+            analyze_wall_layered(_geometry(), _soil(), WallLoads(), WallSettings(), seismic=False)
+    assert str(error.value) == message
+
+
+def test_front_water_dominant_real_loading_rejected():
+    soil = _soil([_layer("fill", 0, 6, phi=45)], front_water=0)
+    for verify in (False, True):
+        with pytest.raises(GeoTekError, match="Önden baskın yatay yük"):
+            if verify:
+                verify_wall_layered(_geometry(), soil, WallLoads(), WallSettings(),
+                                    seismic=False, approach=None)
+            else:
+                analyze_wall_layered(_geometry(), soil, WallLoads(), WallSettings(), seismic=False)
+
+
+def test_ponded_front_water_loads_undrained_boundary_once():
+    clay = SoilLayer(id="clay", top=0, bottom=30, gamma=20, gamma_sat=20,
+                     behaviour="undrained", design=DesignParameters(su=25))
+    soil = _soil([_layer("fill", 0, 6)], layers=[clay], front_water=4)
+    settings = WallSettings(use_passive=True, passive_reduction=1.0)
+    diagrams = wall_pressures_layered(_geometry(), soil, WallLoads(), settings, seismic=False)
+    front = diagrams["front"]
+    # Ground z=5, GWT z=4: p(top)=gamma_w+2su, p(base)=gamma_w+20+2su.
+    assert front.sigma_v_eff[0] == pytest.approx(GAMMA_W)
+    assert front.sigma_h_eff[-1] == pytest.approx(GAMMA_W + 20 + 50)
+    assert front.component("effective")[0] == pytest.approx(GAMMA_W + 10 + 50)
+    assert front.component("water")[0] == 0.0
+    forces = wall_forces_layered(_geometry(), soil, WallLoads(), settings, seismic=False).forces
+    water = next(f for f in forces if f.name == "Water (front)")
+    assert water.fx == pytest.approx(0.5 * GAMMA_W)  # Only the exposed pond, z=4..5.
+    assert water.y == pytest.approx(4 / 3)
+    assert next(f for f in forces if f.kind == "PASSIVE").fx == pytest.approx(GAMMA_W + 60)
+    # The distribution extension is opt-in; legacy/default callers stay unchanged.
+    legacy = lateral_pressure(soil.front_profile(), 1, top=5, state="passive", layerwise=True)
+    assert legacy.sigma_v_eff[0] == 0.0
+    assert legacy.component("effective")[0] == pytest.approx(60)
+    foundation, _ = foundation_from_structure(soil, 5, 6, 4)
+    assert foundation.overburden == pytest.approx(20 + GAMMA_W)
+
+
+@pytest.mark.parametrize("front_batter", [0.0, 0.4])
+def test_gravity_front_water_normal_force_and_centroid(front_batter):
+    geom = GravityGeometry(height=6, base_width=4.6, top_width=0.6,
+                           back_offset=4.0 - 6 * front_batter, embedment=1)
+    soil = _soil([_layer("fill", 0, 6)], front_water=4)
+    forces = wall_forces_layered(geom, soil, WallLoads(), WallSettings(), seismic=False).forces
+    water = next(f for f in forces if f.name == "Water (front)")
+    fx, y = 2 * GAMMA_W, 2 / 3
+    assert water.fx == pytest.approx(fx)
+    assert water.fy == pytest.approx(-front_batter * fx)
+    assert water.x == pytest.approx(front_batter * y)
+    assert water.y == pytest.approx(y)
+    assert water.moment == pytest.approx(-fx * y * (1 + front_batter**2))
+
+
+@pytest.mark.parametrize("partial", [False, True])
+def test_undrained_bearing_uses_gross_load_and_front_total_stress(monkeypatch, unit_partial_case, partial):
+    from geotek.engine import limit_state
+    from geotek.engine.walls import layered
+
+    engine = limit_state if partial else layered
+    original = engine.bearing_capacity
+    bearing_inputs = []
+
+    def capture(**kwargs):
+        bearing_inputs.append(kwargs)
+        return original(**kwargs)
+
+    monkeypatch.setattr(engine, "bearing_capacity", capture)
+    clay = SoilLayer(id="clay", top=0, bottom=30, gamma=20, gamma_sat=20,
+                     behaviour="undrained", design=DesignParameters(su=100))
+    geom = _geometry().model_copy(update={"toe": 2.6, "heel": 1.0})
+    settings = WallSettings()
+    results = []
+    for head in (5.8, 5.2):
+        soil = _soil([_layer("fill", 0, 6, phi=40)], layers=[clay], front_water=head)
+        foundation, _ = foundation_from_structure(soil, 5, 6, geom.width)
+        assert foundation.overburden == pytest.approx(20)
+        if partial:
+            result = verify_wall_layered(geom, soil, WallLoads(), settings,
+                                         seismic=False, approach="unit")[0]
+        else:
+            result = analyze_wall_layered(geom, soil, WallLoads(), settings, seismic=False)
+        assert result.bearing is not None
+        gross_v = -sum(f.fy for f in result.forces if f.name != "Uplift")
+        assert bearing_inputs[-1]["V"] == pytest.approx(gross_v)
+        assert bearing_inputs[-1]["q"] == pytest.approx(20)
+        results.append(result)
+    # Raising water within total-stress clay must not improve bearing safety.
+    assert results[1].checks["bearing"].value <= results[0].checks["bearing"].value + 1e-10
+    assert results[1].sum_v < results[0].sum_v  # Uplift still enters the other checks.
+    assert results[1].eccentricity != results[0].eccentricity

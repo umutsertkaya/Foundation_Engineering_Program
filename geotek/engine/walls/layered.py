@@ -16,10 +16,11 @@ from geotek.core.errors import GeoTekError
 from geotek.core.models.profile import DesignParameters, GroundwaterCondition, SoilLayer, SoilProfile
 from geotek.core.models.structures import GwtCase, StructureSoilModel
 from geotek.core.models.walls import CantileverGeometry, FoundationSoil, GravityGeometry, WallLoads, WallSettings
+from geotek.engine.bearing import bearing_capacity
 from geotek.engine.earth_pressure.distribution import PressureDistribution, lateral_pressure, resultant
 from geotek.engine.sheet_pile import _evaluate
 from geotek.engine.stability import SoilBand
-from geotek.engine.walls.base import Force, WallAnalysis, clip_polygon_y, evaluate_checks, weight_forces
+from geotek.engine.walls.base import CheckResult, Force, WallAnalysis, clip_polygon_y, evaluate_checks, weight_forces
 from geotek.engine.walls.walls import WallForces, cantilever_polygons, gravity_wall_polygon
 
 if TYPE_CHECKING:
@@ -51,7 +52,7 @@ def soil_from_basic(inp: BasicWallInput, D: float) -> StructureSoilModel:
 
 def foundation_from_structure(soil: StructureSoilModel, front_depth: float, base_depth: float,
                               width: float, gwt_case: GwtCase = "design") -> tuple[FoundationSoil, list[str]]:
-    """Base stratum only; excavated front overburden is removed before computing q'."""
+    """Base stratum only; front q is effective (drained) or total (undrained)."""
     soil.zones(front_depth, base_depth)
     if width <= 0:
         raise GeoTekError("Foundation width must be positive")
@@ -59,8 +60,14 @@ def foundation_from_structure(soil: StructureSoilModel, front_depth: float, base
     layer = profile.layer_at(base_depth)
     d = layer.design
     gwt = profile.gwt.depth_for(gwt_case)
-    gamma = layer.gamma_sat - GAMMA_W if gwt <= base_depth else layer.gamma
-    q = float(profile.stresses(base_depth, gwt_case)[2] - profile.stresses(front_depth, gwt_case)[2])
+    undrained = layer.behaviour == "undrained"
+    gamma = (layer.gamma_sat if undrained else layer.gamma_sat - GAMMA_W) if gwt <= base_depth else layer.gamma
+    stress_index = 0 if undrained else 2
+    q = float(profile.stresses(base_depth, gwt_case)[stress_index]
+              - profile.stresses(front_depth, gwt_case)[stress_index])
+    if undrained:
+        # Only the remaining soil column plus free water above the front ground.
+        q += GAMMA_W * max(front_depth - gwt, 0.0)
     if gamma <= 0 or q < -1e-9:
         raise GeoTekError("Non-positive effective foundation weight or negative effective overburden")
     warnings = []
@@ -93,9 +100,10 @@ def foundation_from_structure(soil: StructureSoilModel, front_depth: float, base
     return foundation, warnings
 
 
-def _profile_bands(profile: SoilProfile, a: float, b: float, base: float) -> list[SoilBand]:
+def _profile_bands(profile: SoilProfile, a: float, b: float, base: float,
+                   *, water_depth: float | None = None) -> list[SoilBand]:
     out = []
-    gwt = profile.gwt.depth_for("design")
+    gwt = profile.gwt.depth_for("design") if water_depth is None else water_depth
     for layer in profile.layers:
         top, bottom = max(a, layer.top), min(b, layer.bottom)
         if bottom <= top:
@@ -123,11 +131,14 @@ def _profile_bands(profile: SoilProfile, a: float, b: float, base: float) -> lis
 def bands_from_structure(soil: StructureSoilModel, base_depth: float) -> tuple[list[SoilBand], list[SoilBand]]:
     """Retained bands above the base, natural foundation bands below; y=0 at base.
 
-    Weights are split at the design GWT. To select another case, pass ``soil_at_case``.
+    Foundation weights use the Bishop water envelope (higher front/retained GWT).
+    Retained weights use their own design GWT. Select cases with ``soil_at_case``.
     """
     soil.zones(base_depth, base_depth)
-    return (_profile_bands(soil.retained_profile(), 0.0, base_depth, base_depth),
-            _profile_bands(soil.front_profile(), base_depth, soil.profile.bottom, base_depth))
+    retained, front = soil.retained_profile(), soil.front_profile()
+    water_depth = min(retained.gwt.depth_for("design"), front.gwt.depth_for("design"))
+    return (_profile_bands(retained, 0.0, base_depth, base_depth),
+            _profile_bands(front, base_depth, soil.profile.bottom, base_depth, water_depth=water_depth))
 
 
 def soil_at_case(soil: StructureSoilModel, case: GwtCase) -> StructureSoilModel:
@@ -253,7 +264,9 @@ def _front_pressure(geometry, soil, settings):
     profile = soil.front_profile()
     water = front_water_distribution(soil, H - D, H, top=H - D)
     if D > 0 and settings.use_passive:
-        dist = lateral_pressure(profile, D, top=H - D, state="passive", layerwise=True)
+        pond = GAMMA_W * max(H - D - profile.gwt.depth_for("design"), 0.0)
+        dist = lateral_pressure(profile, D, top=H - D, state="passive", layerwise=True,
+                                total_stress_surcharge=pond)
         left = np.r_[np.diff(dist.z) == 0, False]
         dist.u = _evaluate(water, dist.z, which="u", left=left)
         dist.sigma_h = dist.sigma_h_eff + dist.u
@@ -290,8 +303,14 @@ def front_water_distribution(soil, front_depth, base_depth, *, top=0.0):
 
 def _front_water(geometry, soil):
     dist = front_water_distribution(soil, geometry.height - geometry.embedment, geometry.height)
-    return (Force("Water (front)", dist.force, 0.0, 0.0, geometry.height - dist.z_resultant, "WA")
-            if dist.force > 0 else None)
+    if dist.force <= 0:
+        return None
+    y = geometry.height - dist.z_resultant
+    a = ((geometry.base_width - geometry.back_offset - geometry.top_width) / geometry.height
+         if isinstance(geometry, GravityGeometry) else 0.0)
+    # For x=a*y, pressure normal to the wetted face gives dFy=-a*dFx.
+    # The projected vertical diagram integrates both force and face centroid.
+    return Force("Water (front)", dist.force, -a * dist.force, a * y, y, "WA")
 
 
 def wall_pressures_layered(geometry, soil, loads, settings, *, seismic, backfill_slope=0.0,
@@ -351,15 +370,49 @@ def wall_forces_layered(geometry, soil: StructureSoilModel, loads: WallLoads, se
     return WallForces(forces, B, geometry.embedment, list(dict.fromkeys(warnings)))
 
 
+def _check_forward_loading(forces):
+    # PASSIVE is sliding resistance, not an applied horizontal action.
+    if -sum(f.fx for f in forces if f.kind != "PASSIVE") <= 0:
+        raise GeoTekError("Önden baskın yatay yük: ters yönde kayma/devrilme tahkiki bu sürümde yok")
+
+
+def _bearing_vertical_load(forces, foundation):
+    """Gross V for total-stress bearing; existing contact eccentricity is retained."""
+    if foundation.drainage == "undrained":
+        return -sum(f.fy for f in forces if f.name != "Uplift")
+    return -sum(f.fy for f in forces)
+
+
 def analyze_wall_layered(geometry, soil, loads, settings, *, seismic, backfill_slope=0.0,
                          gwt_case: GwtCase = "design") -> WallAnalysis:
     wf = wall_forces_layered(geometry, soil, loads, settings, seismic=seismic,
                              backfill_slope=backfill_slope, gwt_case=gwt_case)
+    _check_forward_loading(wf.forces)
     foundation, warnings = foundation_from_structure(
         soil, geometry.height - geometry.embedment, geometry.height, geometry.width, gwt_case)
     passive = next((f for f in wf.forces if f.kind == "PASSIVE"), None)
-    return evaluate_checks(
+    forces = [f for f in wf.forces if f.kind != "PASSIVE"]
+    result = evaluate_checks(
         case="seismic" if seismic else "static", width=wf.width,
-        forces=[f for f in wf.forces if f.kind != "PASSIVE"], passive=passive,
+        forces=forces, passive=passive,
         foundation=foundation, embedment=wf.embedment, settings=settings, warnings=wf.warnings + warnings,
     )
+    if foundation.drainage == "undrained" and any(f.name == "Uplift" for f in forces):
+        # Keep the existing uplift/contact eccentricity convention. Only bearing
+        # V (inclination and demand) uses total stress, without subtracting U.
+        if abs(result.eccentricity) < wf.width / 2:
+            v = _bearing_vertical_load(forces, foundation)
+            bearing = bearing_capacity(
+                method=settings.bearing_method, B=wf.width, D=wf.embedment, phi=0.0, c=foundation.su,
+                gamma=foundation.gamma, q=foundation.overburden, V=v, H=result.sum_h,
+                e_B=result.eccentricity,
+            )
+            value = bearing.Q_ult / v
+            required = result.checks["bearing"].required
+            result.bearing = bearing
+            result.checks["bearing"] = CheckResult(
+                "bearing", value, required, value >= required,
+                f"q_ult = {bearing.q_ult:.0f} kPa on B' = {bearing.B_eff:.2f} m; "
+                f"q_total = {v / bearing.B_eff:.0f} kPa (V without uplift deduction)",
+            )
+    return result

@@ -142,6 +142,7 @@ def lateral_pressure(
     kv: float = 0.0,
     layerwise: bool = False,
     delta_ratio: float | None = None,
+    total_stress_surcharge: float = 0.0,
 ) -> PressureDistribution:
     """Pressure on a vertical plane from depth ``top`` to ``top + height`` of the profile.
 
@@ -153,6 +154,8 @@ def lateral_pressure(
     coefficients; ``layerwise`` reads each layer's drainage behaviour. ``delta_ratio``
     uses delta = ratio * phi per drained layer. Defaults preserve the original path.
     Undrained layers use total stress without an additional water component.
+    ``total_stress_surcharge`` is an optional boundary load on undrained layers
+    only, e.g. free water above an excavated front ground.
     """
     if height <= 0 or top < 0:
         raise GeoTekError("Height must be positive")
@@ -199,6 +202,11 @@ def lateral_pressure(
             vertical, u = sv + surcharge, np.zeros_like(z)
         else:
             vertical = sve + surcharge
+        if total_stress_surcharge:
+            if layerwise:
+                vertical = vertical + np.where(undrained, total_stress_surcharge, 0.0)
+            elif drainage == "undrained":
+                vertical = vertical + total_stress_surcharge
         cterm = 2.0 * c * np.sqrt(Kc)
         sign = {"active": -1.0, "passive": 1.0, "at_rest": 0.0}[state]
         return K, vertical, u, K * vertical + sign * cterm

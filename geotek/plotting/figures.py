@@ -377,7 +377,7 @@ def plot_wall_section(fig: Figure, geometry, backfill, *, surcharge: float = 0.0
 
     if analysis is not None:
         forces = [f for f in analysis.forces
-                  if f.kind in ("EH", "LS", "EQ", "PASSIVE", "WATER") and "inertia" not in f.name
+                  if f.kind in ("EH", "LS", "EQ", "PASSIVE", "WATER", "WA") and "inertia" not in f.name
                   and "vertical" not in f.name and math.hypot(f.fx, f.fy) > 1e-9]
         fmax = max((math.hypot(f.fx, f.fy) for f in forces), default=1.0) or 1.0
         placed = []

@@ -248,3 +248,96 @@ def test_sheet_pile_partial_envelope_and_missing_water_factor():
     assert not any(m.path.startswith("EQU.") for m in required_factors(wet, "sheet"))
     with pytest.raises(MissingFactorsError):
         design_sheet_pile_structure(wet, "sheet")
+
+
+@pytest.mark.parametrize("separate_heads", [False, True])
+def test_wall_service_selects_seismic_water_for_checks_diagrams_and_bishop(monkeypatch, separate_heads):
+    from geotek.engine.stability import SlipResult
+    from geotek.engine.walls.base import CheckResult
+    from geotek.engine.limit_state import verify_wall_layered
+    from geotek.engine.walls.layered import bands_from_structure, soil_at_case
+    from geotek.services import structures as service
+
+    project = _project(with_global=True)
+    structure = project.structure("wall")
+    structure.inputs.gwt_case = "insitu"
+    structure.soil.profile.gwt = GroundwaterCondition(depth_insitu=4, depth_design=3, depth_seismic=2)
+    # soil_from_basic sets explicit heads; clear them to exercise profile fallback.
+    structure.soil.gwt_retained = structure.soil.gwt_front = None
+    if separate_heads:
+        structure.soil.gwt_retained = GroundwaterCondition(depth_insitu=3.5, depth_design=3, depth_seismic=1.5)
+        structure.soil.gwt_front = GroundwaterCondition(depth_insitu=4.9, depth_design=4.8, depth_seismic=4.5)
+    before = project.model_dump_json()
+    captured = []
+
+    def capture(geometry, backfill, bands, loads, settings, **kwargs):
+        captured.append((kwargs["seismic"], kwargs["water_level"], bands, kwargs["retained_bands"]))
+        return (SlipResult(fs=2, xc=1, yc=8, radius=10, x_entry=10, x_exit=-2),
+                CheckResult("global_stability", 2, 1.5, True))
+
+    monkeypatch.setattr(service, "wall_global_stability", capture)
+    result = check_structure(project, "wall")
+    assert project.model_dump_json() == before
+    loads, _, _ = service._loads(structure)
+    settings = service._settings(project, structure)
+    for i, (state, case) in enumerate([("static", "insitu"), ("seismic", "seismic")]):
+        seismic = state == "seismic"
+        expected = verify_wall_layered(structure.geometry, structure.soil, loads, settings,
+                                       seismic=seismic, approach=None, gwt_case=case)[0]
+        for name, check in expected.checks.items():
+            assert result.analyses[state].checks[name].value == pytest.approx(check.value)
+        zr = structure.soil.retained_profile().gwt.depth_for(case)
+        zf = structure.soil.front_profile().gwt.depth_for(case)
+        assert result.pressures[f"{state}:retained"].component("water")[0] == pytest.approx(GAMMA_W * (5 - zr)**2 / 2)
+        uplift = next(f for f in result.analyses[state].forces if f.name == "Uplift")
+        assert uplift.fy == pytest.approx(structure.geometry.width * GAMMA_W * ((5 - zr) + (5 - zf)) / 2)
+        retained, foundation = bands_from_structure(soil_at_case(structure.soil, case), 5)
+        assert captured[i] == (seismic, 5 - min(zr, zf), foundation, retained)
+    assert any("Deprem YASS senaryosu seismic" in a.text for a in result.assumptions)
+
+
+def test_seismic_only_water_requires_explicit_seismic_WA_before_calculation():
+    project = _project(advanced=True, code="aashto_lrfd")
+    structure = project.structure("wall")
+    structure.soil.gwt_retained = GroundwaterCondition(depth_insitu=100, depth_design=100, depth_seismic=2)
+    missing = required_factors(project, "wall")
+    assert {m.path for m in missing} == {"load.WA.extreme_I"}
+    with pytest.raises(MissingFactorsError):
+        check_structure(project, "wall")
+    project.design_overrides["aashto_lrfd"] = {
+        "load.WA.extreme_I": FactorOverride(value=1.1, note="E4 seismic water test input")}
+    assert required_factors(project, "wall") == []
+    result = check_structure(project, "wall")
+    assert not any(f.kind == "WA" for f in result.analyses["static:Strength I"].forces)
+    assert any(f.kind == "WA" for f in result.analyses["seismic:Extreme Event I"].forces)
+    assert result.pressures["static:Strength I:retained"].component("water")[0] == 0
+    assert result.pressures["seismic:Extreme Event I:retained"].component("water")[0] > 0
+
+
+@pytest.mark.parametrize("water_side,depth", [("retained", 3), ("front", 8), ("front", 100)])
+@pytest.mark.parametrize("r", [None, 1.5])
+def test_tbdy_default_r_warning_for_wet_retained_or_foundation_layer(water_side, depth, r):
+    project = _project()
+    structure = project.structure("wall")
+    structure.inputs.r = r
+    setattr(structure.soil, f"gwt_{water_side}", GroundwaterCondition(
+        depth_insitu=100, depth_design=100, depth_seismic=depth))
+    result = check_structure(project, "wall")
+    warnings = [w for w in result.warnings if "16.12.2.2" in w]
+    assert bool(warnings) == (r is None and depth < structure.soil.profile.bottom)
+    if warnings:
+        assert "coefficients.py" in warnings[0] and "r ≤ 1" in warnings[0]
+    assert result.kh == pytest.approx(0.4 * 0.5 / 1.5)  # warning never changes r
+
+
+def test_passive_reduction_is_labelled_as_engineer_input():
+    project = _project(sds=None, advanced=True)
+    structure = project.structure("wall")
+    structure.settings.use_passive = True
+    structure.settings.passive_reduction = 0.4
+    result = check_structure(project, "wall")
+    text = "Pasif azaltma katsayısı = 0.4 — mühendis seçimi (yayımlanmış kaynak gösterilmedi)"
+    assumptions = [a for a in result.assumptions if a.text == text]
+    assert len(assumptions) == 1 and assumptions[0].source == "Kullanıcı girdisi"
+    structure.settings.use_passive = False
+    assert not any(a.text.startswith("Pasif azaltma katsayısı =") for a in check_structure(project, "wall").assumptions)

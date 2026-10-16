@@ -105,7 +105,7 @@ def required_factors(project: Project, structure_id: str) -> list[MissingFactor]
         base, sds, gwt_case = structure.soil.profile.bottom, structure.sds, "design"
     missing = {}
     for seismic in ([False, True] if sds is not None else [False]):
-        case = "seismic" if seismic and isinstance(structure, SheetPileStructure) else gwt_case
+        case = "seismic" if seismic else gwt_case
         for factor in required_layered_inputs(
             settings, approach=structure.approach, seismic=seismic,
             water=_water(structure.soil, base, case),
@@ -136,7 +136,7 @@ def _assumptions(structure, settings, D):
     out = [
         Assumption(text=f"Beton birim hacim ağırlığı {settings.concrete_unit_weight:g} kN/m³",
                    source="WallSettings; mevcut varsayılan 24 kN/m³, proje girdisi"),
-        Assumption(text=f"YASS senaryosu {gwt_case}; arka derinlik "
+        Assumption(text=f"Statik YASS senaryosu {gwt_case}; arka derinlik "
                         f"{structure.soil.retained_profile().gwt.depth_for(gwt_case):g} m, ön derinlik "
                         f"{structure.soil.front_profile().gwt.depth_for(gwt_case):g} m",
                    source="StructureSoilModel; None olduğunda profil YASS'ı"),
@@ -179,6 +179,10 @@ def _assumptions(structure, settings, D):
                                 "yalnız kaymaya katılır, yatay su azaltılmaz" if settings.use_passive else
                                 "Pasif direnç hesaba katılmadı"),
                           source="Kullanıcı/WallSettings; varsayılan 0.5 için doğrulanmış normatif kaynak yok"))
+    if settings.use_passive:
+        out.append(Assumption(
+            text=f"Pasif azaltma katsayısı = {settings.passive_reduction:g} — mühendis seçimi (yayımlanmış kaynak gösterilmedi)",
+            source="Kullanıcı girdisi"))
     out.append(Assumption(text="Ön ayak üzerindeki doğal zemin ağırlığı " +
                                ("dahil" if settings.include_toe_soil else "ihmal edildi"), source="WallSettings"))
     out.append(Assumption(text="Sürşarjın topuk üzerindeki düşey yükü " +
@@ -190,7 +194,11 @@ def _assumptions(structure, settings, D):
                               source=SRC_TBDY_BASE + "; P1 §5"))
     if structure.inputs.sds is not None:
         r = structure.inputs.r if structure.inputs.r is not None else TBDY_R["gravity_80sds_mm"]
-        out += [Assumption(text=f"k_h=0.4·S_DS/r, k_v=0.5·k_h, r={r:g}; dinamik itki artımı H_v/2'de",
+        out += [Assumption(text=f"Deprem YASS senaryosu seismic; arka derinlik "
+                                f"{structure.soil.retained_profile().gwt.depth_for('seismic'):g} m, ön derinlik "
+                                f"{structure.soil.front_profile().gwt.depth_for('seismic'):g} m",
+                           source="StructureSoilModel; depth_seismic, yoksa depth_insitu"),
+                Assumption(text=f"k_h=0.4·S_DS/r, k_v=0.5·k_h, r={r:g}; dinamik itki artımı H_v/2'de",
                            source=SRC_TBDY_SEISMIC),
                 Assumption(text="M-O katman bazında; hidrostatik su depremde değişmez; hidrodinamik "
                                 "basınç, sıvılaşma ve fazla boşluk suyu basıncı hesaplanmaz; "
@@ -216,9 +224,9 @@ def _evaluate_wall(structure, geometry, settings, loads, reporter, start, span, 
     code = layered_design_code(settings)
     analyses, glob, slips, pressures = {}, {}, {}, {}
     states = [False, True] if structure.inputs.sds is not None else [False]
-    selected = soil_at_case(structure.soil, structure.inputs.gwt_case)
     for i, seismic in enumerate(states):
         state = "seismic" if seismic else "static"
+        selected = soil_at_case(structure.soil, "seismic" if seismic else structure.inputs.gwt_case)
         reporter.emit(start + span * (0.08 + 0.30 * i), f"job.step.{state}_checks")
         for analysis in verify_wall_layered(
             geometry, selected, loads, settings, seismic=seismic,
@@ -230,6 +238,7 @@ def _evaluate_wall(structure, geometry, settings, loads, reporter, start, span, 
         reporter.emit(start + span * 0.70, "job.step.global_stability")
         for seismic in states:
             state = "seismic" if seismic else "static"
+            selected = soil_at_case(structure.soil, "seismic" if seismic else structure.inputs.gwt_case)
             cases = ([None] if code.approach == "global_fs" else layered_limit_state_cases(
                 settings, seismic=seismic, approach=structure.approach,
                 water=_water(selected, geometry.height, "design")))
@@ -266,9 +275,9 @@ def _finish(project, structure, geometry, settings, loads, kh, kv, evaluated, it
     analyses, glob, slips, _ = evaluated
     code = layered_design_code(settings)
     pressures = {}
-    selected = soil_at_case(structure.soil, structure.inputs.gwt_case)
     for seismic in ([False, True] if structure.inputs.sds is not None else [False]):
         state = "seismic" if seismic else "static"
+        selected = soil_at_case(structure.soil, "seismic" if seismic else structure.inputs.gwt_case)
         cases = ([None] if code.approach == "global_fs" else layered_limit_state_cases(
             settings, seismic=seismic, approach=structure.approach,
             water=_water(selected, geometry.height, "design")))
@@ -288,6 +297,18 @@ def _finish(project, structure, geometry, settings, loads, kh, kv, evaluated, it
         for factor in result.factors_used:
             used[factor.path] = factor
     warnings = sorted({w for a in analyses.values() for w in a.warnings})
+    if structure.inputs.sds is not None and structure.inputs.r is None:
+        retained = structure.soil.retained_profile()
+        foundation = structure.soil.front_profile()
+        water_depth = min(retained.gwt.depth_for("seismic"), foundation.gwt.depth_for("seismic"))
+        wet_retained = any(min(l.bottom, geometry.height) > max(l.top, retained.gwt.depth_for("seismic"))
+                           for l in retained.layers)
+        wet_foundation = any(l.bottom > max(geometry.height, water_depth) for l in foundation.layers)
+        if wet_retained or wet_foundation:
+            warnings.append(
+                "Deprem durumunda su tablası altında tutulan veya temel katmanı var ve r kullanıcı tarafından "
+                "girilmedi. TBDY 2018 16.12.2.2 / coefficients.py notu: fazla boşluk suyu basıncı "
+                "gelişebilen yerlerde r ≤ 1 gerekebilir; varsayılan r değiştirilmedi, mühendis değerlendirmeli")
     if structure.soil.source_profile_id is not None:
         source = next((p for p in project.soil_profiles if p.id == structure.soil.source_profile_id), None)
         if structure.soil.is_stale(source):
