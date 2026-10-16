@@ -451,3 +451,93 @@ class DesignCodeSummary(DTO):
     name: str
     approach: Literal["global_fs", "partial_factors", "lrfd"]
     approaches: list[str]
+
+
+def _strip(value: Any) -> Any:
+    return value.strip() if isinstance(value, str) else value
+
+
+class LibraryEntryDTO(DTO):
+    """Project file in the library; error is non-null when the file could not be read."""
+
+    file: str
+    name: str
+    number: str
+    engineer: str
+    modified: dt.datetime
+    size: int = Field(ge=0)
+    schema_version: str | None
+    error: str | None
+
+
+class AppSettingsDTO(DTO):
+    """Persistent preferences; recent holds absolute paths, newest first (server-managed)."""
+
+    library_dir: str = Field(min_length=1)
+    language: Language
+    recent: list[str] = Field(default_factory=list)
+
+
+class ModuleInfo(DTO):
+    """Discovered module metadata for the launcher, sorted by order."""
+
+    id: str
+    version: str
+    title_key: str
+    description_key: str
+    icon: str
+    order: int
+
+
+class SessionInfo(DTO):
+    """Open-project state of the running server."""
+
+    open: bool
+    file: str | None
+    dirty: bool
+
+
+class ProjectSaveResponse(SessionInfo):
+    """Session state after a save plus the path written (library or path-based)."""
+
+    path: str
+
+
+class NewProjectRequest(DTO):
+    """Subset of ProjectMeta needed to create a library project."""
+
+    name: Annotated[str, BeforeValidator(_strip)] = Field(min_length=1)
+    number: str = ""
+    engineer: str = ""
+    language: Language | None = None
+    design_code: str | None = None
+
+
+class RenameRequest(DTO):
+    """New project name for a library file."""
+
+    name: Annotated[str, BeforeValidator(_strip)] = Field(min_length=1)
+
+
+class ExportRequest(DTO):
+    """Destination file or directory outside the library."""
+
+    dest: str = Field(min_length=1)
+
+
+class ExportResponse(DTO):
+    """Resolved path of the exported copy."""
+
+    path: str
+
+
+class ImportRequest(DTO):
+    """Existing project file to copy into the library."""
+
+    path: str = Field(min_length=1)
+
+
+class TrashResponse(DTO):
+    """Location of a deleted library file inside the library's .trash directory."""
+
+    trash_path: str

@@ -5,6 +5,11 @@
 
 export type Language = "tr" | "en";
 export type WallType = "cantilever" | "gravity";
+
+export interface WallTypeInfo {
+  id: WallType;
+  title_key: string;
+}
 export type StructureKind = "retaining_wall" | "sheet_pile";
 export type ProfileOrigin = "cpt" | "spt" | "manual" | "mixed";
 export type FactorStatus = "verified" | "secondary" | "unverified" | "not_in_source" | "user";

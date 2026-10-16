@@ -2,7 +2,7 @@
   "openapi": "3.1.0",
   "info": {
     "title": "GeoTek API",
-    "description": "GeoTek v2 local HTTP contract. Units: m, kPa, kN/m3 and degrees unless explicitly labelled otherwise. Non-finite result numbers are JSON null. Only health is implemented; workflow routes return ApiError with HTTP 501.",
+    "description": "GeoTek v2 local HTTP contract. Units: m, kPa, kN/m3 and degrees unless explicitly labelled otherwise. Non-finite result numbers are JSON null. The core shell (session, project, library, settings, modules) is implemented; other workflow routes return ApiError with HTTP 501.",
     "version": "0.2.0"
   },
   "servers": [
@@ -234,13 +234,1346 @@
         }
       }
     },
+    "/api/modules": {
+      "get": {
+        "tags": [
+          "library"
+        ],
+        "summary": "List Modules",
+        "description": "List discovered modules sorted by menu order.",
+        "operationId": "list_modules",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ModuleInfo"
+                  },
+                  "type": "array",
+                  "title": "Response List Modules"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid operation or input file",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflicting or stale structure state",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation error or missing_factors",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Engine or server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "501": {
+            "description": "Contract stub; not implemented",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Other client error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "5XX": {
+            "description": "Other server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/settings": {
+      "get": {
+        "tags": [
+          "library"
+        ],
+        "summary": "Get Settings",
+        "description": "Return persisted application preferences.",
+        "operationId": "get_settings",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppSettingsDTO"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid operation or input file",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflicting or stale structure state",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation error or missing_factors",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Engine or server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "501": {
+            "description": "Contract stub; not implemented",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Other client error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "5XX": {
+            "description": "Other server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "library"
+        ],
+        "summary": "Put Settings",
+        "description": "Persist library_dir and language (recent is server-managed and ignored).",
+        "operationId": "put_settings",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AppSettingsDTO"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppSettingsDTO"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid operation or input file",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflicting or stale structure state",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation error or missing_factors",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Engine or server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "501": {
+            "description": "Contract stub; not implemented",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Other client error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "5XX": {
+            "description": "Other server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/library": {
+      "get": {
+        "tags": [
+          "library"
+        ],
+        "summary": "List Library",
+        "description": "List project files, newest first; unreadable files carry an error.",
+        "operationId": "list_library",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/LibraryEntryDTO"
+                  },
+                  "type": "array",
+                  "title": "Response List Library"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid operation or input file",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflicting or stale structure state",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation error or missing_factors",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Engine or server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "501": {
+            "description": "Contract stub; not implemented",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Other client error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "5XX": {
+            "description": "Other server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "library"
+        ],
+        "summary": "Create Library Project",
+        "description": "Create a project file in the library and open it as the current project.",
+        "operationId": "create_library_project",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NewProjectRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LibraryEntryDTO"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid operation or input file",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflicting or stale structure state",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation error or missing_factors",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Engine or server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "501": {
+            "description": "Contract stub; not implemented",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Other client error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "5XX": {
+            "description": "Other server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/library/import": {
+      "post": {
+        "tags": [
+          "library"
+        ],
+        "summary": "Import Library Project",
+        "description": "Copy an existing project file into the library.",
+        "operationId": "import_library_project",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ImportRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LibraryEntryDTO"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid operation or input file",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflicting or stale structure state",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation error or missing_factors",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Engine or server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "501": {
+            "description": "Contract stub; not implemented",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Other client error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "5XX": {
+            "description": "Other server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/library/{file}/open": {
+      "post": {
+        "tags": [
+          "library"
+        ],
+        "summary": "Open Library Project",
+        "description": "Open a library project as the current project.",
+        "operationId": "open_library_project",
+        "parameters": [
+          {
+            "name": "file",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "File"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SessionInfo"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid operation or input file",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflicting or stale structure state",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation error or missing_factors",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Engine or server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "501": {
+            "description": "Contract stub; not implemented",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Other client error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "5XX": {
+            "description": "Other server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/library/{file}/duplicate": {
+      "post": {
+        "tags": [
+          "library"
+        ],
+        "summary": "Duplicate Library Project",
+        "description": "Copy a library project under a new unique file name.",
+        "operationId": "duplicate_library_project",
+        "parameters": [
+          {
+            "name": "file",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "File"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LibraryEntryDTO"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid operation or input file",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflicting or stale structure state",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation error or missing_factors",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Engine or server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "501": {
+            "description": "Contract stub; not implemented",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Other client error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "5XX": {
+            "description": "Other server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/library/{file}/rename": {
+      "post": {
+        "tags": [
+          "library"
+        ],
+        "summary": "Rename Library Project",
+        "description": "Rename the project (and its file); the open project follows the new file.",
+        "operationId": "rename_library_project",
+        "parameters": [
+          {
+            "name": "file",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "File"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RenameRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LibraryEntryDTO"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid operation or input file",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflicting or stale structure state",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation error or missing_factors",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Engine or server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "501": {
+            "description": "Contract stub; not implemented",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Other client error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "5XX": {
+            "description": "Other server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/library/{file}/export": {
+      "post": {
+        "tags": [
+          "library"
+        ],
+        "summary": "Export Library Project",
+        "description": "Copy the stored project file to a destination outside the library.",
+        "operationId": "export_library_project",
+        "parameters": [
+          {
+            "name": "file",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "File"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ExportRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExportResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid operation or input file",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflicting or stale structure state",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation error or missing_factors",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Engine or server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "501": {
+            "description": "Contract stub; not implemented",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Other client error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "5XX": {
+            "description": "Other server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/library/{file}": {
+      "delete": {
+        "tags": [
+          "library"
+        ],
+        "summary": "Delete Library Project",
+        "description": "Move a project file to the library's .trash; refused while it is open.",
+        "operationId": "delete_library_project",
+        "parameters": [
+          {
+            "name": "file",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "File"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TrashResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid operation or input file",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflicting or stale structure state",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation error or missing_factors",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Engine or server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "501": {
+            "description": "Contract stub; not implemented",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Other client error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "5XX": {
+            "description": "Other server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/session": {
+      "get": {
+        "tags": [
+          "library"
+        ],
+        "summary": "Get Session Info",
+        "description": "Report whether a project is open, its library file and unsaved changes.",
+        "operationId": "get_session",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SessionInfo"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid operation or input file",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflicting or stale structure state",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation error or missing_factors",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Engine or server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "501": {
+            "description": "Contract stub; not implemented",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Other client error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "5XX": {
+            "description": "Other server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/project/new": {
       "post": {
         "tags": [
           "project"
         ],
         "summary": "New Project",
-        "description": "Create a project with the requested name and language.",
+        "description": "Create an unsaved project outside the library (saving needs a path).",
         "operationId": "new_project",
         "requestBody": {
           "content": {
@@ -352,7 +1685,7 @@
           "project"
         ],
         "summary": "Open Project",
-        "description": "Open a local project file.",
+        "description": "Open a local project file by path, outside the library.",
         "operationId": "open_project",
         "requestBody": {
           "content": {
@@ -463,18 +1796,25 @@
         "tags": [
           "project"
         ],
-        "summary": "Save Project",
-        "description": "Save to the supplied path or the project's current file.",
+        "summary": "Save Project Route",
+        "description": "Save to the open library file, the path-based file, or an explicit path (Save As).",
         "operationId": "save_project",
         "requestBody": {
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/ProjectSave"
+                "anyOf": [
+                  {
+                    "$ref": "#/components/schemas/ProjectSave"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "title": "Payload"
               }
             }
-          },
-          "required": true
+          }
         },
         "responses": {
           "200": {
@@ -482,7 +1822,109 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ProjectSaved"
+                  "$ref": "#/components/schemas/ProjectSaveResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid operation or input file",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflicting or stale structure state",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation error or missing_factors",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Engine or server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "501": {
+            "description": "Contract stub; not implemented",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Other client error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "5XX": {
+            "description": "Other server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/project/close": {
+      "post": {
+        "tags": [
+          "project"
+        ],
+        "summary": "Close Project",
+        "description": "Close the open project, discarding unsaved changes.",
+        "operationId": "close_project",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SessionInfo"
                 }
               }
             }
@@ -576,7 +2018,7 @@
           "project"
         ],
         "summary": "Get Project",
-        "description": "Return the current project summary.",
+        "description": "Return the current project summary; 409 no_project_open when none.",
         "operationId": "get_project",
         "responses": {
           "200": {
@@ -6142,6 +7584,38 @@
         "title": "ApiError",
         "description": "Shared error envelope; code is also the suffix of an error i18n key."
       },
+      "AppSettingsDTO": {
+        "properties": {
+          "library_dir": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Library Dir"
+          },
+          "language": {
+            "type": "string",
+            "enum": [
+              "tr",
+              "en"
+            ],
+            "title": "Language"
+          },
+          "recent": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Recent"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "library_dir",
+          "language"
+        ],
+        "title": "AppSettingsDTO",
+        "description": "Persistent preferences; recent holds absolute paths, newest first (server-managed)."
+      },
       "AssumptionDTO": {
         "properties": {
           "text": {
@@ -6981,6 +8455,37 @@
         "title": "DesignParameters",
         "description": "Characteristic values confirmed by the engineer; Module 2 reads these."
       },
+      "ExportRequest": {
+        "properties": {
+          "dest": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Dest"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "dest"
+        ],
+        "title": "ExportRequest",
+        "description": "Destination file or directory outside the library."
+      },
+      "ExportResponse": {
+        "properties": {
+          "path": {
+            "type": "string",
+            "title": "Path"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "path"
+        ],
+        "title": "ExportResponse",
+        "description": "Resolved path of the exported copy."
+      },
       "FactorOverride": {
         "properties": {
           "value": {
@@ -7211,6 +8716,22 @@
         ],
         "title": "HealthResponse",
         "description": "Local API availability and contract version."
+      },
+      "ImportRequest": {
+        "properties": {
+          "path": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Path"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "path"
+        ],
+        "title": "ImportRequest",
+        "description": "Existing project file to copy into the library."
       },
       "InvestigationsDTO": {
         "properties": {
@@ -7648,6 +9169,72 @@
         "title": "LayeringSettings",
         "description": "Automatic layering options, stored with the profile so the result can be reproduced.\n\nDefaults are algorithm settings (not code or correlation coefficients) and are editable."
       },
+      "LibraryEntryDTO": {
+        "properties": {
+          "file": {
+            "type": "string",
+            "title": "File"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "number": {
+            "type": "string",
+            "title": "Number"
+          },
+          "engineer": {
+            "type": "string",
+            "title": "Engineer"
+          },
+          "modified": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Modified"
+          },
+          "size": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Size"
+          },
+          "schema_version": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Schema Version"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "file",
+          "name",
+          "number",
+          "engineer",
+          "modified",
+          "size",
+          "schema_version",
+          "error"
+        ],
+        "title": "LibraryEntryDTO",
+        "description": "Project file in the library; error is non-null when the file could not be read."
+      },
       "LiquefactionResultDTO": {
         "properties": {
           "per_sounding": {
@@ -7776,6 +9363,98 @@
         ],
         "title": "MissingFactorDTO",
         "description": "Mirror of a missing code factor, including provenance and the entry hint."
+      },
+      "ModuleInfo": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "version": {
+            "type": "string",
+            "title": "Version"
+          },
+          "title_key": {
+            "type": "string",
+            "title": "Title Key"
+          },
+          "description_key": {
+            "type": "string",
+            "title": "Description Key"
+          },
+          "icon": {
+            "type": "string",
+            "title": "Icon"
+          },
+          "order": {
+            "type": "integer",
+            "title": "Order"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "version",
+          "title_key",
+          "description_key",
+          "icon",
+          "order"
+        ],
+        "title": "ModuleInfo",
+        "description": "Discovered module metadata for the launcher, sorted by order."
+      },
+      "NewProjectRequest": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Name"
+          },
+          "number": {
+            "type": "string",
+            "title": "Number",
+            "default": ""
+          },
+          "engineer": {
+            "type": "string",
+            "title": "Engineer",
+            "default": ""
+          },
+          "language": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "tr",
+                  "en"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Language"
+          },
+          "design_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Design Code"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "name"
+        ],
+        "title": "NewProjectRequest",
+        "description": "Subset of ProjectMeta needed to create a library project."
       },
       "ParameterApproval": {
         "properties": {
@@ -8429,8 +10108,27 @@
         "title": "ProjectSave",
         "description": "Save destination; null or omission uses the current project file."
       },
-      "ProjectSaved": {
+      "ProjectSaveResponse": {
         "properties": {
+          "open": {
+            "type": "boolean",
+            "title": "Open"
+          },
+          "file": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "File"
+          },
+          "dirty": {
+            "type": "boolean",
+            "title": "Dirty"
+          },
           "path": {
             "type": "string",
             "title": "Path"
@@ -8439,10 +10137,13 @@
         "additionalProperties": false,
         "type": "object",
         "required": [
+          "open",
+          "file",
+          "dirty",
           "path"
         ],
-        "title": "ProjectSaved",
-        "description": "Resolved local path of the saved project."
+        "title": "ProjectSaveResponse",
+        "description": "Session state after a save plus the path written (library or path-based)."
       },
       "ProjectSummary": {
         "properties": {
@@ -8586,6 +10287,22 @@
         ],
         "title": "ProposedLayer",
         "description": "Interpreted interval; suggested values remain unapproved engineering inputs."
+      },
+      "RenameRequest": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Name"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "name"
+        ],
+        "title": "RenameRequest",
+        "description": "New project name for a library file."
       },
       "RetainingWallCreate": {
         "properties": {
@@ -9027,6 +10744,38 @@
         ],
         "title": "SelectionUpdate",
         "description": "Selection inputs only; server resolves candidates and leaves approval separate."
+      },
+      "SessionInfo": {
+        "properties": {
+          "open": {
+            "type": "boolean",
+            "title": "Open"
+          },
+          "file": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "File"
+          },
+          "dirty": {
+            "type": "boolean",
+            "title": "Dirty"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "open",
+          "file",
+          "dirty"
+        ],
+        "title": "SessionInfo",
+        "description": "Open-project state of the running server."
       },
       "SheetPileCreate": {
         "properties": {
@@ -10078,6 +11827,21 @@
         ],
         "title": "StructureSummary",
         "description": "Structure list entry; stale indicates changed source soil or analysis inputs."
+      },
+      "TrashResponse": {
+        "properties": {
+          "trash_path": {
+            "type": "string",
+            "title": "Trash Path"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "trash_path"
+        ],
+        "title": "TrashResponse",
+        "description": "Location of a deleted library file inside the library's .trash directory."
       },
       "UsedFactorDTO": {
         "properties": {

@@ -1,4 +1,7 @@
 {
   "liquefaction.title": "Liquefaction",
-  "liquefaction.description": "Liquefaction triggering from SPT and CPT data (Boulanger \u0026 Idriss 2014, Youd et al. 2001), factor of safety and LPI."
+  "liquefaction.description": "Liquefaction triggering from SPT and CPT data (Boulanger & Idriss 2014, Youd et al. 2001), factor of safety and LPI.",
+  "liquefaction.nav.analysis": "Analysis",
+  "liquefaction.nav.results": "Results",
+  "liquefaction.placeholder": "This section's screens will be moved into this module in a later step."
 }

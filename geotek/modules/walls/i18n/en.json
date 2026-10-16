@@ -5,5 +5,8 @@
   "walls.type.cantilever": "Cantilever wall",
   "walls.type.cantilever.description": "Reinforced concrete cantilever wall with a stem and base slab.",
   "walls.type.gravity": "Gravity wall",
-  "walls.type.gravity.description": "Mass concrete or masonry wall resisting earth pressure by its own weight."
+  "walls.type.gravity.description": "Mass concrete or masonry wall resisting earth pressure by its own weight.",
+  "walls.nav.list": "Walls",
+  "walls.nav.new": "New wall",
+  "walls.placeholder": "This section's screens will be moved into this module in a later step."
 }

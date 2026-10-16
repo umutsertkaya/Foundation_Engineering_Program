@@ -1,4 +1,6 @@
 {
   "sheet_pile.title": "Sheet pile / shoring",
-  "sheet_pile.description": "Embedment depth, anchor force and internal forces for cantilever and single-anchored sheet pile walls."
+  "sheet_pile.description": "Embedment depth, anchor force and internal forces for cantilever and single-anchored sheet pile walls.",
+  "sheet_pile.nav.list": "Sheet piles",
+  "sheet_pile.placeholder": "This section's screens will be moved into this module in a later step."
 }

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import os
 import re
 from dataclasses import fields
 from pathlib import Path
@@ -50,10 +51,23 @@ PROFILE_CREATE = {
 # Engineering values below are test fixtures, never API defaults.
 REQUESTS = [
     ("GET", "/api/health", None),
+    ("GET", "/api/modules", None),
+    ("GET", "/api/settings", None),
+    ("PUT", "/api/settings", {"library_dir": "lib", "language": "tr", "recent": []}),
+    ("GET", "/api/library", None),
+    ("POST", "/api/library", {"name": "Contract"}),
+    ("POST", "/api/library/import", {"path": "sample.gtk"}),
+    ("POST", "/api/library/{file}/open", None),
+    ("POST", "/api/library/{file}/duplicate", None),
+    ("POST", "/api/library/{file}/rename", {"name": "Renamed"}),
+    ("POST", "/api/library/{file}/export", {"dest": "out.gtk"}),
+    ("DELETE", "/api/library/{file}", None),
+    ("GET", "/api/session", None),
     ("GET", "/api/i18n/{lang}", None),
     ("POST", "/api/project/new", {"name": "Contract", "language": "en"}),
     ("POST", "/api/project/open", {"path": "sample.gtk"}),
     ("POST", "/api/project/save", {"path": None}),
+    ("POST", "/api/project/close", None),
     ("GET", "/api/project", None),
     ("PATCH", "/api/project/meta", {"engineer": "Engineer"}),
     ("PUT", "/api/project/site", {"pga_g": 0.2, "mw": 7}),
@@ -112,10 +126,32 @@ REQUESTS = [
 ]
 
 
+# Core shell routes are implemented and exercised against a temporary library in
+# test_library_api.py / test_project_api.py; the contract test only checks their declaration.
+IMPLEMENTED = {
+    (method, path) for method, path, _ in REQUESTS
+    if path in {
+        "/api/health", "/api/modules", "/api/settings", "/api/library", "/api/library/import",
+        "/api/session", "/api/project", "/api/project/new", "/api/project/open",
+        "/api/project/save", "/api/project/close", "/api/project/meta", "/api/project/site",
+        "/api/project/active-profile",
+    } or path.startswith("/api/library/{file}")
+}
+
+
 @pytest.fixture(scope="module")
-def app():
-    """Build the contract application without running any workflow."""
-    return create_app()
+def app(tmp_path_factory):
+    """Build the contract application on an isolated settings file."""
+    root = tmp_path_factory.mktemp("contract")
+    previous = os.environ.get("GEOTEK_SETTINGS")
+    os.environ["GEOTEK_SETTINGS"] = str(root / "settings.json")
+    try:
+        yield create_app()
+    finally:
+        if previous is None:
+            os.environ.pop("GEOTEK_SETTINGS", None)
+        else:
+            os.environ["GEOTEK_SETTINGS"] = previous
 
 
 @pytest.fixture(scope="module")
@@ -184,7 +220,14 @@ def test_route_coverage_and_error_models(app):
 @pytest.mark.parametrize("method,path,payload", REQUESTS, ids=[
     f"{method} {path}" for method, path, _ in REQUESTS
 ])
-def test_health_is_only_implemented_operation(client, method, path, payload):
+def test_unimplemented_operations_return_501(client, method, path, payload):
+    if path == "/api/health":
+        response = client.get(path)
+        assert response.status_code == 200
+        assert response.json() == {"status": "ok", "version": "0.2.0"}
+        return
+    if (method, path) in IMPLEMENTED:
+        return
     url = path.format(id="item", layer_id="L1", key="phi_eff", lang="tr", cpt_id="CPT1",
                       borehole_id="BH1", code_id="asd", job_id="job-1")
     kwargs = {}
@@ -198,16 +241,12 @@ def test_health_is_only_implemented_operation(client, method, path, payload):
         kwargs["json"] = payload
     response = client.request(method, url, **kwargs)
     assert response.headers["content-type"] == "application/json"
-    if path == "/api/health":
-        assert response.status_code == 200
-        assert response.json() == {"status": "ok", "version": "0.2.0"}
-    else:
-        assert response.status_code == 501, response.text
-        error = dto.ApiError.model_validate(response.json())
-        assert error.code == "not_implemented"
-        assert error.details == {}
-        assert error.missing_factors == []
-        assert "detail" not in response.json()
+    assert response.status_code == 501, response.text
+    error = dto.ApiError.model_validate(response.json())
+    assert error.code == "not_implemented"
+    assert error.details == {}
+    assert error.missing_factors == []
+    assert "detail" not in response.json()
 
 
 @pytest.mark.parametrize("method,url,payload", [

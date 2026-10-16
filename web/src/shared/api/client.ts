@@ -31,6 +31,7 @@ import type {
   StructureCreate,
   StructureSoilModel,
   StructureSummary,
+  WallTypeInfo,
 } from "./types";
 import { request } from "./http";
 
@@ -73,43 +74,43 @@ export function set_active_profile(payload: ActiveProfileUpdate): Promise<Projec
 }
 
 export function list_investigations(): Promise<InvestigationsDTO> {
-  return request<InvestigationsDTO>("GET", "/investigations");
+  return request<InvestigationsDTO>("GET", "/m/soil/investigations");
 }
 
 export function get_processed_cpt(id: string): Promise<CPTProcessedDTO> {
-  return request<CPTProcessedDTO>("GET", `/cpts/${encodeURIComponent(id)}/processed`);
+  return request<CPTProcessedDTO>("GET", `/m/soil/cpts/${encodeURIComponent(id)}/processed`);
 }
 
 export function get_processed_spt(id: string): Promise<SPTProcessedDTO> {
-  return request<SPTProcessedDTO>("GET", `/boreholes/${encodeURIComponent(id)}/processed`);
+  return request<SPTProcessedDTO>("GET", `/m/soil/boreholes/${encodeURIComponent(id)}/processed`);
 }
 
 export function propose_cpt_layers(cpt_id: string, payload: LayeringSettings): Promise<LayeringProposal> {
-  return request<LayeringProposal>("POST", `/layering/cpt/${encodeURIComponent(cpt_id)}`, payload);
+  return request<LayeringProposal>("POST", `/m/soil/layering/cpt/${encodeURIComponent(cpt_id)}`, payload);
 }
 
 export function propose_spt_layers(borehole_id: string, payload: LayeringSettings): Promise<LayeringProposal> {
-  return request<LayeringProposal>("POST", `/layering/spt/${encodeURIComponent(borehole_id)}`, payload);
+  return request<LayeringProposal>("POST", `/m/soil/layering/spt/${encodeURIComponent(borehole_id)}`, payload);
 }
 
 export function list_profiles(): Promise<ProfileSummary[]> {
-  return request<ProfileSummary[]>("GET", "/profiles");
+  return request<ProfileSummary[]>("GET", "/m/soil/profiles");
 }
 
 export function create_profile(payload: ProfileCreate): Promise<SoilProfile> {
-  return request<SoilProfile>("POST", "/profiles", payload);
+  return request<SoilProfile>("POST", "/m/soil/profiles", payload);
 }
 
 export function get_profile(id: string): Promise<SoilProfile> {
-  return request<SoilProfile>("GET", `/profiles/${encodeURIComponent(id)}`);
+  return request<SoilProfile>("GET", `/m/soil/profiles/${encodeURIComponent(id)}`);
 }
 
 export function update_profile(id: string, payload: SoilProfile): Promise<SoilProfile> {
-  return request<SoilProfile>("PUT", `/profiles/${encodeURIComponent(id)}`, payload);
+  return request<SoilProfile>("PUT", `/m/soil/profiles/${encodeURIComponent(id)}`, payload);
 }
 
 export function delete_profile(id: string): Promise<DeletionResponse> {
-  return request<DeletionResponse>("DELETE", `/profiles/${encodeURIComponent(id)}`);
+  return request<DeletionResponse>("DELETE", `/m/soil/profiles/${encodeURIComponent(id)}`);
 }
 
 export function list_structures(): Promise<StructureSummary[]> {
@@ -140,16 +141,20 @@ export function resync_structure_soil(id: string): Promise<Structure> {
   return request<Structure>("POST", `/structures/${encodeURIComponent(id)}/soil/resync`);
 }
 
+export function list_wall_types(): Promise<WallTypeInfo[]> {
+  return request<WallTypeInfo[]>("GET", "/m/walls/wall-types");
+}
+
 export function get_structure_required_factors(id: string): Promise<MissingFactorDTO[]> {
-  return request<MissingFactorDTO[]>("POST", `/structures/${encodeURIComponent(id)}/required-factors`);
+  return request<MissingFactorDTO[]>("POST", `/m/walls/structures/${encodeURIComponent(id)}/required-factors`);
 }
 
 export function size_wall(id: string): Promise<JobRef> {
-  return request<JobRef>("POST", `/structures/${encodeURIComponent(id)}/size`);
+  return request<JobRef>("POST", `/m/walls/structures/${encodeURIComponent(id)}/size`);
 }
 
 export function check_wall(id: string): Promise<JobRef> {
-  return request<JobRef>("POST", `/structures/${encodeURIComponent(id)}/check`);
+  return request<JobRef>("POST", `/m/walls/structures/${encodeURIComponent(id)}/check`);
 }
 
 export function get_job(job_id: string): Promise<JobState> {
@@ -161,11 +166,11 @@ export function cancel_job(job_id: string): Promise<JobState> {
 }
 
 export function design_sheet_pile(id: string): Promise<JobRef> {
-  return request<JobRef>("POST", `/structures/${encodeURIComponent(id)}/design`);
+  return request<JobRef>("POST", `/m/sheet_pile/structures/${encodeURIComponent(id)}/design`);
 }
 
 export function run_liquefaction(payload: LiquefactionSettingsDTO): Promise<JobRef> {
-  return request<JobRef>("POST", "/liquefaction", payload);
+  return request<JobRef>("POST", "/m/liquefaction/run", payload);
 }
 
 export function list_codes(): Promise<DesignCodeSummary[]> {

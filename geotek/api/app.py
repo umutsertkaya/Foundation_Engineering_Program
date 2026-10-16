@@ -1,4 +1,4 @@
-"""Declared GeoTek HTTP surface: health is live, all workflow bodies raise 501.
+"""GeoTek HTTP surface: health and the core shell are live, other workflow bodies raise 501.
 
 Core routes live here under /api; pluggable modules mount at /api/m/<id> via the registry.
 Run with ``uvicorn geotek.api.app:create_app --factory --host 127.0.0.1``.
@@ -7,19 +7,24 @@ Multipart is documented explicitly so creating the contract needs no parser pack
 
 from __future__ import annotations
 
+from pathlib import Path
 from typing import Annotated, NoReturn
 
-from fastapi import APIRouter, Body, FastAPI, Request
+from fastapi import APIRouter, Body, Depends, FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
-from geotek.api import registry
+from pydantic import ValidationError
+
+from geotek.api import library_routes, registry
 from geotek.api import schemas as dto
 from geotek.api.common import ERROR_RESPONSES, not_implemented
+from geotek.api.session import Session, api_error, get_session, load_external
 from geotek.config.codes import FactorOverride
-from geotek.core.models.project import ProjectMeta, SiteSeismic
+from geotek.core.models.project import Project, ProjectMeta, SiteSeismic
 from geotek.core.models.structures import Structure, StructureSoilModel
+from geotek.io.project_io import save_project
 
 API_VERSION = "0.2.0"
 
@@ -28,6 +33,7 @@ project = APIRouter(tags=["project"], responses=ERROR_RESPONSES)
 structures = APIRouter(tags=["structures"], responses=ERROR_RESPONSES)
 jobs = APIRouter(tags=["jobs"], responses=ERROR_RESPONSES)
 codes = APIRouter(tags=["codes"], responses=ERROR_RESPONSES)
+SessionDep = Annotated[Session, Depends(get_session)]
 
 
 @meta.get("/health", response_model=dto.HealthResponse, operation_id="get_health")
@@ -42,49 +48,125 @@ def get_i18n(lang: dto.Language) -> NoReturn:
     not_implemented()
 
 
+def _summary(project: Project) -> dto.ProjectSummary:
+    profiles = {profile.id: profile for profile in project.soil_profiles}
+    return dto.ProjectSummary(
+        meta=project.meta, site=project.site,
+        counts=dto.ProjectCounts(
+            boreholes=len(project.investigations.boreholes), cpts=len(project.investigations.cpts),
+            profiles=len(project.soil_profiles), structures=len(project.structures),
+        ),
+        active_profile_id=project.active_profile_id,
+        structures=[
+            dto.StructureSummary(
+                id=item.id, name=item.name, kind=item.kind,
+                wall_type=getattr(item, "wall_type", None),
+                stale=item.soil.is_stale(profiles.get(item.soil.source_profile_id)),
+                has_result=item.result_hash is not None,
+            )
+            for item in project.structures
+        ],
+    )
+
+
 @project.post("/project/new", response_model=dto.ProjectSummary, operation_id="new_project")
-def new_project(payload: dto.ProjectNew) -> NoReturn:
-    """Create a project with the requested name and language."""
-    not_implemented()
+def new_project(payload: dto.ProjectNew, session: SessionDep) -> dto.ProjectSummary:
+    """Create an unsaved project outside the library (saving needs a path)."""
+    created = Project(meta=ProjectMeta(name=payload.name, language=payload.language))
+    session.open_project(created, dirty=True)
+    return _summary(created)
 
 
 @project.post("/project/open", response_model=dto.ProjectSummary, operation_id="open_project")
-def open_project(payload: dto.ProjectOpen) -> NoReturn:
-    """Open a local project file."""
-    not_implemented()
+def open_project(payload: dto.ProjectOpen, session: SessionDep) -> dto.ProjectSummary:
+    """Open a local project file by path, outside the library."""
+    path = Path(payload.path).expanduser().resolve()
+    opened = load_external(path)
+    session.open_project(opened, path=path)
+    return _summary(opened)
 
 
-@project.post("/project/save", response_model=dto.ProjectSaved, operation_id="save_project")
-def save_project(payload: dto.ProjectSave) -> NoReturn:
-    """Save to the supplied path or the project's current file."""
-    not_implemented()
+@project.post("/project/save", response_model=dto.ProjectSaveResponse, operation_id="save_project")
+def save_project_route(
+    session: SessionDep, payload: Annotated[dto.ProjectSave | None, Body()] = None,
+) -> dto.ProjectSaveResponse:
+    """Save to the open library file, the path-based file, or an explicit path (Save As)."""
+    with session.lock:
+        current = session.require_project()
+        try:
+            if payload is not None and payload.path:
+                target = save_project(current, Path(payload.path).expanduser())
+                session.file, session.path = None, target.resolve()
+            elif session.file is not None:
+                session.library.save(session.file, current)
+                target = session.library.path_of(session.file)
+            elif session.path is not None:
+                target = save_project(current, session.path)
+            else:
+                api_error(400, "no_save_target", "Project has no file; supply a path.")
+        except OSError as exc:
+            api_error(400, "invalid_path", str(exc))
+        session.dirty = False
+        return dto.ProjectSaveResponse(open=True, file=session.file, dirty=False, path=str(target))
+
+
+@project.post("/project/close", response_model=dto.SessionInfo, operation_id="close_project")
+def close_project(session: SessionDep) -> dto.SessionInfo:
+    """Close the open project, discarding unsaved changes."""
+    session.close()
+    return session.info()
 
 
 @project.get("/project", response_model=dto.ProjectSummary, operation_id="get_project")
-def get_project() -> NoReturn:
-    """Return the current project summary."""
-    not_implemented()
+def get_project(session: SessionDep) -> dto.ProjectSummary:
+    """Return the current project summary; 409 no_project_open when none."""
+    with session.lock:
+        return _summary(session.require_project())
 
 
 @project.patch("/project/meta", response_model=ProjectMeta, operation_id="update_project_meta")
-def update_project_meta(payload: dto.ProjectMetaPatch) -> NoReturn:
+def update_project_meta(payload: dto.ProjectMetaPatch, session: SessionDep) -> ProjectMeta:
     """Update supplied metadata fields; omission preserves the existing value."""
-    not_implemented()
+    with session.lock:
+        current = session.require_project()
+        merged = {**current.meta.model_dump(), **payload.model_dump(exclude_unset=True)}
+        try:
+            current.meta = ProjectMeta.model_validate(merged)
+        except ValidationError as exc:
+            api_error(422, "validation", "Invalid project metadata.", errors=[
+                {"loc": list(item["loc"]), "msg": item["msg"], "type": item["type"]}
+                for item in exc.errors()
+            ])
+        session.dirty = True
+        return current.meta
 
 
 @project.put("/project/site", response_model=SiteSeismic, operation_id="set_project_site")
-def set_project_site(payload: SiteSeismic) -> NoReturn:
+def set_project_site(payload: SiteSeismic, session: SessionDep) -> SiteSeismic:
     """Replace site seismic settings."""
-    not_implemented()
+    with session.lock:
+        current = session.require_project()
+        current.site = payload
+        session.dirty = True
+        return current.site
 
 
 @project.put(
     "/project/active-profile", response_model=dto.ProjectSummary,
     operation_id="set_active_profile",
 )
-def set_active_profile(payload: dto.ActiveProfileUpdate) -> NoReturn:
+def set_active_profile(payload: dto.ActiveProfileUpdate, session: SessionDep) -> dto.ProjectSummary:
     """Select the profile used for investigation processing and liquefaction."""
-    not_implemented()
+    with session.lock:
+        current = session.require_project()
+        if payload.profile_id is not None and all(
+            profile.id != payload.profile_id for profile in current.soil_profiles
+        ):
+            api_error(404, "not_found", f"Profile not found: {payload.profile_id}")
+        current.active_profile_id = payload.profile_id
+        session.dirty = True
+        return _summary(current)
+
 
 @structures.get(
     "/structures", response_model=list[dto.StructureSummary], operation_id="list_structures",
@@ -185,17 +267,19 @@ def set_design_overrides(code_id: str, payload: dict[str, FactorOverride]) -> No
     not_implemented()
 
 
-def create_app() -> FastAPI:
-    """Build an independent contract application without loading project state or engines."""
+def create_app(session: Session | None = None) -> FastAPI:
+    """Build an application with its own session (settings via GEOTEK_SETTINGS or defaults)."""
     app = FastAPI(
         title="GeoTek API", version=API_VERSION,
         description=(
             "GeoTek v2 local HTTP contract. Units: m, kPa, kN/m3 and degrees unless "
             "explicitly labelled otherwise. Non-finite result numbers are JSON null. "
-            "Only health is implemented; workflow routes return ApiError with HTTP 501."
+            "The core shell (session, project, library, settings, modules) is implemented; "
+            "other workflow routes return ApiError with HTTP 501."
         ),
         servers=[{"url": "http://127.0.0.1:8000"}],
     )
+    app.state.session = session if session is not None else Session()
 
     @app.exception_handler(StarletteHTTPException)
     async def handle_http_error(request: Request, exc: StarletteHTTPException) -> JSONResponse:
@@ -230,7 +314,7 @@ def create_app() -> FastAPI:
         error = dto.ApiError(code="engine_error", message="An internal server error occurred.")
         return JSONResponse(error.model_dump(mode="json"), status_code=500)
 
-    for router in (meta, project, structures, jobs, codes):
+    for router in (meta, library_routes.router, project, structures, jobs, codes):
         app.include_router(router, prefix="/api")
     registry.mount_modules(app)
     return app

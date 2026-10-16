@@ -5,5 +5,8 @@
   "walls.type.cantilever": "Konsol duvar",
   "walls.type.cantilever.description": "Betonarme gövde ve temel plağından oluşan konsol istinat duvarı.",
   "walls.type.gravity": "Ağırlık duvarı",
-  "walls.type.gravity.description": "Zemin itkisini kendi ağırlığıyla karşılayan kütle beton veya taş duvar."
+  "walls.type.gravity.description": "Zemin itkisini kendi ağırlığıyla karşılayan kütle beton veya taş duvar.",
+  "walls.nav.list": "Duvarlar",
+  "walls.nav.new": "Yeni duvar",
+  "walls.placeholder": "Bu bölümün ekranları sonraki adımda bu modüle taşınacak."
 }

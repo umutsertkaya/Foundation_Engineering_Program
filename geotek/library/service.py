@@ -71,43 +71,49 @@ class ProjectLibrary:
                 path = self.path_of(path.name)
                 if not path.is_file():
                     continue
-                stat = path.stat()
+                entries.append(self._read_entry(path))
             except (GeoTekError, OSError):
                 continue
-            values = {"name": path.stem, "number": "", "engineer": ""}
-            schema_version = None
-            error = None
-            try:
-                data = json.loads(path.read_text(encoding="utf-8"))
-                if not isinstance(data, dict) or not isinstance(data.get("meta"), dict):
-                    raise ValueError("Project metadata must be an object")
-                meta = data["meta"]
-                if not isinstance(meta.get("name"), str):
-                    raise ValueError("Project metadata requires a name")
-                for key in values:
-                    value = meta.get(key, values[key])
-                    if not isinstance(value, str):
-                        raise ValueError(f"Invalid metadata field: {key}")
-                    values[key] = value
-                raw_version = meta.get("schema_version")
-                if raw_version is not None and not isinstance(raw_version, str):
-                    raise ValueError("Invalid metadata field: schema_version")
-                schema_version = raw_version
-            except (OSError, ValueError, RecursionError) as exc:
-                error = str(exc)
-            entries.append(
-                LibraryEntry(
-                    file=path.name,
-                    name=values["name"],
-                    number=values["number"],
-                    engineer=values["engineer"],
-                    schema_version=schema_version,
-                    modified=datetime.fromtimestamp(stat.st_mtime, tz=timezone.utc),
-                    size=stat.st_size,
-                    error=error,
-                )
-            )
         return sorted(entries, key=lambda entry: entry.modified, reverse=True)
+
+    def entry(self, file: str) -> LibraryEntry:
+        """Describe one library file; raises GeoTekError (name) or OSError (missing)."""
+        return self._read_entry(self.path_of(file))
+
+    @staticmethod
+    def _read_entry(path: Path) -> LibraryEntry:
+        stat = path.stat()
+        values = {"name": path.stem, "number": "", "engineer": ""}
+        schema_version = None
+        error = None
+        try:
+            data = json.loads(path.read_text(encoding="utf-8"))
+            if not isinstance(data, dict) or not isinstance(data.get("meta"), dict):
+                raise ValueError("Project metadata must be an object")
+            meta = data["meta"]
+            if not isinstance(meta.get("name"), str):
+                raise ValueError("Project metadata requires a name")
+            for key in values:
+                value = meta.get(key, values[key])
+                if not isinstance(value, str):
+                    raise ValueError(f"Invalid metadata field: {key}")
+                values[key] = value
+            raw_version = meta.get("schema_version")
+            if raw_version is not None and not isinstance(raw_version, str):
+                raise ValueError("Invalid metadata field: schema_version")
+            schema_version = raw_version
+        except (OSError, ValueError, RecursionError) as exc:
+            error = str(exc)
+        return LibraryEntry(
+            file=path.name,
+            name=values["name"],
+            number=values["number"],
+            engineer=values["engineer"],
+            schema_version=schema_version,
+            modified=datetime.fromtimestamp(stat.st_mtime, tz=timezone.utc),
+            size=stat.st_size,
+            error=error,
+        )
 
     def create(self, meta: ProjectMeta) -> tuple[str, Project]:
         project = Project(meta=meta)
