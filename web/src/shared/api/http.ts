@@ -1,4 +1,4 @@
-import { mockRequest } from "./mock";
+import { mockRequest } from "./mock/index";
 import type { ApiErrorDTO, MissingFactorDTO } from "./types";
 
 const BASE_URL = "/api";

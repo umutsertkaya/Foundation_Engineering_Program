@@ -2,4 +2,9 @@
 
 from __future__ import annotations
 
-MODULE_IDS: tuple[str, ...] = ()
+MODULE_IDS: tuple[str, ...] = (
+    'liquefaction',
+    'sheet_pile',
+    'soil',
+    'walls',
+)

@@ -719,3 +719,44 @@ export interface components {
     WallSettings: WallSettings;
   };
 }
+
+/** Core shell DTOs; see docs/contracts/CORE_SHELL_API.md. */
+export interface LibraryEntry {
+  file: string;
+  name: string;
+  number: string;
+  engineer: string;
+  modified: string;
+  size: number;
+  schema_version: string | null;
+  error: string | null;
+}
+
+export interface AppSettings {
+  library_dir: string;
+  language: "tr" | "en";
+  recent: string[];
+}
+
+export interface ModuleInfo {
+  id: string;
+  version: string;
+  title_key: string;
+  description_key: string;
+  icon: string;
+  order: number;
+}
+
+export interface SessionInfo {
+  open: boolean;
+  file: string | null;
+  dirty: boolean;
+}
+
+export interface NewProjectRequest {
+  name: string;
+  number?: string;
+  engineer?: string;
+  language?: "tr" | "en";
+  design_code?: string;
+}

@@ -58,30 +58,30 @@ REQUESTS = [
     ("PATCH", "/api/project/meta", {"engineer": "Engineer"}),
     ("PUT", "/api/project/site", {"pga_g": 0.2, "mw": 7}),
     ("PUT", "/api/project/active-profile", {"profile_id": "P1"}),
-    ("GET", "/api/investigations", None),
-    ("POST", "/api/import/cpt", None),
-    ("POST", "/api/import/spt", None),
-    ("PUT", "/api/boreholes/{id}", BOREHOLE),
-    ("DELETE", "/api/boreholes/{id}", None),
-    ("PUT", "/api/boreholes/{id}/log", [{"top": 0, "bottom": 3, "uscs": "SP"}]),
-    ("PUT", "/api/cpts/{id}", CPT),
-    ("DELETE", "/api/cpts/{id}", None),
-    ("GET", "/api/cpts/{id}/processed", None),
-    ("GET", "/api/boreholes/{id}/processed", None),
-    ("POST", "/api/layering/cpt/{cpt_id}", LAYERING),
-    ("POST", "/api/layering/spt/{borehole_id}", {"method": "spt_log"}),
-    ("GET", "/api/profiles", None),
-    ("POST", "/api/profiles", PROFILE_CREATE),
-    ("GET", "/api/profiles/{id}", None),
-    ("PUT", "/api/profiles/{id}", PROFILE),
-    ("DELETE", "/api/profiles/{id}", None),
-    ("POST", "/api/profiles/{id}/layers/{layer_id}/split", {"depth": 2}),
-    ("POST", "/api/profiles/{id}/layers/merge", {"layer_ids": ["L1", "L2"]}),
-    ("GET", "/api/profiles/{id}/layers/{layer_id}/parameters", None),
-    ("PUT", "/api/profiles/{id}/layers/{layer_id}/parameters/{key}",
+    ("GET", "/api/m/soil/investigations", None),
+    ("POST", "/api/m/soil/import/cpt", None),
+    ("POST", "/api/m/soil/import/spt", None),
+    ("PUT", "/api/m/soil/boreholes/{id}", BOREHOLE),
+    ("DELETE", "/api/m/soil/boreholes/{id}", None),
+    ("PUT", "/api/m/soil/boreholes/{id}/log", [{"top": 0, "bottom": 3, "uscs": "SP"}]),
+    ("PUT", "/api/m/soil/cpts/{id}", CPT),
+    ("DELETE", "/api/m/soil/cpts/{id}", None),
+    ("GET", "/api/m/soil/cpts/{id}/processed", None),
+    ("GET", "/api/m/soil/boreholes/{id}/processed", None),
+    ("POST", "/api/m/soil/layering/cpt/{cpt_id}", LAYERING),
+    ("POST", "/api/m/soil/layering/spt/{borehole_id}", {"method": "spt_log"}),
+    ("GET", "/api/m/soil/profiles", None),
+    ("POST", "/api/m/soil/profiles", PROFILE_CREATE),
+    ("GET", "/api/m/soil/profiles/{id}", None),
+    ("PUT", "/api/m/soil/profiles/{id}", PROFILE),
+    ("DELETE", "/api/m/soil/profiles/{id}", None),
+    ("POST", "/api/m/soil/profiles/{id}/layers/{layer_id}/split", {"depth": 2}),
+    ("POST", "/api/m/soil/profiles/{id}/layers/merge", {"layer_ids": ["L1", "L2"]}),
+    ("GET", "/api/m/soil/profiles/{id}/layers/{layer_id}/parameters", None),
+    ("PUT", "/api/m/soil/profiles/{id}/layers/{layer_id}/parameters/{key}",
      {"mode": "manual", "manual_value": 30}),
-    ("POST", "/api/profiles/{id}/layers/{layer_id}/parameters/approve", {"keys": ["phi_eff"]}),
-    ("POST", "/api/profiles/{id}/parameters/suggest-all", None),
+    ("POST", "/api/m/soil/profiles/{id}/layers/{layer_id}/parameters/approve", {"keys": ["phi_eff"]}),
+    ("POST", "/api/m/soil/profiles/{id}/parameters/suggest-all", None),
     ("GET", "/api/structures", None),
     ("POST", "/api/structures", {
         "kind": "retaining_wall", "name": "Wall", "profile_id": "P1",
@@ -92,13 +92,14 @@ REQUESTS = [
     ("DELETE", "/api/structures/{id}", None),
     ("PUT", "/api/structures/{id}/soil", SOIL),
     ("POST", "/api/structures/{id}/soil/resync", None),
-    ("POST", "/api/structures/{id}/required-factors", None),
-    ("POST", "/api/structures/{id}/size", None),
-    ("POST", "/api/structures/{id}/check", None),
+    ("GET", "/api/m/walls/wall-types", None),
+    ("POST", "/api/m/walls/structures/{id}/required-factors", None),
+    ("POST", "/api/m/walls/structures/{id}/size", None),
+    ("POST", "/api/m/walls/structures/{id}/check", None),
     ("GET", "/api/jobs/{job_id}", None),
     ("DELETE", "/api/jobs/{job_id}", None),
-    ("POST", "/api/structures/{id}/design", None),
-    ("POST", "/api/liquefaction", {
+    ("POST", "/api/m/sheet_pile/structures/{id}/design", None),
+    ("POST", "/api/m/liquefaction/run", {
         "method": "bi2014", "amax_g": 0.3, "mw": 7.5, "target_fs": 1.1,
         "gwt_seismic": None, "default_fc": None, "c_fc": 0, "ic_cutoff": 2.6,
     }),
@@ -154,6 +155,18 @@ def test_all_routes_have_stable_unique_operation_ids_and_tags(app):
     assert all(route.operation_id for route in routes)
 
 
+def test_module_routes_are_tagged_with_module_id(app):
+    seen = set()
+    for path, item in app.openapi()["paths"].items():
+        match = re.match(r"/api/m/([a-z][a-z0-9_]*)/", path)
+        if match is None:
+            continue
+        seen.add(match.group(1))
+        for method, operation in item.items():
+            assert operation["tags"] == [match.group(1)], (method, path)
+    assert seen == {"soil", "liquefaction", "walls", "sheet_pile"}
+
+
 def test_route_coverage_and_error_models(app):
     paths = app.openapi()["paths"]
     declared = {
@@ -175,7 +188,7 @@ def test_health_is_only_implemented_operation(client, method, path, payload):
     url = path.format(id="item", layer_id="L1", key="phi_eff", lang="tr", cpt_id="CPT1",
                       borehole_id="BH1", code_id="asd", job_id="job-1")
     kwargs = {}
-    if path.startswith("/api/import/"):
+    if path.startswith("/api/m/soil/import/"):
         kwargs["files"] = {"file": ("fixture.csv", b"depth,qc,fs\n1,1000,10\n", "text/csv")}
         kwargs["data"] = (
             {"sounding_id": "CPT1", "qc_unit": "kPa", "delimiter": ",", "decimal": "."}
@@ -201,8 +214,8 @@ def test_health_is_only_implemented_operation(client, method, path, payload):
     ("GET", "/api/i18n/de", None),
     ("POST", "/api/project/new", {"name": "Invalid", "language": "de"}),
     ("PATCH", "/api/project/meta", {"name": None}),
-    ("PUT", "/api/profiles/P1/layers/L1/parameters/unknown", {"mode": "manual"}),
-    ("POST", "/api/profiles/P1/layers/merge", {"layer_ids": ["L1"]}),
+    ("PUT", "/api/m/soil/profiles/P1/layers/L1/parameters/unknown", {"mode": "manual"}),
+    ("POST", "/api/m/soil/profiles/P1/layers/merge", {"layer_ids": ["L1"]}),
     ("POST", "/api/structures", {"kind": "unknown", "name": "Bad"}),
 ])
 def test_validation_errors_use_api_error(client, method, url, payload):
@@ -230,11 +243,11 @@ def test_metadata_patch_preserves_omission():
 def test_profile_creation_alternatives(client):
     from_proposal = {key: value for key, value in PROFILE_CREATE.items() if key != "layers"}
     from_proposal["from_proposal"] = PROPOSAL
-    assert client.post("/api/profiles", json=from_proposal).status_code == 501
+    assert client.post("/api/m/soil/profiles", json=from_proposal).status_code == 501
     neither = {key: value for key, value in PROFILE_CREATE.items() if key != "layers"}
     both = {**PROFILE_CREATE, "from_proposal": PROPOSAL}
-    assert client.post("/api/profiles", json=neither).status_code == 422
-    assert client.post("/api/profiles", json=both).status_code == 422
+    assert client.post("/api/m/soil/profiles", json=neither).status_code == 422
+    assert client.post("/api/m/soil/profiles", json=both).status_code == 422
 
 
 def test_sheet_pile_creation_variant(client):
@@ -251,7 +264,7 @@ def test_multipart_and_discriminators_are_documented(app):
         ("cpt", {"file", "sounding_id", "qc_unit", "delimiter", "decimal"}),
         ("spt", {"file", "borehole_id"}),
     ):
-        body = spec["paths"][f"/api/import/{route}"]["post"]["requestBody"]
+        body = spec["paths"][f"/api/m/soil/import/{route}"]["post"]["requestBody"]
         assert set(body["content"]) == {"multipart/form-data"}
         schema = body["content"]["multipart/form-data"]["schema"]
         assert set(schema["required"]) == expected
