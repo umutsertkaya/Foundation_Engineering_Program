@@ -16,7 +16,7 @@ import {
 } from "../shared/api/client";
 import { resetMockState } from "../shared/api/mock";
 import type { SoilLayer, StructureSoilModel } from "../shared/api/types";
-import "../i18n";
+import "../app/i18n";
 import { SoilModelsPage } from "../pages/SoilModelsPage";
 import { StructureWizardPage } from "../pages/StructureWizardPage";
 import { niceTicks, spreadLabels } from "../shared/soil/axis";
@@ -38,7 +38,7 @@ import {
 import { layerParamStatus } from "../shared/soil/layerStatus";
 import { familyStyle, SOIL_FAMILIES, SOIL_FAMILY_LABEL_KEY, soilFamily } from "../shared/soil/soilStyle";
 import { computeZones, retainedLayers } from "../shared/soil/zones";
-import { theme } from "../theme";
+import { theme } from "../app/theme";
 
 function layer(id: string, top: number, bottom: number, extra: Partial<SoilLayer> = {}): SoilLayer {
   return {
