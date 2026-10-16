@@ -26,7 +26,9 @@ import numpy as np
 from geotek.core.constants import GAMMA_W
 from geotek.core.errors import GeoTekError
 from geotek.core.models.profile import SoilLayer, SoilProfile
-from geotek.engine.earth_pressure.coefficients import coulomb_ka, coulomb_kp, rankine_ka, rankine_kp
+from geotek.engine.earth_pressure.coefficients import (
+    coulomb_ka, coulomb_kp, mononobe_okabe_kae, rankine_ka, rankine_kp,
+)
 from geotek.engine.earth_pressure.log_spiral import log_spiral_kp
 
 State = Literal["active", "passive", "at_rest"]
@@ -67,12 +69,15 @@ def resultant(z, p) -> tuple[float, float]:
     return f, (m / f if f > 0 else float("nan"))
 
 
-def _layer_coefficients(layer: SoilLayer, state, method, delta, beta, drainage, warnings):
+def _layer_coefficients(layer: SoilLayer, state, method, delta, beta, drainage, warnings,
+                        *, theta=0.0, kh=0.0, kv=0.0):
     """(K_horizontal, K_for_cohesion, c) for a layer."""
     dp = layer.design
     if drainage == "undrained":
         if dp.su is None:
             raise GeoTekError(f"Layer {layer.id}: undrained analysis needs s_u")
+        if kh or kv:
+            raise GeoTekError(f"Layer {layer.id}: seismic undrained earth pressure is not implemented")
         return 1.0, 1.0, dp.su
     if dp.phi_eff is None:
         raise GeoTekError(f"Layer {layer.id}: design phi' not set")
@@ -89,10 +94,15 @@ def _layer_coefficients(layer: SoilLayer, state, method, delta, beta, drainage, 
     if c:
         warnings.append(f"Layer {layer.id}: c' ignored by the {method} solution")
     if method == "coulomb":
-        k = coulomb_ka(phi, delta, 0.0, beta) if state == "active" else coulomb_kp(phi, delta, 0.0, beta)
+        if (kh or kv) and state != "active":
+            raise GeoTekError("Seismic distribution is implemented for active Coulomb pressure only")
+        if state == "active" and (kh or kv):
+            k = (1.0 - kv) * mononobe_okabe_kae(phi, delta, theta, beta, kh, kv)
+        else:
+            k = coulomb_ka(phi, delta, theta, beta) if state == "active" else coulomb_kp(phi, delta, theta, beta)
         if state == "passive" and delta > phi / 2:
             warnings.append(f"Layer {layer.id}: Coulomb passive with delta > phi/2 is unconservative")
-        return k * math.cos(math.radians(delta)), k, 0.0
+        return k * math.cos(math.radians(delta + theta)), k, 0.0
     if method == "log_spiral":
         if state != "passive" or beta:
             raise GeoTekError("Log-spiral is implemented for passive pressure, horizontal backfill")
@@ -127,27 +137,45 @@ def lateral_pressure(
     drainage: Literal["drained", "undrained"] = "drained",
     top: float = 0.0,
     min_efp: float | None = None,
+    theta: float = 0.0,
+    kh: float = 0.0,
+    kv: float = 0.0,
+    layerwise: bool = False,
+    delta_ratio: float | None = None,
 ) -> PressureDistribution:
     """Pressure on a vertical plane from depth ``top`` to ``top + height`` of the profile.
 
     ``top`` > 0 models the passive side in front of a wall (soil starts at the dredge line,
     the overburden above it is removed). ``min_efp``: minimum equivalent fluid pressure
     [kN/m3] for the active case (e.g. cohesive backfill), sigma'_h >= min_efp * z.
+
+    Opt-in wall extensions: ``theta`` is face lean; ``kh, kv`` select M-O active
+    coefficients; ``layerwise`` reads each layer's drainage behaviour. ``delta_ratio``
+    uses delta = ratio * phi per drained layer. Defaults preserve the original path.
+    Undrained layers use total stress without an additional water component.
     """
-    if height <= 0:
+    if height <= 0 or top < 0:
         raise GeoTekError("Height must be positive")
+    if (theta or kh or kv or delta_ratio is not None) and method != "coulomb":
+        raise GeoTekError("Face lean and seismic coefficients require the Coulomb method")
     bottom = top + height
     if bottom > profile.bottom + 1e-9:
         raise GeoTekError(f"Profile ends at {profile.bottom} m, above the base at {bottom} m")
     warnings: list[str] = []
     gwt = profile.gwt.depth_for(gwt_case)
 
-    coeffs, z_nodes, seg_nodes = [], [], []
+    coeffs, modes, z_nodes, seg_nodes = [], [], [], []
     for layer in profile.layers:
         a, b = max(layer.top, top), min(layer.bottom, bottom)
         if b <= a:
             continue
-        coeffs.append(_layer_coefficients(layer, state, method, delta, beta, drainage, warnings))
+        mode = layer.behaviour if layerwise else drainage
+        layer_delta = (delta_ratio * layer.design.phi_eff
+                       if delta_ratio is not None and mode == "drained" and layer.design.phi_eff is not None
+                       else delta)
+        coeffs.append(_layer_coefficients(layer, state, method, layer_delta, beta, mode, warnings,
+                                          theta=theta, kh=kh, kv=kv))
+        modes.append(mode)
         pts = [a, b] + ([gwt] if a < gwt < b else [])
         z_nodes += sorted(pts)
         seg_nodes += [len(coeffs) - 1] * len(pts)
@@ -163,7 +191,11 @@ def lateral_pressure(
             sv = sv - profile.stresses(top, gwt_case)[0]
             u = GAMMA_W * np.maximum(0.0, z - max(gwt, top))
             sve = sv - u
-        if drainage == "undrained":
+        if layerwise:
+            undrained = np.array([modes[s] == "undrained" for s in seg])
+            vertical = np.where(undrained, sv, sve) + surcharge
+            u = np.where(undrained, 0.0, u)
+        elif drainage == "undrained":
             vertical, u = sv + surcharge, np.zeros_like(z)
         else:
             vertical = sve + surcharge

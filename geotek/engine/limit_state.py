@@ -30,8 +30,8 @@ import math
 from dataclasses import dataclass, field
 from typing import Literal
 
-from geotek.config.codes import DesignCode, FactorLog, FactorOverride, UsedFactor, resolve_code
-from geotek.core.errors import GeoTekError
+from geotek.config.codes import DesignCode, FactorLog, FactorOverride, FactorSource, UsedFactor, resolve_code
+from geotek.core.errors import GeoTekError, MissingFactorsError
 from geotek.core.models.profile import DesignParameters, SoilProfile
 from geotek.core.models.walls import (
     Backfill,
@@ -189,7 +189,9 @@ def _factor_forces(forces: list[Force], factors: dict[str, float]) -> list[Force
     out = []
     for f in forces:
         key = "LS_v" if f.kind == "LS" and f.fx == 0 else f.kind
-        k = factors.get(key, 1.0)
+        if key not in factors:
+            raise GeoTekError(f"No load factor for kind {key!r} (force {f.name!r})")
+        k = factors[key]
         out.append(Force(f.name, f.fx * k, f.fy * k, f.x, f.y, f.kind))
     return out
 
@@ -304,6 +306,214 @@ def _ec7_equ(code, geometry, backfill, loads, settings) -> WallAnalysis:
                         m_overturning=m_ot, eccentricity=wf.width / 2 - (m_res - m_ot) / v,
                         q_max=math.nan, q_min=math.nan, bearing=None, checks={"overturning": check},
                         warnings=list(wf.warnings), factors_used=log.as_list())
+
+
+# The WA extension is local to the new structure engine. Inserting a null WA in a
+# built-in YAML would also change the legacy required_inputs contract for dry walls.
+def layered_design_code(settings: WallSettings) -> DesignCode:
+    """Code copy with explicit, project-supplied WA paths; never infer WA from G/EH.
+
+    Partial-code tables support null. LRFD load tables currently accept floats only,
+    so an absent WA key is the missing value until an override supplies that float.
+    Nothing is written to a code file and the legacy code reader is unchanged.
+    """
+    def is_water(path):
+        return path.endswith(".load.WA") or path.startswith("load.WA.")
+
+    normal = {p: v for p, v in settings.factor_overrides.items() if not is_water(p)}
+    water = {p: v for p, v in settings.factor_overrides.items() if is_water(p)}
+    for path, value in water.items():
+        ov = FactorOverride.model_validate(value)
+        if not math.isfinite(ov.value) or ov.value < 0:
+            raise GeoTekError(f"WA load factor {path!r} must be finite and non-negative")
+    code = resolve_code(settings.design_code, normal).model_copy(deep=True)
+    if code.approach == "global_fs":
+        if water:
+            raise GeoTekError("ASD global FS does not apply WA load factors")
+        return code
+    source = FactorSource(
+        source="GeoTek E4: ayrı WA yük katsayısı mevcut doğrulanmış kaynak paketinde verilmedi; "
+               "proje mühendisi kaynak belirterek girmeli", status="not_in_source")
+    if code.approach == "partial_factors":
+        for combo in code.combinations:
+            combo.load_factors.setdefault("WA", None)
+            code.factor_sources.setdefault(f"{combo.id}.load.WA", source)
+    else:
+        code.load_factors.setdefault("WA", {})
+        for key in ("strength_I", "extreme_I"):
+            code.factor_sources.setdefault(f"load.WA.{key}", source)
+        for path, value in water.items():
+            if path not in {"load.WA.strength_I", "load.WA.extreme_I"}:
+                raise GeoTekError(f"Unknown WA factor path {path!r}")
+            ov = FactorOverride.model_validate(value)
+            code.load_factors["WA"][path.rsplit(".", 1)[1]] = ov.value
+    return code.with_overrides(water)
+
+
+def required_layered_inputs(settings: WallSettings, *, approach=None, seismic=False, water=False,
+                            include_equ=True):
+    """The existing code path/source mechanism, scoped to actions present in this wall."""
+    # Lazy import: walls_advanced itself imports the legacy engines in this module.
+    from geotek.services.walls_advanced import HINTS, MissingFactor, _paths
+
+    code = layered_design_code(settings)
+    paths = _paths(code, approach, seismic)
+    if not include_equ:
+        paths = [p for p in paths if not p.startswith("EQU.")]
+    paths = [p for p in paths if not (p.endswith(".load.WA") or p.startswith("load.WA.")) or water]
+    if code.approach == "lrfd":
+        paths = [p for p in paths if not p.startswith("load.WA.")]
+        if water:
+            paths.append(f"load.WA.{'extreme_I' if seismic else 'strength_I'}")
+    missing = []
+    for path in dict.fromkeys(paths):
+        try:
+            value = code.get(path)
+        except GeoTekError:
+            value = None
+        if value is None:
+            src = code.source_of(path)
+            table = path.split(".")[1] if code.approach == "partial_factors" else path.split(".")[0]
+            missing.append(MissingFactor(
+                path=path, status=src.status, source=src.source,
+                hint=("Su itkisi ve kaldırma için ayrı WA katsayısı girin; G/EH katsayısı otomatik kullanılmaz"
+                      if ".WA" in path else HINTS.get((code.id, table), "")),
+            ))
+    return missing
+
+
+def _design_structure_soil(soil, case):
+    def profile_design(profile):
+        prof = _design_profile(profile, case)
+        layers = []
+        for layer in prof.layers:
+            db = layer.design.delta_base
+            if db is not None:
+                layer = layer.model_copy(update={"design": layer.design.model_copy(
+                    update={"delta_base": _design_angle(db, case.tan_phi)})})
+            layers.append(layer)
+        return prof.model_copy(update={"layers": layers})
+
+    retained = profile_design(soil.retained_profile())
+    fill_ids = {l.id for l in soil.retained_fill}
+    return soil.model_copy(update={"profile": profile_design(soil.profile),
+                                   "retained_fill": [l for l in retained.layers if l.id in fill_ids]})
+
+
+def layered_limit_state_cases(settings, *, seismic=False, approach=None, water=False):
+    """Layered combinations with the WA factor recorded only if water acts."""
+    code = layered_design_code(settings)
+    cases = limit_state_cases(code, seismic=seismic, approach=approach)
+    if water:
+        for case in cases:
+            path = (f"{case.name}.load.WA" if code.approach == "partial_factors" else
+                    f"load.WA.{'extreme_I' if seismic else 'strength_I'}")
+            log = FactorLog(code)
+            case.water = log.value(path)
+            case.stabilising["WA"] = case.unfavourable["WA"] = case.water
+            case.factors_used += log.as_list()
+    return cases
+
+
+def verify_wall_layered(geometry, soil, loads, settings, *, seismic: bool,
+                        approach: str | None, backfill_slope: float = 0.0,
+                        gwt_case="design") -> list[WallAnalysis]:
+    """External stability of the structure copy, using design strengths in every layer."""
+    from geotek.engine.walls.layered import (
+        analyze_wall_layered, foundation_from_structure, soil_at_case, wall_forces_layered,
+    )
+
+    code = layered_design_code(settings)
+    if code.approach == "global_fs":
+        return [analyze_wall_layered(geometry, soil, loads, settings, seismic=seismic,
+                                     backfill_slope=backfill_slope, gwt_case=gwt_case)]
+    selected = soil_at_case(soil, gwt_case)
+    water = min(selected.front_profile().gwt.depth_for("design"),
+                selected.retained_profile().gwt.depth_for("design")) < geometry.height
+    missing = required_layered_inputs(settings, approach=approach, seismic=seismic, water=water)
+    if missing:
+        raise MissingFactorsError(missing)
+    results = []
+    for case in layered_limit_state_cases(settings, seismic=seismic, approach=approach, water=water):
+        design_soil = _design_structure_soil(selected, case)
+        wf = wall_forces_layered(geometry, design_soil, loads, settings, seismic=seismic,
+                                 backfill_slope=backfill_slope)
+        fd, warnings = foundation_from_structure(
+            design_soil, geometry.height - geometry.embedment, geometry.height, geometry.width)
+        forces = [f for f in wf.forces if f.kind != "PASSIVE"]
+        passive = next((f for f in wf.forces if f.kind == "PASSIVE"), None)
+        stab = _factor_forces(forces, case.stabilising)
+        v, h, mr, mo = _sums(stab)
+        if v <= 0:
+            raise GeoTekError(f"{case.name}: net vertical load is not compressive")
+        B = wf.width
+        e = B / 2 - (mr - mo) / v
+        checks = {"eccentricity": CheckResult(
+            "eccentricity", case.e_limit / (abs(e) / B) if e else math.inf, 1.0,
+            abs(e) / B <= case.e_limit, f"e = {e:.3f} m, limit e/B = {case.e_limit:g}")}
+        be = max(B - 2 * abs(e), 0.0)
+        if fd.drainage == "undrained":
+            resistance, detail = fd.su * be, "s_u,d B'"
+        else:
+            db = fd.delta_base if fd.delta_base is not None else fd.phi
+            resistance = v * math.tan(math.radians(db)) + fd.adhesion * be
+            detail = f"V_d tan({db:.3f}) + c_a B'"
+        rd = resistance / case.r_sliding
+        if passive is not None:
+            rd += case.passive_participation * passive.fx / case.r_passive
+        checks["sliding"] = _odf("sliding", rd, h, detail)
+        if case.r_overturning is not None:
+            checks["overturning"] = _odf("overturning", mr / case.r_overturning, mo, "M_R / gamma_Rdev")
+        unf = _factor_forces(forces, case.unfavourable)
+        vb, hb, mrb, mob = _sums(unf)
+        if vb <= 0:
+            raise GeoTekError(f"{case.name}: bearing vertical load is not compressive")
+        eb = B / 2 - (mrb - mob) / vb
+        bearing = None
+        if abs(eb) < B / 2:
+            bearing = bearing_capacity(
+                method=settings.bearing_method, B=B, D=wf.embedment,
+                phi=0.0 if fd.drainage == "undrained" else fd.phi,
+                c=fd.su if fd.drainage == "undrained" else fd.c,
+                gamma=fd.gamma, q=fd.overburden, V=vb, H=max(hb, 0.0), e_B=eb,
+            )
+            checks["bearing"] = _odf("bearing", bearing.Q_ult / case.r_bearing, vb,
+                                     f"q_ult = {bearing.q_ult:.3f} kPa, B' = {bearing.B_eff:.3f} m")
+        else:
+            checks["bearing"] = CheckResult("bearing", 0.0, 1.0, False, "Resultant outside the base")
+        qmax = (vb / B * (1 + 6 * abs(eb) / B) if abs(eb) <= B / 6 else
+                2 * vb / (3 * (B / 2 - abs(eb))) if abs(eb) < B / 2 else math.inf)
+        qmin = max(vb / B * (1 - 6 * abs(eb) / B), 0.0) if abs(eb) <= B / 6 else 0.0
+        results.append(WallAnalysis(
+            case=case.name, width=B, forces=stab + ([passive] if passive is not None else []),
+            sum_v=v, sum_h=h, m_resisting=mr, m_overturning=mo, eccentricity=e,
+            q_max=qmax, q_min=qmin, bearing=bearing, checks=checks,
+            warnings=wf.warnings + warnings, factors_used=list(case.factors_used),
+        ))
+    if not seismic and any(c.id == "EQU" for c in code.combinations):
+        log = FactorLog(code)
+        combo = code.combination("EQU")
+        case = LimitStateCase(name="EQU", code=code.id, tan_phi=log.value("EQU.material.tan_phi"),
+                              cohesion=log.value("EQU.material.c_eff"), su=log.value("EQU.material.su"))
+        wf = wall_forces_layered(geometry, _design_structure_soil(selected, case), loads, settings,
+                                 seismic=False, backfill_slope=backfill_slope)
+        factors = {"DC": log.value("EQU.load.G_stb"), "EV": log.value("EQU.load.G_stb"),
+                   "EH": log.value("EQU.load.G_dst"), "LS": log.value("EQU.load.Q_dst"),
+                   "LS_v": log.value("EQU.load.Q_stb") if "Q_stb" in combo.load_factors else 0.0}
+        if water:
+            factors["WA"] = log.value("EQU.load.WA")
+        forces = _factor_forces([f for f in wf.forces if f.kind != "PASSIVE"], factors)
+        v, h, mr, mo = _sums(forces)
+        if v <= 0:
+            raise GeoTekError("EQU: net vertical load is not compressive")
+        results.append(WallAnalysis(
+            case="EQU", width=wf.width, forces=forces, sum_v=v, sum_h=h,
+            m_resisting=mr, m_overturning=mo, eccentricity=wf.width / 2 - (mr - mo) / v,
+            q_max=math.nan, q_min=math.nan, bearing=None,
+            checks={"overturning": _odf("overturning", mr, mo, "M_stb,d / M_dst,d")},
+            warnings=list(wf.warnings), factors_used=log.as_list(),
+        ))
+    return results
 
 
 def verify_wall_global_stability(

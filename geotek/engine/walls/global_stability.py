@@ -18,7 +18,7 @@ import math
 from geotek.config.codes import FactorLog, resolve_code
 from geotek.core.models.walls import Backfill, CantileverGeometry, GravityGeometry, WallLoads, WallSettings
 from geotek.engine.stability import SlipResult, SlopeModel, SoilBand, SurfaceLoad, search_critical_circle
-from geotek.engine.walls.base import CheckResult, polygon_area_centroid
+from geotek.engine.walls.base import CheckResult, clip_polygon_y, polygon_area_centroid
 from geotek.engine.walls.walls import cantilever_polygons, gravity_wall_polygon
 
 EPS = 1e-6
@@ -53,12 +53,16 @@ def wall_global_stability(
     tan_phi_factor: float = 1.0,
     cohesion_factor: float = 1.0,
     required: float | None = None,
+    retained_bands: list[SoilBand] | None = None,
 ) -> tuple[SlipResult, CheckResult]:
     """Critical Bishop circle and the global stability check.
 
     By default the required FS comes from the ASD design code. For partial-factor design the
     caller passes design-strength divisors (applied to tan phi and c of every band and the
     backfill) and the required factor (e.g. gamma_R;e, or 1/phi for LRFD).
+
+    ``retained_bands`` supplies the horizontally layered retained mass above the base.
+    Its first band extends upward to the sloping surface. None keeps the legacy model.
     """
     loads = loads or WallLoads()
     settings = settings or WallSettings()
@@ -70,15 +74,25 @@ def wall_global_stability(
                      phi=math.degrees(math.atan(math.tan(math.radians(b.phi)) / tan_phi_factor)))
             for b in foundation_bands
         ]
+        if retained_bands is not None:
+            retained_bands = [
+                SoilBand(top=b.top, gamma=b.gamma, c=b.c / cohesion_factor,
+                         phi=math.degrees(math.atan(math.tan(math.radians(b.phi)) / tan_phi_factor)))
+                for b in retained_bands
+            ]
     tan_b = math.tan(math.radians(backfill.slope))
     gc = settings.concrete_unit_weight
 
     weights = []  # (W, x_centroid)
+    carried_soil = []
     if isinstance(geometry, CantileverGeometry):
         base, stem, heel_soil, toe_soil = cantilever_polygons(geometry, backfill.slope)
         parts = [(base, gc), (stem, gc), (heel_soil, backfill.gamma)]
         if settings.include_toe_soil and toe_soil:
             parts.append((toe_soil, backfill.gamma))
+        if retained_bands is not None:
+            carried_soil = [heel_soil] + ([toe_soil] if settings.include_toe_soil and toe_soil else [])
+            parts = [(base, gc), (stem, gc)]
         H, B = geometry.height, geometry.width
         x_ground0 = geometry.x_stem_back
     else:
@@ -86,7 +100,22 @@ def wall_global_stability(
         H, B = geometry.height, geometry.base_width
         x_ground0 = B - geometry.back_offset
         if geometry.back_offset > 0:
-            parts.append(([(x_ground0, H), (B, 0.0), (B, H + geometry.back_offset * tan_b)], backfill.gamma))
+            poly = [(x_ground0, H), (B, 0.0), (B, H + geometry.back_offset * tan_b)]
+            if retained_bands is None:
+                parts.append((poly, backfill.gamma))
+            else:
+                carried_soil.append(poly)
+    if retained_bands is not None:
+        if not retained_bands:
+            raise ValueError("Retained bands must not be empty")
+        ordered = sorted(retained_bands, key=lambda band: -band.top)
+        for poly in carried_soil:
+            for i, band in enumerate(ordered):
+                upper = math.inf if i == 0 else band.top
+                lower = ordered[i + 1].top if i + 1 < len(ordered) else 0.0
+                clipped = clip_polygon_y(poly, lower, upper)
+                if len(clipped) >= 3:
+                    parts.append((clipped, band.gamma))
     for poly, gamma in parts:
         a, cx, _ = polygon_area_centroid(poly)
         if a > 0:
@@ -101,6 +130,10 @@ def wall_global_stability(
         surf_loads.append(SurfaceLoad(B, B + L, loads.surcharge, loads.surcharge))
 
     bands = [SoilBand(top=y_back + L * tan_b + 1.0, gamma=backfill.gamma, c=0.0, phi=backfill.phi)]
+    if retained_bands is not None:
+        bands = sorted(retained_bands, key=lambda band: -band.top)
+        first = bands[0]
+        bands = [SoilBand(top=y_back + L * tan_b + 1.0, gamma=first.gamma, c=first.c, phi=first.phi)] + bands[1:]
     bands += [b for b in foundation_bands if b.top <= 0]
     if not foundation_bands or max(b.top for b in foundation_bands) < -EPS:
         raise ValueError("The top foundation band must start at the base level (top = 0)")

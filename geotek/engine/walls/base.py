@@ -103,6 +103,27 @@ def weight_forces(name, points, unit_weight, loads: WallLoads, seismic: bool, ki
     return out
 
 
+def clip_polygon_y(points, lower: float, upper: float):
+    """Clip a polygon to a horizontal strip (Sutherland-Hodgman half planes)."""
+    poly = list(points)
+    for level, keep_above in ((lower, True), (upper, False)):
+        if not poly:
+            break
+        clipped = []
+        previous = poly[-1]
+        previous_in = previous[1] >= level if keep_above else previous[1] <= level
+        for current in poly:
+            current_in = current[1] >= level if keep_above else current[1] <= level
+            if current_in != previous_in:
+                t = (level - previous[1]) / (current[1] - previous[1])
+                clipped.append((previous[0] + t * (current[0] - previous[0]), level))
+            if current_in:
+                clipped.append(current)
+            previous, previous_in = current, current_in
+        poly = clipped
+    return poly
+
+
 def earth_thrust_forces(
     *,
     backfill: Backfill,
