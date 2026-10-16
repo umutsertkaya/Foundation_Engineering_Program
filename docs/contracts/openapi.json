@@ -10211,6 +10211,16 @@
       },
       "WallSettings": {
         "properties": {
+          "kv_sign": {
+            "type": "string",
+            "enum": [
+              "envelope",
+              "up",
+              "down"
+            ],
+            "title": "Kv Sign",
+            "default": "envelope"
+          },
           "submerged_seismic": {
             "type": "string",
             "enum": [

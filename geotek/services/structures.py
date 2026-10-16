@@ -12,7 +12,7 @@ import hashlib
 import json
 import math
 from collections.abc import Callable
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 
 import numpy as np
 
@@ -80,7 +80,8 @@ def _settings(project, structure):
         return WallSettings(design_code=code, bearing_method="vesic", factor_overrides=overrides,
                             uplift_moment=structure.settings.uplift_moment,
                             gwt_bearing_correction=structure.settings.gwt_bearing_correction,
-                            submerged_seismic=structure.settings.submerged_seismic)
+                            submerged_seismic=structure.settings.submerged_seismic,
+                            kv_sign=structure.settings.kv_sign)
     return WallSettings(design_code=code, bearing_method="vesic", factor_overrides=overrides)
 
 
@@ -132,6 +133,8 @@ def _loads(structure):
     kh = kv = None
     if inp.sds is not None:
         kh, kv = tbdy_seismic_coefficients(inp.sds, inp.r if inp.r is not None else TBDY_R["gravity_80sds_mm"])
+        if structure.settings.kv_sign == "down":
+            kv = -abs(kv)
     loads = WallLoads(surcharge=inp.surcharge, kh=kh or 0.0, kv=kv or 0.0, seismic_increment_height=0.5,
                       water_kh=0.4 * inp.sds if inp.sds is not None else None,
                       surcharge_resists=inp.surcharge_resists if structure.analysis_level == "advanced" else False)
@@ -215,12 +218,13 @@ def _assumptions(structure, settings, D):
                                 f"{structure.soil.retained_profile().gwt.depth_for('seismic'):g} m, ön derinlik "
                                 f"{structure.soil.front_profile().gwt.depth_for('seismic'):g} m",
                            source="StructureSoilModel; depth_seismic, yoksa depth_insitu"),
-                Assumption(text=f"k_h=0.4·S_DS/r, k_v=0.5·k_h, r={r:g}; dinamik itki artımı H_v/2'de",
+                Assumption(text=f"k_h=0.4·S_DS/r, |k_v|=0.5·k_h, r={r:g}; dinamik itki artımı H_v/2'de",
                            source=SRC_TBDY_SEISMIC),
                 Assumption(text="M-O katman bazında; statik su hidrostatiktir; sıvılaşma ve fazla "
                                 "boşluk suyu basıncı hesaplanmaz; "
-                                "drenajsız deprem itkisi ve M-O geçerlilik sınırı dışı durumlar durdurulur",
-                           source="Mononobe & Matsuo (1929), Okabe (1926); FHWA GEC-3; E4 kapsam sınırı")]
+                                "drenajsız deprem itkisi durdurulur; β > φ' − ψ için "
+                                "TBDY Denk. 16.24b kullanılır",
+                           source="Mononobe & Matsuo (1929), Okabe (1926); TBDY Denk. 16.24b; E4 kapsam sınırı")]
         retained = structure.soil.retained_profile()
         if retained.gwt.depth_for("seismic") < structure.height:
             out.append(Assumption(
@@ -229,7 +233,8 @@ def _assumptions(structure, settings, D):
                      "(γ doğal birim ağırlık); dinamik su kh=0.4·S_DS (r=1). "
                      "Taban sanal arka düzlemin altıdır; kısmi batıklık katman bazında mühendislik "
                      "yargısıdır; karışık geçirgenlikte herhangi bir geçirimli katman için tam su "
-                     "yüksekliği bir kez kullanılır; dış serbest su modellenmez. Yöneten seçim "
+                     "yüksekliği bir kez kullanılır (doğrulanmamış mühendislik yaklaşımı); "
+                     "dış serbest su modellenmez. Yöneten seçim "
                      "durum uyarılarında; dinamik suyun kuvvet ve konumu forces içindedir.",
                 source="TBDY 2018 16.12.3.2, Denk. 16.26 ve 16.20"))
     if structure.inputs.include_global_stability:
@@ -255,20 +260,51 @@ def _case_key(state, analysis, code):
     return state if code.approach == "global_fs" else f"{state}:{analysis.case}"
 
 
+def _capacity_ratio(check):
+    """Normalise FS/ODF and e/B checks so that the lowest ratio governs."""
+    if check.comparison == "<=":
+        return check.required / check.value if check.value else math.inf
+    return check.value / check.required
+
+
+def _seismic_loads(loads, settings):
+    if loads.kv == 0:
+        return (loads,)
+    signs = (1, -1) if settings.kv_sign == "envelope" else (-1,) if settings.kv_sign == "down" else (1,)
+    return tuple(loads.model_copy(update={"kv": sign * abs(loads.kv)}) for sign in signs)
+
+
+def _kv_detail(check, loads):
+    direction = "yukarı" if loads.kv > 0 else "aşağı"
+    return replace(check, detail=f"kv {direction}: {check.detail}")
+
+
 def _evaluate_wall(structure, geometry, settings, loads, reporter, start, span, *, sizing):
     code = layered_design_code(settings)
-    analyses, glob, slips, pressures = {}, {}, {}, {}
+    analyses, glob, slips, case_loads, variants = {}, {}, {}, {}, {}
     states = [False, True] if structure.inputs.sds is not None else [False]
     for i, seismic in enumerate(states):
         state = "seismic" if seismic else "static"
         selected = soil_at_case(structure.soil, "seismic" if seismic else structure.inputs.gwt_case)
         reporter.emit(start + span * (0.08 + 0.30 * i), f"job.step.{state}_checks")
-        for analysis in verify_wall_layered(
-            geometry, selected, loads, settings, seismic=seismic,
-            approach=structure.approach, backfill_slope=structure.backfill_slope,
-        ):
-            key = _case_key(state, analysis, code)
-            analyses[key] = analysis
+        for signed_loads in (_seismic_loads(loads, settings) if seismic else (loads,)):
+            for analysis in verify_wall_layered(
+                geometry, selected, signed_loads, settings, seismic=seismic,
+                approach=structure.approach, backfill_slope=structure.backfill_slope,
+            ):
+                key = _case_key(state, analysis, code)
+                variants.setdefault(key, []).append((analysis, signed_loads))
+    for key, candidates in variants.items():
+        governing, case_loads[key] = min(candidates, key=lambda item:
+                                        min(_capacity_ratio(c) for c in item[0].checks.values()))
+        if len(candidates) == 1:
+            analyses[key] = governing
+            continue
+        checks = {}
+        for name in governing.checks:
+            analysis, signed_loads = min(candidates, key=lambda item: _capacity_ratio(item[0].checks[name]))
+            checks[name] = _kv_detail(analysis.checks[name], signed_loads)
+        analyses[key] = replace(governing, checks=checks)
     if structure.inputs.include_global_stability and (not sizing or all(a.passed for a in analyses.values())):
         reporter.emit(start + span * 0.70, "job.step.global_stability")
         for seismic in states:
@@ -286,21 +322,26 @@ def _evaluate_wall(structure, geometry, settings, loads, reporter, start, span, 
                                                     delta=None, slope=structure.backfill_slope)
                 water_level = geometry.height - min(design.retained_profile().gwt.depth_for("design"),
                                                      design.front_profile().gwt.depth_for("design"))
-                slip, check = wall_global_stability(
-                    geometry, backfill, foundation, loads, settings, seismic=seismic,
-                    water_level=water_level, retained_bands=retained,
-                    required=case.r_global if case is not None else None,
-                    surcharge_factor=case.unfavourable["LS"] if case is not None else 1.0,
-                    footprint_factors=case.unfavourable if case is not None else None,
-                )
                 key = state if case is None else f"{state}:{case.name}"
-                if case is not None:
-                    odf = slip.fs / case.r_global
-                    check = CheckResult("global_stability", odf, 1.0, odf >= 1.0,
-                                        f"F_d={slip.fs:.4f}, gamma_R={case.r_global:g}; {check.detail}",
-                                        factors_used=list(case.factors_used))
-                glob[key], slips[key] = check, slip
-    return analyses, glob, slips, pressures
+                load_cases = _seismic_loads(loads, settings) if seismic else (loads,)
+                for signed_loads in load_cases:
+                    slip, check = wall_global_stability(
+                        geometry, backfill, foundation, signed_loads, settings, seismic=seismic,
+                        water_level=water_level, retained_bands=retained,
+                        required=case.r_global if case is not None else None,
+                        surcharge_factor=case.unfavourable["LS"] if case is not None else 1.0,
+                        footprint_factors=case.unfavourable if case is not None else None,
+                    )
+                    if case is not None:
+                        odf = slip.fs / case.r_global
+                        check = CheckResult("global_stability", odf, 1.0, odf >= 1.0,
+                                            f"F_d={slip.fs:.4f}, gamma_R={case.r_global:g}; {check.detail}",
+                                            factors_used=list(case.factors_used))
+                    if len(load_cases) > 1:
+                        check = _kv_detail(check, signed_loads)
+                    if key not in glob or _capacity_ratio(check) < _capacity_ratio(glob[key]):
+                        glob[key], slips[key] = check, slip
+    return analyses, glob, slips, case_loads
 
 
 def _failures(analyses, glob):
@@ -309,7 +350,7 @@ def _failures(analyses, glob):
 
 
 def _finish(project, structure, geometry, settings, loads, kh, kv, evaluated, iterations, governing):
-    analyses, glob, slips, _ = evaluated
+    analyses, glob, slips, case_loads = evaluated
     code = layered_design_code(settings)
     pressures = {}
     for seismic in ([False, True] if structure.inputs.sds is not None else [False]):
@@ -326,7 +367,8 @@ def _finish(project, structure, geometry, settings, loads, kh, kv, evaluated, it
             design = _design_structure_soil(selected, case) if case is not None else selected
             key = state if case is None else f"{state}:{case.name}"
             for side, distribution in wall_pressures_layered(
-                geometry, design, loads, settings, seismic=seismic, backfill_slope=structure.backfill_slope,
+                geometry, design, case_loads.get(key, loads), settings, seismic=seismic,
+                backfill_slope=structure.backfill_slope,
             ).items():
                 pressures[f"{key}:{side}"] = distribution
     used = {}
@@ -334,17 +376,25 @@ def _finish(project, structure, geometry, settings, loads, kh, kv, evaluated, it
         for factor in result.factors_used:
             used[factor.path] = factor
     warnings = sorted({w for a in analyses.values() for w in a.warnings})
-    if structure.inputs.sds is not None and structure.inputs.r is None:
+    if structure.inputs.sds is not None and loads.kv and settings.kv_sign == "envelope":
+        warnings.append("Düşey deprem katsayısı ±kv zarfı uygulandı (TBDY 16.12.2.3); "
+                        "yöneten işaret kontrol bazında detayda belirtilmiştir.")
+    if structure.inputs.sds is not None:
+        r = structure.inputs.r if structure.inputs.r is not None else TBDY_R["gravity_80sds_mm"]
         retained = structure.soil.retained_profile()
         foundation = structure.soil.front_profile()
         water_depth = min(retained.gwt.depth_for("seismic"), foundation.gwt.depth_for("seismic"))
         wet_retained = any(min(l.bottom, geometry.height) > max(l.top, retained.gwt.depth_for("seismic"))
                            for l in retained.layers)
         wet_foundation = any(l.bottom > max(geometry.height, water_depth) for l in foundation.layers)
-        if wet_retained or wet_foundation:
+        if structure.inputs.r is None and (wet_retained or wet_foundation):
             warnings.append(
                 "coefficients.py notu: TBDY 2018 16.12.2.2 — boşluk suyu basıncı artışı olabilecek "
                 "durumlarda r ≤ 1 gerekebilir; r değerini kontrol edin.")
+        if wet_retained and r > 1:
+            warnings.append(
+                "Su altındaki dolgu: TBDY Denk. 16.20 dinamik su ve 16.26 r=1 varsayar "
+                "(water_kh=0.4·S_DS); r>1 ile zemin itkisinin azaltılması mühendis tarafından gerekçelendirilmelidir.")
     if structure.soil.source_profile_id is not None:
         source = next((p for p in project.soil_profiles if p.id == structure.soil.source_profile_id), None)
         if structure.soil.is_stale(source):

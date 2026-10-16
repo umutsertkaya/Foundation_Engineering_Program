@@ -96,9 +96,28 @@ def mononobe_okabe_kae(phi: float, delta: float = 0.0, theta: float = 0.0, beta:
             "use the trial wedge (generalised limit equilibrium)"
         )
     p, d, t, b, s = _rad(phi, delta, theta, beta, psi_deg)
-    root = math.sqrt(math.sin(p + d) * math.sin(p - b - s) / (math.cos(d + t + s) * math.cos(b - t)))
+    product = max(0.0, math.sin(p + d) * math.sin(p - b - s))
+    root = math.sqrt(product / (math.cos(d + t + s) * math.cos(b - t)))
     return math.cos(p - t - s) ** 2 / (
         math.cos(s) * math.cos(t) ** 2 * math.cos(d + t + s) * (1 + root) ** 2
+    )
+
+
+def tbdy_kae_steep(phi: float, delta: float = 0.0, theta: float = 0.0,
+                   kh: float = 0.0, kv: float = 0.0) -> float:
+    """TBDY 2018 Eq. 16.24b / EN 1998-5 Eq. E.3, beta > phi - psi.
+
+    theta is face lean from vertical, psi=atan(kh/(1-kv)); in EN notation,
+    psi_EN=90-theta and theta_EN=psi. Keeps wall friction delta; independent of beta
+    and continuous with M-O at beta=phi-psi. Requires cos(delta+theta+psi) > 0.
+    P_AE = 1/2 gamma H^2 (1-kv) K_AE.
+    """
+    p, d, t, s = _rad(phi, delta, theta, seismic_angle(kh, kv))
+    denominator = math.cos(d + t + s)
+    if denominator <= 0:
+        raise GeoTekError("TBDY 16.24b requires cos(delta + theta + psi) > 0")
+    return math.cos(p - t - s) ** 2 / (
+        math.cos(s) * math.cos(t) ** 2 * denominator
     )
 
 

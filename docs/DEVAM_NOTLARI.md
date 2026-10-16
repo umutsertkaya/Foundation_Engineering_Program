@@ -1,6 +1,6 @@
 # GeoTek v2: devam notları
 
-Duraklatma tarihi: 2026-10-16, son commit `00fdba2`. Çalışma ağacı temiz; arka planda çalışan ajan ya da model yok.
+Son güncelleme: 2026-10-17 (E4 chunk C tamamlandı). Arka planda çalışan ajan ya da model yok.
 
 Yönergeler:
 - Orkestra yönergesi: `docs/ORKESTRA_PROMPT.md`.
@@ -16,7 +16,7 @@ Yönergeler:
 | E1 model + göç 1.2 | Tamam |
 | F1 web iskeleti | Tamam. Kapı 3 **onaylanmadı**; kullanıcı zemin yönetimini istedi, bkz. "Zemin arayüzü" |
 | Zemin arayüzü (F3'ün öne çekilen kısmı) | Tamam: zemin kolonu ve desenler, katman editörü, profil ana-detay ekranı, duvar Zemin adımında bölgeli kesit. Ekran görüntüleri `docs/qa/soil/`. Kullanıcının görsel onayı bekleniyor |
-| E4 katmanlı duvar motoru | Kod ve testler tamam (576 test geçiyor). Kapı 2 kararları uygulandı. **Chunk C bekliyor** (aşağıda) |
+| E4 katmanlı duvar motoru | Tamam: chunk C dahil (620 pytest, 35 web testi, typecheck geçiyor). **Kapı 2 kapanışı kullanıcı onayı bekliyor** |
 | E2, E3, A1, F2, F4–F6, T1, Q1, K1, D1 | Başlamadı |
 
 ## Kapı 2'de kullanıcının verdiği kararlar
@@ -26,30 +26,22 @@ Yönergeler:
 3. Nγ için YASS geçiş düzeltmesi eklendi (Das). `gwt_bearing_correction = True`.
 4. Kısmi katsayılı global stabilitede yük katsayıları uygulanıyor.
 
-## Sıradaki iş: E4 chunk C
+## E4 chunk C (tamamlandı, 2026-10-17)
 
-Yeniden gönderilecek; gpt-6.1-sol high, taze oturum. Codex aşağıdaki brief'le çalışıyordu, duraklatılırken durduruldu ve hiçbir dosyaya dokunmamıştı. İçerik:
+1. TBDY Denk. 16.24b / EN 1998-5 E.3 dalı (`coefficients.tbdy_kae_steep`). Yalnız katmanlı duvar yolu `steep_seismic=True` ile kullanır, diğer çağıranlar hata vermeye devam eder.
+   - **δ korunur.** Eski brief'teki "δ=0" kabulü yanlıştı. EN 1998-5 sayfa görüntüsünden doğrulandı: E.3 paydasında δ_d var. δ korunduğunda E.2 ile sınırda süreklilik sağlanır. δ=0 alınsaydı sınırda %8–9'luk, tutucu olmayan bir sıçrama oluşuyordu (Opus incelemesi).
+   - cos(δ+θ+ψ) ≤ 0 olduğunda GeoTekError verilir (gpt-6-astra incelemesi).
+   - Sınırdaki M-O kayan nokta hatası (sqrt(−3e-17)) giderildi.
+2. ±kv zarfı: `WallSettings.kv_sign = envelope|up|down`, varsayılan envelope.
+   - Her işaret için analiz tam olarak ayrı çalıştırılır. Her kontrolde düşük kapasite oranı seçilir (TBDY 16.12.2.3); global stabilite de dahildir.
+   - Detay metninde "kv yukarı/aşağı" ön eki yer alır.
+   - 5 m duvar: zarf ile B = 4.60, "down" ile B = 4.50.
+3. Su altı deprem dalına yalnız kh veya kv ≠ 0 iken girilir.
+4. Su altında dolgu varken r > 1 ise uyarı verilir.
+5. Karışık geçirgenlik "doğrulanmamış mühendislik yaklaşımı" olarak etiketlendi.
+6. `E4_FORMULAS.md` §3 güncellendi. OpenAPI ve web tipleri yenilendi.
 
-1. **TBDY Denk. 16.24b dalı** (= EN 1998-5 E.3, β > φ' − θ). Yeni fonksiyon: `coefficients.tbdy_kae_steep`.
-   - Yalnız katmanlı TBDY yolunda kullanılır; şu an motor bu durumda hata veriyor.
-   - Bu dalda δ = 0 alınır; δ ≠ 0 girilmişse uyarı verilir.
-   - Testler: sınırda (β = φ' − θ) iki dalın sürekliliği ve bağımsız hesaplanmış bir sayısal değer.
-2. **±kv zarfı**: `WallSettings.kv_sign = "envelope" | "up" | "down"`, varsayılan "envelope".
-   - Her kontrolde elverişsiz işaret alınır (TBDY 16.12.2.3).
-   - Ölçüm: 5 m BASIC duvarda +kv ile B = 4.60, −kv ile B = 4.50. Zarf B = 4.60'ı korur.
-   - Opus incelemesine göre su altı geçirimsiz örnekte (1+kv) itkiyi %20 artırıyor.
-   - Eski `walls_basic` yolu değişmeyecek.
-3. Su altı deprem dalına yalnız kh veya kv sıfırdan farklıysa girilecek (`layered.py` ~286).
-4. Su altında zemin varken etkin r > 1 ise uyarı verilecek; r kullanıcı tarafından girilmiş olsa da.
-5. Karışık permeabilite yaklaşımı "doğrulanmamış mühendislik yaklaşımı" olarak etiketlenecek; "güvenli" denmeyecek.
-6. `E4_FORMULAS.md` §3 güncellenecek.
-
-Sonrasında:
-- tam pytest çalıştırılır;
-- `tools/export_openapi.py` ve `npm --prefix web run gen:api` ile tipler yenilenir, typecheck yapılır;
-- iki bağımsız inceleme yapılır: Claude Opus (kendi alt ajanı) ve gpt-6-astra;
-- commit atılır;
-- kullanıcıya kapı 2 kapanış özeti sunulur.
+İncelemeler: Claude Opus (alt ajan) ve gpt-6-astra. Bulgular düzeltildi; Opus'un yeniden kontrolü temiz.
 
 ## Açık konular
 
@@ -58,6 +50,7 @@ Sonrasında:
   - `uplift_moment`, `gwt_bearing_correction`, `submerged_seismic`, `kv_sign`
   - katman `permeability`
   - `passive_reduction` onayı
+- ±kv zarfında kontroller işaret bazında seçiliyor. Ancak analiz düzeyindeki kuvvetler, e, q_max ve bearing nesnesi, en kritik kontrolü yöneten işaretten geliyor. Hangi işaretin kullanıldığı yalnız detay ön ekinde görünüyor. Sorun kozmetik; rapor ve arayüz (F4) aşamasında netleştirilecek.
 - Vite paket boyutu uyarısı (~685 kB): kod bölme ileride (K1 öncesi) yapılacak.
 - `walls_basic` (eski PySide6 yolu) tek kv işareti kullanıyor. PySide6 kaldırılınca yapı servisine geçilecek.
 

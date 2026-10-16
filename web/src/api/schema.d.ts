@@ -2401,6 +2401,12 @@ export interface components {
         /** WallSettings */
         WallSettings: {
             /**
+             * Kv Sign
+             * @default envelope
+             * @enum {string}
+             */
+            kv_sign: "envelope" | "up" | "down";
+            /**
              * Submerged Seismic
              * @default envelope
              * @enum {string}

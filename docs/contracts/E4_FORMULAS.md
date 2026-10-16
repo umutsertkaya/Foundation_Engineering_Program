@@ -124,7 +124,7 @@ Kuvvetlerin momentleri ön ayak alt ucuna göredir: M=x*Fy-y*Fx.
 
 ## 3. Deprem itkisi ve atalet
 
-Depodaki Mononobe–Okabe katsayısı aynen kullanılır:
+Mononobe–Okabe geçerlilik aralığında depodaki katsayı kullanılır:
 
 ```text
 psi = atan(kh/(1-kv))
@@ -137,10 +137,23 @@ Delta P_horizontal = integral(p_AE_eff-p_static_eff)
 y_EQ = seismic_increment_height*H_v
 ```
 
-Katsayı her drene katmanda ayrı hesaplanır. phi-beta-psi<0 ise mevcut katsayı
-fonksiyonu hata verir; E4 buna uydurma bir katsayı veya homojen kama ikamesi eklemez.
-Su altı hesabında bu hata açıkça TBDY Denk. 16.24b'yi belirtir; bu kol için mevcut
-katsayı fonksiyonunun reddettiği durumda bir ikame çözüm üretilmez.
+Katsayı her drene katmanda ayrı hesaplanır. beta > phi-psi için TBDY 2018
+Denk. 16.24b / EN 1998-5 Denk. E.3 kullanılır; duvar sürtünmesi δ_d korunur:
+
+```text
+K_AE = cos(phi-theta-psi)^2 / [cos(psi)*cos(theta)^2*cos(delta+theta+psi)]
+P_AE = 0.5*gamma*H^2*(1-kv)*K_AE
+psi_EN = 90-theta_code; theta_EN = psi_code = atan(kh/(1-kv))
+```
+
+theta_code düşeyden arka yüz eğimidir; kv yukarı doğru pozitiftir. Bu katsayı
+beta'dan bağımsızdır; E.3, E.2'nin kök terimi sıfır olan haliyle beta=phi-psi
+sınırında süreklidir. cos(delta+theta+psi) <= 0 ise GeoTekError verilir.
+Bu dal yalnız katmanlı duvar yolunda `steep_seismic=True` ile açıktır; su altındaki eşdeğer kh
+ile de aynı sınır denetlenir. Diğer çağrılarda varsayılan M-O hatası korunur.
+Statik ve dinamik itki aynı δ açısını korur; artımın düşey bileşeni de
+Fy_EQ = -(P_AE,h-P_A,h)*tan(delta+theta) ile hesaplanır (Fy yukarı pozitiftir).
+
 Duvar servisinde seismic_increment_height=0.5'tir; düşük seviyeli motor 0.6 dahil
 kullanıcının WallLoads değerini korur. Statik EH ve LS bileşkeleri kendi integral
 konumlarında, yalnız deprem ARTIMI belirtilen yüksekliktedir. M-O tanı diyagramının
@@ -156,10 +169,27 @@ Duvar servisindeki deprem girdileri mevcut TBDY konvansiyonudur:
 
 ```text
 kh = 0.4*S_DS/r
-kv = 0.5*kh
+abs(kv) = 0.5*kh
 r_default = TBDY_R[gravity_80sds_mm] = 1.5
 Fx_inertia = -kh*W; Fy_vertical_seismic = +kv*W
 ```
+
+`WallSettings.kv_sign="envelope"` varsayılandır: TBDY 16.12.2.3 uyarınca
+`+|kv|` (yukarı, ağırlığı azaltır) ve `−|kv|` (aşağı) için tüm deprem analizi
+ve etkinse global stabilite ayrı ayrı çalıştırılır. `"up"` yalnız `+|kv|`,
+`"down"` yalnız `−|kv|` kullanır; kv=0 ise tek hesap yapılır. Her hesapta itki
+`(1-kv)` ile, duvar düşey ataleti `Fy=+kv*W` ile aynı işareti kullanır.
+
+Mevcut `seismic` / `seismic:<kombinasyon>` anahtarları korunur. Her kontrol için
+daha düşük kapasite oranı seçilir: FS/ODF kontrollerinde `value/required`,
+`e/B <= limit` kontrolünde `required/value` (value=0 için sonsuz).
+Kontrol detayı yöneten işarete göre `kv yukarı:` veya `kv aşağı:` ile başlar.
+Analiz düzeyindeki kuvvetler, denge ve basınç diyagramları ilgili anahtarın en
+kritik dış denge kontrolünü yöneten tek işaretten alınır; global kontrol ve
+kayma dairesi de kendi yöneten işaretinden birlikte alınır. Eşitlikte yukarı
+işareti korunur. İki işaretin kuvvetleri tek bir tahkikte karıştırılmaz.
+Boyutlandırma aynı kontrol zarfını kullanır. Global Bishop modelinin dilimlerde
+kv uygulamama sınırı (§8) değişmez; servis yine her iki işaretle ayrı çağrı yapar.
 
 Kaynak: TBDY 2018 Denk.16.22, Tablo16.7 ve §16.12.2.8; depo YAML kaynak kayıtları.
 Sürşarjlı kama hesabı, mevcut trial_wedge gibi sürşarjın kama gövde kuvvetine
@@ -222,7 +252,7 @@ doğal γ değerini esas alır; doygun γ_sat veya EC8 kuru γ_d sessizce yerine
   `permeability=None` için uyarıyla zarf kullanılır; bilinen sınıflar korunarak
   belirsiz katmanların seçenekleri toplam yatay talebi büyütecek şekilde seçilir.
   Karışık sınıflarda herhangi bir geçirimli su altı katman varsa tam su yüksekliği
-  için Denk.16.20 bir kez eklenir; bu güvenli mühendislik varsayımı ayrıca uyarılır.
+  için Denk.16.20 bir kez eklenir; bu doğrulanmamış mühendislik yaklaşımı ayrıca uyarılır.
 
 YASS katmanı kesiyorsa o noktada iki düğümle kuru/su altı katsayısı sıçraması
 korunur; üst bölümde eski kuru M-O aynen kalır. Bu **kısmi batıklık** yönetmelikte
@@ -238,6 +268,10 @@ Deprem YASS'ının altında tutulan veya temel katmanı varsa ve inputs.r=None i
 Türkçe uyarı verilir: TBDY 2018 16.12.2.2 / coefficients.py notuna göre fazla
 boşluk suyu basıncı gelişebilen yerlerde r ≤ 1 gerekebilir. Bu bir sıvılaşma
 tespiti değildir; varsayılan r değiştirilmez, değerlendirme mühendise aittir.
+Ek olarak deprem durumunda taban üstünde su altındaki tutulan zemin varsa, etkin
+r>1 için (varsayılan veya kullanıcı girdisi) uyarı verilir: TBDY Denk. 16.20
+dinamik su ve 16.26 r=1 varsayar (`water_kh=0.4·S_DS`); su altındaki dolguda
+zemin itkisinin r>1 ile azaltılması mühendis tarafından gerekçelendirilmelidir.
 
 ## 4. Drenajsız katmanlar
 
@@ -647,7 +681,7 @@ verification/test_walls_layered_hand.py bu sayıları mutlak 1e-6 toleransla ist
   TBDY'nin mevcut gamma_Rphi/gamma_Rc/su ve statik yük eksikleri de aynen sürer.
 - passive_reduction varsayılanının normatif kaynağı yoktur; etkin kullanımda
   mühendis kararı gerekir. E4 bunu bir yönetmelik değeri olarak sunmaz.
-- Drenajsız deprem itkisi, M-O sınırı dışındaki katmanlar, hidrodinamik/sızma,
+- Drenajsız deprem itkisi, 16.24b dışındaki M-O sınırı dışı durumlar, hidrodinamik/sızma,
   iki tabakalı taşıma gücü ve iki boyutlu farklı ön/arka global bölgeleri kapsam dışıdır.
 - Kapı 2 öncesi doğrulama: 523 test geçti; 5 m BASIC duvar B=4.60 m ve yönetici seismic:bearing
   korundu; regresyondaki en büyük bağıl fark 3.6e-15'tir.

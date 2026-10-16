@@ -27,7 +27,7 @@ from geotek.core.constants import GAMMA_W
 from geotek.core.errors import GeoTekError
 from geotek.core.models.profile import SoilLayer, SoilProfile
 from geotek.engine.earth_pressure.coefficients import (
-    coulomb_ka, coulomb_kp, mononobe_okabe_kae, rankine_ka, rankine_kp,
+    coulomb_ka, coulomb_kp, mononobe_okabe_kae, rankine_ka, rankine_kp, seismic_angle, tbdy_kae_steep,
 )
 from geotek.engine.earth_pressure.log_spiral import log_spiral_kp
 
@@ -70,8 +70,8 @@ def resultant(z, p) -> tuple[float, float]:
 
 
 def _layer_coefficients(layer: SoilLayer, state, method, delta, beta, drainage, warnings,
-                        *, theta=0.0, kh=0.0, kv=0.0):
-    """(K_horizontal, K_for_cohesion, c) for a layer."""
+                        *, theta=0.0, kh=0.0, kv=0.0, steep_seismic=False):
+    """(K_horizontal, K_for_cohesion, c) for a layer segment."""
     dp = layer.design
     if drainage == "undrained":
         if dp.su is None:
@@ -97,7 +97,13 @@ def _layer_coefficients(layer: SoilLayer, state, method, delta, beta, drainage, 
         if (kh or kv) and state != "active":
             raise GeoTekError("Seismic distribution is implemented for active Coulomb pressure only")
         if state == "active" and (kh or kv):
-            k = (1.0 - kv) * mononobe_okabe_kae(phi, delta, theta, beta, kh, kv)
+            if steep_seismic and phi - beta - seismic_angle(kh, kv) < 0:
+                k = (1.0 - kv) * tbdy_kae_steep(phi, delta, theta, kh, kv)
+                warning = f"Katman {layer.id}: TBDY Denk. 16.24b (β > φ' − ψ) uygulandı."
+                if warning not in warnings:
+                    warnings.append(warning)
+            else:
+                k = (1.0 - kv) * mononobe_okabe_kae(phi, delta, theta, beta, kh, kv)
         else:
             k = coulomb_ka(phi, delta, theta, beta) if state == "active" else coulomb_kp(phi, delta, theta, beta)
         if state == "passive" and delta > phi / 2:
@@ -144,6 +150,7 @@ def lateral_pressure(
     delta_ratio: float | None = None,
     total_stress_surcharge: float = 0.0,
     submerged_kh: dict[str, float] | None = None,
+    steep_seismic: bool = False,
 ) -> PressureDistribution:
     """Pressure on a vertical plane from depth ``top`` to ``top + height`` of the profile.
 
@@ -159,6 +166,7 @@ def lateral_pressure(
     only, e.g. free water above an excavated front ground.
     ``submerged_kh`` optionally supplies equivalent M-O kh by layer below GWT:
     psi=atan(kh_equivalent/(1-kv)); face lean ``theta`` is unchanged.
+    ``steep_seismic`` permits TBDY 16.24b retaining delta beyond the M-O slope limit.
     """
     if height <= 0 or top < 0:
         raise GeoTekError("Height must be positive")
@@ -186,7 +194,8 @@ def lateral_pressure(
                 try:
                     coeff = _layer_coefficients(
                         layer, state, method, layer_delta, beta, mode, warnings,
-                        theta=theta, kh=submerged_kh[layer.id] if wet else kh, kv=kv)
+                        theta=theta, kh=submerged_kh[layer.id] if wet else kh, kv=kv,
+                        steep_seismic=steep_seismic)
                 except (GeoTekError, ValueError, ArithmeticError) as exc:
                     if wet and mode == "drained":
                         raise GeoTekError(
@@ -199,7 +208,7 @@ def lateral_pressure(
                 seg_nodes += [len(coeffs) - 1] * 2
         else:
             coeffs.append(_layer_coefficients(layer, state, method, layer_delta, beta, mode, warnings,
-                                              theta=theta, kh=kh, kv=kv))
+                                              theta=theta, kh=kh, kv=kv, steep_seismic=steep_seismic))
             modes.append(mode)
             pts = [a, b] + ([gwt] if a < gwt < b else [])
             z_nodes += sorted(pts)

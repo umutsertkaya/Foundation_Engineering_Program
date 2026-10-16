@@ -129,16 +129,23 @@ def test_structure_sizing_mandatory_basic_regression(compatibility_results):
     assert result.governing == basic.governing == "seismic:bearing"
     assert result.iterations == basic.iterations
     assert result.kh == basic.kh and result.kv == basic.kv
+    assert WallSettings().kv_sign == "envelope"
     assert set(result.analyses) == {"static", "seismic"}
     for state, old in basic.analyses.items():
         new = result.analyses[state]
         assert set(new.checks) == set(old.checks)
         for key, old_check in old.checks.items():
             check = new.checks[key]
-            assert check.value == pytest.approx(old_check.value, rel=1e-4, abs=1e-8)
+            if state == "static":
+                assert check.value == pytest.approx(old_check.value, rel=1e-4, abs=1e-8)
+            elif check.comparison == "<=":
+                assert check.value >= old_check.value - 1e-4 * abs(old_check.value) - 1e-8
+            else:
+                assert check.value <= old_check.value + 1e-4 * abs(old_check.value) + 1e-8
             assert check.required == old_check.required
             assert check.passed == old_check.passed
-        assert new.bearing.q_ult == pytest.approx(old.bearing.q_ult, rel=1e-4)
+        if state == "static":
+            assert new.bearing.q_ult == pytest.approx(old.bearing.q_ult, rel=1e-4)
     for state, old_check in basic.global_stability.items():
         assert result.global_stability[state].value == pytest.approx(old_check.value, rel=1e-4)
         assert result.global_stability[state].required == old_check.required
@@ -146,6 +153,133 @@ def test_structure_sizing_mandatory_basic_regression(compatibility_results):
     assert isinstance(result.pressures["static:retained"], PressureDistribution)
     assert isinstance(result.pressures["seismic:front"], PressureDistribution)
     assert all(a.text and a.source for a in result.assumptions)
+
+
+def test_downward_kv_sizes_same_wall_to_450():
+    project = _project(with_global=True, geometry=False)
+    project.structure("wall").settings.kv_sign = "down"
+    before = project.model_dump_json()
+    result = size_structure(project, "wall")
+    assert project.model_dump_json() == before
+    assert result.passed and result.geometry.width == pytest.approx(4.50)
+    assert result.kv == -abs(result.kh) / 2
+    assert not any("±kv zarfı" in w for w in result.warnings)
+
+
+@pytest.mark.parametrize("advanced,code", [(False, "asd"), (True, "asd"), (True, "aashto_lrfd")])
+def test_check_kv_envelope_selects_each_check_and_keeps_governing_forces_and_pressures(advanced, code, monkeypatch):
+    from geotek.services import structures as service
+
+    original = service.verify_wall_layered
+
+    def capture(geometry, soil, loads, settings, **kwargs):
+        analyses = original(geometry, soil, loads, settings, **kwargs)
+        if kwargs["seismic"]:
+            for analysis in analyses:
+                analysis.warnings.append(f"sign-specific warning: {loads.kv:g}")
+        return analyses
+
+    monkeypatch.setattr(service, "verify_wall_layered", capture)
+    project = _project(advanced=advanced, code=code)
+    structure = project.structure("wall")
+    before = project.model_dump_json()
+    envelope = check_structure(project, "wall")
+    assert project.model_dump_json() == before
+    signed = {}
+    for sign in ("up", "down"):
+        structure.settings.kv_sign = sign
+        signed[sign] = check_structure(project, "wall")
+    for key, analysis in envelope.analyses.items():
+        if not key.startswith("seismic"):
+            assert analysis == signed["up"].analyses[key] == signed["down"].analyses[key]
+            continue
+        for name, check in analysis.checks.items():
+            candidates = {sign: r.analyses[key].checks[name] for sign, r in signed.items()}
+            choose = max if check.comparison == "<=" else min
+            sign = choose(candidates, key=lambda s: candidates[s].value)
+            expected = candidates[sign]
+            assert (check.value, check.required, check.passed) == (expected.value, expected.required, expected.passed)
+            direction = "yukarı" if sign == "up" else "aşağı"
+            assert check.detail == f"kv {direction}: {expected.detail}"
+        critical = min(analysis.checks.values(), key=lambda c:
+                       c.required / c.value if c.comparison == "<=" and c.value else
+                       float("inf") if c.comparison == "<=" else c.value / c.required)
+        sign = "up" if critical.detail.startswith("kv yukarı:") else "down"
+        reference = signed[sign].analyses[key]
+        assert analysis.forces == reference.forces
+        assert analysis.warnings == reference.warnings
+        assert (analysis.sum_v, analysis.sum_h, analysis.q_max) == (reference.sum_v, reference.sum_h, reference.q_max)
+        assert envelope.pressures[f"{key}:retained"].K == pytest.approx(signed[sign].pressures[f"{key}:retained"].K)
+    warnings = [w for w in envelope.warnings if "±kv zarfı" in w]
+    assert warnings == ["Düşey deprem katsayısı ±kv zarfı uygulandı (TBDY 16.12.2.3); "
+                        "yöneten işaret kontrol bazında detayda belirtilmiştir."]
+
+
+def test_kv_envelope_runs_global_stability_for_each_sign_and_keeps_worst_slip(monkeypatch):
+    from geotek.engine.stability import SlipResult
+    from geotek.engine.walls.base import CheckResult
+    from geotek.services import structures as service
+
+    project = _project(with_global=True)
+    captured = []
+
+    def capture(geometry, backfill, foundation, loads, settings, *, seismic, **kwargs):
+        captured.append((seismic, loads.kv))
+        fs = 2.0 if not seismic else 1.3 if loads.kv > 0 else 0.9
+        return (SlipResult(fs=fs, xc=1, yc=8, radius=10, x_entry=10, x_exit=-2),
+                CheckResult("global_stability", fs, 1.1, fs >= 1.1))
+
+    monkeypatch.setattr(service, "wall_global_stability", capture)
+    before = project.model_dump_json()
+    result = check_structure(project, "wall")
+    assert project.model_dump_json() == before
+    assert captured == [(False, result.kv), (True, result.kv), (True, -result.kv)]
+    assert result.global_stability["seismic"].value == result.slip_results["seismic"].fs == 0.9
+    assert result.global_stability["seismic"].detail.startswith("kv aşağı:")
+    assert not result.passed and "seismic:global_stability" in result.governing
+
+
+@pytest.mark.parametrize("kv_sign", ["envelope", "up", "down"])
+def test_zero_kv_runs_seismic_analysis_once_without_envelope_warning(monkeypatch, kv_sign):
+    from geotek.services import structures as service
+
+    project = _project()
+    project.structure("wall").settings.kv_sign = kv_sign
+    loads, kh, _ = service._loads(project.structure("wall"))
+    monkeypatch.setattr(service, "_loads", lambda structure: (loads.model_copy(update={"kv": 0.0}), kh, 0.0))
+    original = service.verify_wall_layered
+    captured = []
+
+    def capture(geometry, soil, loads, settings, **kwargs):
+        captured.append((kwargs["seismic"], loads.kv))
+        return original(geometry, soil, loads, settings, **kwargs)
+
+    monkeypatch.setattr(service, "verify_wall_layered", capture)
+    result = check_structure(project, "wall")
+    assert captured == [(False, 0.0), (True, 0.0)]
+    assert not any("±kv zarfı" in w for w in result.warnings)
+
+
+@pytest.mark.parametrize("kv_sign", ["envelope", "up", "down"])
+def test_kv_sign_project_roundtrip_and_missing_field_default(tmp_path, kv_sign):
+    from geotek.io.project_io import load_project, save_project
+
+    project = _project()
+    project.structure("wall").settings.kv_sign = kv_sign
+    path = save_project(project, tmp_path / "wall")
+    assert load_project(path) == project
+    data = project.model_dump(mode="json")
+    del data["structures"][0]["settings"]["kv_sign"]
+    path.write_text(json.dumps(data), encoding="utf-8")
+    assert load_project(path).structure("wall").settings.kv_sign == "envelope"
+
+
+@pytest.mark.parametrize("version", ["1_0", "1_1"])
+def test_kv_sign_does_not_break_legacy_project_fixtures(tmp_path, version):
+    from geotek.io.project_io import load_project, save_project
+
+    project = load_project(f"tests/data/project_{version}.gtk")
+    assert load_project(save_project(project, tmp_path / "legacy")) == project
 
 
 def test_progress_monotone_finite_and_uses_job_keys(compatibility_results):
@@ -334,6 +468,7 @@ def test_wall_service_selects_seismic_water_for_checks_diagrams_and_bishop(monke
 
     project = _project(with_global=True)
     structure = project.structure("wall")
+    structure.settings.kv_sign = "up"  # Isolate water-case selection from the sign envelope.
     structure.inputs.gwt_case = "insitu"
     structure.soil.profile.gwt = GroundwaterCondition(depth_insitu=4, depth_design=3, depth_seismic=2)
     # soil_from_basic sets explicit heads; clear them to exercise profile fallback.
@@ -526,6 +661,30 @@ def test_submerged_service_default_envelope_and_missing_permeability_warning():
     assert any("k girilmedi" in w and "envelope" in w for w in classified.warnings)
     assert classified.analyses["seismic"].forces == default.analyses["seismic"].forces
     assert classified.result_hash != default.result_hash
+
+
+@pytest.mark.parametrize("sds,r,side,depth,expected", [
+    (.5, None, "retained", 2., True),
+    (.5, 2., "retained", 2., True),
+    (.5, 1., "retained", 2., False),
+    (.5, .8, "retained", 2., False),
+    (.5, 2., "retained", 5., False),
+    (.5, 2., "front", 2., False),
+    (None, 2., "retained", 2., False),
+])
+def test_submerged_r_reduction_warning_includes_explicit_r(sds, r, side, depth, expected):
+    project = _project(sds=sds)
+    structure = project.structure("wall")
+    structure.inputs.r = r
+    setattr(structure.soil, f"gwt_{side}", GroundwaterCondition(depth_insitu=100., depth_seismic=depth))
+    before = project.model_dump_json()
+    result = check_structure(project, "wall")
+    warnings = [w for w in result.warnings if "r>1" in w]
+    assert len(warnings) == int(expected)
+    if warnings:
+        assert "16.20" in warnings[0] and "16.26" in warnings[0] and "water_kh=0.4·S_DS" in warnings[0]
+        assert "gerekçelendirilmelidir" in warnings[0]
+    assert project.model_dump_json() == before
 
 
 def test_dry_service_does_not_report_submerged_assumptions_or_warnings():

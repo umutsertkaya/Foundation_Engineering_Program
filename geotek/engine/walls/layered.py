@@ -179,7 +179,7 @@ def _submerged_dynamic(profile, hv, loads, settings, q, common, static):
     """TBDY 16.26; compare horizontal soil increments plus ONE 16.20 water force.
 
     Mixed permeability uses the full water head if any wetted layer is pervious
-    (conservative engineering judgement; no layered hydrodynamic model is claimed).
+    (unverified engineering approach; no layered hydrodynamic model is claimed).
     """
     gwt = profile.gwt.depth_for(common["gwt_case"])
     wet = [l for l in profile.layers if min(l.bottom, hv) > max(l.top, gwt)]
@@ -255,7 +255,8 @@ def _submerged_dynamic(profile, hv, loads, settings, q, common, static):
                 f"Katman {key}: permeabilite k girilmedi; su altı deprem hesabında envelope zarfı kullanıldı.")
     if len(governing) > 1:
         dynamic.warnings.append("Karışık geçirgenlik: dinamik su itkisi tam su yüksekliği için bir kez "
-                                "eklendi; katmanlar arası su hareketi modellenmedi — sonucu kontrol edin.")
+                                "eklendi; doğrulanmamış mühendislik yaklaşımı; katmanlar arası su "
+                                "hareketi modellenmedi — sonucu kontrol edin.")
     if 0 < gwt < hv:
         dynamic.warnings.append("Kısmen su altındaki dolgu yönetmelik formüllerinin kapsamı dışındadır; "
                                 "katman bazında mühendislik yargısı uygulandı — sonucu kontrol edin.")
@@ -273,7 +274,8 @@ def _retained_pressures(geometry, soil, loads, settings, seismic, slope, gwt_cas
     profile = _plane_profile(soil.retained_profile(), rise)
     if (theta or slope) and any(l.behaviour == "undrained" and l.top < hv for l in profile.layers):
         raise GeoTekError("Undrained retained layers require a vertical face and horizontal ground")
-    common = dict(method="coulomb", beta=slope, theta=theta, layerwise=True, gwt_case=gwt_case)
+    common = dict(method="coulomb", beta=slope, theta=theta, layerwise=True, gwt_case=gwt_case,
+                  steep_seismic=True)
     if isinstance(geometry, GravityGeometry):
         common["delta_ratio"] = 2 / 3
     else:
@@ -283,7 +285,7 @@ def _retained_pressures(geometry, soil, loads, settings, seismic, slope, gwt_cas
     zero = lateral_pressure(profile, hv, **common)
     static = lateral_pressure(profile, hv, surcharge=q, **common) if q else zero
     dynamic_water = 0.0
-    if seismic and profile.gwt.depth_for(gwt_case) < hv:
+    if seismic and (loads.kh or loads.kv) and profile.gwt.depth_for(gwt_case) < hv:
         dynamic, dynamic_water = _submerged_dynamic(profile, hv, loads, settings, q, common, static)
     else:
         dynamic = (lateral_pressure(profile, hv, surcharge=q, kh=loads.kh, kv=loads.kv, **common)

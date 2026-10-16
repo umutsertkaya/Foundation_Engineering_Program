@@ -11,7 +11,9 @@ from geotek.core.errors import GeoTekError, MissingFactorsError
 from geotek.core.models.profile import DesignParameters, GroundwaterCondition, SoilLayer, SoilProfile
 from geotek.core.models.structures import StructureSoilModel
 from geotek.core.models.walls import Backfill, CantileverGeometry, GravityGeometry, WallLoads, WallSettings
-from geotek.engine.earth_pressure.coefficients import mononobe_okabe_kae, rankine_ka, tbdy_seismic_coefficients, TBDY_R
+from geotek.engine.earth_pressure.coefficients import (
+    mononobe_okabe_kae, rankine_ka, seismic_angle, tbdy_kae_steep, tbdy_seismic_coefficients, TBDY_R,
+)
 from geotek.engine.earth_pressure.distribution import lateral_pressure
 from geotek.engine.earth_pressure.wedge import trial_wedge
 from geotek.engine.limit_state import _factor_forces, limit_state_cases, verify_wall_global_stability, verify_wall_layered
@@ -244,7 +246,8 @@ def test_submerged_permeability_is_per_layer_and_water_added_once():
         assert f"Katman {key}: su altı deprem sınıfı {branch}." in result.warnings
     water = [f for f in result.forces if f.name == "Dinamik su itkisi (TBDY Denk. 16.20)"]
     assert len(water) == 1 and -water[0].fx == pytest.approx(41.202)
-    assert any("Karışık geçirgenlik" in w for w in result.warnings)
+    assert any("Karışık geçirgenlik" in w and "doğrulanmamış mühendislik yaklaşımı" in w
+               for w in result.warnings)
     soil = _soil(layers, retained_water=0)
     dist = wall_pressures_layered(_geometry(), soil, WallLoads(kh=.1, kv=.05, water_kh=.2),
                                   WallSettings(submerged_seismic="by_permeability"), seismic=True)["retained"]
@@ -296,11 +299,113 @@ def test_partial_submergence_keeps_dry_mo_above_water_and_splits_one_layer():
     assert dist.K == pytest.approx([dry_k, dry_k, wet_k, wet_k])
 
 
-def test_submerged_mo_domain_error_names_tbdy_1624b():
-    with pytest.raises(GeoTekError, match=r"TBDY Denk\. 16\.24b"):
-        wall_forces_layered(_geometry(), _soil([_layer("fill", 0, 6)], retained_water=0),
-                            WallLoads(kh=.1, kv=.05, water_kh=.2), WallSettings(),
-                            seismic=True, backfill_slope=20.)
+@pytest.mark.parametrize("phi,delta,theta,kh,kv,expected", [
+    (30., 0., 0., .2, 0., .933205),
+    (32., 0., 10., .2, .1, 1.112545),
+    (35., 0., -5., .25, -.1, .825149),
+    (32., 20., 10., .2, .1, 1.394478),
+    (30., 20., 0., .2, 0., 1.071063),
+])
+def test_tbdy_kae_steep_en_e3_reference(phi, delta, theta, kh, kv, expected):
+    # Independent EN E.3 notation: psi_EN is measured from horizontal.
+    psi_en = math.radians(90 - theta)
+    theta_en = math.atan(kh / (1 - kv))
+    en_e3 = math.sin(psi_en + math.radians(phi) - theta_en)**2 / (
+        math.cos(theta_en) * math.sin(psi_en)**2 * math.sin(psi_en - theta_en - math.radians(delta)))
+    assert en_e3 == pytest.approx(expected, abs=1e-5)
+    assert tbdy_kae_steep(phi, delta, theta, kh, kv) == pytest.approx(expected, abs=1e-5)
+    assert tbdy_kae_steep(phi, delta, theta, kh, kv) == pytest.approx(en_e3, abs=1e-12)
+
+
+@pytest.mark.parametrize("theta", [0., 10., -5.])
+@pytest.mark.parametrize("offset", [0., 1e-10])
+def test_tbdy_kae_steep_continuous_at_mo_boundary(theta, offset):
+    phi, delta, kh, kv = 30., 20., .2, 0.
+    beta = phi - seismic_angle(kh, kv) - offset
+    assert mononobe_okabe_kae(phi, delta, theta, beta, kh, kv) == pytest.approx(
+        tbdy_kae_steep(phi, delta, theta, kh, kv), abs=1e-5)
+
+
+@pytest.mark.parametrize("delta", [0., 20.])
+def test_tbdy_kae_steep_rejects_nonpositive_denominator(delta):
+    with pytest.raises(GeoTekError, match=r"cos\(delta \+ theta \+ psi\) > 0"):
+        tbdy_kae_steep(30., delta=delta, theta=45., kh=.8, kv=.4)
+
+
+@pytest.mark.parametrize("beta", [20., 25., 29.])
+def test_steep_distribution_opt_in_is_beta_independent_and_keeps_delta(beta):
+    profile = _soil([_layer("fill", 0, 6)]).retained_profile()
+    with pytest.raises(GeoTekError, match="M-O has no solution"):
+        lateral_pressure(profile, 6, method="coulomb", beta=beta, delta=20., kh=.2)
+    dist = lateral_pressure(profile, 6, method="coulomb", beta=beta, delta=20., kh=.2,
+                             steep_seismic=True)
+    assert dist.K == pytest.approx(tbdy_kae_steep(30, delta=20., kh=.2) * math.cos(math.radians(20.)))
+    warnings = [w for w in dist.warnings if "16.24b" in w]
+    assert warnings == ["Katman fill: TBDY Denk. 16.24b (β > φ' − ψ) uygulandı."]
+
+
+def test_steep_opt_in_preserves_mo_inside_domain():
+    profile = _soil([_layer("fill", 0, 6)]).retained_profile()
+    kwargs = dict(method="coulomb", beta=10., delta=20., theta=5., kh=.2, kv=.1)
+    default = lateral_pressure(profile, 6, **kwargs)
+    opted_in = lateral_pressure(profile, 6, steep_seismic=True, **kwargs)
+    assert opted_in.K.tobytes() == default.K.tobytes()
+    assert opted_in.force == default.force and opted_in.warnings == default.warnings
+
+
+@pytest.mark.parametrize("wall_type", ["cantilever", "gravity"])
+def test_steep_eq_vertical_component_keeps_wall_friction(wall_type):
+    geometry = (_geometry() if wall_type == "cantilever" else
+                GravityGeometry(height=6, base_width=4.6, top_width=0.6, back_offset=0.6, embedment=1))
+    soil = _soil([_layer("fill", 0, 6)])
+    loads, settings, slope = WallLoads(surcharge=10, kh=.2, kv=.05), WallSettings(), 20.
+    diagrams = wall_pressures_layered(geometry, soil, loads, settings, seismic=True, backfill_slope=slope)
+    result = wall_forces_layered(geometry, soil, loads, settings, seismic=True, backfill_slope=slope)
+    dynamic, static = diagrams["retained"], diagrams["retained_static"]
+    pa, pae = static.component("effective")[0], dynamic.component("effective")[0]
+    theta = math.atan2(geometry.back_offset, geometry.height) if wall_type == "gravity" else 0.
+    delta = math.radians(20.)  # 2*phi/3 for gravity, slope for the cantilever.
+    eq = next(f for f in result.forces if f.name.startswith("Seismic increment"))
+    assert eq.fx == pytest.approx(-(pae - pa))
+    assert eq.fy == pytest.approx(eq.fx * math.tan(delta + theta))
+    soil_forces = [f for f in result.forces if f.kind in ("EH", "LS") or f is eq]
+    assert sum(f.fy for f in soil_forces) == pytest.approx(-pae * math.tan(delta + theta), abs=1e-10)
+
+
+def test_steep_eq_inclination_keeps_delta_in_partially_submerged_layer():
+    geometry = GravityGeometry(height=6, base_width=4.6, top_width=0.6, back_offset=0.6, embedment=1)
+    soil = _soil([_layer("fill", 0, 6)], retained_water=2.)
+    loads = WallLoads(surcharge=10, kh=.1, kv=.05)
+    settings = WallSettings(submerged_seismic="impervious")
+    diagrams = wall_pressures_layered(geometry, soil, loads, settings, seismic=True, backfill_slope=20.)
+    dynamic, static = diagrams["retained"], diagrams["retained_static"]
+    assert list(dynamic.z) == [0., 2., 2., 6.]
+    theta = math.atan2(geometry.back_offset, geometry.height)
+    tangent = math.tan(math.radians(20.) + theta)
+    result = wall_forces_layered(geometry, soil, loads, settings, seismic=True, backfill_slope=20.)
+    eq = next(f for f in result.forces if f.name.startswith("Seismic increment"))
+    assert eq.fy == pytest.approx(
+        (static.component("effective")[0] - dynamic.component("effective")[0]) * tangent)
+
+
+@pytest.mark.parametrize("water_depth,kh,kv", [(100., .2, 0.), (0., .1, .05), (2., .1, .05)])
+def test_layered_steep_seismic_returns_result_and_tbdy_1624b_warning(water_depth, kh, kv):
+    soil = _soil([_layer("fill", 0, 6)], retained_water=water_depth)
+    loads = WallLoads(kh=kh, kv=kv, water_kh=.2)
+    result = wall_forces_layered(_geometry(), soil, loads, WallSettings(),
+                                 seismic=True, backfill_slope=20.)
+    assert result.forces
+    warnings = [w for w in result.warnings if "16.24b" in w]
+    assert len(warnings) == 1
+    assert warnings == ["Katman fill: TBDY Denk. 16.24b (β > φ' − ψ) uygulandı."]
+
+
+@pytest.mark.parametrize("water_depth", [0., 2.])
+def test_seismic_with_zero_coefficients_and_submerged_fill_stays_static(water_depth):
+    soil, loads, settings = _soil(retained_water=water_depth), WallLoads(), WallSettings()
+    static = wall_forces_layered(_geometry(), soil, loads, settings, seismic=False)
+    seismic = wall_forces_layered(_geometry(), soil, loads, settings, seismic=True)
+    assert seismic.forces == static.forces and seismic.warnings == static.warnings
 
 
 def test_pervious_requires_explicit_unreduced_water_kh_but_impervious_does_not():

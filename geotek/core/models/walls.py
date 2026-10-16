@@ -109,12 +109,15 @@ class WallLoads(BaseModel):
     """Count surcharge over the heel as a stabilising load (usually not, for live load)."""
     kh: float = Field(0.0, ge=0, lt=1)
     kv: float = Field(0.0, gt=-1, lt=1)
+    """Positive upward: thrust uses (1-kv), vertical wall inertia is +kv*W."""
     water_kh: float | None = Field(None, ge=0, description="0.4 S_DS, r=1 for TBDY Denk. 16.20")
     seismic_increment_height: float = Field(0.6, gt=0, lt=1)
     """Height of the seismic thrust increment as a fraction of H (Seed & Whitman: 0.6)."""
 
 
 class WallSettings(BaseModel):
+    kv_sign: Literal["envelope", "up", "down"] = "envelope"
+    """TBDY 16.12.2.3: envelope both signs per check; up=+|kv|, down=-|kv|."""
     submerged_seismic: Literal["envelope", "impervious", "pervious", "by_permeability"] = "envelope"
     """TBDY 16.26: envelope maximises soil increment plus dynamic water thrust."""
     uplift_moment: Literal["overturning", "resisting"] = "overturning"
