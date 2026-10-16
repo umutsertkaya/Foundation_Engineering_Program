@@ -126,6 +126,37 @@ def test_structure_water_profiles_and_zones():
     with pytest.raises(ValueError):
         model.zones(5, 4)
 
+    default_water = structure_soil(gwt_retained=None, gwt_front=None)
+    assert default_water.retained_profile().gwt == default_water.profile.gwt
+    assert default_water.front_profile().gwt == default_water.profile.gwt
+
+
+def test_structure_zones_include_exact_layer_slices():
+    source = SoilProfile(
+        id="P-zones",
+        gwt=GroundwaterCondition(depth_insitu=2),
+        layers=[
+            SoilLayer(id="N1", top=0, bottom=4, gamma=18),
+            SoilLayer(id="N2", top=4, bottom=8, gamma=19),
+        ],
+    )
+    model = StructureSoilModel(
+        profile=source,
+        retained_fill=[SoilLayer(id="F1", top=0, bottom=1, gamma=18)],
+    )
+
+    zones = model.zones(front_depth=3, base_depth=6)
+
+    assert [(s.layer_id, s.top, s.bottom) for s in zones.backfill] == [
+        ("F1", 0, 1), ("N1", 1, 4), ("N2", 4, 6)
+    ]
+    assert [(s.layer_id, s.top, s.bottom) for s in zones.front] == [
+        ("N1", 3, 4), ("N2", 4, 6)
+    ]
+    assert [(s.layer_id, s.top, s.bottom) for s in zones.foundation] == [
+        ("N2", 6, 8)
+    ]
+
 
 def test_structure_staleness():
     source = profile()
@@ -135,6 +166,12 @@ def test_structure_staleness():
     altered = source.model_copy(deep=True)
     altered.layers[0].gamma = 18.5
     assert model.is_stale(altered)
+    altered_design = source.model_copy(deep=True)
+    altered_design.layers[0].design.phi_eff = 32
+    assert model.is_stale(altered_design)
+    altered_selection = source.model_copy(deep=True)
+    altered_selection.layers[0].selections["phi_eff"] = ParameterSelection(parameter="phi_eff")
+    assert not model.is_stale(altered_selection)
     assert not structure_soil(source_profile_id=None, source_hash=None).is_stale(None)
 
 

@@ -27,10 +27,7 @@ def _from_1_1(data: dict) -> dict:
         source_ids = set(profile.get("source_ids", []))
         has_cpt = bool(source_ids & cpt_ids)
         has_borehole = bool(source_ids & borehole_ids)
-        unknown = source_ids - cpt_ids - borehole_ids
-        if unknown:
-            origin = "manual"
-        elif has_cpt and has_borehole:
+        if has_cpt and has_borehole:
             origin = "mixed"
         elif has_cpt:
             origin = "cpt"
