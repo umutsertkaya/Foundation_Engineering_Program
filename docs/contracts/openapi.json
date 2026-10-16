@@ -8184,7 +8184,7 @@
           "schema_version": {
             "type": "string",
             "title": "Schema Version",
-            "default": "1.1"
+            "default": "1.2"
           },
           "language": {
             "type": "string",

@@ -19,8 +19,34 @@ def _from_1_0(data: dict) -> dict:
     return data
 
 
+def _from_1_1(data: dict) -> dict:
+    """1.1 -> 1.2: add profile origins and explicit structure/profile references."""
+    cpt_ids = {item["id"] for item in data.get("investigations", {}).get("cpts", [])}
+    borehole_ids = {item["id"] for item in data.get("investigations", {}).get("boreholes", [])}
+    for profile in data.get("soil_profiles", []):
+        source_ids = set(profile.get("source_ids", []))
+        has_cpt = bool(source_ids & cpt_ids)
+        has_borehole = bool(source_ids & borehole_ids)
+        unknown = source_ids - cpt_ids - borehole_ids
+        if unknown:
+            origin = "manual"
+        elif has_cpt and has_borehole:
+            origin = "mixed"
+        elif has_cpt:
+            origin = "cpt"
+        elif has_borehole:
+            origin = "spt"
+        else:
+            origin = "manual"
+        profile.setdefault("origin", origin)
+    data.setdefault("structures", [])
+    data.setdefault("active_profile_id", None)
+    data["meta"]["schema_version"] = "1.2"
+    return data
+
+
 # from_version -> function upgrading the raw dict by one step (add entries as the schema evolves)
-_MIGRATIONS: dict[str, Callable[[dict], dict]] = {"1.0": _from_1_0}
+_MIGRATIONS: dict[str, Callable[[dict], dict]] = {"1.0": _from_1_0, "1.1": _from_1_1}
 
 
 def _migrate(data: dict) -> dict:

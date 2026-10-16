@@ -4,7 +4,7 @@
     "number": "",
     "engineer": "",
     "date": "2026-10-16",
-    "schema_version": "1.1",
+    "schema_version": "1.2",
     "language": "tr",
     "design_code": "asd",
     "analysis_level": "basic"
@@ -148,6 +148,36 @@
             "c_eff": null,
             "phi_eff": null,
             "su": null
+          }
+        ],
+        "log": [
+          {
+            "top": 0.0,
+            "bottom": 1.5,
+            "description": "Dolgu",
+            "uscs": "SM",
+            "notes": ""
+          },
+          {
+            "top": 1.5,
+            "bottom": 6.0,
+            "description": "Gevşek siltli kum",
+            "uscs": "SM",
+            "notes": ""
+          },
+          {
+            "top": 6.0,
+            "bottom": 9.0,
+            "description": "Yumuşak kil",
+            "uscs": "CL",
+            "notes": ""
+          },
+          {
+            "top": 9.5,
+            "bottom": 15.0,
+            "description": "Sıkı kum",
+            "uscs": "SP",
+            "notes": ""
           }
         ]
       }
@@ -1376,6 +1406,8 @@
         "SK-1",
         "CPT-1"
       ],
+      "origin": "manual",
+      "layering": null,
       "gwt": {
         "depth_insitu": 1.5,
         "depth_design": 1.5,
@@ -1400,6 +1432,8 @@
             "E": null,
             "delta_base": null
           },
+          "selections": {},
+          "source_ids": [],
           "liquefiable": null,
           "residual_su": null
         },
@@ -1421,6 +1455,8 @@
             "E": null,
             "delta_base": null
           },
+          "selections": {},
+          "source_ids": [],
           "liquefiable": null,
           "residual_su": null
         },
@@ -1442,6 +1478,8 @@
             "E": null,
             "delta_base": null
           },
+          "selections": {},
+          "source_ids": [],
           "liquefiable": null,
           "residual_su": null
         },
@@ -1463,11 +1501,164 @@
             "E": null,
             "delta_base": null
           },
+          "selections": {},
+          "source_ids": [],
           "liquefiable": null,
           "residual_su": null
         }
       ]
     }
   ],
-  "design_overrides": {}
+  "active_profile_id": "P1",
+  "structures": [
+    {
+      "kind": "retaining_wall",
+      "id": "RW-1",
+      "name": "Sentetik konsol istinat duvarı",
+      "wall_type": "cantilever",
+      "height": 5.0,
+      "embedment": 0.6,
+      "backfill_slope": 0.0,
+      "geometry": null,
+      "soil": {
+        "source_profile_id": "P1",
+        "source_hash": "838194424a412aae",
+        "profile": {
+          "id": "P1",
+          "name": "Örnek profil (sentetik)",
+          "source_ids": [
+            "SK-1",
+            "CPT-1"
+          ],
+          "origin": "manual",
+          "layering": null,
+          "gwt": {
+            "depth_insitu": 1.5,
+            "depth_design": 1.5,
+            "depth_seismic": 1.5
+          },
+          "layers": [
+            {
+              "id": "L1",
+              "top": 0.0,
+              "bottom": 1.5,
+              "description": "Dolgu",
+              "uscs": "SM",
+              "sbtn_zone": null,
+              "behaviour": "drained",
+              "gamma": 18.0,
+              "gamma_sat": 19.0,
+              "params": {},
+              "design": {
+                "phi_eff": null,
+                "c_eff": 0.0,
+                "su": null,
+                "E": null,
+                "delta_base": null
+              },
+              "selections": {},
+              "source_ids": [],
+              "liquefiable": null,
+              "residual_su": null
+            },
+            {
+              "id": "L2",
+              "top": 1.5,
+              "bottom": 6.0,
+              "description": "Gevşek siltli kum",
+              "uscs": "SM",
+              "sbtn_zone": null,
+              "behaviour": "drained",
+              "gamma": 17.5,
+              "gamma_sat": 19.0,
+              "params": {},
+              "design": {
+                "phi_eff": null,
+                "c_eff": 0.0,
+                "su": null,
+                "E": null,
+                "delta_base": null
+              },
+              "selections": {},
+              "source_ids": [],
+              "liquefiable": null,
+              "residual_su": null
+            },
+            {
+              "id": "L3",
+              "top": 6.0,
+              "bottom": 9.0,
+              "description": "Yumuşak kil",
+              "uscs": "CL",
+              "sbtn_zone": null,
+              "behaviour": "undrained",
+              "gamma": 17.0,
+              "gamma_sat": 18.0,
+              "params": {},
+              "design": {
+                "phi_eff": null,
+                "c_eff": 0.0,
+                "su": null,
+                "E": null,
+                "delta_base": null
+              },
+              "selections": {},
+              "source_ids": [],
+              "liquefiable": null,
+              "residual_su": null
+            },
+            {
+              "id": "L4",
+              "top": 9.0,
+              "bottom": 15.0,
+              "description": "Sıkı kum",
+              "uscs": "SP",
+              "sbtn_zone": null,
+              "behaviour": "drained",
+              "gamma": 19.0,
+              "gamma_sat": 20.5,
+              "params": {},
+              "design": {
+                "phi_eff": null,
+                "c_eff": 0.0,
+                "su": null,
+                "E": null,
+                "delta_base": null
+              },
+              "selections": {},
+              "source_ids": [],
+              "liquefiable": null,
+              "residual_su": null
+            }
+          ]
+        },
+        "retained_fill": [],
+        "gwt_retained": null,
+        "gwt_front": null
+      },
+      "inputs": {
+        "surcharge": 10.0,
+        "surcharge_resists": false,
+        "sds": 0.5,
+        "r": null,
+        "gwt_case": "design",
+        "include_global_stability": true
+      },
+      "settings": {
+        "design_code": "asd",
+        "bearing_method": "vesic",
+        "use_passive": false,
+        "passive_reduction": 0.5,
+        "include_toe_soil": false,
+        "concrete_unit_weight": 24.0,
+        "foundation_on": "soil",
+        "factor_overrides": {}
+      },
+      "analysis_level": "basic",
+      "approach": null,
+      "result_hash": null
+    }
+  ],
+  "design_overrides": {},
+  "module2_inputs": {}
 }

@@ -14,6 +14,7 @@ from pathlib import Path
 import numpy as np
 
 from geotek.core.models import (
+    BoreholeLayer,
     GroundwaterCondition,
     Investigations,
     LabRecord,
@@ -22,6 +23,9 @@ from geotek.core.models import (
     SiteSeismic,
     SoilLayer,
     SoilProfile,
+    RetainingWallStructure,
+    StructureSoilModel,
+    WallDesignInputs,
 )
 from geotek.io.project_io import save_project
 from geotek.io.tabular import import_cpt, import_spt
@@ -74,6 +78,13 @@ def build() -> Project:
         LabRecord(depth=7.5, FC=85, LL=38, PL=19),
         LabRecord(depth=10.5, FC=4),
     ]
+    bh.log = [
+        BoreholeLayer(top=0.0, bottom=1.5, description="Dolgu", uscs="SM"),
+        BoreholeLayer(top=1.5, bottom=6.0, description="Gevşek siltli kum", uscs="SM"),
+        BoreholeLayer(top=6.0, bottom=9.0, description="Yumuşak kil", uscs="CL"),
+        # The 9.0-9.5 m interval is deliberately unlogged.
+        BoreholeLayer(top=9.5, bottom=15.0, description="Sıkı kum", uscs="SP"),
+    ]
     profile = SoilProfile(
         id="P1", name="Örnek profil (sentetik)", source_ids=["SK-1", "CPT-1"],
         gwt=GroundwaterCondition(depth_insitu=GWT),
@@ -81,11 +92,27 @@ def build() -> Project:
                           gamma=L[6], gamma_sat=L[7], behaviour="undrained" if L[5] == "CL" else "drained")
                 for i, L in enumerate(LAYERS)],
     )
+    wall_soil = StructureSoilModel(
+        source_profile_id=profile.id,
+        source_hash=profile.content_hash(),
+        profile=profile.model_copy(deep=True),
+    )
+    wall = RetainingWallStructure(
+        id="RW-1",
+        name="Sentetik konsol istinat duvarı",
+        wall_type="cantilever",
+        height=5.0,
+        embedment=0.6,
+        soil=wall_soil,
+        inputs=WallDesignInputs(surcharge=10.0, sds=0.5),
+    )
     return Project(
         meta=ProjectMeta(name="Örnek proje (sentetik veri)", engineer=""),
         site=SiteSeismic(pga_g=0.35, mw=7.5),
         investigations=Investigations(boreholes=[bh], cpts=[cpt]),
         soil_profiles=[profile],
+        structures=[wall],
+        active_profile_id=profile.id,
     )
 
 

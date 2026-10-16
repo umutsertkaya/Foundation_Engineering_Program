@@ -12,7 +12,7 @@ from geotek.core.models.investigations import Investigations
 from geotek.core.models.profile import SoilProfile
 from geotek.core.models.structures import Structure
 
-SCHEMA_VERSION = "1.1"
+SCHEMA_VERSION = "1.2"
 
 
 class ProjectMeta(BaseModel):

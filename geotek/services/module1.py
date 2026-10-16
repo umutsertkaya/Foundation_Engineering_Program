@@ -46,7 +46,7 @@ class Module1Results:
 
 
 def active_profile(project: Project) -> SoilProfile | None:
-    return project.soil_profiles[0] if project.soil_profiles else None
+    return project.active_profile()
 
 
 def spt_fc_pi(borehole: Borehole, default_fc: float | None):
