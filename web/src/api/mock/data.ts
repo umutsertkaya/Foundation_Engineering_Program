@@ -572,7 +572,7 @@ export const MOCK_DEFAULT_META: ProjectMeta = {
   number: "MOCK-2026-01",
   engineer: "Demo Mühendis (Sentetik)",
   date: "2026-10-16",
-  schema_version: "1.2",
+  schema_version: "1.3",
   language: "tr",
   design_code: "asd",
   analysis_level: "basic",

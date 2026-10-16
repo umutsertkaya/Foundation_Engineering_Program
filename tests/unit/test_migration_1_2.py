@@ -38,7 +38,7 @@ def test_from_1_1_derives_origin_from_known_sources(source_ids, expected):
 
 def test_project_1_1_migrates_to_1_2(tmp_path):
     project = load_project(FIXTURE)
-    assert project.meta.schema_version == "1.2"
+    assert project.meta.schema_version == "1.3"
     assert project.profile("P1").origin == "mixed"
     assert project.structures == []
     assert project.active_profile_id is None
@@ -57,7 +57,7 @@ def test_project_1_1_migrates_to_1_2(tmp_path):
 def test_project_1_0_migrates_through_1_1_to_1_2():
     project = load_project("tests/data/project_1_0.gtk")
 
-    assert project.meta.schema_version == "1.2"
+    assert project.meta.schema_version == "1.3"
     assert project.meta.analysis_level == "basic"
     assert project.design_overrides == {}
     assert project.structures == []

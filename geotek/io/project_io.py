@@ -42,8 +42,19 @@ def _from_1_1(data: dict) -> dict:
     return data
 
 
+def _from_1_2(data: dict) -> dict:
+    """1.2 -> 1.3: add module-private state sections."""
+    data.setdefault("modules", {})
+    data["meta"]["schema_version"] = "1.3"
+    return data
+
+
 # from_version -> function upgrading the raw dict by one step (add entries as the schema evolves)
-_MIGRATIONS: dict[str, Callable[[dict], dict]] = {"1.0": _from_1_0, "1.1": _from_1_1}
+_MIGRATIONS: dict[str, Callable[[dict], dict]] = {
+    "1.0": _from_1_0,
+    "1.1": _from_1_1,
+    "1.2": _from_1_2,
+}
 
 
 def _migrate(data: dict) -> dict:

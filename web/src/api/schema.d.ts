@@ -1707,7 +1707,7 @@ export interface components {
             date?: string;
             /**
              * Schema Version
-             * @default 1.2
+             * @default 1.3
              */
             schema_version: string;
             /**

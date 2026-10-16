@@ -144,7 +144,7 @@ export function ProjectPage() {
                   <Table.Tr>
                     <Table.Td c="dimmed">{t("web.project.schema_version")}</Table.Td>
                     <Table.Td ff="monospace">
-                      {summary.meta.schema_version ?? "1.2"}
+                      {summary.meta.schema_version ?? "1.3"}
                     </Table.Td>
                   </Table.Tr>
                 </Table.Tbody>
