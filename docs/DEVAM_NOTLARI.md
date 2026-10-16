@@ -1,6 +1,6 @@
 # GeoTek v2: devam notları
 
-Son güncelleme: 2026-10-17. Kapı 2 onaylandı. Modüler yeniden yapılanma `restructure/modules` dalında sürüyor; plan `docs/plans/MODULER_YAPI.md`.
+Son güncelleme: 2026-10-17. Kapı 2 ve yapı kapısı Y1 onaylandı. Modüler yeniden yapılanma `restructure/modules` dalında sürüyor (son commit bu notun commit'i). Sıradaki iş: **M1** (aşağıda). Yeni oturum prompt'u: `docs/DEVAM_PROMPT.md`.
 
 Yönergeler:
 - Orkestra yönergesi: `docs/ORKESTRA_PROMPT.md`.
@@ -17,8 +17,46 @@ Yönergeler:
 | F1 web iskeleti | Tamam. Kapı 3 **onaylanmadı**; kullanıcı zemin yönetimini istedi, bkz. "Zemin arayüzü" |
 | Zemin arayüzü (F3'ün öne çekilen kısmı) | Tamam: zemin kolonu ve desenler, katman editörü, profil ana-detay ekranı, duvar Zemin adımında bölgeli kesit. Ekran görüntüleri `docs/qa/soil/`. Kullanıcının görsel onayı bekleniyor |
 | E4 katmanlı duvar motoru | Tamam: chunk C dahil (620 pytest, 35 web testi, typecheck geçiyor). Kapı 2 kullanıcı tarafından onaylandı (2026-10-17) |
-| Modüler yapı (başlangıç ekranı → ana menü → modüller) | C0–C6, W1–W4 tamam (`restructure/modules` dalı). Başlangıç/kütüphane, ana menü, 4 modül kabuğu, gerçek oturum+kütüphane API'si, şema 1.3, modül i18n parçaları. İncelemeler (gpt-6-astra backend, Opus web, Sonnet görsel QA) düzeltildi. 827 pytest, 69 web testi. Ekranlar `docs/qa/shell/`. **Yapı kapısı Y1 kullanıcı onayı bekliyor**; sonra M1 (zemin sayfalarının modüle taşınması). Plan `docs/plans/MODULER_YAPI.md`, sözleşme `docs/contracts/CORE_SHELL_API.md` |
+| Modüler yapı (başlangıç ekranı → ana menü → modüller) | C0–C6, W1–W4 tamam (`restructure/modules` dalı). Başlangıç/kütüphane, ana menü, 4 modül kabuğu, gerçek oturum+kütüphane API'si, şema 1.3, modül i18n parçaları. İncelemeler (gpt-6-astra backend, Opus web, Sonnet görsel QA) düzeltildi. 827 pytest, 69 web testi. Ekranlar `docs/qa/shell/`. Yapı kapısı Y1 onaylandı (2026-10-17). Sıradaki iş M1. Plan `docs/plans/MODULER_YAPI.md`, sözleşme `docs/contracts/CORE_SHELL_API.md` |
 | E2, E3, A1, F2, F4–F6, T1, Q1, K1, D1 | Başlamadı |
+
+## Sıradaki iş: M1 (zemin modülü)
+
+Plan: `docs/plans/MODULER_YAPI.md`, "İş parçaları" tablosu. Mevcut durum: `web/src/modules/soil/` içinde yalnız `manifest.ts` ve `Root.tsx` var; her yan menü öğesi bir yer tutucu `EmptyState` gösteriyor. Eski sayfalar hiçbir rotaya bağlı değil ve `web/src/pages/` altında duruyor.
+
+1. Sayfaları taşı:
+   - `web/src/pages/SiteDataPage.tsx` → `web/src/modules/soil/pages/SiteDataPage.tsx`; yan menüde `""` (Arazi verileri).
+   - `web/src/pages/SoilModelsPage.tsx` → `web/src/modules/soil/pages/ProfilesPage.tsx`; yan menüde `profiles` (Zemin profilleri).
+   - "Mühendislik parametreleri" ve "Sınıflandırma" şimdilik yer tutucu kalır. E2/E3 ile dolacak.
+   - Taşırken `git mv` kullan.
+2. Zemine ait istemci kodunu ayır:
+   - `shared/api/client.ts` içindeki zemin sarmalayıcıları (`/m/soil/...`) → `modules/soil/api.ts`.
+   - Zemine ait DTO'lar → `modules/soil/types.ts`. Duvar modülünün de kullandığı tipler (SoilProfile, SoilLayer vb.) `shared/api/types.ts` içinde kalır.
+3. Zemin mock'unu ayır:
+   - Legacy mock'taki zemin işleyicileri → `modules/soil/mock.ts`.
+   - Kayıt `registerMockHandlers("/m/soil", …)` ile ve legacy'den önce yapılır.
+   - Mock kaydı manifest'ten değil, `shared/api/mock` tarafındaki bir kayıt noktasından yapılır. Üretim paketine mock girmemeli (`http.ts` mock'u dinamik `import()` ile yüklüyor).
+4. Testler: `web/src/test/soil.test.tsx` → `web/src/modules/soil/__tests__/`, importları güncelle.
+5. Sınırlar:
+   - `modules/soil` başka bir modülü içe aktarmaz.
+   - `shared/` ve `app/`, `modules/`'u içe aktarmaz.
+   - Duvarın zemin adımı `shared/structureSoil` ve `shared/soil` kullanmaya devam eder.
+6. Doğrulama:
+   - pytest (827+), `npm --prefix web run typecheck|test|build`.
+   - `web-mock` önizlemesinde `/m/soil` ve `/m/soil/profiles` çalışıyor; profil oluştur, katman ekle, kaydet.
+   - Ekran görüntüleri `docs/qa/soil_module/`.
+7. Ardından **yapı kapısı Y2**: zemin modülü mock'ta uçtan uca çalışıyor; kullanıcıya ekran görüntüleriyle sunulur.
+
+Y2'den sonra sırasıyla:
+- M2: istinat duvarı. WallListPage, WallTypePicker (`GET /m/walls/wall-types`), WallWizardPage. `MOCK_CANTILEVER_5M` üretim bağımlılığı kesilir.
+- M3: profilsiz elle zemin girişi.
+- M4: palplanş.
+- M5: sıvılaşma.
+- X1: sınır ve manifest testleri.
+- X2: `docs/MODULE_GUIDE.md` ve `tools/new_module.py`.
+- X3: temizlik, yol haritasının yeniden hedeflenmesi, main'e birleştirme.
+
+M2, M4 ve M5 paralel yürüyebilir; ortak dosyalara (`shared/api/client.ts`, legacy mock) dikkat edilmeli.
 
 ## Kapı 2'de kullanıcının verdiği kararlar
 
@@ -52,6 +90,9 @@ Yönergeler:
   - katman `permeability`
   - `passive_reduction` onayı
 - ±kv zarfında kontroller işaret bazında seçiliyor. Ancak analiz düzeyindeki kuvvetler, e, q_max ve bearing nesnesi, en kritik kontrolü yöneten işaretten geliyor. Hangi işaretin kullanıldığı yalnız detay ön ekinde görünüyor. Sorun kozmetik; rapor ve arayüz (F4) aşamasında netleştirilecek.
+- Backend `GET /api/i18n/{lang}` hâlâ 501 döndürüyor. Web paketlenmiş kataloğa düşüyor. A1'de uygulanmalı; çekirdek ve modül parçalarının birleşik kataloğu dönmeli.
+- PyInstaller (K1): spec dosyasına `collect_submodules("geotek.modules")` hidden-imports olarak, `geotek/**/*.json|yaml` de datas olarak eklenmeli. Donmuş exe'de `/api/modules` 4 modül döndürmeli (`_index.py` yedeği).
+- Eski PySide6 arayüzü (`geotek/ui`), `services/module1.py` ve `Project.module2_inputs` dokunulmadan kaldı.
 - Vite paket boyutu uyarısı (~685 kB): kod bölme ileride (K1 öncesi) yapılacak.
 - `walls_basic` (eski PySide6 yolu) tek kv işareti kullanıyor. PySide6 kaldırılınca yapı servisine geçilecek.
 
