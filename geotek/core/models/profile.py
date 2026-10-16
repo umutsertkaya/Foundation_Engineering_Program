@@ -10,7 +10,9 @@ from pydantic import BaseModel, Field, field_validator, model_validator
 
 from geotek.core.constants import DEPTH_TOL
 from geotek.core.errors import ProfileError
-from geotek.core.models.parameters import DerivedParameter
+from geotek.core.models.parameters import DerivedParameter, ParameterSelection
+
+ProfileOrigin = Literal["cpt", "spt", "manual", "mixed"]
 
 
 class GroundwaterCondition(BaseModel):
@@ -56,6 +58,10 @@ class SoilLayer(BaseModel):
     gamma_sat: float | None = Field(None, gt=5, lt=30, description="Below GWT [kN/m3]")
     params: dict[str, DerivedParameter] = Field(default_factory=dict)
     design: DesignParameters = Field(default_factory=DesignParameters)
+    selections: dict[str, ParameterSelection] = Field(default_factory=dict)
+    """Candidates, choice and approval per DesignKey; approved values are copied to ``design``."""
+    source_ids: list[str] = Field(default_factory=list)
+    """Soundings this layer was interpreted from (subset of the profile's)."""
     liquefiable: bool | None = None
     residual_su: float | None = Field(None, ge=0, description="Post-liquefaction strength [kPa]")
 
@@ -65,6 +71,9 @@ class SoilLayer(BaseModel):
             raise ValueError(f"Layer {self.id!r}: bottom ({self.bottom}) must exceed top ({self.top})")
         if self.gamma_sat is None:
             self.gamma_sat = self.gamma
+        for key, sel in self.selections.items():
+            if sel.parameter != key:
+                raise ValueError(f"Layer {self.id!r}: selection key {key!r} != parameter {sel.parameter!r}")
         return self
 
     @property
@@ -72,11 +81,27 @@ class SoilLayer(BaseModel):
         return self.bottom - self.top
 
 
+class LayeringSettings(BaseModel):
+    """Automatic layering options, stored with the profile so the result can be reproduced.
+
+    Defaults are algorithm settings (not code or correlation coefficients) and are editable.
+    """
+
+    method: Literal["cpt_ic", "spt_log", "spt_uscs_n"]
+    smoothing_window: float = Field(0.5, gt=0, description="CPT Ic moving window [m]")
+    min_thickness: float = Field(0.5, gt=0, description="Thinner zones merge into a neighbour [m]")
+    merge_ic_tol: float = Field(0.15, ge=0, description="Adjacent zones with |dIc| below this merge")
+    n_change_ratio: float = Field(0.5, gt=0, description="SPT: relative N change that starts a new layer")
+
+
 class SoilProfile(BaseModel):
     id: str
     name: str = ""
     source_ids: list[str] = Field(default_factory=list)
     """Boreholes/CPTs this profile was interpreted from."""
+    origin: ProfileOrigin = "manual"
+    layering: LayeringSettings | None = None
+    """Settings of the automatic layering that produced the layers (None = manual)."""
     gwt: GroundwaterCondition
     layers: list[SoilLayer]
 
@@ -122,5 +147,10 @@ class SoilProfile(BaseModel):
         return vertical_stresses(self, z, gwt_depth=self.gwt.depth_for(case))
 
     def content_hash(self) -> str:
-        """Fingerprint used to flag dependent analyses as out of date."""
-        return hashlib.sha256(self.model_dump_json().encode("utf-8")).hexdigest()[:16]
+        """Fingerprint used to flag dependent analyses as out of date.
+
+        Only engineering content counts: correlation candidates (``params``) and selection
+        bookkeeping (``selections``) are excluded; approved values reach ``design``/``gamma``.
+        """
+        data = self.model_dump_json(exclude={"layers": {"__all__": {"params", "selections"}}})
+        return hashlib.sha256(data.encode("utf-8")).hexdigest()[:16]

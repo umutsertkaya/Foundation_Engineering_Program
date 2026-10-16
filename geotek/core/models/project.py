@@ -10,6 +10,7 @@ from pydantic import BaseModel, Field, model_validator
 from geotek.config.codes import FactorOverride
 from geotek.core.models.investigations import Investigations
 from geotek.core.models.profile import SoilProfile
+from geotek.core.models.structures import Structure
 
 SCHEMA_VERSION = "1.1"
 
@@ -49,10 +50,13 @@ class Project(BaseModel):
     site: SiteSeismic = Field(default_factory=SiteSeismic)
     investigations: Investigations = Field(default_factory=Investigations)
     soil_profiles: list[SoilProfile] = Field(default_factory=list)
+    active_profile_id: str | None = None
+    """Profile used by Module 1 processing (unit weights, liquefaction); None = the first one."""
+    structures: list[Structure] = Field(default_factory=list)
     design_overrides: dict[str, dict[str, FactorOverride]] = Field(default_factory=dict)
     """User factor values per design code id, keyed by factor path."""
     module2_inputs: dict[str, dict] = Field(default_factory=dict)
-    """Last form values of the Module 2 pages ('wall', 'sheet_pile'), restored on opening."""
+    """Legacy (PySide6 UI): last form values of the Module 2 pages. Kept until that UI is removed."""
 
     @model_validator(mode="after")
     def _check_refs(self) -> Project:
@@ -66,7 +70,25 @@ class Project(BaseModel):
             unknown = set(profile.source_ids) - known
             if unknown:
                 raise ValueError(f"Profile {profile.id!r} references unknown sources {sorted(unknown)}")
+        if self.active_profile_id is not None and self.active_profile_id not in ids:
+            raise ValueError(f"Active profile {self.active_profile_id!r} does not exist")
+        sids = [s.id for s in self.structures]
+        if len(set(sids)) != len(sids):
+            raise ValueError("Structure ids must be unique")
+        # A structure whose source profile was deleted stays valid (it owns a copy); it is
+        # reported as out of date through StructureSoilModel.is_stale.
         return self
+
+    def active_profile(self) -> SoilProfile | None:
+        if self.active_profile_id is not None:
+            return self.profile(self.active_profile_id)
+        return self.soil_profiles[0] if self.soil_profiles else None
+
+    def structure(self, structure_id: str) -> Structure:
+        for s in self.structures:
+            if s.id == structure_id:
+                return s
+        raise KeyError(structure_id)
 
     def profile(self, profile_id: str) -> SoilProfile:
         for p in self.soil_profiles:

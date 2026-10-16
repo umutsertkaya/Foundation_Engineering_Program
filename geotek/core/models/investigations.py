@@ -45,6 +45,35 @@ class LabRecord(BaseModel):
         return self
 
 
+USCS_SYMBOLS = frozenset({
+    "GW", "GP", "GM", "GC", "SW", "SP", "SM", "SC", "ML", "CL", "OL", "MH", "CH", "OH", "PT",
+    "GW-GM", "GW-GC", "GP-GM", "GP-GC", "SW-SM", "SW-SC", "SP-SM", "SP-SC", "GC-GM", "SC-SM", "CL-ML",
+})
+"""ASTM D2487 group symbols, including dual symbols."""
+
+
+class BoreholeLayer(BaseModel):
+    """One logged interval of a borehole (field description). Gaps between intervals are
+    allowed (unlogged or no recovery); overlaps are not."""
+
+    top: float = Field(ge=0, description="[m]")
+    bottom: float = Field(gt=0, description="[m]")
+    description: str = ""
+    uscs: str | None = None
+    """ASTM D2487 group symbol (validated against USCS_SYMBOLS) or None."""
+    notes: str = ""
+
+    @model_validator(mode="after")
+    def _check(self) -> BoreholeLayer:
+        if self.bottom <= self.top:
+            raise ValueError(f"Log interval bottom ({self.bottom}) must exceed top ({self.top})")
+        if self.uscs is not None:
+            self.uscs = self.uscs.strip().upper()
+            if self.uscs not in USCS_SYMBOLS:
+                raise ValueError(f"Unknown USCS symbol {self.uscs!r}")
+        return self
+
+
 class Borehole(BaseModel):
     id: str
     x: float | None = None
@@ -56,6 +85,16 @@ class Borehole(BaseModel):
     sampler: Literal["standard", "no_liner"] = "standard"
     spt: list[SPTRecord] = Field(default_factory=list)
     lab: list[LabRecord] = Field(default_factory=list)
+    log: list[BoreholeLayer] = Field(default_factory=list)
+
+    @field_validator("log")
+    @classmethod
+    def _sorted_non_overlapping(cls, log: list[BoreholeLayer]) -> list[BoreholeLayer]:
+        log = sorted(log, key=lambda r: r.top)
+        for upper, lower in zip(log, log[1:]):
+            if lower.top < upper.bottom - 1e-6:
+                raise ValueError(f"Log intervals overlap at {lower.top} m")
+        return log
 
     @field_validator("spt")
     @classmethod
