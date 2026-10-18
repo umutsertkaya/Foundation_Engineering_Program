@@ -6965,7 +6965,7 @@
           "liquefaction"
         ],
         "summary": "Run Liquefaction",
-        "description": "Queue liquefaction for the project investigations; poll for LiquefactionResultDTO.",
+        "description": "Queue liquefaction for the project investigations; poll for LiquefactionResultDTO.\n\nIf ``profile_id`` is null the project's active profile is used; with no active profile\nthe server answers 409 ``no_soil_source``. An unknown ``profile_id`` answers 404\n``not_found``.",
         "operationId": "run_liquefaction",
         "requestBody": {
           "content": {
@@ -9375,6 +9375,17 @@
       },
       "LiquefactionSettingsDTO": {
         "properties": {
+          "profile_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Profile Id"
+          },
           "method": {
             "type": "string",
             "enum": [

@@ -17,7 +17,12 @@ def router() -> APIRouter:
 
     @api.post("/run", response_model=dto.JobRef, status_code=202, operation_id="run_liquefaction")
     def run_liquefaction(payload: LiquefactionSettingsDTO) -> NoReturn:
-        """Queue liquefaction for the project investigations; poll for LiquefactionResultDTO."""
+        """Queue liquefaction for the project investigations; poll for LiquefactionResultDTO.
+
+        If ``profile_id`` is null the project's active profile is used; with no active profile
+        the server answers 409 ``no_soil_source``. An unknown ``profile_id`` answers 404
+        ``not_found``.
+        """
         not_implemented()
 
     return api

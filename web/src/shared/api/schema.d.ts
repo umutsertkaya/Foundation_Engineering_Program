@@ -1026,6 +1026,10 @@ export interface paths {
         /**
          * Run Liquefaction
          * @description Queue liquefaction for the project investigations; poll for LiquefactionResultDTO.
+         *
+         *     If ``profile_id`` is null the project's active profile is used; with no active profile
+         *     the server answers 409 ``no_soil_source``. An unknown ``profile_id`` answers 404
+         *     ``not_found``.
          */
         post: operations["run_liquefaction"];
         delete?: never;
@@ -1840,6 +1844,8 @@ export interface components {
          * @description Explicit liquefaction inputs; the contract chooses no engineering coefficients.
          */
         LiquefactionSettingsDTO: {
+            /** Profile Id */
+            profile_id?: string | null;
             /**
              * Method
              * @enum {string}

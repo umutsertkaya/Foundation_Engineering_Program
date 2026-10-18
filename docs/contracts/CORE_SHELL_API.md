@@ -50,6 +50,7 @@ interface NewProjectRequest {       // subset of ProjectMeta
 | POST | `/project/close` | – | `SessionInfo` (`open: false`) |
 | GET | `/project` | – | `Project`; when nothing is open: 409 `{code: "no_project_open"}` |
 | GET | `/data/profiles` | – | `ProfileSummary[]` — read-only list of the open project's soil profiles (core, so modules such as walls need not import the soil module); 409 `no_project_open` when nothing is open |
+| POST | `/m/liquefaction/run` | `LiquefactionSettingsDTO` | `JobRef` (501 stub) — `profile_id` (optional) picks the soil profile for unit weights and the seismic GWT; null = the active profile, none active: 409 `no_soil_source`; unknown id: 404 `not_found` |
 
 Error codes: `no_project_open` (409), `no_soil_source` (409, `POST /structures` only, implemented in A1: `soil`, `profile_id` and the active profile are all absent, so the client must resend an explicit manual `soil` with `source_profile_id: null`), `invalid_file_name` (400), `not_found` (404), `project_open` (409), `invalid_project_file` (422), `file_exists` (409), `invalid_path` (400).
 

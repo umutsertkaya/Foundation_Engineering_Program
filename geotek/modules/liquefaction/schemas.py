@@ -10,6 +10,8 @@ from geotek.api.schemas import DTO
 class LiquefactionSettingsDTO(DTO):
     """Explicit liquefaction inputs; the contract chooses no engineering coefficients."""
 
+    profile_id: str | None = None
+    """Soil profile for unit weights and the seismic GWT; None = the project's active profile."""
     method: Literal["youd2001", "bi2014"]
     amax_g: float
     mw: float
