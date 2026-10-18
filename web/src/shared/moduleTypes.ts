@@ -6,6 +6,8 @@ export interface NavItem {
   labelKey: string;
   icon?: ComponentType<{ size?: number | string }>;
   end?: boolean;
+  /** Relative paths (under /m/<id>) whose subtree also marks this item active. */
+  matchPrefixes?: string[];
 }
 
 export interface WebModuleManifest {

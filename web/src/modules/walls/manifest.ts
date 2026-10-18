@@ -11,7 +11,7 @@ export const manifest: WebModuleManifest = {
   order: 30,
   Root,
   nav: [
-    { path: "", labelKey: "walls.nav.list", end: true },
+    { path: "", labelKey: "walls.nav.list", end: true, matchPrefixes: ["s/"] },
     { path: "new", labelKey: "walls.nav.new" },
   ],
 };

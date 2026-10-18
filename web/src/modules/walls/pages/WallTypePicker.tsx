@@ -1,8 +1,7 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import {
-  Alert,
   Button,
   Card,
   Group,
@@ -17,10 +16,12 @@ import {
   UnstyledButton,
 } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
-import { IconBox, IconWall } from "@tabler/icons-react";
+import { IconBox, IconCheck, IconWall } from "@tabler/icons-react";
 import { list_wall_types } from "../api";
 import { ApiError, create_structure } from "../../../shared/api/client";
 import type { WallType, WallTypeInfo } from "../../../shared/api/types";
+import { EmptyState } from "../../../shared/components/EmptyState";
+import { ErrorAlert } from "../../../shared/components/ErrorAlert";
 
 /** Retaining wall type picker and creation screen (`/m/walls/new`). */
 export function WallTypePicker() {
@@ -29,40 +30,71 @@ export function WallTypePicker() {
 
   const [types, setTypes] = useState<WallTypeInfo[]>([]);
   const [loading, setLoading] = useState(true);
-  const [loadError, setLoadError] = useState(false);
+  const [loadError, setLoadError] = useState<unknown>(null);
 
   const [selected, setSelected] = useState<WallType | null>(null);
   const [name, setName] = useState("");
   const [height, setHeight] = useState<number>(5);
   const [submitting, setSubmitting] = useState(false);
-  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [submitError, setSubmitError] = useState<unknown>(null);
+  const cardRefs = useRef<Array<HTMLButtonElement | null>>([]);
+  const loadSeq = useRef(0);
 
-  useEffect(() => {
-    let active = true;
+  const load = useCallback(() => {
+    const seq = ++loadSeq.current;
+    setLoading(true);
+    setLoadError(null);
     list_wall_types()
       .then((data) => {
-        if (active) {
-          setTypes(data);
-          setLoading(false);
-        }
+        if (seq !== loadSeq.current) return;
+        setTypes(data);
+        setSelected((cur) => cur ?? data.find((i) => i.id === "cantilever")?.id ?? data[0]?.id ?? null);
+        setLoading(false);
       })
-      .catch(() => {
-        if (active) {
-          setLoadError(true);
-          setLoading(false);
-        }
+      .catch((err: unknown) => {
+        if (seq !== loadSeq.current) return;
+        setLoadError(err);
+        setLoading(false);
       });
-    return () => {
-      active = false;
-    };
   }, []);
+
+  useEffect(() => {
+    load();
+    return () => {
+      loadSeq.current += 1;
+    };
+  }, [load]);
+
+  const cancelButton = (
+    <Button variant="default" onClick={() => navigate("/m/walls")}>
+      {t("walls.type_picker.cancel")}
+    </Button>
+  );
 
   if (loading) {
     return <Loader />;
   }
 
-  if (loadError) {
-    return <Alert color="red">{t("walls.type_picker.load_error")}</Alert>;
+  if (loadError != null) {
+    return (
+      <Stack gap="md" maw={880}>
+        <ErrorAlert error={loadError} />
+        <Group>
+          <Button onClick={load}>{t("web.common.retry")}</Button>
+          {cancelButton}
+        </Group>
+      </Stack>
+    );
+  }
+
+  if (types.length === 0) {
+    return (
+      <EmptyState
+        title={t("walls.type_picker.empty_title")}
+        description={t("walls.type_picker.empty_desc")}
+        action={cancelButton}
+      />
+    );
   }
 
   const selectedInfo = types.find((info) => info.id === selected);
@@ -84,14 +116,19 @@ export function WallTypePicker() {
       });
       navigate(`/m/walls/s/${encodeURIComponent(created.id)}`);
     } catch (err) {
-      if (err instanceof ApiError) {
-        setSubmitError(err.message);
-      } else {
-        throw err;
-      }
-    } finally {
+      setSubmitError(err instanceof ApiError ? err : new Error(t("error.engine_error")));
       setSubmitting(false);
     }
+  }
+
+  function handleRadioKey(e: React.KeyboardEvent, index: number) {
+    const keys: Record<string, number> = { ArrowRight: 1, ArrowDown: 1, ArrowLeft: -1, ArrowUp: -1 };
+    const step = keys[e.key];
+    if (step === undefined) return;
+    e.preventDefault();
+    const next = (index + step + types.length) % types.length;
+    setSelected(types[next].id);
+    cardRefs.current[next]?.focus();
   }
 
   return (
@@ -106,7 +143,7 @@ export function WallTypePicker() {
         role="radiogroup"
         aria-label={t("walls.type_picker.title")}
       >
-        {types.map((info) => {
+        {types.map((info, index) => {
           const isSelected = selected === info.id;
           const Icon =
             info.id === "gravity"
@@ -117,9 +154,14 @@ export function WallTypePicker() {
           return (
             <UnstyledButton
               key={info.id}
+              ref={(el) => {
+                cardRefs.current[index] = el;
+              }}
               role="radio"
               aria-checked={isSelected}
+              tabIndex={isSelected ? 0 : -1}
               onClick={() => setSelected(info.id)}
+              onKeyDown={(e) => handleRadioKey(e, index)}
             >
               <Card
                 withBorder
@@ -144,7 +186,10 @@ export function WallTypePicker() {
                     <Icon size={22} />
                   </ThemeIcon>
                   <Stack gap={4}>
-                    <Text fw={600}>{t(info.title_key)}</Text>
+                    <Group gap={6} wrap="nowrap">
+                      <Text fw={600}>{t(info.title_key)}</Text>
+                      {isSelected && <IconCheck size={16} aria-hidden />}
+                    </Group>
                     <Text size="sm" c="dimmed">
                       {t(`${info.title_key}.description`)}
                     </Text>
@@ -166,21 +211,19 @@ export function WallTypePicker() {
       <NumberInput
         label={t("walls.type_picker.height")}
         value={height}
-        onChange={(val) =>
-          setHeight(typeof val === "number" ? val : Number(val) || 5)
-        }
+        onChange={(val) => {
+          if (typeof val === "number" && Number.isFinite(val)) setHeight(val);
+        }}
         min={1}
         max={15}
-        step={0.5}
+        step={0.25}
         decimalScale={2}
       />
 
-      {submitError && <Alert color="red">{submitError}</Alert>}
+      {submitError != null && <ErrorAlert error={submitError} />}
 
       <Group justify="flex-end">
-        <Button variant="default" onClick={() => navigate("/m/walls")}>
-          {t("walls.type_picker.cancel")}
-        </Button>
+        {cancelButton}
         <Button
           disabled={!selected || submitting}
           loading={submitting}

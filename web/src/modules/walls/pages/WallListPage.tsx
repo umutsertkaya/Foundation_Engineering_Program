@@ -52,7 +52,7 @@ export function WallListPage() {
     <Stack gap="md">
       <Group justify="space-between" align="flex-start">
         <div>
-          <Title order={3}>{t("web.structures.title")}</Title>
+          <Title order={3}>{t("walls.nav.list")}</Title>
           <Text size="sm" c="dimmed">
             {t("web.structures.subtitle")}
           </Text>
@@ -62,7 +62,7 @@ export function WallListPage() {
           leftSection={<IconPlus size={14} />}
           onClick={() => navigate("/m/walls/new")}
         >
-          {t("web.structures.new_btn")}
+          {t("walls.nav.new")}
         </Button>
       </Group>
 
@@ -82,7 +82,7 @@ export function WallListPage() {
               leftSection={<IconPlus size={14} />}
               onClick={() => navigate("/m/walls/new")}
             >
-              {t("web.structures.new_btn")}
+              {t("walls.nav.new")}
             </Button>
           }
         />

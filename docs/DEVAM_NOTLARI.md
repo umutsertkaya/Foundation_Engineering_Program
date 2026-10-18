@@ -1,6 +1,6 @@
 # GeoTek v2: devam notları
 
-Son güncelleme: 2026-10-18. Kapı 2 ve yapı kapısı Y1 onaylandı. Modüler yeniden yapılanma `restructure/modules` dalında sürüyor. **M1 tamam; yapı kapısı Y2 kullanıcı onayı bekliyor.** Ardından M2. Yeni oturum prompt'u: `docs/DEVAM_PROMPT.md`.
+Son güncelleme: 2026-10-18. Kapı 2 ve yapı kapısı Y1 onaylandı. Modüler yeniden yapılanma `restructure/modules` dalında sürüyor. M1 ve Y2 tamam (Y2 onayı 2026-10-18). **M2 tamam.** Sıradaki: M3 (profilsiz elle zemin girişi); M4/M5 M3'ten bağımsız. Yeni oturum prompt'u: `docs/DEVAM_PROMPT.md`.
 
 Yönergeler:
 - Orkestra yönergesi: `docs/ORKESTRA_PROMPT.md`.
@@ -17,14 +17,16 @@ Yönergeler:
 | F1 web iskeleti | Tamam. Kapı 3 **onaylanmadı**; kullanıcı zemin yönetimini istedi, bkz. "Zemin arayüzü" |
 | Zemin arayüzü (F3'ün öne çekilen kısmı) | Tamam: zemin kolonu ve desenler, katman editörü, profil ana-detay ekranı, duvar Zemin adımında bölgeli kesit. Ekran görüntüleri `docs/qa/soil/`. Kullanıcının görsel onayı bekleniyor |
 | E4 katmanlı duvar motoru | Tamam: chunk C dahil (620 pytest, 35 web testi, typecheck geçiyor). Kapı 2 kullanıcı tarafından onaylandı (2026-10-17) |
-| Modüler yapı (başlangıç ekranı → ana menü → modüller) | C0–C6, W1–W4 tamam (`restructure/modules` dalı). Başlangıç/kütüphane, ana menü, 4 modül kabuğu, gerçek oturum+kütüphane API'si, şema 1.3, modül i18n parçaları. İncelemeler (gpt-6-astra backend, Opus web, Sonnet görsel QA) düzeltildi. 827 pytest, 69 web testi. Ekranlar `docs/qa/shell/`. Yapı kapısı Y1 onaylandı (2026-10-17). M1 tamam (2026-10-18): zemin sayfaları, `/m/soil` istemcisi, DTO'lar ve mock `web/src/modules/soil/` altında; Opus incelemesi (yalnız P3) düzeltildi; 75 web testi; ekranlar `docs/qa/soil_module/`. Y2 bekliyor. Plan `docs/plans/MODULER_YAPI.md`, sözleşme `docs/contracts/CORE_SHELL_API.md` |
+| Modüler yapı (başlangıç ekranı → ana menü → modüller) | C0–C6, W1–W4 tamam (`restructure/modules` dalı). Başlangıç/kütüphane, ana menü, 4 modül kabuğu, gerçek oturum+kütüphane API'si, şema 1.3, modül i18n parçaları. İncelemeler (gpt-6-astra backend, Opus web, Sonnet görsel QA) düzeltildi. 827 pytest, 69 web testi. Ekranlar `docs/qa/shell/`. Yapı kapısı Y1 onaylandı (2026-10-17). M1 tamam (2026-10-18): zemin sayfaları, `/m/soil` istemcisi, DTO'lar ve mock `web/src/modules/soil/` altında; Opus incelemesi (yalnız P3) düzeltildi; 75 web testi; ekranlar `docs/qa/soil_module/`. Y2 onaylandı. M2 tamam: `modules/walls` (WallListPage, WallTypePicker, WallWizardPage, api, mock); Opus incelemesi düzeltildi; 81 web testi; ekranlar `docs/qa/walls_module/`. Plan `docs/plans/MODULER_YAPI.md`, sözleşme `docs/contracts/CORE_SHELL_API.md` |
 | E2, E3, A1, F2, F4–F6, T1, Q1, K1, D1 | Başlamadı |
 
 ## M1 sonrası açık noktalar
 
 - Mock'ta `/m/soil/cpts/*/processed`, `boreholes/*/processed` ve `layering/*` hiç yoktu; 501 döner (E2/E3/A1 ile gelecek).
-- `web/src/pages/StructureWizardPage.tsx` hâlâ `MOCK_CANTILEVER_5M`'i statik içe aktarıyor (mock verisi üretim paketinde) → M2'de kesilecek.
-- Zemin testinde (`modules/soil/__tests__/soil.test.tsx`) eski `pages/StructureWizardPage` içe aktarımı var → M2'de duvar modülüne taşınınca testi de bölünecek.
+- M2 sonrası: sonuç ekranında ham kimlikler görünüyor (`seismic:bearing`, `ASD-static.resistance.overturning`) → i18n etiketleri F4'te.
+- Sihirbaz adım çubuğu 800 px'de "Sonuç" etiketini kırpıyor (kozmetik).
+- `ModuleShell` `matchPrefixes` vurgusunun render testi yok.
+- Depoda satır sonları karışık (LF/CRLF); `.gitattributes` yok. X3'te ele alınabilir.
 - Katman tablosu 800 px genişlikte yatay kayıyor (kozmetik).
 
 ## M1 (zemin modülü), tamamlandı

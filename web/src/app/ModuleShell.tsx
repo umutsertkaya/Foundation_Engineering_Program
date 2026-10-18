@@ -89,7 +89,12 @@ export function ModuleShell() {
               component={RouterNavLink}
               to={path}
               end={end}
-              active={Boolean(matchPath({ path, end }, location.pathname))}
+              active={
+                Boolean(matchPath({ path, end }, location.pathname)) ||
+                (item.matchPrefixes ?? []).some((prefix) =>
+                  Boolean(matchPath({ path: `/m/${manifest.id}/${prefix.replace(/\/$/, "")}`, end: false }, location.pathname)),
+                )
+              }
               label={t(item.labelKey)}
               leftSection={ItemIcon ? <ItemIcon size={18} /> : undefined}
             />

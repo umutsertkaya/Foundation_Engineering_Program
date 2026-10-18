@@ -15,5 +15,7 @@
   "walls.type_picker.height": "Duvar yüksekliği H (m)",
   "walls.type_picker.cancel": "Vazgeç",
   "walls.type_picker.create": "Oluştur",
-  "walls.type_picker.created": "Duvar oluşturuldu."
+  "walls.type_picker.created": "Duvar oluşturuldu.",
+  "walls.type_picker.empty_title": "Kullanılabilir duvar tipi yok",
+  "walls.type_picker.empty_desc": "Seçilebilecek bir istinat duvarı tipi bulunmuyor."
 }

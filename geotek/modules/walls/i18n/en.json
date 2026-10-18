@@ -15,5 +15,7 @@
   "walls.type_picker.height": "Wall height H (m)",
   "walls.type_picker.cancel": "Cancel",
   "walls.type_picker.create": "Create",
-  "walls.type_picker.created": "Wall created."
+  "walls.type_picker.created": "Wall created.",
+  "walls.type_picker.empty_title": "No wall types available",
+  "walls.type_picker.empty_desc": "There are no retaining wall types to choose from."
 }
