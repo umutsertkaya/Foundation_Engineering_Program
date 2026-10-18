@@ -1,6 +1,6 @@
 # GeoTek v2: devam notları
 
-Son güncelleme: 2026-10-18. Kapı 2 ve yapı kapısı Y1 onaylandı. Modüler yeniden yapılanma `restructure/modules` dalında sürüyor. M1 ve Y2 tamam (Y2 onayı 2026-10-18). M2, M3, **M4 (palplanş kabuğu) ve M5 (sıvılaşma) tamam.** Sıradaki: X1 (sınır ve manifest testleri) ve X2 (MODULE_GUIDE, new_module.py), birbirinden bağımsız; ardından X3. Yeni oturum prompt'u: `docs/DEVAM_PROMPT.md`.
+Son güncelleme: 2026-10-19. Kapı 2 ve yapı kapısı Y1/Y2 onaylandı. Modüler yeniden yapılanma 2026-10-19'da bitti (M1–M5, X1–X3); `restructure/modules` dalı `main`'e yerel olarak birleştiriliyor (push edilmedi). Kapı 3 (F1 tasarımı) onaylanmadı; kullanıcının zemin ekranlarına görsel onayı bekleniyor. Paralel A1/E2 işi git worktree'lerinde sürüyor, bkz. "Paralel çalışma". Yeni oturum prompt'u: `docs/DEVAM_PROMPT.md`.
 
 Yönergeler:
 - Orkestra yönergesi: `docs/ORKESTRA_PROMPT.md`.
@@ -26,7 +26,6 @@ Yönergeler:
 - M2 sonrası: sonuç ekranında ham kimlikler görünüyor (`seismic:bearing`, `ASD-static.resistance.overturning`) → i18n etiketleri F4'te.
 - Sihirbaz adım çubuğu 800 px'de "Sonuç" etiketini kırpıyor (kozmetik).
 - `ModuleShell` `matchPrefixes` vurgusunun render testi yok.
-- Depoda satır sonları karışık (LF/CRLF); `.gitattributes` yok. X3'te ele alınabilir.
 - Katman tablosu 800 px genişlikte yatay kayıyor (kozmetik).
 
 ## M1 (zemin modülü), tamamlandı
@@ -91,15 +90,34 @@ M2, M4 ve M5 paralel yürüyebilir; ortak dosyalara (`shared/api/client.ts`, leg
 
 İncelemeler: Claude Opus (alt ajan) ve gpt-6-astra. Bulgular düzeltildi; Opus'un yeniden kontrolü temiz.
 
+## X1–X3 (tamam, 2026-10-19)
+
+- X1: `tests/unit/test_module_boundaries.py`, `tests/unit/test_module_manifests.py`, `web/src/test/boundaries.test.ts`.
+- X2: `docs/MODULE_GUIDE.md`, `tools/new_module.py`, `tests/unit/test_new_module.py`. Yeni modüller bu araçla iskelelenir.
+- X3: `.gitattributes` (LF normalizasyonu); `web/src/shared/api/mock/legacy.ts` kalktı → `mock/store.ts` + `mock/coreRoutes.ts`; walls/sheet_pile mock rotaları kendi `/m/<id>` yollarında, `rewriteModulePath` kaldırıldı. Yol haritası yeniden hedeflendi (`docs/ORKESTRA_PROMPT.md`).
+
+## Paralel çalışma (2026-10-19 başladı)
+
+Git worktree'leri `C:\Users\thebi\Documents\geotek-wt\` altında (GPT yazdı, inceleme/düzeltme aşamasında):
+- `feat/a1-core`: yapı CRUD, zemin set/resync, katsayılar, tasarım geçersiz kılmaları, i18n uç noktası.
+- `feat/a1-soil`: araştırmalar/içe aktarma/CRUD/processed, profil CRUD, böl/birleştir. Katmanlama ve parametre rotaları hâlâ 501.
+- `feat/e2-layering`: `geotek/engine/layering/`, `geotek/services/layering.py`.
+
+Her biri düzeltme, iki inceleme ve tam testlerden sonra birleştirilir; ardından orkestra `test_contract.py` IMPLEMENTED kümesini ve openapi/schema.d.ts'i günceller. Bunlardan sonra açık kalanlar: A1 işleri (`/api/jobs*`), duvar boyut/kontrol, palplanş tasarımı, sıvılaşma `run`, katmanlama/parametre rotaları (E3 gerekir).
+
+Küçük açık noktalar:
+- Web mock `POST .../required-factors` projeyi hâlâ kirli işaretliyor (eski davranış korundu).
+- Mock yapı PUT'u upsert ediyor, olmayanı DELETE 200 dönüyor; backend A1 ise 404 veriyor. `feat/a1-core` birleşince mock backend'e hizalanacak.
+- Tüm mock 501 mesajları artık "(Mock)" ile bitiyor.
+
 ## Açık konular
 
 - M4/M5 (2026-10-18):
   - Palplanş modülü yalnız kabuk: liste ve yer tutucu ayrıntı. Palplanş oluşturma (elle zemin kartı dahil) F5'te gelecek. Elle zemin kartı şu an `modules/walls/pages/WallTypePicker.tsx` içinde; palplanş da kullanacaksa önce `shared/`a çıkarılmalı.
   - Sıvılaşma `run` artık isteğe bağlı `profile_id` alıyor (2c5b963). Backend gövdesi hâlâ 501 (A1/F5). Ayarlar sayfa içinde tutuluyor; modül durumu uç noktası (`modules[...]`) yok.
   - Sıvılaşma formu katsayıları doldurmuyor. Yalnız a_max ve Mw proje saha verisinden (varsa) geliyor. Doğrulama sınırları `_check_inputs` ile aynı.
-  - i18n tek süslü parantez kullanıyor (`{field}`). Modül kataloglarında `{{...}}` yazılmamalı. X1'e katalog geneli bir test eklenebilir.
+  - i18n tek süslü parantez kullanıyor (`{field}`); `{{` denetimi X1 testlerinde yapılıyor.
   - `docs/qa/liquefaction_module/03_empty_form_run_disabled_1280.png`, `{field}` düzeltmesinden önce alındı ve ham "{{field}}" metnini gösteriyor.
-  - `sheet_pile/manifest.ts`, `liquefaction/Root.tsx` ve `test/module_paths.test.ts` CRLF'den LF'ye döndü. X3'teki `.gitattributes` ile toparlanacak.
 
 - KDYY "Tasarım ve Uygulama Esasları" (16.07.2026 değişikliği) ve Tasarım El Kitabı (Temmuz 2023) okunamadı: dosyalar 10 MB'ı aşıyor ya da sertifika hatası veriyor. Kullanıcı PDF'leri yerel olarak sağlarsa incelenecek.
 - Yeni motor seçenekleri arayüze bağlanacak (F4 duvar sihirbazı):
