@@ -2,5 +2,11 @@
   "sheet_pile.title": "Palplanş / iksa",
   "sheet_pile.description": "Konsol ve tek ankrajlı palplanş perdelerinde gömme derinliği, ankraj kuvveti ve iç kuvvetler.",
   "sheet_pile.nav.list": "Perdeler",
-  "sheet_pile.placeholder": "Bu bölümün ekranları sonraki adımda bu modüle taşınacak."
+  "sheet_pile.list.subtitle": "Projedeki palplanş perdeleri.",
+  "sheet_pile.list.empty_title": "Henüz palplanş perdesi yok",
+  "sheet_pile.list.empty_desc": "Palplanş perdesi oluşturma ve tasarım ekranları sonraki adımda bu modüle eklenecek.",
+  "sheet_pile.detail.not_found_title": "Palplanş perdesi bulunamadı",
+  "sheet_pile.detail.not_found_desc": "İstenen perde projede yok veya silinmiş olabilir.",
+  "sheet_pile.detail.placeholder_title": "Tasarım ekranları yakında",
+  "sheet_pile.detail.placeholder_desc": "Zemin, yükleme ve tasarım ekranları sonraki adımda bu modüle eklenecek."
 }

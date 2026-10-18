@@ -1,16 +1,12 @@
-import { useTranslation } from "react-i18next";
 import { Navigate, Route, Routes } from "react-router-dom";
-import { EmptyState } from "../../shared/components/EmptyState";
-
-function Placeholder({ labelKey }: { labelKey: string }) {
-  const { t } = useTranslation();
-  return <EmptyState title={t(labelKey)} description={t("sheet_pile.placeholder")} />;
-}
+import { SheetPileDetailPage } from "./pages/SheetPileDetailPage";
+import { SheetPileListPage } from "./pages/SheetPileListPage";
 
 export default function Root() {
   return (
     <Routes>
-      <Route index element={<Placeholder labelKey="sheet_pile.nav.list" />} />
+      <Route index element={<SheetPileListPage />} />
+      <Route path="s/:sid/*" element={<SheetPileDetailPage />} />
       <Route path="*" element={<Navigate to="" replace />} />
     </Routes>
   );
