@@ -1,7 +1,7 @@
 import type { AppSettings, LibraryEntry, ModuleInfo, NewProjectRequest, ProjectMeta, SessionInfo } from "../types";
 import { MOCK_DEFAULT_META } from "./data";
 import { NOT_HANDLED, type MockHandler } from "./dispatcher";
-import { getMockProjectMeta, getMockStore, toProfileSummary, resetMockState, resetMockStateEmptyProject, setMockMutationListener, setMockProjectMeta } from "./legacy";
+import { getMockProjectMeta, getMockStore, toProfileSummary, resetMockState, resetMockStateEmptyProject, setMockMutationListener, setMockProjectMeta } from "./store";
 
 interface LibraryRecord {
   entry: LibraryEntry;
@@ -74,7 +74,7 @@ function ok(data: unknown): { status: number; data: unknown } {
   return { status: 200, data: structuredClone(data) };
 }
 
-// Match legacy's error envelope; http.request converts it into an ApiError.
+// Same error envelope as the module mocks; http.request converts it into an ApiError.
 function error(status: number, code: string, message: string): { status: number; data: unknown } {
   return { status, data: { code, message: `${message} (Mock)`, details: {}, missing_factors: [] } };
 }

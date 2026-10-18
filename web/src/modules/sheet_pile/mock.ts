@@ -1,10 +1,10 @@
 import { NOT_HANDLED, type MockHandler } from "../../shared/api/mock/dispatcher";
 import { isMockSessionOpen } from "../../shared/api/mock/core";
-import { getMockStore, notFound } from "../../shared/api/mock/legacy";
+import { getMockStore, notFound } from "../../shared/api/mock/store";
 
 const PREFIX = "/m/sheet_pile";
 
-// Design is not available yet; everything else falls through to the dispatcher/legacy mock.
+// Design is not available yet; everything else falls through to the dispatcher (501).
 const handle: MockHandler = (method, path) => {
   const match = /^\/m\/sheet_pile\/structures\/([^/]+)\/design$/.exec(path.split("?")[0]);
   if (method.toUpperCase() !== "POST" || !match) return NOT_HANDLED;

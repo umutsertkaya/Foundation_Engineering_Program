@@ -1,14 +1,18 @@
 import { registerMockHandlers, type MockHandler } from "./dispatcher";
 import { coreMockHandler } from "./core";
+import { coreRoutesHandler } from "./coreRoutes";
 
-export * from "./legacy";
-// Explicit export resolves the name also exposed by legacy.
+export * from "./store";
 export { mockRequest, NOT_HANDLED, registerMockHandlers } from "./dispatcher";
 export type { MockHandler } from "./dispatcher";
 export { resetCoreMock, isMockSessionOpen } from "./core";
 
 for (const prefix of ["/modules", "/settings", "/library", "/session", "/project", "/data"]) {
   registerMockHandlers(prefix, coreMockHandler);
+}
+// Registered after the core handler: it falls through (NOT_HANDLED) to these routes on shared prefixes like /project.
+for (const prefix of ["/health", "/i18n", "/project", "/structures", "/jobs", "/codes"]) {
+  registerMockHandlers(prefix, coreRoutesHandler);
 }
 
 // The one sanctioned shared -> modules link: module mocks are discovered by glob.

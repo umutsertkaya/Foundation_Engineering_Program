@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import { mockRequest, resetMockState } from "../../../shared/api/mock";
-import { setMockMutationListener } from "../../../shared/api/mock/legacy";
+import { setMockMutationListener } from "../../../shared/api/mock/store";
 import { mock } from "../mock";
 
 const listener = vi.fn();

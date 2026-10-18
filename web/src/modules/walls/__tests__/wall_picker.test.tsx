@@ -6,7 +6,7 @@ import trCatalog from "../../../../../geotek/i18n/tr.json";
 import { setMockMode } from "../../../shared/api/client";
 import * as client from "../../../shared/api/client";
 import { resetMockState, resetMockStateEmptyProject } from "../../../shared/api/mock";
-import { getMockStore } from "../../../shared/api/mock/legacy";
+import { getMockStore } from "../../../shared/api/mock/store";
 import "../../../app/i18n";
 import { theme } from "../../../app/theme";
 import { WallListPage } from "../pages/WallListPage";

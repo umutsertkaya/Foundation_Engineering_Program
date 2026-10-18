@@ -4,7 +4,7 @@ import {
   notifyMockMutation,
   toProfileSummary,
   validationError,
-} from "../../shared/api/mock/legacy";
+} from "../../shared/api/mock/store";
 import { MOCK_PROFILES } from "../../shared/api/mock/data";
 import { NOT_HANDLED, type MockHandler } from "../../shared/api/mock/dispatcher";
 import { validateGwt, validateLayers } from "../../shared/soil/layerOps";
@@ -91,14 +91,14 @@ function handleSoil(method: string, path: string, body: unknown): Reply | typeof
 const handle: MockHandler = (method, path, body) => {
   const result = handleSoil(method, path, body);
   if (result === NOT_HANDLED) return NOT_HANDLED;
-  const legacyPath = path.split("?")[0].slice(PREFIX.length);
+  const shellPath = path.split("?")[0].slice(PREFIX.length);
   if (
     result.status < 400
     && ["POST", "PUT", "PATCH", "DELETE"].includes(method.toUpperCase())
-    && /^\/profiles(\/|$)/.test(legacyPath)
+    && /^\/profiles(\/|$)/.test(shellPath)
   ) {
-    // Same edit tracking the legacy mock did for /profiles routes (read-only POSTs never dirty the project).
-    notifyMockMutation(legacyPath);
+    // Same edit tracking as the shell-level /profiles routes (read-only POSTs never dirty the project).
+    notifyMockMutation(shellPath);
   }
   return result;
 };

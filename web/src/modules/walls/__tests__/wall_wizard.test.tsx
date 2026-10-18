@@ -45,9 +45,10 @@ describe("walls module mock", () => {
   beforeEach(() => setMockMode(true));
   afterEach(() => setMockMode(null));
 
-  it("serves GET /m/walls/wall-types itself and leaves other routes to the legacy fallback", async () => {
+  it("serves wall-types and structure actions itself and leaves other routes to the dispatcher", async () => {
     expect(mock.handle("GET", "/m/walls/wall-types", undefined)).toMatchObject({ status: 200 });
-    expect(mock.handle("POST", "/m/walls/structures/s1/size", undefined)).toBe(NOT_HANDLED);
+    expect(mock.handle("POST", "/m/walls/structures/s1/size", undefined)).toMatchObject({ status: 404 });
+    expect(mock.handle("GET", "/m/walls/structures/s1/size", undefined)).toBe(NOT_HANDLED);
     expect((await mockRequest("GET", "/m/walls/wall-types")).status).toBe(200);
     expect((await list_wall_types()).map(({ id }) => id)).toEqual(["cantilever", "gravity"]);
   });

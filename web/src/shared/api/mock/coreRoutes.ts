@@ -1,157 +1,38 @@
-import trCatalog from "../../../../../geotek/i18n/tr.json";
-import enCatalog from "../../../../../geotek/i18n/en.json";
 import type {
   ActiveProfileUpdate,
   ApiErrorDTO,
-  Borehole,
-  CPTSounding,
   DeletionResponse,
   HealthResponse,
-  JobKind,
-  JobRef,
   JobState,
   Language,
-  MissingFactorDTO,
-  ProfileSummary,
-  ProjectMeta,
   ProjectMetaPatch,
   ProjectNew,
   ProjectSummary,
   RetainingWallStructure,
   SheetPileStructure,
   SiteSeismic,
-  SoilProfile,
   Structure,
   StructureCreate,
   StructureSoilModel,
   StructureSummary,
-  WallResultDTO,
 } from "../types";
-import { validateGwt, validateLayers, validateStructureSoil } from "../../soil/layerOps";
+import { validateGwt, validateStructureSoil } from "../../soil/layerOps";
 import { mockProfileHash } from "./hash";
+import { MOCK_CANTILEVER_5M, MOCK_DESIGN_CODES, MOCK_INITIAL_STRUCTURES } from "./data";
+import { NOT_HANDLED, type MockHandler } from "./dispatcher";
 import {
-  buildMockWallResult,
-  MOCK_BOREHOLE,
-  MOCK_CANTILEVER_5M,
-  MOCK_CPT,
-  MOCK_DEFAULT_META,
-  MOCK_DEFAULT_SITE,
-  MOCK_DESIGN_CODES,
-  MOCK_INITIAL_STRUCTURES,
-  MOCK_MISSING_FACTORS,
-  MOCK_PROFILES,
-} from "./data";
-
-interface MockJobInternal {
-  job_id: string;
-  kind: JobKind;
-  structure_id: string;
-  startedAt: number;
-  polls: number;
-  cancelled: boolean;
-  result: WallResultDTO;
-}
-
-export interface MockStore {
-  meta: ProjectMeta;
-  site: SiteSeismic;
-  active_profile_id: string | null;
-  boreholes: Borehole[];
-  cpts: CPTSounding[];
-  profiles: SoilProfile[];
-  structures: Structure[];
-  jobs: Map<string, MockJobInternal>;
-  jobSeq: number;
-  profileSeq: number;
-}
-
-function createInitialStore(): MockStore {
-  const profiles = structuredClone(MOCK_PROFILES);
-  const structures: Structure[] = structuredClone(MOCK_INITIAL_STRUCTURES);
-  // D-1 starts up to date with its source profile; D-2 keeps its mismatching (stale) hash.
-  for (const s of structures) {
-    if (s.soil.source_hash === null || s.soil.source_hash === undefined) {
-      const src = profiles.find((p) => p.id === s.soil.source_profile_id);
-      s.soil.source_hash = src ? mockProfileHash(src) : null;
-    }
-  }
-  return {
-    meta: { ...MOCK_DEFAULT_META },
-    site: { ...MOCK_DEFAULT_SITE },
-    active_profile_id: MOCK_PROFILES[0].id,
-    boreholes: [structuredClone(MOCK_BOREHOLE)],
-    cpts: [structuredClone(MOCK_CPT)],
-    profiles,
-    structures,
-    jobs: new Map<string, MockJobInternal>(),
-    jobSeq: 0,
-    profileSeq: profiles.length,
-  };
-}
-
-let store: MockStore = createInitialStore();
-
-let mutationListener: ((path: string) => void) | undefined;
-
-/** Let the shell track successful edits without coupling the legacy routes to it. */
-export function setMockMutationListener(listener: (path: string) => void): void {
-  mutationListener = listener;
-}
-
-/** Live accessor: the store object is replaced on reset, so never cache the result across requests. */
-export function getMockStore(): MockStore {
-  return store;
-}
-
-/** Module mocks report successful edits with the pre-modular path (/profiles/..., /structures/...). */
-export function notifyMockMutation(path: string): void {
-  mutationListener?.(path);
-}
-
-export function setMockProjectMeta(partial: Partial<ProjectMeta>): void {
-  store.meta = { ...store.meta, ...partial };
-}
-
-export function getMockProjectMeta(): ProjectMeta {
-  return { ...store.meta };
-}
-
-/** A brand-new project: no seed profiles/structures; investigations stay (site data). */
-export function resetMockStateEmptyProject(): void {
-  const fresh = createInitialStore();
-  fresh.profiles = [];
-  fresh.structures = [];
-  fresh.active_profile_id = null;
-  fresh.profileSeq = 0;
-  store = fresh;
-}
-
-export function resetMockState(): void {
-  store = createInitialStore();
-}
-
-export function getMockCatalog(lang: Language): Record<string, string> {
-  return lang === "en" ? { ...enCatalog } : { ...trCatalog };
-}
+  getMockCatalog,
+  getMockStore,
+  notFound,
+  notifyMockMutation,
+  resetMockState,
+  validationError,
+} from "./store";
 
 function isStructureStale(s: Structure): boolean {
   if (!s.soil.source_profile_id) return false;
-  const source = store.profiles.find((p) => p.id === s.soil.source_profile_id);
+  const source = getMockStore().profiles.find((p) => p.id === s.soil.source_profile_id);
   return !source || mockProfileHash(source) !== s.soil.source_hash;
-}
-
-export function validationError(message: string, details: Record<string, unknown>): { status: number; data: ApiErrorDTO } {
-  return {
-    status: 422,
-    data: { code: "validation", message: `${message} (Mock)`, details, missing_factors: [] },
-  };
-}
-
-export function notFound(what: string): { status: number; data: ApiErrorDTO } {
-  return {
-    status: 404,
-    data: { code: "not_found", message: `${what} not found (Mock).`, details: {}, missing_factors: [] },
-  };
 }
 
 function structureBaseDepth(s: Structure): number {
@@ -175,6 +56,7 @@ function toStructureSummary(s: Structure): StructureSummary {
 }
 
 function buildProjectSummary(): ProjectSummary {
+  const store = getMockStore();
   return {
     meta: { ...store.meta },
     site: { ...store.site },
@@ -189,74 +71,8 @@ function buildProjectSummary(): ProjectSummary {
   };
 }
 
-export function toProfileSummary(p: SoilProfile): ProfileSummary {
-  return {
-    id: p.id,
-    name: p.name ?? p.id,
-    origin: p.origin ?? "manual",
-    source_ids: [...(p.source_ids ?? [])],
-    gwt: { ...p.gwt },
-    layer_count: p.layers.length,
-  };
-}
-
-function getMissingFactorsForStructure(s: Structure): MissingFactorDTO[] {
-  if ((s.kind ?? "retaining_wall") === "retaining_wall") {
-    const wall = s as RetainingWallStructure;
-    const level = wall.analysis_level ?? "basic";
-    const code = wall.settings?.design_code ?? "asd";
-    if (level === "advanced" && code === "tbdy2018") {
-      const overrides = wall.settings?.factor_overrides ?? {};
-      return MOCK_MISSING_FACTORS.filter((mf) => !(mf.path in overrides));
-    }
-  }
-  return [];
-}
-
-function startWallJob(structureId: string, kind: "wall_size" | "wall_check"): { status: number; data: JobRef | ApiErrorDTO } {
-  const structure = store.structures.find((item) => item.id === structureId);
-  if (!structure) {
-    return {
-      status: 404,
-      data: {
-        code: "not_found",
-        message: `Structure '${structureId}' not found (Mock).`,
-        details: { id: structureId },
-        missing_factors: [],
-      },
-    };
-  }
-
-  const missing = getMissingFactorsForStructure(structure);
-  if (missing.length > 0) {
-    return {
-      status: 422,
-      data: {
-        code: "missing_factors",
-        message: "Selected design code has missing factors (Sentetik / Mock).",
-        details: { structure_id: structureId, design_code: "tbdy2018" },
-        missing_factors: missing,
-      },
-    };
-  }
-
-  store.jobSeq += 1;
-  const job_id = `job-mock-${store.jobSeq}`;
-  const result = buildMockWallResult(structureId);
-  store.jobs.set(job_id, {
-    job_id,
-    kind,
-    structure_id: structureId,
-    startedAt: Date.now(),
-    polls: 0,
-    cancelled: false,
-    result,
-  });
-
-  return { status: 202, data: { job_id } };
-}
-
 function pollJobState(jobId: string): { status: number; data: JobState | ApiErrorDTO } {
+  const store = getMockStore();
   const job = store.jobs.get(jobId);
   if (!job) {
     return {
@@ -358,29 +174,12 @@ function pollJobState(jobId: string): { status: number; data: JobState | ApiErro
   };
 }
 
-export async function mockRequest(
+function handleCoreRoutes(
   method: string,
   path: string,
   body?: unknown,
-): Promise<{ status: number; data: unknown }> {
-  const cleanPath = path.split("?")[0];
-  // Like the backend, PATCH meta / PUT site only count as edits when a value actually changes.
-  const trackChange = cleanPath === "/project/meta" || cleanPath === "/project/site";
-  const before = trackChange ? JSON.stringify([store.meta, store.site]) : "";
-  const response = await handleMockRequest(method, path, body);
-  const changed = !trackChange || JSON.stringify([store.meta, store.site]) !== before;
-  if (response.status < 400 && changed && ["POST", "PUT", "PATCH", "DELETE"].includes(method.toUpperCase())
-    && /^\/(project|profiles|structures)(\/|$)/.test(cleanPath)) {
-    mutationListener?.(cleanPath);
-  }
-  return response;
-}
-
-async function handleMockRequest(
-  method: string,
-  path: string,
-  body?: unknown,
-): Promise<{ status: number; data: unknown }> {
+): { status: number; data: unknown } | typeof NOT_HANDLED {
+  const store = getMockStore();
   const cleanPath = path.split("?")[0];
   const upperMethod = method.toUpperCase();
 
@@ -405,9 +204,10 @@ async function handleMockRequest(
   // POST /project/new
   if (upperMethod === "POST" && cleanPath === "/project/new") {
     const payload = body as ProjectNew;
-    store = createInitialStore();
-    store.meta.name = payload.name;
-    store.meta.language = payload.language;
+    resetMockState();
+    const fresh = getMockStore();
+    fresh.meta.name = payload.name;
+    fresh.meta.language = payload.language;
     return { status: 200, data: buildProjectSummary() };
   }
 
@@ -587,32 +387,6 @@ async function handleMockRequest(
     }
   }
 
-  // POST /structures/{id}/required-factors
-  const reqFactorsMatch = /^\/structures\/([^/]+)\/required-factors$/.exec(cleanPath);
-  if (upperMethod === "POST" && reqFactorsMatch) {
-    const structId = decodeURIComponent(reqFactorsMatch[1]);
-    const structure = store.structures.find((s) => s.id === structId);
-    if (!structure) {
-      return {
-        status: 404,
-        data: { code: "not_found", message: "Structure not found (Mock).", details: {}, missing_factors: [] },
-      };
-    }
-    return { status: 200, data: getMissingFactorsForStructure(structure) };
-  }
-
-  // POST /structures/{id}/size
-  const sizeMatch = /^\/structures\/([^/]+)\/size$/.exec(cleanPath);
-  if (upperMethod === "POST" && sizeMatch) {
-    return startWallJob(decodeURIComponent(sizeMatch[1]), "wall_size");
-  }
-
-  // POST /structures/{id}/check
-  const checkMatch = /^\/structures\/([^/]+)\/check$/.exec(cleanPath);
-  if (upperMethod === "POST" && checkMatch) {
-    return startWallJob(decodeURIComponent(checkMatch[1]), "wall_check");
-  }
-
   // GET / DELETE /jobs/{job_id}
   const jobMatch = /^\/jobs\/([^/]+)$/.exec(cleanPath);
   if (jobMatch) {
@@ -638,13 +412,25 @@ async function handleMockRequest(
     return { status: 200, data: structuredClone(MOCK_DESIGN_CODES) };
   }
 
-  return {
-    status: 501,
-    data: {
-      code: "not_implemented",
-      message: `Mock endpoint not implemented: ${upperMethod} ${cleanPath}`,
-      details: {},
-      missing_factors: [],
-    },
-  };
+  return NOT_HANDLED;
 }
+
+/**
+ * Project, structure CRUD, job polling, codes, health and i18n routes. Like the backend,
+ * PATCH meta / PUT site only count as edits when a value actually changes.
+ */
+export const coreRoutesHandler: MockHandler = (method, path, body) => {
+  const cleanPath = path.split("?")[0];
+  const store = getMockStore();
+  const trackChange = cleanPath === "/project/meta" || cleanPath === "/project/site";
+  const before = trackChange ? JSON.stringify([store.meta, store.site]) : "";
+  const response = handleCoreRoutes(method, path, body);
+  if (response === NOT_HANDLED) return NOT_HANDLED;
+  const after = getMockStore();
+  const changed = !trackChange || JSON.stringify([after.meta, after.site]) !== before;
+  if (response.status < 400 && changed && ["POST", "PUT", "PATCH", "DELETE"].includes(method.toUpperCase())
+    && /^\/(project|structures)(\/|$)/.test(cleanPath)) {
+    notifyMockMutation(cleanPath);
+  }
+  return response;
+};

@@ -92,7 +92,7 @@ describe("import parsing", () => {
     expect(reachesModules("app/x.ts", ["modules/a/y"])).toHaveLength(1);
     expect(mockViolation("pages/P.tsx", ["shared/api/mock/data"])).toBe(true);
     expect(mockViolation("modules/a/pages/P.tsx", ["shared/api/mock/index"])).toBe(true);
-    expect(mockViolation("modules/a/mock.ts", ["shared/api/mock/legacy"])).toBe(false);
+    expect(mockViolation("modules/a/mock.ts", ["shared/api/mock/store"])).toBe(false);
     expect(mockViolation("shared/api/http.ts", ["shared/api/mock/index"])).toBe(false);
     expect(mockViolation("modules/a/__tests__/t.test.tsx", ["shared/api/mock/index"])).toBe(false);
   });

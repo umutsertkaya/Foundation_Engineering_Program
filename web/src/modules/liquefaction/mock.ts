@@ -1,6 +1,6 @@
 import { NOT_HANDLED, type MockHandler } from "../../shared/api/mock/dispatcher";
 import { isMockSessionOpen } from "../../shared/api/mock/core";
-import { getMockStore, notFound, validationError } from "../../shared/api/mock/legacy";
+import { getMockStore, notFound, validationError } from "../../shared/api/mock/store";
 
 const PREFIX = "/m/liquefaction";
 let jobSeq = 0;

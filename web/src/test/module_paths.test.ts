@@ -6,24 +6,27 @@ import { getMockStore } from "../shared/api/mock";
 import type { Structure } from "../shared/api/types";
 import { list_wall_types } from "../modules/walls/api";
 import { list_investigations, list_profiles } from "../modules/soil/api";
-import { rewriteModulePath } from "../shared/api/mock/dispatcher";
 import { mockRequest } from "../shared/api/mock";
 
 beforeEach(() => setMockMode(true));
 afterEach(() => setMockMode(null));
 
 describe("module API paths in the mock", () => {
-  it("rewrites module routes to the legacy paths", () => {
-    // Soil is served by its own module mock, so its paths are no longer rewritten.
-    expect(rewriteModulePath("/m/soil/profiles/p1")).toBe("/m/soil/profiles/p1");
-    expect(rewriteModulePath("/m/soil/investigations")).toBe("/m/soil/investigations");
-    expect(rewriteModulePath("/m/walls/structures/s1/size")).toBe("/structures/s1/size");
-    expect(rewriteModulePath("/m/sheet_pile/structures/s1/design")).toBe("/structures/s1/design");
-    expect(rewriteModulePath("/structures/s1")).toBe("/structures/s1");
-    expect(rewriteModulePath("/m/walls/wall-types")).toBe("/m/walls/wall-types");
+  it("serves walls and sheet_pile structure routes at their real module paths", async () => {
+    const id = getMockStore().structures[0].id;
+    expect((await mockRequest("POST", `/m/walls/structures/${id}/required-factors`)).status).toBe(200);
+    expect((await mockRequest("POST", `/m/walls/structures/${id}/size`)).status).toBe(202);
+    // The pre-modular structure action paths are gone.
+    for (const action of ["size", "check", "required-factors", "design"]) {
+      const response = await mockRequest("POST", `/structures/${id}/${action}`);
+      expect(response.status, action).toBe(501);
+      expect((response.data as { message: string }).message).toContain(`/structures/${id}/${action}`);
+    }
+    // Unknown module routes keep their own path in the 501.
+    expect((await mockRequest("GET", "/m/walls/structures/s1/size")).status).toBe(501);
   });
 
-  it("answers routes without a legacy handler with a clear not_implemented 501", async () => {
+  it("answers routes without a mock handler with a clear not_implemented 501", async () => {
     for (const [method, path] of [
       ["GET", "/m/soil/cpts/c1/processed"],
       ["POST", "/m/soil/layering/cpt/c1"],

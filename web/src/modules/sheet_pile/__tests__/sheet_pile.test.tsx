@@ -5,7 +5,7 @@ import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { setMockMode } from "../../../shared/api/client";
 import { resetCoreMock } from "../../../shared/api/mock/core";
 import { mockRequest, resetMockState, resetMockStateEmptyProject } from "../../../shared/api/mock";
-import { getMockStore } from "../../../shared/api/mock/legacy";
+import { getMockStore } from "../../../shared/api/mock/store";
 import type { Structure } from "../../../shared/api/types";
 import "../../../app/i18n";
 import { theme } from "../../../app/theme";
