@@ -8,9 +8,10 @@ import trModule from "../../../../../geotek/modules/liquefaction/i18n/tr.json";
 import * as client from "../../../shared/api/client";
 import { setMockMode } from "../../../shared/api/client";
 import { mockRequest, resetMockState, resetMockStateEmptyProject } from "../../../shared/api/mock";
-import { resetCoreMock } from "../../../shared/api/mock/core";
+import { isMockSessionOpen, resetCoreMock } from "../../../shared/api/mock/core";
 import "../../../app/i18n";
 import { theme } from "../../../app/theme";
+import * as core from "../../../shared/api/core";
 import * as api from "../api";
 import { AnalysisPage } from "../pages/AnalysisPage";
 import Root from "../Root";
@@ -130,6 +131,30 @@ describe("liquefaction analysis page (mock)", () => {
     expect(screen.getByTestId("loc").textContent).toBe("/m/liquefaction");
   });
 
+  it("a deleted profile (404 not_found) shows the profile_missing message, retry reloads profiles", async () => {
+    vi.spyOn(api, "run_liquefaction").mockRejectedValue(
+      new client.ApiError(404, { code: "not_found", message: "gone", details: {}, missing_factors: [] }),
+    );
+    const listSpy = vi.spyOn(core, "list_project_profiles");
+    renderPage();
+    await fillValid();
+    await waitFor(() => expect(runButton()).toBeEnabled());
+    const callsBefore = listSpy.mock.calls.length;
+    fireEvent.click(runButton());
+    expect(await screen.findByText(tr["liquefaction.error.profile_missing"])).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: trCatalog["web.common.retry"] }));
+    await waitFor(() => expect(listSpy.mock.calls.length).toBeGreaterThan(callsBefore));
+    await waitFor(() => expect(screen.queryByText(tr["liquefaction.error.profile_missing"])).not.toBeInTheDocument());
+  });
+
+  it("validation issues name the field (placeholder is filled)", async () => {
+    renderPage();
+    await screen.findByRole("textbox", { name: tr["liquefaction.field.method"] });
+    const expected = `${tr["liquefaction.field.target_fs"]}: bir sayı girin.`;
+    expect(screen.getByText(expected)).toBeInTheDocument();
+    expect(screen.queryByText(/\{field\}|\{\{field\}\}/)).not.toBeInTheDocument();
+  });
+
   it("other run errors go to the error alert", async () => {
     vi.spyOn(api, "run_liquefaction").mockRejectedValue(
       new client.ApiError(500, { code: "engine_error", message: "boom", details: {}, missing_factors: [] }),
@@ -179,6 +204,12 @@ describe("liquefaction mock rules", () => {
     expect((res.data as { code: string }).code).toBe("no_project_open");
   });
 
+  it("409 no_project_open once the session is closed (isMockSessionOpen)", async () => {
+    expect(isMockSessionOpen()).toBe(true);
+    await mockRequest("POST", "/project/close");
+    expect(isMockSessionOpen()).toBe(false);
+  });
+
   it("409 no_soil_source for a null profile without an active profile", async () => {
     resetMockStateEmptyProject();
     const res = await mockRequest("POST", "/m/liquefaction/run", { ...valid, profile_id: null });
@@ -205,6 +236,9 @@ describe("liquefaction mock rules", () => {
 describe("liquefaction i18n", () => {
   it("tr and en have the same keys and the placeholder is gone", () => {
     expect(Object.keys(enModule).sort()).toEqual(Object.keys(trModule).sort());
+    for (const catalog of [trModule, enModule] as Array<Record<string, string>>) {
+      for (const value of Object.values(catalog)) expect(value).not.toContain("{{");
+    }
     expect(Object.keys(trModule)).not.toContain("liquefaction.placeholder");
   });
 });

@@ -1,6 +1,6 @@
 # GeoTek v2: devam notları
 
-Son güncelleme: 2026-10-18. Kapı 2 ve yapı kapısı Y1 onaylandı. Modüler yeniden yapılanma `restructure/modules` dalında sürüyor. M1 ve Y2 tamam (Y2 onayı 2026-10-18). M2 ve **M3 tamam.** Sıradaki: M4 (palplanş) ve M5 (sıvılaşma), birbirinden bağımsız. Yeni oturum prompt'u: `docs/DEVAM_PROMPT.md`.
+Son güncelleme: 2026-10-18. Kapı 2 ve yapı kapısı Y1 onaylandı. Modüler yeniden yapılanma `restructure/modules` dalında sürüyor. M1 ve Y2 tamam (Y2 onayı 2026-10-18). M2, M3, **M4 (palplanş kabuğu) ve M5 (sıvılaşma) tamam.** Sıradaki: X1 (sınır ve manifest testleri) ve X2 (MODULE_GUIDE, new_module.py), birbirinden bağımsız; ardından X3. Yeni oturum prompt'u: `docs/DEVAM_PROMPT.md`.
 
 Yönergeler:
 - Orkestra yönergesi: `docs/ORKESTRA_PROMPT.md`.
@@ -92,6 +92,14 @@ M2, M4 ve M5 paralel yürüyebilir; ortak dosyalara (`shared/api/client.ts`, leg
 İncelemeler: Claude Opus (alt ajan) ve gpt-6-astra. Bulgular düzeltildi; Opus'un yeniden kontrolü temiz.
 
 ## Açık konular
+
+- M4/M5 (2026-10-18):
+  - Palplanş modülü yalnız kabuk: liste ve yer tutucu ayrıntı. Palplanş oluşturma (elle zemin kartı dahil) F5'te gelecek. Elle zemin kartı şu an `modules/walls/pages/WallTypePicker.tsx` içinde; palplanş da kullanacaksa önce `shared/`a çıkarılmalı.
+  - Sıvılaşma `run` artık isteğe bağlı `profile_id` alıyor (2c5b963). Backend gövdesi hâlâ 501 (A1/F5). Ayarlar sayfa içinde tutuluyor; modül durumu uç noktası (`modules[...]`) yok.
+  - Sıvılaşma formu katsayıları doldurmuyor. Yalnız a_max ve Mw proje saha verisinden (varsa) geliyor. Doğrulama sınırları `_check_inputs` ile aynı.
+  - i18n tek süslü parantez kullanıyor (`{field}`). Modül kataloglarında `{{...}}` yazılmamalı. X1'e katalog geneli bir test eklenebilir.
+  - `docs/qa/liquefaction_module/03_empty_form_run_disabled_1280.png`, `{field}` düzeltmesinden önce alındı ve ham "{{field}}" metnini gösteriyor.
+  - `sheet_pile/manifest.ts`, `liquefaction/Root.tsx` ve `test/module_paths.test.ts` CRLF'den LF'ye döndü. X3'teki `.gitattributes` ile toparlanacak.
 
 - KDYY "Tasarım ve Uygulama Esasları" (16.07.2026 değişikliği) ve Tasarım El Kitabı (Temmuz 2023) okunamadı: dosyalar 10 MB'ı aşıyor ya da sertifika hatası veriyor. Kullanıcı PDF'leri yerel olarak sağlarsa incelenecek.
 - Yeni motor seçenekleri arayüze bağlanacak (F4 duvar sihirbazı):

@@ -39,6 +39,10 @@ function makeRecord(file: string, meta: ProjectMeta): LibraryRecord {
   };
 }
 
+export function isMockSessionOpen(): boolean {
+  return session.open;
+}
+
 export function resetCoreMock(): void {
   lastModified = 0;
   library = new Map([

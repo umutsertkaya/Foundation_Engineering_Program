@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { Alert, Button, Group, Loader, NumberInput, Select, SimpleGrid, Stack, Text, Title } from "@mantine/core";
+import { Alert, Button, Group, NumberInput, Select, SimpleGrid, Stack, Text, Title } from "@mantine/core";
 import { IconInfoCircle } from "@tabler/icons-react";
 import { run_liquefaction, type LiquefactionSettingsDTO } from "../api";
 import { ApiError, get_project } from "../../../shared/api/client";
@@ -125,15 +125,12 @@ export function AnalysisPage() {
     };
   }, [load]);
 
-  if (loading) return <Loader />;
+  if (loading) return <Text size="sm">{t("web.common.loading")}</Text>;
 
   if (loadError != null) {
     return (
       <Stack gap="md" maw={880}>
-        <ErrorAlert error={loadError} />
-        <Group>
-          <Button onClick={load}>{t("web.common.retry")}</Button>
-        </Group>
+        <ErrorAlert error={loadError} onRetry={load} />
       </Stack>
     );
   }
@@ -167,6 +164,7 @@ export function AnalysisPage() {
   }
 
   const noSource = runError instanceof ApiError && runError.code === "no_soil_source";
+  const profileMissing = runError instanceof ApiError && runError.status === 404 && runError.code === "not_found";
 
   return (
     <Stack gap="lg" maw={880}>
@@ -252,6 +250,23 @@ export function AnalysisPage() {
         (noSource ? (
           <Alert color="red" variant="light">
             {t("liquefaction.error.no_soil_source")}
+          </Alert>
+        ) : profileMissing ? (
+          <Alert color="red" variant="light">
+            <Group justify="space-between" align="center">
+              <Text size="sm">{t("liquefaction.error.profile_missing")}</Text>
+              <Button
+                size="compact-xs"
+                variant="light"
+                color="red"
+                onClick={() => {
+                  setRunError(null);
+                  load();
+                }}
+              >
+                {t("web.common.retry")}
+              </Button>
+            </Group>
           </Alert>
         ) : (
           <ErrorAlert error={runError} />

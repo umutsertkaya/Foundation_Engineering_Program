@@ -104,14 +104,6 @@ export function cancel_job(job_id: string): Promise<JobState> {
   return request<JobState>("DELETE", `/jobs/${encodeURIComponent(job_id)}`);
 }
 
-export function design_sheet_pile(id: string): Promise<JobRef> {
-  return request<JobRef>("POST", `/m/sheet_pile/structures/${encodeURIComponent(id)}/design`);
-}
-
-export function run_liquefaction(payload: LiquefactionSettingsDTO): Promise<JobRef> {
-  return request<JobRef>("POST", "/m/liquefaction/run", payload);
-}
-
 export function list_codes(): Promise<DesignCodeSummary[]> {
   return request<DesignCodeSummary[]>("GET", "/codes");
 }

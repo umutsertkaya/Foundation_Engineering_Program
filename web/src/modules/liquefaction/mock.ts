@@ -1,5 +1,5 @@
 import { NOT_HANDLED, type MockHandler } from "../../shared/api/mock/dispatcher";
-import { coreMockHandler } from "../../shared/api/mock/core";
+import { isMockSessionOpen } from "../../shared/api/mock/core";
 import { getMockStore, notFound, validationError } from "../../shared/api/mock/legacy";
 
 const PREFIX = "/m/liquefaction";
@@ -13,8 +13,12 @@ const handle: MockHandler = (method, path, body) => {
   if (method.toUpperCase() !== "POST" || path.split("?")[0] !== `${PREFIX}/run`) return NOT_HANDLED;
 
   // Same error as the core mock when no project is open.
-  const closed = coreMockHandler("GET", "/project", undefined);
-  if (closed !== NOT_HANDLED) return closed;
+  if (!isMockSessionOpen()) {
+    return {
+      status: 409,
+      data: { code: "no_project_open", message: "No project is open.", details: {}, missing_factors: [] },
+    };
+  }
 
   const s = (body && typeof body === "object" ? body : {}) as Record<string, unknown>;
   const store = getMockStore();

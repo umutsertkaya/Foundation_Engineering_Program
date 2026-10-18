@@ -3,6 +3,7 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { MemoryRouter, Route, Routes, useLocation } from "react-router-dom";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { setMockMode } from "../../../shared/api/client";
+import { resetCoreMock } from "../../../shared/api/mock/core";
 import { mockRequest, resetMockState, resetMockStateEmptyProject } from "../../../shared/api/mock";
 import { getMockStore } from "../../../shared/api/mock/legacy";
 import type { Structure } from "../../../shared/api/types";
@@ -82,6 +83,15 @@ describe("sheet_pile shell (mock)", () => {
     expect(missing.status).toBe(404);
     const other = await mockRequest("GET", "/m/sheet_pile/whatever");
     expect(other.status).toBe(501);
+  });
+
+  it("mock design: 409 no_project_open when no project is open", async () => {
+    seedSheetPile("sp-1", "Perde A");
+    await mockRequest("POST", "/project/close");
+    const res = await mockRequest("POST", "/m/sheet_pile/structures/sp-1/design");
+    expect(res.status).toBe(409);
+    expect((res.data as { code: string }).code).toBe("no_project_open");
+    resetCoreMock();
   });
 
   it("nav list item stays active under s/", () => {

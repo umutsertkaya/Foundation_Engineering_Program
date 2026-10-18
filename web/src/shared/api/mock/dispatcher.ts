@@ -11,14 +11,13 @@ export function registerMockHandlers(prefix: string, handler: MockHandler): void
 }
 
 /**
- * Module routes live under /api/m/<id>. The legacy mock still serves walls/liquefaction from
+ * Module routes live under /api/m/<id>. The legacy mock still serves walls and sheet_pile from
  * the pre-modular paths (soil has its own module mock), so module paths are rewritten before the fallback.
  */
 export function rewriteModulePath(path: string): string {
-  const match = /^\/m\/(liquefaction|walls|sheet_pile)(\/.*)$/.exec(path);
+  const match = /^\/m\/(walls|sheet_pile)(\/.*)$/.exec(path);
   if (!match) return path;
-  const [, moduleId, rest] = match;
-  if (moduleId === "liquefaction") return path.split("?")[0] === "/m/liquefaction/run" ? "/liquefaction" : path;
+  const [, , rest] = match;
   return rest.startsWith("/structures/") ? rest : path;
 }
 

@@ -5,7 +5,7 @@ export * from "./legacy";
 // Explicit export resolves the name also exposed by legacy.
 export { mockRequest, NOT_HANDLED, registerMockHandlers } from "./dispatcher";
 export type { MockHandler } from "./dispatcher";
-export { resetCoreMock } from "./core";
+export { resetCoreMock, isMockSessionOpen } from "./core";
 
 for (const prefix of ["/modules", "/settings", "/library", "/session", "/project", "/data"]) {
   registerMockHandlers(prefix, coreMockHandler);
