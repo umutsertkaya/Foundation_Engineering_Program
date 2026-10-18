@@ -6,6 +6,7 @@ from geotek.core.models.profile import LayeringSettings
 from geotek.core.models.project import Project
 from geotek.engine.classification.uscs import classify_lab_record
 from geotek.engine.layering import Proposal, cpt_layers, spt_log_layers, spt_uscs_n_layers
+from geotek.engine.layering.common import format_warning
 from geotek.services.module1 import LAB_MATCH_TOL, process_investigations
 
 
@@ -55,10 +56,10 @@ def propose_layers(
         classification = classify_lab_record(lab) if lab is not None else None
         groups.append(classification.symbol if classification else None)
         if classification is not None and (not classification.complete or classification.notes):
-            warnings.append("layering.warning.uscs_qualified")
+            warnings.append(format_warning("layering.warning.uscs_qualified"))
     effective = settings.model_copy(update={"method": "spt_uscs_n"})
     result = spt_uscs_n_layers(processed, groups, effective)
     if settings.method == "spt_log":
-        warnings.append("layering.warning.log_missing")
+        warnings.append(format_warning("layering.warning.log_missing"))
     result.warnings = list(dict.fromkeys(result.warnings + warnings))
     return result

@@ -14,6 +14,7 @@ from geotek.core.models.profile import GroundwaterCondition, LayeringSettings, S
 from geotek.core.models.project import Project, ProjectMeta
 from geotek.engine.insitu.spt import SPTProcessed
 from geotek.engine.layering import spt_log_layers, spt_uscs_n_layers
+from geotek.engine.layering.common import parse_warning
 from geotek.io.tabular import import_spt
 from geotek.services.layering import propose_layers
 
@@ -342,8 +343,10 @@ def test_refusal_means_and_depth_warning(method, all_refusal):
         result = spt_uscs_n_layers(p, ["CL"] * 3, settings(method))
     assert len(result.layers) == 1
     assert result.layers[0].n60_mean == (None if all_refusal else 10)
-    depths = "[1.0, 2.0, 3.0]" if all_refusal else "[2.0]"
-    assert f"layering.warning.refusal_in_layer: top=0.0 bottom=3.0 depths={depths}" in result.warnings
+    depths = [1.0, 2.0, 3.0] if all_refusal else [2.0]
+    warnings = [parse_warning(w)[1] for w in result.warnings
+                if parse_warning(w)[0] == "layering.warning.refusal_in_layer"]
+    assert warnings == [dict(top=0.0, bottom=3.0, depths=depths)]
     assert LayeringProposal.model_validate(result).layers[0].n60_mean == (None if all_refusal else 10)
     assert p.n60.tolist() == [10, 10, 100]
 
@@ -381,6 +384,24 @@ def test_uscs_n_segment_first_sample_nan_does_not_poison_mean():
     assert [s.uscs for s in result.layers] == ["SP", "CL"]
     assert [s.n60_mean for s in result.layers] == [8, 11]
     assert "layering.warning.n_missing_or_zero" in result.warnings
+
+
+@pytest.mark.parametrize("bottom", [1.99999975, 2.0])
+def test_log_snapping_drops_negative_and_zero_thickness_before_assigning_tests(bottom):
+    # Both inputs are valid under Borehole's existing overlap tolerance. Snapping
+    # 1.9999995 to 2 would create a negative/zero-thickness second interval.
+    bh = Borehole(id="B", log=[BoreholeLayer(top=0, bottom=2, uscs="CL"),
+                               BoreholeLayer(top=1.9999995, bottom=bottom, uscs="SP")])
+    before = bh.model_dump_json()
+    result = spt_log_layers(bh, processed([1, 2], [10, 20]), settings("spt_log"))
+    assert [(layer.top, layer.bottom) for layer in result.layers] == [(0, 2)]
+    # The final retained interval still owns the test at its bottom.
+    assert result.layers[0].n60_mean == 15
+    warnings = [parse_warning(w)[1] for w in result.warnings
+                if parse_warning(w)[0] == "layering.warning.log_degenerate_interval"]
+    assert warnings == [dict(top=2.0, bottom=bottom, original_top=1.9999995)]
+    assert "layering.warning.tests_outside_log" not in result.warnings
+    assert bh.model_dump_json() == before
 
 
 def test_uscs_n_extrapolation_and_local_gap_are_warned():

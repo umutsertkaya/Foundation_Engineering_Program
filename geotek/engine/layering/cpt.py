@@ -15,7 +15,7 @@ from geotek.engine.classification.robertson import is_sand_like, zone_from_ic
 from geotek.engine.correlations.physical import unit_weight_robertson_cabal
 from geotek.engine.insitu.cpt import CPTProcessed
 from geotek.engine.layering.common import (
-    Layer, Proposal, Segment, edges, interval_warning, mean, merge_thin, proposal,
+    Layer, Proposal, Segment, edges, format_warning, interval_warning, mean, merge_thin, proposal,
     sample_arrays, warn_no_data,
 )
 
@@ -34,11 +34,15 @@ def cpt_layers(processed: CPTProcessed, settings: LayeringSettings) -> Proposal:
     merge distances use original, unsmoothed Ic observations, not averages of means.
     A mean-Ic zone can differ from individual members' zones. Upstream exceptional
     sbtn_zone zones 1/8/9 are protected from smoothing and both merge passes.
-    No repo drainage mapping exists for these zones: required behaviour is a
-    provisional undrained value, explicitly warned for engineer review.
-    Runs of at least two raw samples of the same zone lost in the final layer
-    trigger lens_smoothed; isolated mismatches are treated as single-point noise
-    and do not trigger that warning. This is an algorithmic reporting policy.
+    Zone 1 provisionally uses undrained behaviour because Robertson ZONE_NAMES
+    identifies it as sensitive, fine grained. Zones 8/9 use is_sand_like on the
+    layer mean Ic: their exceptional zone number alone supplies no drainage rule.
+    All exceptional behaviours carry behaviour_assumed for engineer review.
+    Every proposal warns that the Ic < 2.6 criterion (Robertson 2009) alone does
+    not establish drainage for the loading case; straddling layers also warn.
+    Every raw-zone run differing from its final layer zone is reported, including
+    single samples; discarded samples break runs. At most one lens_smoothed
+    warning per final layer lists its runs (observed depth ranges and raw zones).
 
     gamma_suggested is the mean of the existing registered RC2010_gamma_CPT
     correlation evaluated at each retained observation: Robertson & Cabal (2010),
@@ -58,12 +62,17 @@ def cpt_layers(processed: CPTProcessed, settings: LayeringSettings) -> Proposal:
     if qt.shape != z.shape or fs.shape != z.shape or upstream.shape != z.shape:
         raise ValueError("CPT qt, fs and zone must align with depth")
     qt, fs, upstream = qt[order], fs[order], upstream[order]
-    warnings = []
+    warnings = [format_warning(
+        "layering.warning.drainage_ic_based",
+        message="Behaviour is derived only from Ic < 2.6 (Robertson 2009, is_sand_like) "
+                "and must be confirmed by the engineer for the loading case; "
+                "zone 1 uses the provisional sensitive fine-grained assumption.",
+    )]
     if processed.warnings:
-        warnings.append("layering.warning.processing_warnings")
+        warnings.append(format_warning("layering.warning.processing_warnings"))
     valid = np.isfinite(ic)
     if not valid.all():
-        warnings.append("layering.warning.invalid_ic")
+        warnings.append(format_warning("layering.warning.invalid_ic"))
     original_z = z
     z, ic, qt, fs, upstream = z[valid], ic[valid], qt[valid], fs[valid], upstream[valid]
     if not len(z):
@@ -108,7 +117,7 @@ def cpt_layers(processed: CPTProcessed, settings: LayeringSettings) -> Proposal:
         if i is None:
             break
         segments[i:i + 2] = [Segment(segments[i].start, segments[i + 1].stop)]
-        warnings.append("layering.warning.similar_merged")
+        warnings.append(format_warning("layering.warning.similar_merged"))
     layers = []
     final_zones = np.empty(len(z), dtype=int)
     for s in segments:
@@ -117,11 +126,13 @@ def cpt_layers(processed: CPTProcessed, settings: LayeringSettings) -> Proposal:
         zone = int(upstream[s.start]) if protected else int(zone_from_ic(value))
         final_zones[s.start:s.stop] = zone
         top, end = boundaries[s.start], boundaries[s.stop]
+        behaviour = "undrained" if zone == 1 else (
+            "drained" if bool(is_sand_like(value)) else "undrained")
         if end - top < settings.min_thickness and len(segments) > 1:
             interval_warning(warnings, "thin_retained", top, end, raw_zone=zone)
         if protected:
             interval_warning(warnings, "behaviour_assumed", top, end, raw_zone=zone,
-                             behaviour="undrained", provisional=True)
+                             behaviour=behaviour, provisional=True)
         sand_like = is_sand_like(ic[s.start:s.stop])
         if sand_like.any() and not sand_like.all():
             interval_warning(warnings, "drainage_transitional", top, end)
@@ -131,26 +142,28 @@ def cpt_layers(processed: CPTProcessed, settings: LayeringSettings) -> Proposal:
         valid_gamma = np.isfinite(estimates) & (estimates > 0)
         gamma = mean(estimates[valid_gamma])
         if not good.all() or not valid_gamma.all() or gamma is None:
-            warnings.append("layering.warning.gamma_unavailable")
+            warnings.append(format_warning("layering.warning.gamma_unavailable"))
         layers.append(Layer(
             top=float(boundaries[s.start]), bottom=float(boundaries[s.stop]),
             description="", uscs=None, sbtn_zone=zone,
             ic_mean=value, n60_mean=None, gamma_suggested=gamma,
-            behaviour="undrained" if protected else (
-                "drained" if bool(is_sand_like(value)) else "undrained"),
+            behaviour=behaviour,
         ))
     mismatch = raw_zones != final_zones
-    i = 0
-    while i < len(z):
-        j = i + 1
-        if mismatch[i]:
-            while j < len(z) and mismatch[j] and raw_zones[j] == raw_zones[i]:
-                # Discarded observations break raw-sample consecutiveness.
-                if np.searchsorted(original_z, z[j]) != np.searchsorted(original_z, z[j - 1]) + 1:
-                    break
-                j += 1
-            if j - i >= 2:
-                interval_warning(warnings, "lens_smoothed", z[i], z[j - 1],
-                                 raw_zone=int(raw_zones[i]))
-        i = j
+    original_indices = np.searchsorted(original_z, z)
+    for s in segments:
+        runs = []
+        i = s.start
+        while i < s.stop:
+            j = i + 1
+            if mismatch[i]:
+                while (j < s.stop and mismatch[j] and raw_zones[j] == raw_zones[i]
+                       and original_indices[j] == original_indices[j - 1] + 1):
+                    j += 1
+                runs.append(dict(top=float(z[i]), bottom=float(z[j - 1]),
+                                 raw_zone=int(raw_zones[i])))
+            i = j
+        if runs:
+            interval_warning(warnings, "lens_smoothed", boundaries[s.start],
+                             boundaries[s.stop], runs=runs)
     return proposal(processed.sounding_id, settings, layers, warnings)

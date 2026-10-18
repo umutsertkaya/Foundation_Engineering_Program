@@ -19,7 +19,7 @@ from geotek.core.models.investigations import Borehole, USCS_SYMBOLS
 from geotek.core.models.profile import LayeringSettings
 from geotek.engine.insitu.spt import SPTProcessed
 from geotek.engine.layering.common import (
-    Layer, Proposal, Segment, edges, interval_warning, mean, merge_thin, proposal,
+    Layer, Proposal, Segment, edges, format_warning, interval_warning, mean, merge_thin, proposal,
     sample_arrays, warn_no_data,
 )
 
@@ -34,9 +34,10 @@ def _layer(top, bottom, symbol, n_mean, description=""):
 
 
 def _warnings(processed):
-    warnings = ["layering.warning.gamma_unavailable", "layering.warning.behaviour_assumed"]
+    warnings = [format_warning("layering.warning.gamma_unavailable"),
+                format_warning("layering.warning.behaviour_assumed")]
     if processed is not None and processed.warnings:
-        warnings.append("layering.warning.processing_warnings")
+        warnings.append(format_warning("layering.warning.processing_warnings"))
     return warnings
 
 
@@ -63,7 +64,9 @@ def spt_log_layers(
     N60 alone contributes to means. All-refusal means are None: ResultNumber is
     float | None (api/schemas.py), with no lower-bound field. Log proposals may
     be non-contiguous; gaps and uncovered tests are warned, never extrapolated.
-    Adjacent tops within Borehole's DEPTH_TOL are snapped to the previous bottom.
+    Adjacent tops within Borehole's DEPTH_TOL are snapped to the previous bottom;
+    intervals with non-positive thickness after snapping are dropped and warned
+    before assigning tests. The final retained interval includes its bottom test.
     ``processed=None`` is permitted only for a borehole with no SPT tests.
     """
     if settings.method != "spt_log":
@@ -81,36 +84,43 @@ def spt_log_layers(
         refusal = _refusals(processed, order)
     warnings = _warnings(processed)
     if np.any(~np.isfinite(n) | (n == 0)):
-        warnings.append("layering.warning.n_missing_or_zero")
+        warnings.append(format_warning("layering.warning.n_missing_or_zero"))
     if np.any(n < 0):
         raise ValueError("N60 cannot be negative")
     n = np.where(refusal, np.nan, n)
     covered = np.zeros(len(z), dtype=bool)
-    layers = []
-    for i, interval in enumerate(borehole.log):
+    intervals = []
+    for interval in borehole.log:
         top = interval.top
-        previous = layers[-1].bottom if layers else 0.0
-        if i > 0 and abs(top - previous) <= DEPTH_TOL:
+        previous = intervals[-1][0].bottom if intervals else 0.0
+        if intervals and abs(top - previous) <= DEPTH_TOL:
             top = previous
         elif top > previous:
-            warnings.append("layering.warning.log_gap")
+            warnings.append(format_warning("layering.warning.log_gap"))
             interval_warning(warnings, "no_data_interval", previous, top)
+        if interval.bottom <= top:
+            interval_warning(warnings, "log_degenerate_interval", top, interval.bottom,
+                             original_top=float(interval.top))
+            continue
+        intervals.append((interval, top))
+    layers = []
+    for i, (interval, top) in enumerate(intervals):
         inside = (z >= top) & (z < interval.bottom)
-        if i == len(borehole.log) - 1:
+        if i == len(intervals) - 1:
             inside |= z == interval.bottom
         covered |= inside
         n_mean = mean(n[inside])
         _warn_refusal(z[inside], refusal[inside], top, interval.bottom, warnings)
         if not inside.any():
-            warnings.append("layering.warning.log_no_test")
+            warnings.append(format_warning("layering.warning.log_no_test"))
         elif n_mean is None and not refusal[inside].all():
-            warnings.append("layering.warning.n_missing_or_zero")
+            warnings.append(format_warning("layering.warning.n_missing_or_zero"))
         if interval.uscs is None:
-            warnings.append("layering.warning.uscs_missing")
+            warnings.append(format_warning("layering.warning.uscs_missing"))
         layers.append(_layer(top, interval.bottom, interval.uscs,
                              n_mean, interval.description))
     if not covered.all():
-        warnings.append("layering.warning.tests_outside_log")
+        warnings.append(format_warning("layering.warning.tests_outside_log"))
     return proposal(borehole.id, settings, layers, warnings)
 
 
@@ -146,9 +156,9 @@ def spt_uscs_n_layers(
         raise ValueError("N60 cannot be negative")
     warnings = _warnings(processed)
     if None in groups:
-        warnings.append("layering.warning.uscs_missing")
+        warnings.append(format_warning("layering.warning.uscs_missing"))
     if np.any(~np.isfinite(n) | (n == 0)):
-        warnings.append("layering.warning.n_missing_or_zero")
+        warnings.append(format_warning("layering.warning.n_missing_or_zero"))
     n = np.where(refusal, np.nan, n)
     boundaries = edges(z)
     warn_no_data(z, warnings)
@@ -191,7 +201,7 @@ def spt_uscs_n_layers(
     layers = []
     for s in segments:
         if len(set(groups[s.start:s.stop])) > 1:
-            warnings.append("layering.warning.uscs_mixed")
+            warnings.append(format_warning("layering.warning.uscs_mixed"))
         _warn_refusal(z[s.start:s.stop], refusal[s.start:s.stop],
                       boundaries[s.start], boundaries[s.stop], warnings)
         layers.append(_layer(boundaries[s.start], boundaries[s.stop], symbol(s),

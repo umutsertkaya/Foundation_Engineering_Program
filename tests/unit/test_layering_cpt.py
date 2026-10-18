@@ -13,6 +13,7 @@ from geotek.engine.classification.robertson import sbtn_zone, soil_behaviour_ind
 from geotek.engine.correlations.registry import evaluate
 from geotek.engine.insitu.cpt import CPTProcessed
 from geotek.engine.layering import cpt_layers
+from geotek.engine.layering.common import parse_warning
 from geotek.io.tabular import import_cpt
 from geotek.services.layering import propose_layers
 
@@ -201,7 +202,10 @@ def test_sensitive_zone_exact_review_sample_is_protected():
     assert [s.sbtn_zone for s in result.layers] == [6, 1, 6]
     assert [(s.top, s.bottom) for s in result.layers] == [(0, .5), (.5, 1.5), (1.5, 2)]
     assert result.layers[1].behaviour == "undrained"
-    assert "layering.warning.behaviour_assumed: top=0.5 bottom=1.5 raw_zone=1 behaviour=undrained provisional=True" in result.warnings
+    assumed = [parse_warning(w)[1] for w in result.warnings
+               if parse_warning(w)[0] == "layering.warning.behaviour_assumed"]
+    assert assumed == [dict(top=.5, bottom=1.5, raw_zone=1,
+                            behaviour="undrained", provisional=True)]
     assert all(s.description == "" for s in result.layers)
 
 
@@ -214,7 +218,11 @@ def test_enabled_exceptional_zones_survive(fr, zone):
     p.zone[1] = sbtn_zone(1000, fr, ic, include_zones_8_9=True)
     result = cpt_layers(p, settings(min_thickness=10, merge_ic_tol=10))
     assert [s.sbtn_zone for s in result.layers] == [6, zone, 6]
-    assert any(w.startswith("layering.warning.behaviour_assumed:") for w in result.warnings)
+    assert ic < 2.6 and result.layers[1].behaviour == "drained"
+    assumed = [parse_warning(w)[1] for w in result.warnings
+               if parse_warning(w)[0] == "layering.warning.behaviour_assumed"]
+    assert assumed == [dict(top=.5, bottom=1.5, raw_zone=zone,
+                            behaviour="drained", provisional=True)]
 
 
 def test_predrill_discarded_gap_and_trailing_extension_are_reported():
@@ -235,7 +243,7 @@ def test_acquisition_gap_exceeding_local_spacing_is_reported():
 
 
 @pytest.mark.parametrize("lens_count", [1, 2])
-def test_smoothed_lens_and_documented_single_sample_policy(lens_count):
+def test_smoothed_lens_includes_single_samples(lens_count):
     # 11 samples at .1 m. Five-point central windows (width .5) give
     # (4*1.7+3.2)/5=2.0 for one lens sample; (3*1.7+2*3.2)/5=2.3 for two.
     # One lens gives final mean 20.2/11 <2.05 => zone 6. Two lens samples
@@ -246,13 +254,94 @@ def test_smoothed_lens_and_documented_single_sample_policy(lens_count):
     result = cpt_layers(processed(np.arange(11) / 10, ic),
                         settings(smoothing_window=.5))
     assert [s.sbtn_zone for s in result.layers] == ([6] if lens_count == 1 else [6, 5, 6])
-    lens = [w for w in result.warnings if w.startswith("layering.warning.lens_smoothed:")]
-    if lens_count == 2:
-        assert lens == ["layering.warning.lens_smoothed: top=0.5 bottom=0.6 raw_zone=3"]
-    else:
-        # Isolated mismatches are deliberately not reported as a lens.
-        assert lens == []
+    lens = [parse_warning(w)[1] for w in result.warnings
+            if parse_warning(w)[0] == "layering.warning.lens_smoothed"]
+    assert len(lens) == 1
+    assert dict(top=.5, bottom=.5 if lens_count == 1 else .6, raw_zone=3) in lens[0]["runs"]
     assert any(w.startswith("layering.warning.drainage_transitional:") for w in result.warnings)
+
+
+def test_exact_single_sample_zone_5_lens_is_reported():
+    # Review example: z=0..1 at .1 m, Ic=1.7 except Ic=2.5 at .5 m.
+    # Width .5 smooths the single raw zone-5 sample into final zone 6.
+    ic = [1.7] * 11
+    ic[5] = 2.5
+    result = cpt_layers(processed(np.arange(11) / 10, ic), settings(smoothing_window=.5))
+    assert [layer.sbtn_zone for layer in result.layers] == [6]
+    lens = [parse_warning(w)[1] for w in result.warnings
+            if parse_warning(w)[0] == "layering.warning.lens_smoothed"]
+    assert lens == [dict(top=0.0, bottom=1.0,
+                         runs=[dict(top=.5, bottom=.5, raw_zone=5)])]
+
+
+def test_lens_runs_aggregate_raw_zones_in_one_warning_per_layer():
+    # Whole-record smoothing gives mean 14.2/7 <2.05 (zone 6).
+    result = cpt_layers(processed(range(7), [1.7, 2.5, 1.7, 3.2, 1.7, 1.7, 1.7]),
+                        settings(smoothing_window=20))
+    assert [layer.sbtn_zone for layer in result.layers] == [6]
+    lens = [parse_warning(w)[1] for w in result.warnings
+            if parse_warning(w)[0] == "layering.warning.lens_smoothed"]
+    assert lens == [dict(top=0.0, bottom=6.0, runs=[
+        dict(top=1.0, bottom=1.0, raw_zone=5),
+        dict(top=3.0, bottom=3.0, raw_zone=3),
+    ])]
+
+
+def test_discarded_samples_break_lens_runs_in_aggregated_warning():
+    ic = [1.7] * 11
+    ic[4:7] = [2.5, np.nan, 2.5]
+    result = cpt_layers(processed(np.arange(11) / 10, ic), settings(smoothing_window=10))
+    lens = [parse_warning(w)[1] for w in result.warnings
+            if parse_warning(w)[0] == "layering.warning.lens_smoothed"]
+    assert lens == [dict(top=0.0, bottom=1.0, runs=[
+        dict(top=.4, bottom=.4, raw_zone=5),
+        dict(top=.6, bottom=.6, raw_zone=5),
+    ])]
+
+
+def test_lens_warnings_belong_to_each_final_layer():
+    ic = [1.7] * 11 + [3.1] * 11
+    ic[5], ic[16] = 2.5, 2.7
+    depth = np.r_[np.arange(11) / 10, 2 + np.arange(11) / 10]
+    result = cpt_layers(processed(depth, ic), settings(smoothing_window=.5))
+    assert [layer.sbtn_zone for layer in result.layers] == [6, 3]
+    lens = [parse_warning(w)[1] for w in result.warnings
+            if parse_warning(w)[0] == "layering.warning.lens_smoothed"]
+    assert lens == [
+        dict(top=0.0, bottom=1.5, runs=[dict(top=.5, bottom=.5, raw_zone=5)]),
+        dict(top=1.5, bottom=3.0, runs=[dict(top=2.5, bottom=2.5, raw_zone=4)]),
+    ]
+
+
+@pytest.mark.parametrize("ic", [1.7, 2.59, 2.6, 3.1])
+def test_every_cpt_proposal_warns_about_ic_only_drainage(ic):
+    result = cpt_layers(processed([0, 1], [ic, ic]), settings())
+    assert result.layers[0].behaviour == ("drained" if ic < 2.6 else "undrained")
+    warnings = [parse_warning(w)[1] for w in result.warnings
+                if parse_warning(w)[0] == "layering.warning.drainage_ic_based"]
+    assert len(warnings) == 1
+    message = warnings[0]["message"]
+    assert "Ic < 2.6" in message and "Robertson 2009" in message
+    assert "confirmed by the engineer for the loading case" in message
+    assert not any(parse_warning(w)[0] == "layering.warning.drainage_transitional"
+                   for w in result.warnings)
+
+
+@pytest.mark.parametrize("zone", [8, 9])
+@pytest.mark.parametrize("ic,behaviour", [
+    ([1.7, 1.7], "drained"), ([3.1, 3.1], "undrained"),
+    ([3.1, 1.7], "drained"), ([2.5, 2.9], "undrained"),
+])
+def test_exceptional_zones_use_mean_ic_and_remain_provisional(zone, ic, behaviour):
+    p = processed([0, 1], ic)
+    p.zone[:] = zone
+    result = cpt_layers(p, settings())
+    assert result.layers[0].sbtn_zone == zone
+    assert result.layers[0].behaviour == behaviour
+    assumed = [parse_warning(w)[1] for w in result.warnings
+               if parse_warning(w)[0] == "layering.warning.behaviour_assumed"]
+    assert assumed == [dict(top=0.0, bottom=1.0, raw_zone=zone,
+                            behaviour=behaviour, provisional=True)]
 
 
 def test_tolerance_merge_cascade_recomputes_sample_weighted_means():
