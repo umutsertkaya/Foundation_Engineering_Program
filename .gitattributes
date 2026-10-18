@@ -1,0 +1,15 @@
+# Text files are stored with LF and checked out with LF on every platform.
+* text=auto eol=lf
+
+# Binary assets.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.ico binary
+*.pdf binary
+*.xlsx binary
+
+# Project files and test/example fixtures keep their exact bytes.
+*.gtk -text
+tests/**/data/** -text
+examples/** -text
