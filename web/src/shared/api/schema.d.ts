@@ -415,6 +415,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/data/profiles": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Project Profiles
+         * @description Read-only list of the open project's soil profiles (409 no_project_open when none).
+         */
+        get: operations["list_project_profiles"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/structures": {
         parameters: {
             query?: never;
@@ -2229,6 +2249,10 @@ export interface components {
          *
          *     profile_id selects the copy source, falling back to the active profile when null.
          *     Explicit soil and profile_id are alternative sources. Heights are depths in metres.
+         *
+         *     If ``soil`` is null, ``profile_id`` is null and the project has no active profile, the
+         *     server answers 409 ``no_soil_source``; the client must then send an explicit manual
+         *     ``soil`` with ``source_profile_id=null``.
          */
         RetainingWallCreate: {
             /**
@@ -2384,6 +2408,10 @@ export interface components {
         /**
          * SheetPileCreate
          * @description Sheet pile inputs without a server id; profile selection matches retaining walls.
+         *
+         *     If ``soil`` is null, ``profile_id`` is null and the project has no active profile, the
+         *     server answers 409 ``no_soil_source``; the client must then send an explicit manual
+         *     ``soil`` with ``source_profile_id=null``.
          */
         SheetPileCreate: {
             /**
@@ -4888,6 +4916,98 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ProjectSummary"];
+                };
+            };
+            /** @description Invalid operation or input file */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Resource not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Conflicting or stale structure state */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Validation error or missing_factors */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Engine or server error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Contract stub; not implemented */
+            501: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Other client error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Other server error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    list_project_profiles: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProfileSummary"][];
                 };
             };
             /** @description Invalid operation or input file */

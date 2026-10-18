@@ -660,6 +660,7 @@
   "error.invalid_file_name": "The file name is invalid.",
   "error.project_open": "The open project cannot be changed or deleted by this operation.",
   "error.no_project_open": "No project is open.",
+  "error.no_soil_source": "The project has no soil profile; enter the wall soil manually.",
   "error.invalid_project_file": "A valid .gtk project file is expected.",
   "start.row_actions": "Actions for {name}",
   "start.renamed": "Project renamed: {name}",

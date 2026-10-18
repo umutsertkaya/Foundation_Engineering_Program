@@ -96,6 +96,7 @@ REQUESTS = [
      {"mode": "manual", "manual_value": 30}),
     ("POST", "/api/m/soil/profiles/{id}/layers/{layer_id}/parameters/approve", {"keys": ["phi_eff"]}),
     ("POST", "/api/m/soil/profiles/{id}/parameters/suggest-all", None),
+    ("GET", "/api/data/profiles", None),
     ("GET", "/api/structures", None),
     ("POST", "/api/structures", {
         "kind": "retaining_wall", "name": "Wall", "profile_id": "P1",
@@ -134,7 +135,7 @@ IMPLEMENTED = {
         "/api/health", "/api/modules", "/api/settings", "/api/library", "/api/library/import",
         "/api/session", "/api/project", "/api/project/new", "/api/project/open",
         "/api/project/save", "/api/project/close", "/api/project/meta", "/api/project/site",
-        "/api/project/active-profile",
+        "/api/project/active-profile", "/api/data/profiles",
     } or path.startswith("/api/library/{file}")
 }
 

@@ -22,6 +22,7 @@ def test_no_project_open_errors(shell):
         ("PATCH", "/api/project/meta", {"name": "X"}),
         ("PUT", "/api/project/site", {"pga_g": 0.2}),
         ("PUT", "/api/project/active-profile", {"profile_id": None}),
+        ("GET", "/api/data/profiles", None),
     ):
         response = shell.request(method, url, **({"json": body} if body else {}))
         assert response.status_code == 409, (url, response.text)
@@ -144,3 +145,20 @@ def test_legacy_open_errors(shell, tmp_path):
     response = shell.post("/api/project/open", json={"path": str(bad)})
     assert response.status_code == 422 and error_code(response) == "invalid_project_file"
     assert shell.get("/api/session").json()["open"] is False
+
+
+def test_list_project_profiles(shell, library_dir, two_layer_profile):
+    created = shell.post("/api/library", json={"name": "Proje"}).json()
+    response = shell.get("/api/data/profiles")
+    assert response.status_code == 200 and response.json() == []
+    file = library_dir / created["file"]
+    project = load_project(file)
+    project.soil_profiles.append(two_layer_profile)
+    save_project(project, file)
+    shell.post(f"/api/library/{created['file']}/open")
+    rows = shell.get("/api/data/profiles").json()
+    assert len(rows) == 1
+    assert set(rows[0]) == {"id", "name", "origin", "source_ids", "gwt", "layer_count"}
+    assert rows[0]["id"] == "P1" and rows[0]["layer_count"] == 2
+    shell.post("/api/project/close")
+    assert error_code(shell.get("/api/data/profiles")) == "no_project_open"

@@ -11,6 +11,7 @@ import {
   import_library_project,
   list_library,
   list_modules,
+  list_project_profiles,
   open_library_project,
   put_settings,
   rename_library_project,
@@ -191,5 +192,42 @@ describe("new library project", () => {
     expect((await mockRequest("GET", "/structures")).data).toEqual([]);
     const inv = (await mockRequest("GET", "/m/soil/investigations")).data as { boreholes: unknown[] };
     expect(inv.boreholes.length).toBeGreaterThan(0);
+  });
+});
+
+describe("core data/profiles and POST /structures soil source", () => {
+  const wall = { kind: "retaining_wall", name: "W", wall_type: "cantilever", height: 4 };
+  const manualSoil = {
+    source_profile_id: null,
+    profile: {
+      id: "manual", name: "Manual", origin: "manual", source_ids: [], layering: null,
+      gwt: { depth_insitu: 3, depth_design: null, depth_seismic: null },
+      layers: [{ id: "L1", top: 0, bottom: 10, gamma: 18 }],
+    },
+  };
+
+  it("lists profile summaries from the shared store", async () => {
+    const rows = await list_project_profiles();
+    expect(rows.length).toBeGreaterThan(0);
+    expect(rows[0]).toMatchObject({ id: expect.any(String), layer_count: expect.any(Number) });
+    await create_library_project({ name: "Bos Proje" } as never);
+    expect(await list_project_profiles()).toEqual([]);
+  });
+
+  it("empty project without soil is 409 no_soil_source", async () => {
+    await create_library_project({ name: "Bos Proje" } as never);
+    const res = await mockRequest("POST", "/structures", wall);
+    expect(res.status).toBe(409);
+    expect(res.data).toMatchObject({ code: "no_soil_source" });
+  });
+
+  it("empty project with manual soil keeps a null source", async () => {
+    await create_library_project({ name: "Bos Proje" } as never);
+    const res = await mockRequest("POST", "/structures", { ...wall, soil: manualSoil });
+    expect(res.status).toBe(200);
+    const soil = (res.data as { soil: Record<string, unknown> }).soil;
+    expect(soil.source_profile_id).toBeNull();
+    expect(soil.source_hash ?? null).toBeNull();
+    expect(soil.retained_fill ?? []).toEqual([]);
   });
 });

@@ -660,6 +660,7 @@
   "error.invalid_file_name": "Dosya adı geçersiz.",
   "error.project_open": "Açık olan proje bu işlemle değiştirilemez veya silinemez.",
   "error.no_project_open": "Açık proje yok.",
+  "error.no_soil_source": "Projede zemin profili yok; duvar zeminini elle girin.",
   "error.invalid_project_file": "Geçerli bir .gtk proje dosyası bekleniyor.",
   "start.row_actions": "{name} için işlemler",
   "start.renamed": "Proje yeniden adlandırıldı: {name}",

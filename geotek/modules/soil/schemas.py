@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from pydantic import ConfigDict, Field, model_validator
 
-from geotek.api.schemas import DTO, LayeringProposal, ResultNumber
+from geotek.api.schemas import DTO, LayeringProposal, ProfileSummary, ResultNumber  # noqa: F401
 from geotek.core.models.investigations import Borehole, CPTSounding
 from geotek.core.models.parameters import DesignKey, SelectionMode, Statistic
 from geotek.core.models.profile import GroundwaterCondition, ProfileOrigin, SoilLayer
@@ -44,17 +44,6 @@ class SPTProcessedDTO(DTO):
     N60: list[ResultNumber]
     N1_60: list[ResultNumber]
     warnings: list[str]
-
-
-class ProfileSummary(DTO):
-    """Profile picker entry with origin, sources, groundwater and layer count."""
-
-    id: str
-    name: str
-    origin: ProfileOrigin
-    source_ids: list[str]
-    gwt: GroundwaterCondition
-    layer_count: int = Field(ge=0)
 
 
 class ProfileCreate(DTO):

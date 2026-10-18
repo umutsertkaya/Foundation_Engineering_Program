@@ -1,7 +1,7 @@
 import type { AppSettings, LibraryEntry, ModuleInfo, NewProjectRequest, ProjectMeta, SessionInfo } from "../types";
 import { MOCK_DEFAULT_META } from "./data";
 import { NOT_HANDLED, type MockHandler } from "./dispatcher";
-import { getMockProjectMeta, resetMockState, resetMockStateEmptyProject, setMockMutationListener, setMockProjectMeta } from "./legacy";
+import { getMockProjectMeta, getMockStore, toProfileSummary, resetMockState, resetMockStateEmptyProject, setMockMutationListener, setMockProjectMeta } from "./legacy";
 
 interface LibraryRecord {
   entry: LibraryEntry;
@@ -126,6 +126,7 @@ export const coreMockHandler: MockHandler = (method, path, body) => {
     return ok(settings);
   }
   if (verb === "GET" && cleanPath === "/session") return ok(session);
+  if (verb === "GET" && cleanPath === "/data/profiles") return ok(getMockStore().profiles.map(toProfileSummary));
   if (verb === "GET" && cleanPath === "/project") {
     return session.open ? NOT_HANDLED : error(409, "no_project_open", "No project is open.");
   }

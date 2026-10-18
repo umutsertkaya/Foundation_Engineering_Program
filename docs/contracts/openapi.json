@@ -2450,6 +2450,112 @@
         }
       }
     },
+    "/api/data/profiles": {
+      "get": {
+        "tags": [
+          "data"
+        ],
+        "summary": "List Project Profiles",
+        "description": "Read-only list of the open project's soil profiles (409 no_project_open when none).",
+        "operationId": "list_project_profiles",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ProfileSummary"
+                  },
+                  "type": "array",
+                  "title": "Response List Project Profiles"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid operation or input file",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflicting or stale structure state",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation error or missing_factors",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Engine or server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "501": {
+            "description": "Contract stub; not implemented",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Other client error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "5XX": {
+            "description": "Other server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/structures": {
       "get": {
         "tags": [
@@ -10451,7 +10557,7 @@
           "height"
         ],
         "title": "RetainingWallCreate",
-        "description": "Retaining wall inputs without a server id; omitted soil uses the selected profile.\n\nprofile_id selects the copy source, falling back to the active profile when null.\nExplicit soil and profile_id are alternative sources. Heights are depths in metres."
+        "description": "Retaining wall inputs without a server id; omitted soil uses the selected profile.\n\nprofile_id selects the copy source, falling back to the active profile when null.\nExplicit soil and profile_id are alternative sources. Heights are depths in metres.\n\nIf ``soil`` is null, ``profile_id`` is null and the project has no active profile, the\nserver answers 409 ``no_soil_source``; the client must then send an explicit manual\n``soil`` with ``source_profile_id=null``."
       },
       "RetainingWallStructure": {
         "properties": {
@@ -10931,7 +11037,7 @@
           "retained_height"
         ],
         "title": "SheetPileCreate",
-        "description": "Sheet pile inputs without a server id; profile selection matches retaining walls."
+        "description": "Sheet pile inputs without a server id; profile selection matches retaining walls.\n\nIf ``soil`` is null, ``profile_id`` is null and the project has no active profile, the\nserver answers 409 ``no_soil_source``; the client must then send an explicit manual\n``soil`` with ``source_profile_id=null``."
       },
       "SheetPileResultDTO": {
         "properties": {

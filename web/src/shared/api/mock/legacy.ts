@@ -484,8 +484,22 @@ async function handleMockRequest(
   if (upperMethod === "POST" && cleanPath === "/structures") {
     const payload = body as StructureCreate;
     const id = `wall-mock-${store.structures.length + 1}`;
-    const sourceProfile =
-      store.profiles.find((p) => p.id === payload.profile_id) ?? store.profiles[0];
+    const sourceProfile = payload.soil
+      ? undefined
+      : (payload.profile_id ? store.profiles.find((p) => p.id === payload.profile_id) : undefined) ??
+        store.profiles.find((p) => p.id === store.active_profile_id) ??
+        store.profiles[0];
+    if (!payload.soil && !sourceProfile) {
+      return {
+        status: 409,
+        data: {
+          code: "no_soil_source",
+          message: "The project has no soil profile (Mock).",
+          details: {},
+          missing_factors: [],
+        },
+      };
+    }
 
     if (payload.kind === "retaining_wall") {
       const created: RetainingWallStructure = {
@@ -498,9 +512,9 @@ async function handleMockRequest(
         backfill_slope: payload.backfill_slope ?? 0.0,
         geometry: payload.geometry ?? { ...MOCK_CANTILEVER_5M },
         soil: payload.soil ?? {
-          source_profile_id: sourceProfile.id,
-          source_hash: mockProfileHash(sourceProfile),
-          profile: structuredClone(sourceProfile),
+          source_profile_id: sourceProfile!.id,
+          source_hash: mockProfileHash(sourceProfile!),
+          profile: structuredClone(sourceProfile!),
           retained_fill: structuredClone(MOCK_INITIAL_STRUCTURES[0].soil.retained_fill ?? []),
           gwt_retained: null,
           gwt_front: null,

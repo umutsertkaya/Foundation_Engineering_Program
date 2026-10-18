@@ -7,7 +7,7 @@ export { mockRequest, NOT_HANDLED, registerMockHandlers } from "./dispatcher";
 export type { MockHandler } from "./dispatcher";
 export { resetCoreMock } from "./core";
 
-for (const prefix of ["/modules", "/settings", "/library", "/session", "/project"]) {
+for (const prefix of ["/modules", "/settings", "/library", "/session", "/project", "/data"]) {
   registerMockHandlers(prefix, coreMockHandler);
 }
 

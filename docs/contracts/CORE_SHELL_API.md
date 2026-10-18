@@ -49,8 +49,9 @@ interface NewProjectRequest {       // subset of ProjectMeta
 | POST | `/project/save` | – | `SessionInfo` (saves to the open library file) |
 | POST | `/project/close` | – | `SessionInfo` (`open: false`) |
 | GET | `/project` | – | `Project`; when nothing is open: 409 `{code: "no_project_open"}` |
+| GET | `/data/profiles` | – | `ProfileSummary[]` — read-only list of the open project's soil profiles (core, so modules such as walls need not import the soil module); 409 `no_project_open` when nothing is open |
 
-Error codes: `no_project_open` (409), `invalid_file_name` (400), `not_found` (404), `project_open` (409), `invalid_project_file` (422), `file_exists` (409), `invalid_path` (400).
+Error codes: `no_project_open` (409), `no_soil_source` (409, `POST /structures` only, implemented in A1: `soil`, `profile_id` and the active profile are all absent, so the client must resend an explicit manual `soil` with `source_profile_id: null`), `invalid_file_name` (400), `not_found` (404), `project_open` (409), `invalid_project_file` (422), `file_exists` (409), `invalid_path` (400).
 
 Export destination: an existing directory gets `<dir>/<file>`; otherwise a `dest` without a suffix gets `.gtk` appended; any other suffix is 400 `invalid_path` (the suffix is never replaced). An existing destination file is 409 `file_exists` unless `overwrite` is true. Writes are atomic (temp file + replace).
 

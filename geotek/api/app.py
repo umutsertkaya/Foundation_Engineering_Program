@@ -30,6 +30,7 @@ API_VERSION = "0.2.0"
 
 meta = APIRouter(tags=["meta"], responses=ERROR_RESPONSES)
 project = APIRouter(tags=["project"], responses=ERROR_RESPONSES)
+data = APIRouter(tags=["data"], responses=ERROR_RESPONSES)
 structures = APIRouter(tags=["structures"], responses=ERROR_RESPONSES)
 jobs = APIRouter(tags=["jobs"], responses=ERROR_RESPONSES)
 codes = APIRouter(tags=["codes"], responses=ERROR_RESPONSES)
@@ -170,6 +171,21 @@ def set_active_profile(payload: dto.ActiveProfileUpdate, session: SessionDep) ->
         current.active_profile_id = payload.profile_id
         session.dirty = True
         return _summary(current)
+
+
+@data.get(
+    "/data/profiles", response_model=list[dto.ProfileSummary], operation_id="list_project_profiles",
+)
+def list_project_profiles(session: SessionDep) -> list[dto.ProfileSummary]:
+    """Read-only list of the open project's soil profiles (409 no_project_open when none)."""
+    with session.lock:
+        return [
+            dto.ProfileSummary(
+                id=p.id, name=p.name, origin=p.origin, source_ids=list(p.source_ids),
+                gwt=p.gwt, layer_count=len(p.layers),
+            )
+            for p in session.require_project().soil_profiles
+        ]
 
 
 @structures.get(
@@ -318,7 +334,7 @@ def create_app(session: Session | None = None) -> FastAPI:
         error = dto.ApiError(code="engine_error", message="An internal server error occurred.")
         return JSONResponse(error.model_dump(mode="json"), status_code=500)
 
-    for router in (meta, library_routes.router, project, structures, jobs, codes):
+    for router in (meta, library_routes.router, project, data, structures, jobs, codes):
         app.include_router(router, prefix="/api")
     registry.mount_modules(app)
     return app

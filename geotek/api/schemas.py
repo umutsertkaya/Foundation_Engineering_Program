@@ -198,11 +198,26 @@ class LayeringProposal(DTO):
     warnings: list[str]
 
 
+class ProfileSummary(DTO):
+    """Profile picker entry with origin, sources, groundwater and layer count."""
+
+    id: str
+    name: str
+    origin: ProfileOrigin
+    source_ids: list[str]
+    gwt: GroundwaterCondition
+    layer_count: int = Field(ge=0)
+
+
 class RetainingWallCreate(DTO):
     """Retaining wall inputs without a server id; omitted soil uses the selected profile.
 
     profile_id selects the copy source, falling back to the active profile when null.
     Explicit soil and profile_id are alternative sources. Heights are depths in metres.
+
+    If ``soil`` is null, ``profile_id`` is null and the project has no active profile, the
+    server answers 409 ``no_soil_source``; the client must then send an explicit manual
+    ``soil`` with ``source_profile_id=null``.
     """
 
     kind: Literal["retaining_wall"]
@@ -221,7 +236,12 @@ class RetainingWallCreate(DTO):
 
 
 class SheetPileCreate(DTO):
-    """Sheet pile inputs without a server id; profile selection matches retaining walls."""
+    """Sheet pile inputs without a server id; profile selection matches retaining walls.
+
+    If ``soil`` is null, ``profile_id`` is null and the project has no active profile, the
+    server answers 409 ``no_soil_source``; the client must then send an explicit manual
+    ``soil`` with ``source_profile_id=null``.
+    """
 
     kind: Literal["sheet_pile"]
     name: str

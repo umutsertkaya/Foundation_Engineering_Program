@@ -1,6 +1,7 @@
 import { request } from "./http";
 import type {
-  AppSettings, LibraryEntry, LibraryExportRequest, ModuleInfo, NewProjectRequest, SessionInfo,
+  AppSettings, LibraryEntry, LibraryExportRequest, ModuleInfo, NewProjectRequest, ProfileSummary,
+  SessionInfo,
 } from "./types";
 
 export function list_modules(): Promise<ModuleInfo[]> {
@@ -62,4 +63,9 @@ export function save_current_project(): Promise<SessionInfo> {
 
 export function close_project(): Promise<SessionInfo> {
   return request<SessionInfo>("POST", "/project/close");
+}
+
+/** Read-only list of the open project's soil profiles (core, so other modules need not import soil). */
+export function list_project_profiles(): Promise<ProfileSummary[]> {
+  return request<ProfileSummary[]>("GET", "/data/profiles");
 }
