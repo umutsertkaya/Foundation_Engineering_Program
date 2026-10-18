@@ -7,6 +7,7 @@ from typing import Literal
 
 import numpy as np
 
+from geotek.core.constants import DEPTH_TOL
 from geotek.core.models.profile import LayeringSettings
 
 
@@ -64,6 +65,7 @@ def edges(depth, *, bottom: float | None = None):
 
     Internal edges are arithmetic midpoints, an algorithmic interpretation rather
     than a published soil threshold. A sole sample at zero has no positive extent.
+    Callers use warn_no_data to disclose unsupported extensions and local gaps.
     """
     end = float(depth[-1]) if bottom is None else bottom
     if end <= 0:
@@ -78,19 +80,52 @@ def mean(values) -> float | None:
     return float(np.mean(valid)) if len(valid) else None
 
 
-def merge_thin(segments, boundaries, minimum, distance, warnings):
-    """Merge the first thin segment, recomputing distances after every merge.
+def interval_warning(warnings, code, top, bottom, **details):
+    """String warning contract: code followed by named, SI-depth context."""
+    context = dict(top=float(top), bottom=float(bottom), **details)
+    warnings.append(f"layering.warning.{code}: " + " ".join(
+        f"{key}={value}" for key, value in context.items()))
+
+
+def warn_no_data(depth, warnings, *, original=None, bottom=None):
+    """Flag extrapolation and gaps exceeding adjacent local sample spacing.
+
+    Local spacing is the smaller available neighbouring acquisition increment;
+    discarded observations also supply spacing evidence. No gap is inferred from
+    only two observations without any other spacing evidence. DEPTH_TOL is only
+    the existing numerical depth tolerance, not a geological gap threshold.
+    """
+    original = depth if original is None else original
+    if depth[0] > 0:
+        interval_warning(warnings, "no_data_interval", 0, depth[0])
+    steps = np.diff(original)
+    for a, b in zip(depth[:-1], depth[1:]):
+        ia, ib = np.searchsorted(original, [a, b])
+        local = steps[max(0, ia - 1):min(len(steps), ib + 1)]
+        if len(local) and b - a > float(np.min(local)) + DEPTH_TOL:
+            interval_warning(warnings, "no_data_interval", a, b)
+    if bottom is not None and bottom > depth[-1]:
+        interval_warning(warnings, "no_data_interval", depth[-1], bottom)
+
+
+def merge_thin(segments, boundaries, minimum, distance, warnings, *, can_merge=None):
+    """Merge the thinnest eligible segment first (equal thickness: upper).
 
     The most similar adjacent segment wins; equal distances choose the upper
     neighbour. A single segment is retained even when the record is thinner than
     the user setting. No geological coefficient is introduced.
     """
     while len(segments) > 1:
-        i = next((i for i, s in enumerate(segments)
-                  if boundaries[s.stop] - boundaries[s.start] < minimum), None)
-        if i is None:
+        candidates = []
+        for i, s in enumerate(segments):
+            thickness = boundaries[s.stop] - boundaries[s.start]
+            neighbours = [j for j in (i - 1, i + 1) if 0 <= j < len(segments)
+                          and (can_merge is None or can_merge(s, segments[j]))]
+            if thickness < minimum and neighbours:
+                candidates.append((thickness, i, neighbours))
+        if not candidates:
             break
-        neighbours = [j for j in (i - 1, i + 1) if 0 <= j < len(segments)]
+        _, i, neighbours = min(candidates)
         j = min(neighbours, key=lambda j: (distance(segments[i], segments[j]), j))
         lo, hi = sorted((i, j))
         segments[lo:hi + 1] = [Segment(segments[lo].start, segments[hi].stop)]
@@ -99,5 +134,5 @@ def merge_thin(segments, boundaries, minimum, distance, warnings):
 
 
 def proposal(source_id, settings, layers, warnings):
-    """Copy settings and deduplicate warning codes in first-occurrence order."""
+    """Copy settings and deduplicate identical warning messages in occurrence order."""
     return Proposal(source_id, settings.model_copy(deep=True), layers, list(dict.fromkeys(warnings)))

@@ -6,6 +6,7 @@ from pathlib import Path
 import numpy as np
 import pytest
 
+from geotek.core.constants import DEPTH_TOL
 from geotek.core.models.investigations import (
     Borehole, BoreholeLayer, Investigations, LabRecord, SPTRecord,
 )
@@ -67,15 +68,15 @@ def test_ratio_threshold_is_strict_and_uses_corrected_n():
 
 
 def test_thin_lens_prefers_same_uscs_then_nearest_n():
-    # Edges 0,1.5,2.1,2.6,3,4. Lens CL at 2.2 has thickness .5 < .6.
+    # Edges 0,1.5,2.1,2.6,3.5,4. Lens CL at 2.2 has thickness .5 < .6.
     # Both neighbours are SP; N=30 is closer to lower 32 than upper mean 10.
-    # Mixed merge returns no USCS, mean (30+32+32)/3, and review warnings.
+    # Mixed merge retains SP: 1.4 m versus CL .5 m; mean (30+32+32)/3.
     p = processed([1, 2, 2.2, 3, 4], [10, 10, 30, 32, 32])
     result = spt_uscs_n_layers(p, ["SP", "SP", "CL", "SP", "SP"],
                               settings(min_thickness=0.6))
     assert [(s.top, s.bottom) for s in result.layers] == [(0, 2.1), (2.1, 4)]
     assert result.layers[1].n60_mean == pytest.approx(94 / 3)
-    assert result.layers[1].uscs is None
+    assert result.layers[1].uscs == "SP"
     assert "layering.warning.thin_merged" in result.warnings
     assert "layering.warning.uscs_mixed" in result.warnings
 
@@ -213,7 +214,9 @@ def test_spt_csv_service_structure_and_processing(method):
         assert a.bottom == b.top and a.top < b.top
     for layer in result.layers:
         assert layer.bottom - layer.top >= opts.min_thickness
-        assert layer.n60_mean is not None
+        # A layer containing only refusal tests has no exact numeric mean.
+        assert (layer.n60_mean is not None or
+                any(w.startswith("layering.warning.refusal_in_layer:") for w in result.warnings))
         assert layer.gamma_suggested is None
     # ER=60%, CB=CS=1. CR at z=[1.5,3,4.5,6,7.5] is [.75,.80,.85,.95,.95].
     # The first group's corrected N is [4.5,4,5.95,3.8,2.85]; mean=21.1/5=4.22.
@@ -285,3 +288,104 @@ def test_engines_reject_wrong_methods_and_sources():
         spt_log_layers(bh, p, settings())
     with pytest.raises(ValueError, match="source"):
         spt_log_layers(bh, p, settings("spt_log"))
+
+
+def test_sp_lens_merged_into_cl_retains_dominant_cl_behaviour():
+    # Edges 0,1.5,2.1,2.6,3.5,4: SP lens owns .5 m; lower CL owns 1.4 m.
+    # N=30 is nearer lower CL=32 than upper CL=10, so lower absorbs the lens.
+    # CL dominates by thickness; mean (30+32+32)/3=94/3, undrained provisionally.
+    result = spt_uscs_n_layers(processed([1, 2, 2.2, 3, 4], [10, 10, 30, 32, 32]),
+                              ["CL", "CL", "SP", "CL", "CL"],
+                              settings(min_thickness=.6))
+    assert [s.uscs for s in result.layers] == ["CL", "CL"]
+    assert result.layers[1].behaviour == "undrained"
+    assert result.layers[1].n60_mean == pytest.approx(94 / 3)
+    assert "layering.warning.uscs_mixed" in result.warnings
+
+
+@pytest.mark.parametrize("depth,groups,dominant", [
+    ([0, 1, 2, 3, 4], ["CL", "SP", "SP", "CL", "CL"], "CL"),
+    ([1, 2, 3, 4, 5], ["CL", "CL", "SP", "SP", "SP"], "SP"),
+])
+def test_dominant_group_thickness_tie_uses_count(depth, groups, dominant):
+    # First widths .5,1,1,1,.5: both groups total 2 m, CL wins 3 samples vs 2.
+    # Second widths 1.5,1,1,1,.5: both total 2.5 m, SP wins 3 vs 2 despite
+    # CL being uppermost. Combining all cells is forced by min_thickness=10.
+    result = spt_uscs_n_layers(processed(depth, [10] * 5), groups,
+                              settings(min_thickness=10))
+    assert len(result.layers) == 1
+    assert result.layers[0].uscs == dominant
+    assert "layering.warning.uscs_mixed" in result.warnings
+
+
+def test_dominant_group_thickness_and_count_tie_uses_upper():
+    # z=0,1,2,3 has cell widths .5,1,1,.5; CL owns .5+1=1.5 m
+    # and SP owns 1+.5=1.5 m, both two samples. Upper CL wins.
+    result = spt_uscs_n_layers(processed([0, 1, 2, 3], [10] * 4),
+                              ["CL", "SP", "CL", "SP"], settings(min_thickness=10))
+    assert result.layers[0].uscs == "CL"
+
+
+@pytest.mark.parametrize("method", ["spt_log", "spt_uscs_n"])
+@pytest.mark.parametrize("all_refusal", [False, True])
+def test_refusal_means_and_depth_warning(method, all_refusal):
+    from geotek.api.schemas import LayeringProposal
+
+    # Unsorted z=3,1,2 verifies refusal alignment. Excluding refusal N=100 at z=2
+    # gives (10+10)/2=10. All refusal has no exact mean, so serialize as null.
+    p = processed([3, 1, 2], [10, 10, 100])
+    p.refusal = np.array([all_refusal, all_refusal, True])
+    if method == "spt_log":
+        bh = Borehole(id="B", log=[BoreholeLayer(top=0, bottom=3, uscs="CL")])
+        result = spt_log_layers(bh, p, settings(method))
+    else:
+        result = spt_uscs_n_layers(p, ["CL"] * 3, settings(method))
+    assert len(result.layers) == 1
+    assert result.layers[0].n60_mean == (None if all_refusal else 10)
+    depths = "[1.0, 2.0, 3.0]" if all_refusal else "[2.0]"
+    assert f"layering.warning.refusal_in_layer: top=0.0 bottom=3.0 depths={depths}" in result.warnings
+    assert LayeringProposal.model_validate(result).layers[0].n60_mean == (None if all_refusal else 10)
+    assert p.n60.tolist() == [10, 10, 100]
+
+
+def test_log_missing_uscs_has_explicit_provisional_behaviour():
+    # No group supplies a drainage interpretation; the required value is provisional.
+    bh = Borehole(id="B", log=[BoreholeLayer(top=0, bottom=2, uscs=None)])
+    result = spt_log_layers(bh, None, settings("spt_log"))
+    assert result.layers[0].uscs is None
+    assert result.layers[0].behaviour == "undrained"
+    assert {"layering.warning.uscs_missing", "layering.warning.behaviour_assumed"} <= set(result.warnings)
+
+
+@pytest.mark.parametrize("sign", [-1, 1])
+def test_log_sub_tolerance_mismatch_snaps_before_assigning_tests(sign):
+    # Mismatch is half Borehole's existing tolerance on either side of z=2.
+    # Snap to 2: z=2 belongs only to lower, so exact means remain 10 and 20.
+    bh = Borehole(id="B", log=[BoreholeLayer(top=0, bottom=2, uscs="CL"),
+                               BoreholeLayer(top=2 + sign * DEPTH_TOL / 2,
+                                             bottom=3, uscs="SP")])
+    before = bh.model_dump_json()
+    result = spt_log_layers(bh, processed([1, 2], [10, 20]), settings("spt_log"))
+    assert [(s.top, s.bottom) for s in result.layers] == [(0, 2), (2, 3)]
+    assert [s.n60_mean for s in result.layers] == [10, 20]
+    assert "layering.warning.log_gap" not in result.warnings
+    assert not any(w.startswith("layering.warning.no_data_interval:") for w in result.warnings)
+    assert bh.model_dump_json() == before
+
+
+def test_uscs_n_segment_first_sample_nan_does_not_poison_mean():
+    # New CL segment starts with NaN: next finite N=10 initializes mean,
+    # then 12 changes by .2 <=.5. Final CL mean (10+12)/2=11.
+    result = spt_uscs_n_layers(processed([1, 2, 3, 4], [8, np.nan, 10, 12]),
+                              ["SP", "CL", "CL", "CL"], settings())
+    assert [s.uscs for s in result.layers] == ["SP", "CL"]
+    assert [s.n60_mean for s in result.layers] == [8, 11]
+    assert "layering.warning.n_missing_or_zero" in result.warnings
+
+
+def test_uscs_n_extrapolation_and_local_gap_are_warned():
+    # Retained increments .1,.9,.1: [1.1,2] exceeds local .1; top extends [0,1].
+    result = spt_uscs_n_layers(processed([1, 1.1, 2, 2.1], [10] * 4),
+                              ["CL"] * 4, settings())
+    assert {"layering.warning.no_data_interval: top=0.0 bottom=1.0",
+            "layering.warning.no_data_interval: top=1.1 bottom=2.0"} <= set(result.warnings)

@@ -9,6 +9,7 @@ import pytest
 from geotek.core.models.investigations import Investigations
 from geotek.core.models.profile import LayeringSettings
 from geotek.core.models.project import Project, ProjectMeta
+from geotek.engine.classification.robertson import sbtn_zone, soil_behaviour_index, zone_from_ic
 from geotek.engine.correlations.registry import evaluate
 from geotek.engine.insitu.cpt import CPTProcessed
 from geotek.engine.layering import cpt_layers
@@ -17,10 +18,11 @@ from geotek.services.layering import propose_layers
 
 
 def processed(depth, ic):
-    """Only Ic, qt and fs feed layering; unused processing fields are inert arrays."""
+    """Provide consistent ordinary zones; unused processing fields are inert arrays."""
     z = np.asarray(depth, dtype=float)
     data = {f.name: np.zeros(len(z)) for f in fields(CPTProcessed)}
     data.update(sounding_id="C", depth=z, Ic=np.asarray(ic, dtype=float),
+                zone=zone_from_ic(ic),
                 qt=np.full(len(z), 1013.25), fs=np.full(len(z), 10.1325), warnings=[])
     return CPTProcessed(**data)
 
@@ -93,7 +95,7 @@ def test_tolerance_merge_and_strict_threshold():
     result = cpt_layers(p, settings(merge_ic_tol=0.15))
     assert len(result.layers) == 1
     assert result.layers[0].ic_mean == pytest.approx(2.05)
-    assert result.warnings == ["layering.warning.similar_merged"]
+    assert "layering.warning.similar_merged" in result.warnings
     # Exactly representable difference 0.25 equals, rather than falls below, tolerance.
     assert len(cpt_layers(processed([1, 2], [2.0, 2.25]),
                           settings(merge_ic_tol=0.25)).layers) == 2
@@ -134,11 +136,12 @@ def test_gamma_is_from_registered_correlation_even_with_profile_gamma():
     assert cpt_layers(p, settings()).layers[0].gamma_suggested == pytest.approx(expected)
 
 
-def test_nonfinite_gamma_is_not_suggested():
+def test_gamma_uses_valid_subset_and_warns():
     p = processed([1, 2], [1.8, 1.9])
     p.qt[1] = 0
     result = cpt_layers(p, settings())
-    assert result.layers[0].gamma_suggested is None
+    # Remaining qt=10 Pa and Rf=1%: 9.81*(.36+1.236)=15.65676.
+    assert result.layers[0].gamma_suggested == pytest.approx(15.65676)
     assert "layering.warning.gamma_unavailable" in result.warnings
 
 
@@ -176,8 +179,123 @@ def test_cpt_csv_service_and_transport_mapping():
         assert a.bottom == b.top and a.top < b.top
     for layer in result.layers:
         assert layer.bottom > layer.top
-        assert layer.bottom - layer.top >= opts.min_thickness
+        assert (layer.bottom - layer.top >= opts.min_thickness or
+                any(w.startswith("layering.warning.thin_retained:") for w in result.warnings))
         assert np.isfinite(layer.ic_mean)
-        assert layer.sbtn_zone in range(2, 8)
+        assert layer.sbtn_zone in range(1, 10)
     assert LayeringProposal.model_validate(result).source_id == "CPT"
     assert asdict(result) == asdict(propose_layers(project, "CPT", opts))
+
+
+def test_sensitive_zone_exact_review_sample_is_protected():
+    # Qtn=8, Fr=.1%: sqrt((3.47-.90309)^2+(-1+1.22)^2) ~=2.57632.
+    # Ic bands alone give 5, but 8 < 12*exp(-.14) ~=10.432 => sbtn_zone=1.
+    ic = float(soil_behaviour_index(8, 0.1))
+    p = processed([0, 1, 2], [1.7, ic, 1.7])
+    p.Qtn[1], p.Fr[1] = 8, 0.1
+    p.zone[1] = sbtn_zone(8, 0.1, ic)
+    assert p.zone[1] == 1 and int(zone_from_ic(ic)) == 5
+    result = cpt_layers(p, settings(smoothing_window=10, min_thickness=10,
+                                     merge_ic_tol=10))
+    # Midpoints .5 and 1.5 bound the protected sensitive sample despite both merges.
+    assert [s.sbtn_zone for s in result.layers] == [6, 1, 6]
+    assert [(s.top, s.bottom) for s in result.layers] == [(0, .5), (.5, 1.5), (1.5, 2)]
+    assert result.layers[1].behaviour == "undrained"
+    assert "layering.warning.behaviour_assumed: top=0.5 bottom=1.5 raw_zone=1 behaviour=undrained provisional=True" in result.warnings
+    assert all(s.description == "" for s in result.layers)
+
+
+@pytest.mark.parametrize("fr,zone", [(3, 8), (5, 9)])
+def test_enabled_exceptional_zones_survive(fr, zone):
+    # At Fr=3/5 the existing denominators are .0068/.0132, so Qtn=1000
+    # exceeds 1/denom and assigns the enabled zones 8/9 respectively.
+    ic = float(soil_behaviour_index(1000, fr))
+    p = processed([0, 1, 2], [1.7, ic, 1.7])
+    p.zone[1] = sbtn_zone(1000, fr, ic, include_zones_8_9=True)
+    result = cpt_layers(p, settings(min_thickness=10, merge_ic_tol=10))
+    assert [s.sbtn_zone for s in result.layers] == [6, zone, 6]
+    assert any(w.startswith("layering.warning.behaviour_assumed:") for w in result.warnings)
+
+
+def test_predrill_discarded_gap_and_trailing_extension_are_reported():
+    # Acquisition increment is 1 m; discarding z=3 bridges [2,4] (2>1).
+    # First retained z=2 extends to 0; discarded last z=6 extends [5,6].
+    result = cpt_layers(processed([2, 3, 4, 5, 6], [1.7, np.nan, 1.7, 1.7, np.nan]),
+                        settings())
+    assert [(s.top, s.bottom) for s in result.layers] == [(0, 6)]
+    assert {"layering.warning.no_data_interval: top=0.0 bottom=2.0",
+            "layering.warning.no_data_interval: top=2.0 bottom=4.0",
+            "layering.warning.no_data_interval: top=5.0 bottom=6.0"} <= set(result.warnings)
+
+
+def test_acquisition_gap_exceeding_local_spacing_is_reported():
+    # Neighbouring increments are .1 m; [0.1,1] spans .9 m > .1 m.
+    result = cpt_layers(processed([0, .1, 1, 1.1], [1.7] * 4), settings())
+    assert "layering.warning.no_data_interval: top=0.1 bottom=1.0" in result.warnings
+
+
+@pytest.mark.parametrize("lens_count", [1, 2])
+def test_smoothed_lens_and_documented_single_sample_policy(lens_count):
+    # 11 samples at .1 m. Five-point central windows (width .5) give
+    # (4*1.7+3.2)/5=2.0 for one lens sample; (3*1.7+2*3.2)/5=2.3 for two.
+    # One lens gives final mean 20.2/11 <2.05 => zone 6. Two lens samples
+    # produce a central four-sample zone-5 segment, mean (1.7+3.2+3.2+1.7)/4=2.45.
+    # Raw 3.2 is zone 3 (2.95 <= Ic <3.60), lost in both final proposals.
+    ic = [1.7] * 11
+    ic[5:5 + lens_count] = [3.2] * lens_count
+    result = cpt_layers(processed(np.arange(11) / 10, ic),
+                        settings(smoothing_window=.5))
+    assert [s.sbtn_zone for s in result.layers] == ([6] if lens_count == 1 else [6, 5, 6])
+    lens = [w for w in result.warnings if w.startswith("layering.warning.lens_smoothed:")]
+    if lens_count == 2:
+        assert lens == ["layering.warning.lens_smoothed: top=0.5 bottom=0.6 raw_zone=3"]
+    else:
+        # Isolated mismatches are deliberately not reported as a lens.
+        assert lens == []
+    assert any(w.startswith("layering.warning.drainage_transitional:") for w in result.warnings)
+
+
+def test_tolerance_merge_cascade_recomputes_sample_weighted_means():
+    # Zones [7,6,6,5]. Merge 1.25 with mean(1.5,1.5): difference .25<.75.
+    # New mean 4.25/3; difference to 2.125 is 17/24 <.75, so merge again.
+    # Final mean (1.25+1.5+1.5+2.125)/4=1.59375, not a mean of segment means.
+    result = cpt_layers(processed([0, 1, 2, 3], [1.25, 1.5, 1.5, 2.125]),
+                        settings(merge_ic_tol=.75))
+    assert len(result.layers) == 1
+    assert result.layers[0].ic_mean == pytest.approx(1.59375)
+
+
+@pytest.mark.parametrize("ic,zone,behaviour", [(2.60, 4, "undrained"), (2.05, 5, "drained")])
+def test_exact_ic_edges(ic, zone, behaviour):
+    # zone_from_ic uses strict upper bounds: 2.60 enters 4, 2.05 enters 5.
+    # is_sand_like is strictly Ic<2.6, so equality is undrained.
+    layer = cpt_layers(processed([0, 1], [ic, ic]), settings()).layers[0]
+    assert (layer.sbtn_zone, layer.behaviour) == (zone, behaviour)
+
+
+def test_cpt_processing_warnings_are_flagged_without_mutation():
+    p = processed([0, 1], [1.7, 1.7])
+    p.warnings = ["upstream diagnostic"]
+    result = cpt_layers(p, settings())
+    assert "layering.warning.processing_warnings" in result.warnings
+    assert p.warnings == ["upstream diagnostic"]
+
+
+def test_all_invalid_gamma_is_absent():
+    p = processed([0, 1], [1.7, 1.7])
+    p.qt[:] = 0
+    result = cpt_layers(p, settings())
+    assert result.layers[0].gamma_suggested is None
+    assert "layering.warning.gamma_unavailable" in result.warnings
+
+
+def test_thinnest_segment_is_merged_before_upper_thin_segment():
+    # Edges [0,.5,1.5,2.2,2.5,3.3,4]: zone thicknesses [1.5,.7,.3,1.5].
+    # The .3 segment (Ic=3.25) merges upward into 2.5: distance .75 vs 2.
+    # Combined thickness 1 >=.8; mean (2.5+3.25)/2=2.875.
+    # Processing the upper .7 first would tie at .75 and absorb it upward instead.
+    result = cpt_layers(processed([0, 1, 2, 2.4, 2.6, 4],
+                                 [1.75, 1.75, 2.5, 3.25, 1.25, 1.25]),
+                        settings(min_thickness=.8))
+    assert [s.bottom for s in result.layers] == pytest.approx([1.5, 2.5, 4])
+    assert [s.ic_mean for s in result.layers] == pytest.approx([1.75, 2.875, 1.25])

@@ -2,9 +2,10 @@
 
 USCS symbols follow the existing ASTM D2487 classifier; no new classification
 thresholds are introduced. USCS does not determine drainage: the required behaviour
-field is a provisional coarse (G/S) drained / other undrained choice. Missing or
-mixed groups use drained as the domain default. Every SPT proposal flags this
-choice for engineer review. No SPT unit-weight correlation exists in the registry.
+field is a provisional coarse (G/S) drained / other undrained choice. Missing
+groups use a provisional undrained value solely to satisfy the contract. Every
+SPT proposal flags this choice for engineer review. No SPT unit-weight correlation
+exists in the registry.
 """
 
 from __future__ import annotations
@@ -13,11 +14,13 @@ from collections.abc import Sequence
 
 import numpy as np
 
+from geotek.core.constants import DEPTH_TOL
 from geotek.core.models.investigations import Borehole, USCS_SYMBOLS
 from geotek.core.models.profile import LayeringSettings
 from geotek.engine.insitu.spt import SPTProcessed
 from geotek.engine.layering.common import (
-    Layer, Proposal, Segment, edges, mean, merge_thin, proposal, sample_arrays,
+    Layer, Proposal, Segment, edges, interval_warning, mean, merge_thin, proposal,
+    sample_arrays, warn_no_data,
 )
 
 
@@ -26,7 +29,7 @@ def _layer(top, bottom, symbol, n_mean, description=""):
         top=float(top), bottom=float(bottom), description=description or symbol or "",
         uscs=symbol, sbtn_zone=None, ic_mean=None, n60_mean=n_mean,
         gamma_suggested=None,
-        behaviour="drained" if symbol is None or symbol.startswith(("G", "S")) else "undrained",
+        behaviour="drained" if symbol and symbol.startswith(("G", "S")) else "undrained",
     )
 
 
@@ -37,14 +40,30 @@ def _warnings(processed):
     return warnings
 
 
+def _refusals(processed, order):
+    refusal = np.asarray(processed.refusal, dtype=bool)
+    if refusal.shape != np.asarray(processed.depth).shape:
+        raise ValueError("SPT refusal must align with depth")
+    return refusal[order]
+
+
+def _warn_refusal(z, refusal, top, bottom, warnings):
+    if refusal.any():
+        interval_warning(warnings, "refusal_in_layer", top, bottom,
+                         depths=z[refusal].tolist())
+
+
 def spt_log_layers(
     borehole: Borehole, processed: SPTProcessed | None, settings: LayeringSettings,
 ) -> Proposal:
     """Preserve one layer per log interval, even thin intervals and unlogged gaps.
 
     Tests at shared boundaries belong to the lower interval (SoilProfile convention);
-    a test at the final log bottom belongs to the final interval. Finite N60 alone
-    contributes to means. A gap or uncovered test is flagged, never extrapolated.
+    a test at the final log bottom belongs to the final interval. Finite non-refusal
+    N60 alone contributes to means. All-refusal means are None: ResultNumber is
+    float | None (api/schemas.py), with no lower-bound field. Log proposals may
+    be non-contiguous; gaps and uncovered tests are warned, never extrapolated.
+    Adjacent tops within Borehole's DEPTH_TOL are snapped to the previous bottom.
     ``processed=None`` is permitted only for a borehole with no SPT tests.
     """
     if settings.method != "spt_log":
@@ -54,35 +73,41 @@ def spt_log_layers(
     if processed is None:
         if borehole.spt:
             raise ValueError("SPT tests require processed N60 values")
-        z, n = np.array([]), np.array([])
+        z, n, refusal = np.array([]), np.array([]), np.array([], dtype=bool)
     else:
         if processed.borehole_id != borehole.id:
             raise ValueError("Processed SPT source differs from the borehole")
-        z, n, _ = sample_arrays(processed.depth, processed.n60, allow_empty=True)
+        z, n, order = sample_arrays(processed.depth, processed.n60, allow_empty=True)
+        refusal = _refusals(processed, order)
     warnings = _warnings(processed)
     if np.any(~np.isfinite(n) | (n == 0)):
         warnings.append("layering.warning.n_missing_or_zero")
     if np.any(n < 0):
         raise ValueError("N60 cannot be negative")
+    n = np.where(refusal, np.nan, n)
     covered = np.zeros(len(z), dtype=bool)
     layers = []
     for i, interval in enumerate(borehole.log):
-        inside = (z >= interval.top) & (z < interval.bottom)
+        top = interval.top
+        previous = layers[-1].bottom if layers else 0.0
+        if i > 0 and abs(top - previous) <= DEPTH_TOL:
+            top = previous
+        elif top > previous:
+            warnings.append("layering.warning.log_gap")
+            interval_warning(warnings, "no_data_interval", previous, top)
+        inside = (z >= top) & (z < interval.bottom)
         if i == len(borehole.log) - 1:
             inside |= z == interval.bottom
         covered |= inside
         n_mean = mean(n[inside])
+        _warn_refusal(z[inside], refusal[inside], top, interval.bottom, warnings)
         if not inside.any():
             warnings.append("layering.warning.log_no_test")
-        elif n_mean is None:
+        elif n_mean is None and not refusal[inside].all():
             warnings.append("layering.warning.n_missing_or_zero")
         if interval.uscs is None:
             warnings.append("layering.warning.uscs_missing")
-        if (i == 0 and interval.top > 0) or (
-            i > 0 and interval.top != borehole.log[i - 1].bottom
-        ):
-            warnings.append("layering.warning.log_gap")
-        layers.append(_layer(interval.top, interval.bottom, interval.uscs,
+        layers.append(_layer(top, interval.bottom, interval.uscs,
                              n_mean, interval.description))
     if not covered.all():
         warnings.append("layering.warning.tests_outside_log")
@@ -98,14 +123,20 @@ def spt_uscs_n_layers(
     followed by positive N starts a new segment; zero followed by zero does not.
     Missing N is ignored for comparison/statistics, with a warning. Missing USCS
     remains None and is a distinct group, never filled from a distant sample.
-    Minimum-thickness merging prefers the same USCS group, then the closest finite
-    N60 mean; undefined distances and ties select the upper neighbour. Mixed merged
-    groups become None with a warning. All means are sample-weighted, not means of
-    segment means. Settings are algorithm choices, not empirical soil thresholds.
+    Minimum-thickness merging processes the thinnest segment (tie: upper), and
+    prefers the same USCS group, then the closest finite N60 mean; undefined
+    distances and ties select the upper neighbour. Mixed merged
+    groups retain the dominant known group by midpoint-cell thickness, then sample
+    count, then uppermost occurrence, with uscs_mixed. Behaviour remains provisional
+    and warned. Refusal values are excluded from comparisons and means; all-refusal
+    means are None (ResultNumber supports null, not a lower bound). All means are
+    sample-weighted, not means of segment means. Settings are algorithm choices,
+    not empirical soil thresholds.
     """
     if settings.method != "spt_uscs_n":
         raise ValueError("USCS/N layering requires method='spt_uscs_n'")
     z, n, order = sample_arrays(processed.depth, processed.n60)
+    refusal = _refusals(processed, order)
     if len(uscs) != len(z):
         raise ValueError("USCS groups must align with SPT depths")
     groups = [uscs[i] for i in order]
@@ -118,7 +149,9 @@ def spt_uscs_n_layers(
         warnings.append("layering.warning.uscs_missing")
     if np.any(~np.isfinite(n) | (n == 0)):
         warnings.append("layering.warning.n_missing_or_zero")
+    n = np.where(refusal, np.nan, n)
     boundaries = edges(z)
+    warn_no_data(z, warnings)
     segments = []
     start = 0
     total, count = 0.0, 0
@@ -138,8 +171,16 @@ def spt_uscs_n_layers(
     segments.append(Segment(start, len(z)))
 
     def symbol(s):
-        unique = set(groups[s.start:s.stop])
-        return next(iter(unique)) if len(unique) == 1 else None
+        known = {g for g in groups[s.start:s.stop] if g is not None}
+        if not known:
+            return None
+
+        def rank(group):
+            indices = [i for i in range(s.start, s.stop) if groups[i] == group]
+            thickness = sum(boundaries[i + 1] - boundaries[i] for i in indices)
+            return thickness, len(indices), -indices[0]
+
+        return max(known, key=rank)
 
     def distance(a, b):
         ma, mb = mean(n[a.start:a.stop]), mean(n[b.start:b.stop])
@@ -151,6 +192,8 @@ def spt_uscs_n_layers(
     for s in segments:
         if len(set(groups[s.start:s.stop])) > 1:
             warnings.append("layering.warning.uscs_mixed")
+        _warn_refusal(z[s.start:s.stop], refusal[s.start:s.stop],
+                      boundaries[s.start], boundaries[s.stop], warnings)
         layers.append(_layer(boundaries[s.start], boundaries[s.stop], symbol(s),
                              mean(n[s.start:s.stop])))
     return proposal(processed.borehole_id, settings, layers, warnings)
