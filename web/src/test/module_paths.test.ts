@@ -59,6 +59,16 @@ describe("module API paths in the mock", () => {
   });
 });
 
+describe("core structure routes in the mock", () => {
+  it("answers 404 not_found for an unknown structure on GET, PUT and DELETE like the backend", async () => {
+    for (const method of ["GET", "PUT", "DELETE"]) {
+      const response = await mockRequest(method, "/structures/nope", method === "PUT" ? { id: "nope" } : undefined);
+      expect(response.status, method).toBe(404);
+      expect(response.data, method).toMatchObject({ code: "not_found" });
+    }
+  });
+});
+
 describe("web module manifests", () => {
   it("discovers the four modules with matching ids, order and nav keys", () => {
     const modules = discoverModules();

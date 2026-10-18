@@ -2564,16 +2564,38 @@
         "summary": "List Structures",
         "description": "List structures and their soil/result freshness state.",
         "operationId": "list_structures",
+        "parameters": [
+          {
+            "name": "kind",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "retaining_wall",
+                    "sheet_pile"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Kind"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "Successful Response",
             "content": {
               "application/json": {
                 "schema": {
+                  "type": "array",
                   "items": {
                     "$ref": "#/components/schemas/StructureSummary"
                   },
-                  "type": "array",
                   "title": "Response List Structures"
                 }
               }
@@ -2669,6 +2691,7 @@
         "description": "Create a wall or sheet pile with its own soil copy; choose the variant by kind.",
         "operationId": "create_structure",
         "requestBody": {
+          "required": true,
           "content": {
             "application/json": {
               "schema": {
@@ -2680,18 +2703,17 @@
                     "$ref": "#/components/schemas/SheetPileCreate"
                   }
                 ],
-                "title": "Payload",
                 "discriminator": {
                   "propertyName": "kind",
                   "mapping": {
                     "retaining_wall": "#/components/schemas/RetainingWallCreate",
                     "sheet_pile": "#/components/schemas/SheetPileCreate"
                   }
-                }
+                },
+                "title": "Payload"
               }
             }
-          },
-          "required": true
+          }
         },
         "responses": {
           "200": {
@@ -2707,14 +2729,14 @@
                       "$ref": "#/components/schemas/SheetPileStructure"
                     }
                   ],
-                  "title": "Response Create Structure",
                   "discriminator": {
                     "propertyName": "kind",
                     "mapping": {
                       "retaining_wall": "#/components/schemas/RetainingWallStructure",
                       "sheet_pile": "#/components/schemas/SheetPileStructure"
                     }
-                  }
+                  },
+                  "title": "Response Create Structure"
                 }
               }
             }

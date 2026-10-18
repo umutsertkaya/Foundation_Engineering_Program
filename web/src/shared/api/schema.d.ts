@@ -5092,7 +5092,9 @@ export interface operations {
     };
     list_structures: {
         parameters: {
-            query?: never;
+            query?: {
+                kind?: ("retaining_wall" | "sheet_pile") | null;
+            };
             header?: never;
             path?: never;
             cookie?: never;

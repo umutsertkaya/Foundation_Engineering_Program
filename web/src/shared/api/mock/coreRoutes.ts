@@ -360,28 +360,23 @@ function handleCoreRoutes(
   if (structMatch) {
     const structId = decodeURIComponent(structMatch[1]);
     const index = store.structures.findIndex((s) => s.id === structId);
+    // Like the backend, an unknown id is 404 for every method (no upsert, no silent delete).
+    if (["GET", "PUT", "DELETE"].includes(upperMethod) && index < 0) {
+      return {
+        status: 404,
+        data: { code: "not_found", message: "Structure not found (Mock).", details: {}, missing_factors: [] },
+      };
+    }
     if (upperMethod === "GET") {
-      if (index < 0) {
-        return {
-          status: 404,
-          data: { code: "not_found", message: "Structure not found (Mock).", details: {}, missing_factors: [] },
-        };
-      }
       return { status: 200, data: structuredClone(store.structures[index]) };
     }
     if (upperMethod === "PUT") {
       const updated = body as Structure;
-      if (index < 0) {
-        store.structures.push(structuredClone(updated));
-      } else {
-        store.structures[index] = structuredClone(updated);
-      }
+      store.structures[index] = structuredClone(updated);
       return { status: 200, data: structuredClone(updated) };
     }
     if (upperMethod === "DELETE") {
-      if (index >= 0) {
-        store.structures.splice(index, 1);
-      }
+      store.structures.splice(index, 1);
       const res: DeletionResponse = { id: structId, deleted: true };
       return { status: 200, data: res };
     }

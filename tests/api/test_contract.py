@@ -136,6 +136,10 @@ IMPLEMENTED = {
         "/api/session", "/api/project", "/api/project/new", "/api/project/open",
         "/api/project/save", "/api/project/close", "/api/project/meta", "/api/project/site",
         "/api/project/active-profile", "/api/data/profiles",
+        "/api/i18n/{lang}", "/api/structures", "/api/structures/{id}",
+        "/api/structures/{id}/soil", "/api/structures/{id}/soil/resync",
+        "/api/codes", "/api/codes/{code_id}/factors", "/api/codes/{code_id}/required",
+        "/api/project/design-overrides/{code_id}",
     } or path.startswith("/api/library/{file}")
 }
 
@@ -295,7 +299,9 @@ def test_sheet_pile_creation_variant(client):
         "kind": "sheet_pile", "name": "Pile", "profile_id": "P1",
         "retained_height": 4, "support": "anchored", "anchor_depth": 1,
     })
-    assert response.status_code == 501, response.text
+    # The sheet_pile variant passes request validation; without an open project the route answers 409.
+    assert response.status_code == 409, response.text
+    assert response.json()["code"] == "no_project_open"
 
 
 def test_multipart_and_discriminators_are_documented(app):
