@@ -112,31 +112,6 @@ export interface CPTSounding {
   u2?: number[] | null;
 }
 
-export interface CPTProcessedDTO {
-  depth: (number | null)[];
-  qc: (number | null)[];
-  fs: (number | null)[];
-  qt: (number | null)[];
-  Rf: (number | null)[];
-  Fr: (number | null)[];
-  Bq: (number | null)[] | null;
-  Qtn: (number | null)[];
-  Ic: (number | null)[];
-  zone: (number | null)[];
-  fc: (number | null)[];
-  sigma_v: (number | null)[];
-  sigma_v_eff: (number | null)[];
-  warnings: string[];
-}
-
-export interface SPTProcessedDTO {
-  depth: (number | null)[];
-  N_field: (number | null)[];
-  N60: (number | null)[];
-  N1_60: (number | null)[];
-  warnings: string[];
-}
-
 export interface CantileverGeometry {
   stem_height: number;
   stem_top: number;
@@ -237,11 +212,6 @@ export interface GroundwaterCondition {
 export interface HealthResponse {
   status: "ok";
   version: string;
-}
-
-export interface InvestigationsDTO {
-  boreholes: Borehole[];
-  cpts: CPTSounding[];
 }
 
 export interface JobRef {
@@ -383,15 +353,6 @@ export interface ProfileSummary {
   source_ids: string[];
   gwt: GroundwaterCondition;
   layer_count: number;
-}
-
-export interface ProfileCreate {
-  name: string;
-  origin: ProfileOrigin;
-  source_ids: string[];
-  gwt: GroundwaterCondition;
-  layers?: SoilLayer[] | null;
-  from_proposal?: LayeringProposal | null;
 }
 
 export interface ProjectCounts {
@@ -662,7 +623,6 @@ export interface components {
     BearingResultDTO: BearingResultDTO;
     Borehole: Borehole;
     BoreholeLayer: BoreholeLayer;
-    CPTProcessedDTO: CPTProcessedDTO;
     CPTSounding: CPTSounding;
     CantileverGeometry: CantileverGeometry;
     CheckDTO: CheckDTO;
@@ -676,7 +636,6 @@ export interface components {
     GravityGeometry: GravityGeometry;
     GroundwaterCondition: GroundwaterCondition;
     HealthResponse: HealthResponse;
-    InvestigationsDTO: InvestigationsDTO;
     JobRef: JobRef;
     JobState: JobState;
     LabRecord: LabRecord;
@@ -691,7 +650,6 @@ export interface components {
     ParameterSelection: ParameterSelection;
     ParameterStats: ParameterStats;
     PressureDiagramDTO: PressureDiagramDTO;
-    ProfileCreate: ProfileCreate;
     ProfileSummary: ProfileSummary;
     ProjectCounts: ProjectCounts;
     ProjectMeta: ProjectMeta;
@@ -704,7 +662,6 @@ export interface components {
     ProposedLayer: ProposedLayer;
     RetainingWallCreate: RetainingWallCreate;
     RetainingWallStructure: RetainingWallStructure;
-    SPTProcessedDTO: SPTProcessedDTO;
     SPTRecord: SPTRecord;
     SelectionUpdate: SelectionUpdate;
     SheetPileCreate: SheetPileCreate;

@@ -11,14 +11,13 @@ export function registerMockHandlers(prefix: string, handler: MockHandler): void
 }
 
 /**
- * Module routes live under /api/m/<id>. The legacy mock still serves them from
- * the pre-modular paths, so module paths are rewritten before the fallback.
+ * Module routes live under /api/m/<id>. The legacy mock still serves walls/liquefaction from
+ * the pre-modular paths (soil has its own module mock), so module paths are rewritten before the fallback.
  */
 export function rewriteModulePath(path: string): string {
-  const match = /^\/m\/(soil|liquefaction|walls|sheet_pile)(\/.*)$/.exec(path);
+  const match = /^\/m\/(liquefaction|walls|sheet_pile)(\/.*)$/.exec(path);
   if (!match) return path;
   const [, moduleId, rest] = match;
-  if (moduleId === "soil") return rest;
   if (moduleId === "liquefaction") return path.split("?")[0] === "/m/liquefaction/run" ? "/liquefaction" : path;
   return rest.startsWith("/structures/") ? rest : path;
 }
@@ -41,8 +40,8 @@ export async function mockRequest(method: string, path: string, body?: unknown):
   }
   const rewritten = rewriteModulePath(path);
   const response = await legacyMockRequest(method, rewritten, body);
-  if (response.status === 501 && rewritten !== path) {
-    // The legacy mock has no handler for this module route: name the real path, not the rewritten one.
+  if (response.status === 501 && (rewritten !== path || path.startsWith("/m/soil/"))) {
+    // Neither a module mock nor the legacy mock handles this module route: name the real path, not the rewritten one.
     return {
       status: 501,
       data: {

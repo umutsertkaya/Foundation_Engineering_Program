@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { discoverModules } from "../app/moduleRegistry";
-import { list_investigations, list_profiles, list_wall_types, run_liquefaction, setMockMode } from "../shared/api/client";
+import { list_wall_types, run_liquefaction, setMockMode } from "../shared/api/client";
+import { list_investigations, list_profiles } from "../modules/soil/api";
 import { rewriteModulePath } from "../shared/api/mock/dispatcher";
 import { mockRequest } from "../shared/api/mock";
 
@@ -9,8 +10,9 @@ afterEach(() => setMockMode(null));
 
 describe("module API paths in the mock", () => {
   it("rewrites module routes to the legacy paths", () => {
-    expect(rewriteModulePath("/m/soil/profiles/p1")).toBe("/profiles/p1");
-    expect(rewriteModulePath("/m/soil/investigations")).toBe("/investigations");
+    // Soil is served by its own module mock, so its paths are no longer rewritten.
+    expect(rewriteModulePath("/m/soil/profiles/p1")).toBe("/m/soil/profiles/p1");
+    expect(rewriteModulePath("/m/soil/investigations")).toBe("/m/soil/investigations");
     expect(rewriteModulePath("/m/liquefaction/run")).toBe("/liquefaction");
     expect(rewriteModulePath("/m/walls/structures/s1/size")).toBe("/structures/s1/size");
     expect(rewriteModulePath("/m/sheet_pile/structures/s1/design")).toBe("/structures/s1/design");

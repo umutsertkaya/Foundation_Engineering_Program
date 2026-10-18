@@ -7,13 +7,11 @@ import type {
   CPTSounding,
   DeletionResponse,
   HealthResponse,
-  InvestigationsDTO,
   JobKind,
   JobRef,
   JobState,
   Language,
   MissingFactorDTO,
-  ProfileCreate,
   ProfileSummary,
   ProjectMeta,
   ProjectMetaPatch,
@@ -54,7 +52,7 @@ interface MockJobInternal {
   result: WallResultDTO;
 }
 
-interface MockStore {
+export interface MockStore {
   meta: ProjectMeta;
   site: SiteSeismic;
   active_profile_id: string | null;
@@ -100,6 +98,16 @@ export function setMockMutationListener(listener: (path: string) => void): void 
   mutationListener = listener;
 }
 
+/** Live accessor: the store object is replaced on reset, so never cache the result across requests. */
+export function getMockStore(): MockStore {
+  return store;
+}
+
+/** Module mocks report successful edits with the pre-modular path (/profiles/..., /structures/...). */
+export function notifyMockMutation(path: string): void {
+  mutationListener?.(path);
+}
+
 export function setMockProjectMeta(partial: Partial<ProjectMeta>): void {
   store.meta = { ...store.meta, ...partial };
 }
@@ -122,14 +130,14 @@ function isStructureStale(s: Structure): boolean {
   return !source || mockProfileHash(source) !== s.soil.source_hash;
 }
 
-function validationError(message: string, details: Record<string, unknown>): { status: number; data: ApiErrorDTO } {
+export function validationError(message: string, details: Record<string, unknown>): { status: number; data: ApiErrorDTO } {
   return {
     status: 422,
     data: { code: "validation", message: `${message} (Mock)`, details, missing_factors: [] },
   };
 }
 
-function notFound(what: string): { status: number; data: ApiErrorDTO } {
+export function notFound(what: string): { status: number; data: ApiErrorDTO } {
   return {
     status: 404,
     data: { code: "not_found", message: `${what} not found (Mock).`, details: {}, missing_factors: [] },
@@ -171,7 +179,7 @@ function buildProjectSummary(): ProjectSummary {
   };
 }
 
-function toProfileSummary(p: SoilProfile): ProfileSummary {
+export function toProfileSummary(p: SoilProfile): ProfileSummary {
   return {
     id: p.id,
     name: p.name ?? p.id,
@@ -414,71 +422,6 @@ async function handleMockRequest(
     const payload = body as ActiveProfileUpdate;
     store.active_profile_id = payload.profile_id;
     return { status: 200, data: buildProjectSummary() };
-  }
-
-  // GET /investigations
-  if (upperMethod === "GET" && cleanPath === "/investigations") {
-    const res: InvestigationsDTO = {
-      boreholes: structuredClone(store.boreholes),
-      cpts: structuredClone(store.cpts),
-    };
-    return { status: 200, data: res };
-  }
-
-  // GET /profiles
-  if (upperMethod === "GET" && cleanPath === "/profiles") {
-    return { status: 200, data: store.profiles.map(toProfileSummary) };
-  }
-
-  // POST /profiles
-  if (upperMethod === "POST" && cleanPath === "/profiles") {
-    const payload = body as ProfileCreate;
-    const layers = structuredClone(payload.layers ?? MOCK_PROFILES[0].layers);
-    const issues = [...validateLayers(layers, { mustStartAtZero: true }), ...validateGwt(payload.gwt)];
-    if (issues.length > 0) {
-      return validationError("Invalid soil profile", { issues });
-    }
-    let seq = store.profileSeq + 1;
-    while (store.profiles.some((p) => p.id === `prof-mock-${seq}`)) seq += 1;
-    store.profileSeq = seq;
-    const newProfile: SoilProfile = {
-      id: `prof-mock-${seq}`,
-      name: payload.name,
-      origin: payload.origin,
-      source_ids: [...payload.source_ids],
-      layering: null,
-      gwt: { ...payload.gwt },
-      layers,
-    };
-    store.profiles.push(newProfile);
-    return { status: 200, data: structuredClone(newProfile) };
-  }
-
-  // GET / PUT / DELETE /profiles/{id}
-  const profileMatch = /^\/profiles\/([^/]+)$/.exec(cleanPath);
-  if (profileMatch) {
-    const profileId = decodeURIComponent(profileMatch[1]);
-    const index = store.profiles.findIndex((p) => p.id === profileId);
-    if (index < 0) return notFound("Profile");
-    if (upperMethod === "GET") {
-      return { status: 200, data: structuredClone(store.profiles[index]) };
-    }
-    if (upperMethod === "PUT") {
-      const updated = structuredClone(body as SoilProfile);
-      const issues = [...validateLayers(updated.layers ?? [], { mustStartAtZero: true }), ...validateGwt(updated.gwt)];
-      if (issues.length > 0) {
-        return validationError("Invalid soil profile", { issues });
-      }
-      updated.id = profileId;
-      store.profiles[index] = updated;
-      return { status: 200, data: structuredClone(updated) };
-    }
-    if (upperMethod === "DELETE") {
-      store.profiles.splice(index, 1);
-      if (store.active_profile_id === profileId) store.active_profile_id = store.profiles[0]?.id ?? null;
-      const res: DeletionResponse = { id: profileId, deleted: true };
-      return { status: 200, data: res };
-    }
   }
 
   // PUT /structures/{id}/soil
