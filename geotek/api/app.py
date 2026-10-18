@@ -1,4 +1,4 @@
-"""GeoTek HTTP surface: health and the core shell are live, other workflow bodies raise 501.
+"""GeoTek HTTP surface: core shell, structure calculations and in-process jobs.
 
 Core routes live here under /api; pluggable modules mount at /api/m/<id> via the registry.
 Run with ``uvicorn geotek.api.app:create_app --factory --host 127.0.0.1``.
@@ -8,8 +8,9 @@ Multipart is documented explicitly so creating the contract needs no parser pack
 from __future__ import annotations
 
 import math
+from contextlib import asynccontextmanager
 from pathlib import Path
-from typing import Annotated, NoReturn
+from typing import Annotated
 from uuid import uuid4
 
 from fastapi import APIRouter, Body, Depends, FastAPI, Request
@@ -21,7 +22,8 @@ from pydantic import TypeAdapter, ValidationError
 
 from geotek.api import library_routes, registry
 from geotek.api import schemas as dto
-from geotek.api.common import ERROR_RESPONSES, not_implemented
+from geotek.api.common import ERROR_RESPONSES
+from geotek.api.jobs import JobRunner, RunnerDep
 from geotek.api.session import Session, api_error, get_session, load_external
 from geotek.config.codes import FactorOverride, get_design_code, list_design_codes
 from geotek.core.errors import GeoTekError
@@ -348,15 +350,15 @@ def resync_structure_soil(id: str, session: SessionDep) -> Structure:
         return updated.model_copy(deep=True)
 
 @jobs.get("/jobs/{job_id}", response_model=dto.JobState, operation_id="get_job")
-def get_job(job_id: str) -> NoReturn:
+def get_job(job_id: str, runner: RunnerDep) -> dto.JobState:
     """Poll status, progress, step translation key, result or error."""
-    not_implemented()
+    return runner.get(job_id)
 
 
 @jobs.delete("/jobs/{job_id}", response_model=dto.JobState, operation_id="cancel_job")
-def cancel_job(job_id: str) -> NoReturn:
+def cancel_job(job_id: str, runner: RunnerDep) -> dto.JobState:
     """Request cancellation and return the resulting job state."""
-    not_implemented()
+    return runner.cancel(job_id)
 
 @codes.get("/codes", response_model=list[dto.DesignCodeSummary], operation_id="list_codes")
 def list_codes(session: SessionDep) -> list[dto.DesignCodeSummary]:
@@ -440,17 +442,26 @@ def set_design_overrides(
 
 def create_app(session: Session | None = None) -> FastAPI:
     """Build an application with its own session (settings via GEOTEK_SETTINGS or defaults)."""
+    @asynccontextmanager
+    async def lifespan(app: FastAPI):
+        try:
+            yield
+        finally:
+            app.state.jobs.shutdown()
+
     app = FastAPI(
+        lifespan=lifespan,
         title="GeoTek API", version=API_VERSION,
         description=(
             "GeoTek v2 local HTTP contract. Units: m, kPa, kN/m3 and degrees unless "
             "explicitly labelled otherwise. Non-finite result numbers are JSON null. "
-            "The core shell (session, project, library, settings, modules) is implemented; "
-            "other workflow routes return ApiError with HTTP 501."
+            "The core shell, wall and sheet pile calculations, liquefaction and job polling "
+            "are implemented. Remaining workflow stubs return ApiError with HTTP 501."
         ),
         servers=[{"url": "http://127.0.0.1:8000"}],
     )
     app.state.session = session if session is not None else Session()
+    app.state.jobs = JobRunner()
 
     @app.exception_handler(StarletteHTTPException)
     async def handle_http_error(request: Request, exc: StarletteHTTPException) -> JSONResponse:
