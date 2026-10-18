@@ -30,7 +30,10 @@ SessionDep = Annotated[Session, Depends(get_session)]
 
 
 def _investigation(session: Session, kind: str, identifier: str, payload=None):
-    """Replace or delete an existing raw record, preserving project reference validity."""
+    """Replace or delete an existing raw record, preserving project reference validity.
+
+    Deleting an investigation still referenced by a profile returns 422 ``validation``.
+    """
     with session.lock:
         project = session.require_project()
         records = getattr(project.investigations, kind)
@@ -76,11 +79,14 @@ def router() -> APIRouter:
         qc_unit applies to the file's cone resistance; stored sounding stresses are kPa.
         Multipart parsing does not require the optional python-multipart package.
         """
-        session.require_project()
-        parts = await service.multipart(request, "sounding_id", cpt=True)
-        sounding = service.import_csv(parts, cpt=True)
+        body = await service.read_upload(request)
         with session.lock:
             project = session.require_project()
+            parts = service.multipart(body, request.headers.get("content-type", ""),
+                                      "sounding_id", cpt=True)
+            sounding = service.import_csv(parts, cpt=True)
+            if session.require_project() is not project:
+                api_error(409, "project_changed", "The open project changed during CSV import.")
             investigations = project.investigations.model_copy(update={
                 "cpts": [*project.investigations.cpts, sounding],
             })
@@ -93,11 +99,13 @@ def router() -> APIRouter:
     )
     async def import_spt(request: Request, session: SessionDep) -> Borehole:
         """Import multipart file and borehole_id form parts."""
-        session.require_project()
-        parts = await service.multipart(request, "borehole_id")
-        borehole = service.import_csv(parts, cpt=False)
+        body = await service.read_upload(request)
         with session.lock:
             project = session.require_project()
+            parts = service.multipart(body, request.headers.get("content-type", ""), "borehole_id")
+            borehole = service.import_csv(parts, cpt=False)
+            if session.require_project() is not project:
+                api_error(409, "project_changed", "The open project changed during CSV import.")
             investigations = project.investigations.model_copy(update={
                 "boreholes": [*project.investigations.boreholes, borehole],
             })

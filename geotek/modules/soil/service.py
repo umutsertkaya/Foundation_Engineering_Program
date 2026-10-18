@@ -18,12 +18,16 @@ from pydantic import BaseModel, ValidationError
 from geotek.api.session import Session, api_error
 from geotek.core.constants import DEPTH_TOL
 from geotek.core.errors import GeoTekError
-from geotek.core.models.profile import SoilProfile
+from geotek.core.models.parameters import ParameterSelection
+from geotek.core.models.profile import DesignParameters, SoilLayer, SoilProfile
 from geotek.core.models.project import Project
 from geotek.io import tabular
 from geotek.modules.soil.schemas import ProfileCreate
 
 Model = TypeVar("Model", bound=BaseModel)
+
+# Application resource limit for the entire multipart body, not an engineering value.
+MAX_UPLOAD_BYTES = 20 * 1024 * 1024
 
 
 def find(items: list[Model], identifier: str) -> Model:
@@ -111,17 +115,42 @@ def materialise(payload: ProfileCreate) -> SoilProfile:
     return validate(SoilProfile, {**data, "id": new_id(), "layers": layers})
 
 
+def reset_interval(layer: SoilLayer, *others: SoilLayer) -> dict:
+    """Invalidate selection state after changing the represented depth interval.
+
+    Drop all candidates, suggestions, resolved choices and legacy params so E3 can
+    recompute them for the new bounds. Merge retains the union of selection keys
+    as empty, unapproved selections; neither layer's choice wins. Reset associated
+    design fields to their model defaults (including c_eff's required 0.0 default).
+    Explicit unit weights and design fields without selections remain supplied inputs.
+    """
+    data = layer.model_dump()
+    keys = set(layer.selections)
+    for other in others:
+        keys.update(other.selections)
+    defaults = DesignParameters().model_dump()
+    for key in keys:
+        if key in defaults:
+            data["design"][key] = defaults[key]
+    data["params"] = {}
+    data["selections"] = {
+        key: ParameterSelection(parameter=key).model_dump() for key in sorted(keys)
+    }
+    return data
+
+
 def split(profile: SoilProfile, layer_id: str, depth: float) -> SoilProfile:
-    """Keep upper id and copy all properties to the lower interval, matching the editor."""
+    """Keep the upper id, invalidating derived values and approvals on both children."""
     layer = find(profile.layers, layer_id)
     if not layer.top + DEPTH_TOL < depth < layer.bottom - DEPTH_TOL:
         api_error(422, "validation", "Split depth must lie strictly inside the layer.")
     layers = []
     for item in profile.layers:
         if item.id == layer_id:
+            reset = reset_interval(item)
             layers.extend([
-                {**item.model_dump(), "bottom": depth},
-                {**item.model_dump(), "id": new_id(), "top": depth},
+                {**reset, "bottom": depth},
+                {**reset, "id": new_id(), "top": depth},
             ])
         else:
             layers.append(item.model_dump())
@@ -129,7 +158,7 @@ def split(profile: SoilProfile, layer_id: str, depth: float) -> SoilProfile:
 
 
 def merge(profile: SoilProfile, layer_ids: list[str]) -> SoilProfile:
-    """The upper layer absorbs its neighbour and keeps its properties, as in the editor."""
+    """Keep upper physical inputs; reset selections from both layers for recomputation."""
     for identifier in layer_ids:
         find(profile.layers, identifier)
     indices = sorted(i for i, layer in enumerate(profile.layers) if layer.id in layer_ids)
@@ -137,22 +166,32 @@ def merge(profile: SoilProfile, layer_ids: list[str]) -> SoilProfile:
         api_error(422, "validation", "Merge requires two distinct adjacent layers.")
     upper, lower = indices
     layers = [layer.model_dump() for layer in profile.layers]
+    layers[upper] = reset_interval(profile.layers[upper], profile.layers[lower])
     layers[upper]["bottom"] = layers[lower]["bottom"]
     del layers[lower]
     return validate(SoilProfile, {**profile.model_dump(), "layers": layers})
 
 
-async def multipart(request: Request, identifier: str, *, cpt: bool = False) -> dict:
+async def read_upload(request: Request) -> bytes:
+    """Read bounded chunks without trusting Content-Length or buffering an unlimited body."""
+    body = bytearray()
+    async for chunk in request.stream():
+        if len(body) + len(chunk) > MAX_UPLOAD_BYTES:
+            api_error(422, "validation", f"Upload exceeds the {MAX_UPLOAD_BYTES}-byte limit.")
+        body.extend(chunk)
+    return bytes(body)
+
+
+def multipart(body: bytes, content_type: str, identifier: str, *, cpt: bool = False) -> dict:
     """Parse the declared flat multipart form with the standard MIME parser.
 
     This keeps uploads usable when the optional python-multipart package is absent.
     File names are never interpreted as server paths.
     """
-    content_type = request.headers.get("content-type", "")
     try:
         message = BytesParser(policy=policy.default).parsebytes(
             b"Content-Type: " + content_type.encode("ascii") + b"\r\nMIME-Version: 1.0\r\n\r\n"
-            + await request.body())
+            + body)
     except (ValueError, UnicodeError):
         api_error(422, "validation", "Invalid multipart form.")
     if message.get_content_type() != "multipart/form-data" or not message.is_multipart():
@@ -189,13 +228,13 @@ async def multipart(request: Request, identifier: str, *, cpt: bool = False) -> 
 
 
 def import_csv(parts: dict, *, cpt: bool):
-    """Reuse the path-based CSV readers; temporary files remain inside the worktree.
+    """Reuse path-based CSV readers in system temp, with cleanup even on parse failures.
 
     CPT form dialect is explicit, so normalise it before handing it to the reader,
     which otherwise detects its own dialect. Header units and aliases stay intact.
     """
     try:
-        with TemporaryDirectory(prefix=".soil-import-", dir=Path(__file__).resolve().parents[3]) as tmp:
+        with TemporaryDirectory(prefix="soil-import-") as tmp:
             path = Path(tmp) / "upload.csv"
             if cpt:
                 frame = pd.read_csv(BytesIO(parts["file"]), sep=parts["delimiter"],
@@ -209,3 +248,5 @@ def import_csv(parts: dict, *, cpt: bool):
         return result
     except (GeoTekError, ValueError, OverflowError) as exc:
         api_error(422, "validation", f"Cannot import CSV: {exc}")
+    except OSError:
+        api_error(422, "import_io_error", "Cannot read, write or clean up temporary CSV import files.")

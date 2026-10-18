@@ -2,8 +2,10 @@
 
 from __future__ import annotations
 
+import asyncio
 from copy import deepcopy
 import json
+from pathlib import Path
 
 import numpy as np
 import pytest
@@ -13,6 +15,7 @@ from geotek.core.models.structures import RetainingWallStructure, StructureSoilM
 from geotek.engine.insitu.cpt import process_cpt
 from geotek.engine.insitu.spt import process_borehole
 from geotek.io.project_io import load_project
+from geotek.modules.soil import service
 
 from .conftest import error_code
 
@@ -167,6 +170,191 @@ def test_invalid_csv_is_atomic(opened, kind, content, fields):
     assert error_code(response) == "validation"
     assert opened.app.state.session.project.model_dump() == before
     assert opened.get("/api/session").json()["dirty"] is False
+
+
+@pytest.mark.parametrize("kind", ["cpt", "spt"])
+@pytest.mark.parametrize("stage", ["multipart", "import_csv"])
+@pytest.mark.parametrize("action", ["close", "switch"])
+def test_import_rejects_session_changes_during_parse(opened, monkeypatch, kind, stage, action):
+    session = opened.app.state.session
+    original = session.project
+    before = original.model_dump()
+    replacement = original.model_copy(deep=True)
+    replacement.meta.name = "Replacement project"
+    replacement_before = replacement.model_dump()
+    parse = getattr(service, stage)
+
+    def change_session(*args, **kwargs):
+        result = parse(*args, **kwargs)
+        # Reentrant changes exercise the guard even while the route owns the RLock.
+        if action == "close":
+            session.close()
+        else:
+            session.open_project(replacement)
+        return result
+
+    monkeypatch.setattr(service, stage, change_session)
+    response = upload(opened, kind)
+    assert response.status_code == 409, response.text
+    assert error_code(response) == ("no_project_open" if action == "close" else "project_changed")
+    assert original.model_dump() == before
+    assert replacement.model_dump() == replacement_before
+    assert session.project is (None if action == "close" else replacement)
+    assert session.dirty is False
+
+
+@pytest.mark.parametrize("kind", ["cpt", "spt"])
+def test_import_holds_session_lock_through_validation(opened, monkeypatch, kind):
+    from threading import Thread
+
+    session = opened.app.state.session
+    calls = []
+    body_read = False
+    read_upload = service.read_upload
+    require_project = session.require_project
+
+    async def read_body(request):
+        nonlocal body_read
+        body = await read_upload(request)
+        body_read = True
+        return body
+
+    def require_after_body():
+        assert body_read, "The body must be read before checking the open project"
+        return require_project()
+
+    monkeypatch.setattr(service, "read_upload", read_body)
+    monkeypatch.setattr(session, "require_project", require_after_body)
+    for stage in ["multipart", "import_csv", "commit"]:
+        original = getattr(service, stage)
+
+        def checked(*args, _original=original, _stage=stage, **kwargs):
+            acquired = []
+
+            def probe():
+                held = session.lock.acquire(blocking=False)
+                acquired.append(held)
+                if held:
+                    session.lock.release()
+
+            thread = Thread(target=probe)
+            thread.start()
+            thread.join(timeout=5)
+            assert not thread.is_alive()
+            assert acquired == [False], f"Session lock missing during {_stage}"
+            calls.append(_stage)
+            return _original(*args, **kwargs)
+
+        monkeypatch.setattr(service, stage, checked)
+    response = upload(opened, kind)
+    assert response.status_code == 200, response.text
+    assert calls == ["multipart", "import_csv", "commit"]
+
+
+@pytest.mark.parametrize("kind", ["cpt", "spt"])
+@pytest.mark.parametrize("dirty", [False, True])
+def test_upload_limit_preserves_project_and_dirty(opened, monkeypatch, kind, dirty):
+    session = opened.app.state.session
+    if dirty:
+        create_profile(opened)
+    before = session.project.model_dump()
+    monkeypatch.setattr(service, "MAX_UPLOAD_BYTES", 32)
+    response = upload(opened, kind)
+    assert response.status_code == 422, response.text
+    assert error_code(response) == "validation"
+    assert "32-byte limit" in response.json()["message"]
+    assert session.project.model_dump() == before
+    assert session.dirty is dirty
+
+
+def test_upload_stream_limit_stops_before_reading_remaining_chunks(monkeypatch):
+    from fastapi import HTTPException
+
+    monkeypatch.setattr(service, "MAX_UPLOAD_BYTES", 8)
+
+    class Upload:
+        async def stream(self):
+            yield b"1234"
+            yield b"5678"
+            yield b"9"
+            raise AssertionError("Oversized upload must stop consuming the stream")
+
+    with pytest.raises(HTTPException) as caught:
+        asyncio.run(service.read_upload(Upload()))
+    assert caught.value.status_code == 422
+    assert caught.value.detail["code"] == "validation"
+
+
+def test_upload_stream_accepts_exact_byte_limit(monkeypatch):
+    monkeypatch.setattr(service, "MAX_UPLOAD_BYTES", 8)
+
+    class Upload:
+        async def stream(self):
+            yield b"1234"
+            yield b"5678"
+            yield b""
+
+    assert asyncio.run(service.read_upload(Upload())) == b"12345678"
+
+
+@pytest.mark.parametrize("kind", ["cpt", "spt"])
+@pytest.mark.parametrize("failure", ["none", "create", "write", "read", "cleanup"])
+def test_import_uses_system_temp_and_cleans_up(opened, monkeypatch, kind, failure):
+    from contextlib import contextmanager
+
+    before = opened.app.state.session.project.model_dump()
+    directories = []
+    temporary_directory = service.TemporaryDirectory
+
+    @contextmanager
+    def tracked_directory(*args, **kwargs):
+        assert "dir" not in kwargs  # Use the OS temp location, never the installed package.
+        if failure == "create":
+            raise OSError("temp storage unavailable")
+        with temporary_directory(*args, **kwargs) as directory:
+            directories.append(Path(directory))
+            yield directory
+        if failure == "cleanup":
+            raise OSError("simulated cleanup failure")
+
+    def fail(*args, **kwargs):
+        raise OSError("simulated import I/O failure")
+
+    monkeypatch.setattr(service, "TemporaryDirectory", tracked_directory)
+    if failure == "write":
+        if kind == "cpt":
+            monkeypatch.setattr(service.pd.DataFrame, "to_csv", fail)
+        else:
+            monkeypatch.setattr(Path, "write_bytes", fail)
+    elif failure == "read":
+        monkeypatch.setattr(service.tabular, f"import_{kind}", fail)
+    response = upload(opened, kind)
+    assert all(not directory.exists() for directory in directories)
+    if failure == "none":
+        assert response.status_code == 200, response.text
+    else:
+        assert response.status_code == 422, response.text
+        assert error_code(response) == "import_io_error"
+        assert "temporary CSV" in response.json()["message"]
+        assert opened.app.state.session.project.model_dump() == before
+        assert opened.app.state.session.dirty is False
+
+
+@pytest.mark.parametrize("kind", ["cpt", "spt"])
+def test_invalid_csv_cleans_temp_directory(opened, monkeypatch, kind):
+    directories = []
+    temporary_directory = service.TemporaryDirectory
+
+    def tracked_directory(*args, **kwargs):
+        context = temporary_directory(*args, **kwargs)
+        directories.append(Path(context.name))
+        return context
+
+    monkeypatch.setattr(service, "TemporaryDirectory", tracked_directory)
+    response = upload(opened, kind, content=b"wrong,headers\n1,2\n")
+    assert response.status_code == 422 and error_code(response) == "validation"
+    assert directories and all(not directory.exists() for directory in directories)
+    assert opened.app.state.session.dirty is False
 
 
 @pytest.mark.parametrize("kind", ["cpt", "spt"])
@@ -345,6 +533,91 @@ def test_source_deletion_preserves_project_references(opened):
         assert opened.get("/api/session").json()["dirty"] is False
         assert opened.delete(f"{PREFIX}/profiles/{profile['id']}").status_code == 200
         assert opened.delete(path).status_code == 200
+
+
+def selection(parameter, value, *, approved=True):
+    """Supply traceable selections without using the intentionally stubbed E3 routes."""
+    candidate = {"value": value, "unit": "test", "method_id": "user", "source": "user"}
+    return {
+        "parameter": parameter, "candidates": [candidate], "suggested": candidate,
+        "mode": "manual", "manual_value": value, "selected": candidate,
+        "approved": approved, "approved_at": "2026-10-19T09:00:00Z",
+        "basis_hash": "old-interval",
+    }
+
+
+def assert_reset_selections(layer, keys):
+    assert set(layer["selections"]) == set(keys)
+    for key, state in layer["selections"].items():
+        assert state == {
+            "parameter": key, "candidates": [], "suggested": None, "mode": None,
+            "method_id": None, "statistic": None, "k_sd": None, "manual_value": None,
+            "selected": None, "approved": False, "approved_at": None, "basis_hash": None,
+        }
+    assert layer["params"] == {}
+
+
+def test_split_invalidates_approved_and_unapproved_selections_only_on_children(opened):
+    values = {"phi_eff": 31, "c_eff": 12, "su": 60, "E": 15000, "delta_base": 20}
+    selections = {key: selection(key, value) for key, value in values.items()}
+    selections["gamma"] = selection("gamma", 18, approved=False)
+    payload = deepcopy(CREATE)
+    payload["layers"] = [
+        {**payload["layers"][0], "bottom": 10, "design": values, "selections": selections,
+         "params": {"phi_eff": selections["phi_eff"]["selected"]}},
+        {"id": "untouched", "top": 10, "bottom": 20, "gamma": 21,
+         "design": {"phi_eff": 35}, "selections": {"phi_eff": selection("phi_eff", 35)}},
+    ]
+    profile = create_profile(opened, payload)
+    clean(opened)
+    path = f"{PREFIX}/profiles/{profile['id']}"
+    response = opened.post(f"{path}/layers/{profile['layers'][0]['id']}/split", json={"depth": 5})
+    assert response.status_code == 200, response.text
+    layers = response.json()["layers"]
+    assert [(layer["top"], layer["bottom"]) for layer in layers] == [(0, 5), (5, 10), (10, 20)]
+    for child in layers[:2]:
+        assert_reset_selections(child, selections)
+        assert child["design"] == {
+            "phi_eff": None, "c_eff": 0.0, "su": None, "E": None, "delta_base": None,
+        }
+        assert child["gamma"] == 18
+    assert layers[2] == profile["layers"][1]
+    assert opened.get(path).json() == response.json()
+    assert opened.app.state.session.dirty is True
+
+
+@pytest.mark.parametrize("reverse", [False, True])
+def test_merge_resets_union_of_both_layers_approved_selections(opened, reverse):
+    upper = {"phi_eff": selection("phi_eff", 30), "c_eff": selection("c_eff", 10)}
+    lower = {"phi_eff": selection("phi_eff", 40), "su": selection("su", 80),
+             "E": selection("E", 20000), "delta_base": selection("delta_base", 25)}
+    payload = deepcopy(CREATE)
+    payload["layers"] = [
+        {"id": "upper", "top": 0, "bottom": 10, "gamma": 18,
+         "design": {"phi_eff": 30, "c_eff": 10, "E": 10000}, "selections": upper,
+         "params": {"phi_eff": upper["phi_eff"]["selected"]}},
+        {"id": "lower", "top": 10, "bottom": 20, "gamma": 21,
+         "design": {"phi_eff": 40, "su": 80, "E": 20000, "delta_base": 25},
+         "selections": lower, "params": {"su": lower["su"]["selected"]}},
+        {"id": "untouched", "top": 20, "bottom": 25, "gamma": 19,
+         "design": {"phi_eff": 33}, "selections": {"phi_eff": selection("phi_eff", 33)}},
+    ]
+    profile = create_profile(opened, payload)
+    clean(opened)
+    ids = [layer["id"] for layer in profile["layers"][:2]]
+    path = f"{PREFIX}/profiles/{profile['id']}"
+    response = opened.post(f"{path}/layers/merge", json={"layer_ids": ids[::-1] if reverse else ids})
+    assert response.status_code == 200, response.text
+    merged, untouched = response.json()["layers"]
+    assert (merged["top"], merged["bottom"], merged["id"]) == (0, 20, ids[0])
+    assert_reset_selections(merged, set(upper) | set(lower))
+    assert merged["design"] == {
+        "phi_eff": None, "c_eff": 0.0, "su": None, "E": None, "delta_base": None,
+    }
+    assert merged["gamma"] == 18
+    assert untouched == profile["layers"][2]
+    assert opened.get(path).json() == response.json()
+    assert opened.app.state.session.dirty is True
 
 
 def test_split_merge_preserve_values_and_structure_copies(opened):
