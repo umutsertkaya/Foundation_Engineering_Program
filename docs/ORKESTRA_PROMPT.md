@@ -66,6 +66,17 @@ geotek/ui/pages/wall.py (mevcut akış referansı).
 | D1 | README, kılavuz, katsayı doğrulama dokümanı | K1 | gemini-3.8-flash low | sen |
 Paralel kollar: E1 → (E2 ∥ E3 ∥ E4) → E4v ile F1 (mock API) aynı anda; A1 sözleşmeyle paralel.
 
+Modüler yapı sonrası (2026-10-19) kalan işlerin yeni yeri (`docs/plans/MODULER_YAPI.md`, X3):
+| # | Yeni yer |
+|---|---|
+| A1 | Çekirdek (`geotek/api/app.py`, oturum, işler) + `/api/m/<id>` altında modül yönlendiricileri |
+| E2, E3, F2, F3 | Zemin modülü: `geotek/modules/soil`, `web/src/modules/soil` |
+| F4 | Duvar modülü |
+| F5 | `sheet_pile` ve `liquefaction` modülleri |
+| K1 | PyInstaller: `geotek.modules.*` hidden-imports (yedek: `geotek/modules/_index.py`), modül `i18n/*.json` dosyaları datas |
+
+Yeni modüller `tools/new_module.py` ile iskelelenir ve `docs/MODULE_GUIDE.md` kurallarına uyar.
+
 ## Kullanıcı onay kapıları (durup sor)
 1) P1 sözleşmeleri, 2) E4 formül özeti + el hesabı sonuçları, 3) F1 tasarım sistemi ekran görüntüleri,
 4) F3/F4 ilk çalışan sürüm, 5) paketleme öncesi.

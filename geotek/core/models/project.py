@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import datetime as dt
-from typing import Literal
+from typing import Any, Literal
 
 from pydantic import BaseModel, Field, model_validator
 
@@ -12,7 +12,14 @@ from geotek.core.models.investigations import Investigations
 from geotek.core.models.profile import SoilProfile
 from geotek.core.models.structures import Structure
 
-SCHEMA_VERSION = "1.2"
+SCHEMA_VERSION = "1.3"
+
+
+class ModuleSection(BaseModel):
+    model_config = {"extra": "allow"}
+
+    v: int = Field(1, ge=1)
+    data: dict[str, Any] = Field(default_factory=dict)
 
 
 class ProjectMeta(BaseModel):
@@ -55,6 +62,10 @@ class Project(BaseModel):
     structures: list[Structure] = Field(default_factory=list)
     design_overrides: dict[str, dict[str, FactorOverride]] = Field(default_factory=dict)
     """User factor values per design code id, keyed by factor path."""
+    modules: dict[str, ModuleSection] = Field(default_factory=dict)
+    """Module-private state keyed by module id; sections of modules not present in this
+    build are preserved unchanged on save.
+    """
     module2_inputs: dict[str, dict] = Field(default_factory=dict)
     """Legacy (PySide6 UI): last form values of the Module 2 pages. Kept until that UI is removed."""
 

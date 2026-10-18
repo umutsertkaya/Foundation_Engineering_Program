@@ -30,6 +30,7 @@ include = ["geotek*"]
 [tool.setuptools.package-data]
 "geotek.config" = ["design_codes/*.yaml"]
 "geotek.i18n" = ["*.json"]
+"geotek.modules" = ["*/i18n/*.json"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

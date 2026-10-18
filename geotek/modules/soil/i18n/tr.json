@@ -1,0 +1,9 @@
+{
+  "soil.title": "Zemin etüdü ve parametreler",
+  "soil.description": "SPT, CPT ve laboratuvar verileri, zemin sınıflandırması, tabakalama, mühendislik parametreleri ve zemin profilleri.",
+  "soil.nav.site": "Arazi verileri",
+  "soil.nav.profiles": "Zemin profilleri",
+  "soil.nav.parameters": "Mühendislik parametreleri",
+  "soil.nav.classification": "Sınıflandırma",
+  "soil.placeholder": "Bu bölümün ekranları sonraki adımda bu modüle taşınacak."
+}

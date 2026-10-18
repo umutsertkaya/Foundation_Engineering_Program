@@ -1,23 +1,19 @@
-import { MantineProvider } from "@mantine/core";
-import { render, screen } from "@testing-library/react";
-import { MemoryRouter } from "react-router-dom";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import enCatalog from "../../../geotek/i18n/en.json";
-import trCatalog from "../../../geotek/i18n/tr.json";
+import { getBundledCatalog } from "../app/i18n";
 import {
   ApiError,
   get_health,
   get_job,
   parseApiError,
   setMockMode,
-  size_wall,
-} from "../api/client";
-import { resetMockState } from "../api/mock";
-import type { WallResultDTO } from "../api/types";
-import { WorkflowBar } from "../components/WorkflowBar";
-import "../i18n";
-import { theme } from "../theme";
-import { utilisationColor } from "../utils/utilisation";
+} from "../shared/api/client";
+import { size_wall } from "../modules/walls/api";
+import { resetMockState } from "../shared/api/mock";
+import type { WallResultDTO } from "../shared/api/types";
+import { utilisationColor } from "../shared/utils/utilisation";
+
+const trCatalog = getBundledCatalog("tr");
+const enCatalog = getBundledCatalog("en");
 
 afterEach(() => {
   setMockMode(null);
@@ -127,7 +123,7 @@ describe("utilisationColor", () => {
   });
 });
 
-describe("i18n tr.json and en.json key parity", () => {
+describe("i18n core and module fragment key parity", () => {
   it("has identical key sets and required error.*, job.step.*, and web.* keys", () => {
     const trKeys = Object.keys(trCatalog).sort();
     const enKeys = Object.keys(enCatalog).sort();
@@ -151,30 +147,23 @@ describe("i18n tr.json and en.json key parity", () => {
     expect(trCatalog).toHaveProperty("job.step.done");
     expect(trCatalog).toHaveProperty("web.nav.project");
   });
-});
 
-describe("WorkflowBar", () => {
-  it("renders all 5 workflow steps and highlights the active route", () => {
-    render(
-      <MantineProvider theme={theme}>
-        <MemoryRouter initialEntries={["/structures/wall-mock-1"]}>
-          <WorkflowBar />
-        </MemoryRouter>
-      </MantineProvider>,
+  it("bundles each module fragment and checks its TR/EN parity independently", () => {
+    const fragments = import.meta.glob<Record<string, string>>(
+      "../../../geotek/modules/*/i18n/*.json",
+      { eager: true, import: "default" },
     );
-
-    const stepProject = screen.getByTestId("workflow-step-project");
-    const stepSiteData = screen.getByTestId("workflow-step-site-data");
-    const stepSoilModels = screen.getByTestId("workflow-step-soil-models");
-    const stepStructures = screen.getByTestId("workflow-step-structures");
-    const stepReport = screen.getByTestId("workflow-step-report");
-
-    expect(stepProject).toBeInTheDocument();
-    expect(stepSiteData).toBeInTheDocument();
-    expect(stepSoilModels).toBeInTheDocument();
-    expect(stepStructures).toBeInTheDocument();
-    expect(stepReport).toBeInTheDocument();
-    expect(stepStructures).toHaveAttribute("aria-current", "step");
-    expect(stepProject).not.toHaveAttribute("aria-current");
+    for (const [path, trFragment] of Object.entries(fragments)) {
+      if (!path.endsWith("/tr.json")) continue;
+      const enFragment = fragments[path.replace(/\/tr\.json$/, "/en.json")];
+      expect(enFragment).toBeDefined();
+      expect(Object.keys(trFragment).sort()).toEqual(Object.keys(enFragment).sort());
+      for (const [key, value] of Object.entries(trFragment)) expect(trCatalog[key]).toBe(value);
+      for (const [key, value] of Object.entries(enFragment)) expect(enCatalog[key]).toBe(value);
+    }
+    for (const path of Object.keys(fragments)) {
+      if (path.endsWith("/en.json")) expect(fragments[path.replace(/\/en\.json$/, "/tr.json")]).toBeDefined();
+    }
   });
 });
+

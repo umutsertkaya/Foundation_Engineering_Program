@@ -1,23 +1,19 @@
-import { MantineProvider } from "@mantine/core";
-import { act, render, renderHook, screen } from "@testing-library/react";
-import i18next from "i18next";
-import { I18nextProvider, initReactI18next } from "react-i18next";
-import { MemoryRouter } from "react-router-dom";
+import { act, renderHook } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import enCatalog from "../../../geotek/i18n/en.json";
-import trCatalog from "../../../geotek/i18n/tr.json";
+import { getBundledCatalog } from "../app/i18n";
 import {
   ApiError,
   parseApiError,
   setMockMode,
-  size_wall,
-} from "../api/client";
-import { resetMockState } from "../api/mock";
-import type { WallResultDTO } from "../api/types";
-import { WorkflowBar } from "../components/WorkflowBar";
-import { useJob } from "../hooks/useJob";
-import { theme } from "../theme";
-import { utilisationColor } from "../utils/utilisation";
+} from "../shared/api/client";
+import { size_wall } from "../modules/walls/api";
+import { resetMockState } from "../shared/api/mock";
+import type { WallResultDTO } from "../shared/api/types";
+import { useJob } from "../shared/hooks/useJob";
+import { utilisationColor } from "../shared/utils/utilisation";
+
+const trCatalog = getBundledCatalog("tr");
+const enCatalog = getBundledCatalog("en");
 
 describe("GeoTek v2 web skeleton", () => {
   beforeEach(() => {
@@ -101,7 +97,7 @@ describe("GeoTek v2 web skeleton", () => {
     expect(utilisationColor(Number.NaN)).toBe("gray");
   });
 
-  it("maintains strict i18n key parity between geotek/i18n/tr.json and en.json", () => {
+  it("maintains strict i18n key parity for bundled core and module catalogs", () => {
     const trKeys = Object.keys(trCatalog).sort();
     const enKeys = Object.keys(enCatalog).sort();
 
@@ -132,53 +128,4 @@ describe("GeoTek v2 web skeleton", () => {
     }
   });
 
-  it("renders WorkflowBar with all 5 steps and highlights the active route", async () => {
-    const testI18n = i18next.createInstance();
-    await testI18n.use(initReactI18next).init({
-      resources: {
-        tr: { translation: trCatalog },
-        en: { translation: enCatalog },
-      },
-      lng: "tr",
-      fallbackLng: "en",
-      keySeparator: false,
-      nsSeparator: false,
-      interpolation: { prefix: "{", suffix: "}", escapeValue: false },
-    });
-
-    render(
-      <MantineProvider theme={theme}>
-        <I18nextProvider i18n={testI18n}>
-          <MemoryRouter initialEntries={["/structures/wall-mock-1"]}>
-            <WorkflowBar />
-          </MemoryRouter>
-        </I18nextProvider>
-      </MantineProvider>,
-    );
-
-    const nav = screen.getByRole("navigation", {
-      name: trCatalog["web.nav.workflow_aria"],
-    });
-    expect(nav).toBeInTheDocument();
-
-    const stepLabels = [
-      trCatalog["web.nav.project"],
-      trCatalog["web.nav.site_data"],
-      trCatalog["web.nav.soil_models"],
-      trCatalog["web.nav.structures"],
-      trCatalog["web.nav.report"],
-    ];
-
-    const buttons = screen.getAllByRole("button");
-    expect(buttons).toHaveLength(5);
-
-    for (const label of stepLabels) {
-      expect(screen.getByRole("button", { name: new RegExp(label) })).toBeInTheDocument();
-    }
-
-    const activeBtn = screen.getByRole("button", {
-      name: new RegExp(trCatalog["web.nav.structures"]),
-    });
-    expect(activeBtn).toHaveAttribute("aria-current", "step");
-  });
 });

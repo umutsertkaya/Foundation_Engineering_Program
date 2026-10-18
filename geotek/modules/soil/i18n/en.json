@@ -1,0 +1,9 @@
+{
+  "soil.title": "Soil investigation and parameters",
+  "soil.description": "SPT, CPT and laboratory data, soil classification, layering, engineering parameters and soil profiles.",
+  "soil.nav.site": "Site data",
+  "soil.nav.profiles": "Soil profiles",
+  "soil.nav.parameters": "Engineering parameters",
+  "soil.nav.classification": "Classification",
+  "soil.placeholder": "This section's screens will be moved into this module in a later step."
+}

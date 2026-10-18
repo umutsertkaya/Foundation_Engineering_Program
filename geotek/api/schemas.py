@@ -168,47 +168,11 @@ class ProjectSummary(DTO):
     structures: list[StructureSummary]
 
 
-class InvestigationsDTO(DTO):
-    """Unprocessed investigation records."""
-
-    boreholes: list[Borehole]
-    cpts: list[CPTSounding]
-
-
 class DeletionResponse(DTO):
     """JSON acknowledgement of a deleted investigation, profile or structure."""
 
     id: str
     deleted: Literal[True]
-
-
-class CPTProcessedDTO(DTO):
-    """Depth-aligned CPT chart series; stresses in kPa, friction ratios and fc in percent."""
-
-    depth: list[ResultNumber]
-    qc: list[ResultNumber]
-    fs: list[ResultNumber]
-    qt: list[ResultNumber]
-    Rf: list[ResultNumber]
-    Fr: list[ResultNumber]
-    Bq: list[ResultNumber] | None
-    Qtn: list[ResultNumber]
-    Ic: list[ResultNumber]
-    zone: list[int | None]
-    fc: list[ResultNumber]
-    sigma_v: list[ResultNumber]
-    sigma_v_eff: list[ResultNumber]
-    warnings: list[str]
-
-
-class SPTProcessedDTO(DTO):
-    """Depth-aligned SPT chart series; API labels map to n_field, n60 and n1_60."""
-
-    depth: list[ResultNumber]
-    N_field: list[ResultNumber]
-    N60: list[ResultNumber]
-    N1_60: list[ResultNumber]
-    warnings: list[str]
 
 
 class ProposedLayer(DTO):
@@ -245,73 +209,15 @@ class ProfileSummary(DTO):
     layer_count: int = Field(ge=0)
 
 
-class ProfileCreate(DTO):
-    """Create from exactly one of explicit layers or an unapproved layering proposal.
-
-    Groundwater and origin are explicit in both modes. A proposal does not supply
-    approved design parameters or missing unit weights automatically.
-    """
-
-    model_config = ConfigDict(json_schema_extra={
-        "oneOf": [
-            {"required": ["layers"], "properties": {"layers": {"type": "array"}},
-             "not": {"required": ["from_proposal"]}},
-            {"required": ["from_proposal"],
-             "properties": {"from_proposal": {"type": "object"}},
-             "not": {"required": ["layers"]}},
-        ],
-    })
-
-    name: str
-    origin: ProfileOrigin
-    source_ids: list[str]
-    gwt: GroundwaterCondition
-    layers: list[SoilLayer] | None = Field(None, min_length=1)
-    from_proposal: LayeringProposal | None = None
-
-    @model_validator(mode="after")
-    def _one_source(self) -> ProfileCreate:
-        """Keep runtime validation consistent with the documented exclusive alternatives."""
-        if (self.layers is None) == (self.from_proposal is None):
-            raise ValueError("Supply exactly one of layers or from_proposal")
-        if {"layers", "from_proposal"} <= self.model_fields_set:
-            raise ValueError("Omit the unused layer source")
-        return self
-
-
-class LayerSplit(DTO):
-    """Depth below ground at which to split the selected layer [m]."""
-
-    depth: float = Field(gt=0)
-
-
-class LayerMerge(DTO):
-    """Exactly two adjacent layer ids to merge; order does not imply approval."""
-
-    layer_ids: list[str] = Field(min_length=2, max_length=2)
-
-
-class SelectionUpdate(DTO):
-    """Selection inputs only; server resolves candidates and leaves approval separate."""
-
-    mode: SelectionMode
-    method_id: str | None = None
-    statistic: Statistic | None = None
-    k_sd: float | None = Field(None, ge=0)
-    manual_value: float | None = None
-
-
-class ParameterApproval(DTO):
-    """Design quantities the engineer explicitly approves."""
-
-    keys: list[DesignKey]
-
-
 class RetainingWallCreate(DTO):
     """Retaining wall inputs without a server id; omitted soil uses the selected profile.
 
     profile_id selects the copy source, falling back to the active profile when null.
     Explicit soil and profile_id are alternative sources. Heights are depths in metres.
+
+    If ``soil`` is null, ``profile_id`` is null and the project has no active profile, the
+    server answers 409 ``no_soil_source``; the client must then send an explicit manual
+    ``soil`` with ``source_profile_id=null``.
     """
 
     kind: Literal["retaining_wall"]
@@ -330,7 +236,12 @@ class RetainingWallCreate(DTO):
 
 
 class SheetPileCreate(DTO):
-    """Sheet pile inputs without a server id; profile selection matches retaining walls."""
+    """Sheet pile inputs without a server id; profile selection matches retaining walls.
+
+    If ``soil`` is null, ``profile_id`` is null and the project has no active profile, the
+    server answers 409 ``no_soil_source``; the client must then send an explicit manual
+    ``soil`` with ``source_profile_id=null``.
+    """
 
     kind: Literal["sheet_pile"]
     name: str
@@ -514,19 +425,6 @@ class SheetPileResultDTO(DTO):
     warnings: list[str]
 
 
-class LiquefactionSettingsDTO(DTO):
-    """Explicit liquefaction inputs; the contract chooses no engineering coefficients."""
-
-    method: Literal["youd2001", "bi2014"]
-    amax_g: float
-    mw: float
-    target_fs: float
-    gwt_seismic: float | None = None
-    default_fc: float | None = None
-    c_fc: float
-    ic_cutoff: float
-
-
 class SoundingLiquefactionDTO(DTO):
     """Depth-aligned triggering series; CSR/CRR/FS map to engine csr/crr/fs."""
 
@@ -573,3 +471,94 @@ class DesignCodeSummary(DTO):
     name: str
     approach: Literal["global_fs", "partial_factors", "lrfd"]
     approaches: list[str]
+
+
+def _strip(value: Any) -> Any:
+    return value.strip() if isinstance(value, str) else value
+
+
+class LibraryEntryDTO(DTO):
+    """Project file in the library; error is non-null when the file could not be read."""
+
+    file: str
+    name: str
+    number: str
+    engineer: str
+    modified: dt.datetime
+    size: int = Field(ge=0)
+    schema_version: str | None
+    error: str | None
+
+
+class AppSettingsDTO(DTO):
+    """Persistent preferences; recent holds absolute paths, newest first (server-managed)."""
+
+    library_dir: str = Field(min_length=1)
+    language: Language
+    recent: list[str] = Field(default_factory=list)
+
+
+class ModuleInfo(DTO):
+    """Discovered module metadata for the launcher, sorted by order."""
+
+    id: str
+    version: str
+    title_key: str
+    description_key: str
+    icon: str
+    order: int
+
+
+class SessionInfo(DTO):
+    """Open-project state of the running server."""
+
+    open: bool
+    file: str | None
+    dirty: bool
+
+
+class ProjectSaveResponse(SessionInfo):
+    """Session state after a save plus the path written (library or path-based)."""
+
+    path: str
+
+
+class NewProjectRequest(DTO):
+    """Subset of ProjectMeta needed to create a library project."""
+
+    name: Annotated[str, BeforeValidator(_strip)] = Field(min_length=1)
+    number: str = ""
+    engineer: str = ""
+    language: Language | None = None
+    design_code: str | None = None
+
+
+class RenameRequest(DTO):
+    """New project name for a library file."""
+
+    name: Annotated[str, BeforeValidator(_strip)] = Field(min_length=1)
+
+
+class ExportRequest(DTO):
+    """Destination file or directory outside the library."""
+
+    dest: str = Field(min_length=1)
+    overwrite: bool = Field(default=False, description="Replace an existing destination file.")
+
+
+class ExportResponse(DTO):
+    """Resolved path of the exported copy."""
+
+    path: str
+
+
+class ImportRequest(DTO):
+    """Existing project file to copy into the library."""
+
+    path: str = Field(min_length=1)
+
+
+class TrashResponse(DTO):
+    """Location of a deleted library file inside the library's .trash directory."""
+
+    trash_path: str

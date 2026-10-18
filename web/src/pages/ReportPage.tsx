@@ -1,6 +1,6 @@
 import { Stack, Text, Title } from "@mantine/core";
 import { useTranslation } from "react-i18next";
-import { EmptyState } from "../components/EmptyState";
+import { EmptyState } from "../shared/components/EmptyState";
 
 export function ReportPage() {
   const { t } = useTranslation();

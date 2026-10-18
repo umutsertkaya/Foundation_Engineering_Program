@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import json
+import os
+import tempfile
 from collections.abc import Callable
 from pathlib import Path
 
@@ -42,8 +44,19 @@ def _from_1_1(data: dict) -> dict:
     return data
 
 
+def _from_1_2(data: dict) -> dict:
+    """1.2 -> 1.3: add module-private state sections."""
+    data.setdefault("modules", {})
+    data["meta"]["schema_version"] = "1.3"
+    return data
+
+
 # from_version -> function upgrading the raw dict by one step (add entries as the schema evolves)
-_MIGRATIONS: dict[str, Callable[[dict], dict]] = {"1.0": _from_1_0, "1.1": _from_1_1}
+_MIGRATIONS: dict[str, Callable[[dict], dict]] = {
+    "1.0": _from_1_0,
+    "1.1": _from_1_1,
+    "1.2": _from_1_2,
+}
 
 
 def _migrate(data: dict) -> dict:
@@ -59,12 +72,33 @@ def _migrate(data: dict) -> dict:
     return data
 
 
+def write_atomic(path: str | Path, data: bytes) -> None:
+    """Write ``data`` to a temp file next to ``path`` and ``os.replace`` it into place.
+
+    A failure at any point leaves an existing ``path`` untouched and removes the temp file.
+    """
+    path = Path(path)
+    temporary: Path | None = None
+    try:
+        with tempfile.NamedTemporaryFile(
+            mode="wb", dir=path.parent, prefix=f".{path.name}.", suffix=".tmp", delete=False
+        ) as stream:
+            temporary = Path(stream.name)
+            stream.write(data)
+            stream.flush()
+            os.fsync(stream.fileno())
+        os.replace(temporary, path)
+    finally:
+        if temporary is not None:
+            temporary.unlink(missing_ok=True)
+
+
 def save_project(project: Project, path: str | Path) -> Path:
     path = Path(path)
     if path.suffix != PROJECT_SUFFIX:
         path = path.with_suffix(PROJECT_SUFFIX)
     project.meta.schema_version = SCHEMA_VERSION
-    path.write_text(project.model_dump_json(indent=2), encoding="utf-8")
+    write_atomic(path, project.model_dump_json(indent=2).encode("utf-8"))
     return path
 
 

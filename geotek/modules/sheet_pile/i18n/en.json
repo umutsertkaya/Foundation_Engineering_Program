@@ -1,0 +1,12 @@
+{
+  "sheet_pile.title": "Sheet pile / shoring",
+  "sheet_pile.description": "Embedment depth, anchor force and internal forces for cantilever and single-anchored sheet pile walls.",
+  "sheet_pile.nav.list": "Sheet piles",
+  "sheet_pile.list.subtitle": "Sheet pile walls in the project.",
+  "sheet_pile.list.empty_title": "No sheet pile walls yet",
+  "sheet_pile.list.empty_desc": "Sheet pile creation and design screens will be added to this module in a later step.",
+  "sheet_pile.detail.not_found_title": "Sheet pile wall not found",
+  "sheet_pile.detail.not_found_desc": "The requested wall is not in the project or may have been deleted.",
+  "sheet_pile.detail.placeholder_title": "Design screens coming soon",
+  "sheet_pile.detail.placeholder_desc": "Soil, loading and design screens will be added to this module in a later step."
+}

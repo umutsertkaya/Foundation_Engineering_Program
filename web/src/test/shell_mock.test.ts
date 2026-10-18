@@ -1,0 +1,259 @@
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { ApiError, get_project, set_project_site, setMockMode, update_project_meta } from "../shared/api/client";
+import {
+  close_project,
+  create_library_project,
+  delete_library_project,
+  duplicate_library_project,
+  export_library_project,
+  get_session,
+  get_settings,
+  import_library_project,
+  list_library,
+  list_modules,
+  list_project_profiles,
+  open_library_project,
+  put_settings,
+  rename_library_project,
+  save_current_project,
+} from "../shared/api/core";
+import { request } from "../shared/api/http";
+import { mockRequest, NOT_HANDLED, registerMockHandlers, resetCoreMock } from "../shared/api/mock";
+
+beforeEach(() => {
+  setMockMode(true);
+  resetCoreMock();
+});
+
+afterEach(() => {
+  vi.restoreAllMocks();
+  resetCoreMock();
+  setMockMode(null);
+});
+
+describe("core shell mock", () => {
+  it("returns the four modules in order with contract metadata", async () => {
+    const modules = await list_modules();
+    expect(modules.map(({ id }) => id)).toEqual(["soil", "liquefaction", "walls", "sheet_pile"]);
+    expect(modules.map(({ order }) => order)).toEqual([10, 20, 30, 40]);
+    expect(modules.map(({ icon }) => icon)).toEqual(["layers", "waves", "wall", "columns"]);
+    for (const module of modules) {
+      expect(module).toMatchObject({
+        version: "0.1.0", title_key: `${module.id}.title`, description_key: `${module.id}.description`,
+      });
+    }
+  });
+
+  it("starts with three entries and the legacy sample open", async () => {
+    const entries = await list_library();
+    expect(entries).toHaveLength(3);
+    expect(entries.map(({ modified }) => modified)).toEqual(entries.map(({ modified }) => modified).sort().reverse());
+    expect(await get_session()).toEqual({ open: true, file: "ornek-proje.gtk", dirty: false });
+    const sample = entries.find(({ file }) => file === "ornek-proje.gtk")!;
+    expect((await get_project()).meta).toMatchObject({ name: sample.name, number: sample.number, engineer: sample.engineer });
+  });
+
+  it("creates, transliterates and opens a project with empty profiles", async () => {
+    const project = await create_library_project({ name: "İğdır Şev Çözümü", number: "W2-1", engineer: "Özgür", language: "en" });
+    expect(project.file).toBe("igdir-sev-cozumu.gtk");
+    expect(await list_library()).toContainEqual(project);
+    expect(await get_session()).toEqual({ open: true, file: project.file, dirty: false });
+    expect((await get_project()).meta).toMatchObject({ name: project.name, number: "W2-1", engineer: "Özgür", language: "en" });
+    expect((await get_project()).counts).toMatchObject({ profiles: 0, structures: 0 });
+    const second = await create_library_project({ name: "İğdır Şev Çözümü" });
+    expect(second.file).not.toBe(project.file);
+    expect(await list_library()).toHaveLength(5);
+  });
+
+  it("renames, duplicates and deletes while refusing to delete the open project", async () => {
+    const project = await create_library_project({ name: "Deneme", number: "42", engineer: "Ece" });
+    const renamed = await rename_library_project(project.file, "Yeni Ad");
+    // The file follows the name and the open session follows the file; none of this is an edit.
+    expect(renamed).toMatchObject({ file: "yeni-ad.gtk", name: "Yeni Ad", number: "42", engineer: "Ece" });
+    expect((await list_library()).some(({ file }) => file === project.file)).toBe(false);
+    expect(await get_session()).toEqual({ open: true, file: renamed.file, dirty: false });
+    expect((await get_project()).meta.name).toBe("Yeni Ad");
+    const copy = await duplicate_library_project(renamed.file);
+    expect(copy.file).not.toBe(renamed.file);
+    expect(copy).toMatchObject({ number: "42", engineer: "Ece" });
+    expect(await list_library()).toContainEqual(copy);
+    expect(await get_session()).toEqual({ open: true, file: renamed.file, dirty: false });
+    await expect(delete_library_project(renamed.file)).rejects.toMatchObject({ status: 409, code: "project_open" });
+    expect((await delete_library_project(copy.file)).trash_path).toContain(`.trash/${copy.file}`);
+    expect((await list_library()).some(({ file }) => file === copy.file)).toBe(false);
+    await expect(open_library_project(copy.file)).rejects.toMatchObject({ status: 404, code: "not_found" });
+    expect((await get_session()).dirty).toBe(false);
+  });
+
+  it("does not mark the session dirty for library operations on a dirty-free session", async () => {
+    await import_library_project("C:/Export/other.gtk");
+    await duplicate_library_project("caglayan-sev.gtk");
+    await rename_library_project("kiyi-iksa.gtk", "Başka Ad");
+    await delete_library_project("caglayan-sev.gtk");
+    expect(await get_session()).toEqual({ open: true, file: "ornek-proje.gtk", dirty: false });
+  });
+
+  it("marks PATCH meta and PUT site dirty only when a value changes", async () => {
+    const project = await get_project();
+    await update_project_meta({ name: project.meta.name, engineer: project.meta.engineer });
+    await set_project_site({ ...project.site });
+    expect((await get_session()).dirty).toBe(false);
+    await set_project_site({ ...project.site, pga_g: 0.42 });
+    expect((await get_session()).dirty).toBe(true);
+    await save_current_project();
+    await set_project_site({ ...project.site, pga_g: 0.42 });
+    expect((await get_session()).dirty).toBe(false);
+    await update_project_meta({ name: "Başka" });
+    expect((await get_session()).dirty).toBe(true);
+  });
+
+  it("refuses to overwrite an existing export unless asked and validates the suffix", async () => {
+    const file = "ornek-proje.gtk";
+    expect(await export_library_project(file, "C:/Export/a")).toEqual({ path: "C:/Export/a.gtk" });
+    await expect(export_library_project(file, "C:/Export/a.gtk")).rejects.toMatchObject({ status: 409, code: "file_exists" });
+    expect(await export_library_project(file, "C:/Export/a.gtk", true)).toEqual({ path: "C:/Export/a.gtk" });
+    await expect(export_library_project(file, "C:/Export/a.txt", true)).rejects.toMatchObject({ status: 400, code: "invalid_path" });
+    const body = vi.fn();
+    vi.spyOn(globalThis, "fetch").mockImplementation(async (_url, init) => {
+      body(JSON.parse(String(init?.body)));
+      return new Response(JSON.stringify({ path: "x" }), { status: 200 });
+    });
+    setMockMode(false);
+    await export_library_project(file, "C:/Export/b.gtk", true);
+    expect(body).toHaveBeenCalledWith({ dest: "C:/Export/b.gtk", overwrite: true });
+  });
+
+  it("rejects GET /project after close and restores metadata on reopen", async () => {
+    const entries = await list_library();
+    const other = entries.find(({ file }) => file !== "ornek-proje.gtk")!;
+    expect(await close_project()).toEqual({ open: false, file: null, dirty: false });
+    await expect(get_project()).rejects.toBeInstanceOf(ApiError);
+    await expect(get_project()).rejects.toMatchObject({ status: 409, code: "no_project_open" });
+    await expect(save_current_project()).rejects.toMatchObject({ status: 409, code: "no_project_open" });
+    expect(await open_library_project(other.file)).toEqual({ open: true, file: other.file, dirty: false });
+    expect((await get_project()).meta).toMatchObject({ name: other.name, number: other.number, engineer: other.engineer });
+  });
+
+  it("tracks legacy edits, saves their metadata and reopens the saved entry", async () => {
+    await update_project_meta({ name: "Kaydedilen", engineer: "Yeni Mühendis" });
+    expect((await get_session()).dirty).toBe(true);
+    expect(await save_current_project()).toEqual({ open: true, file: "ornek-proje.gtk", dirty: false });
+    await close_project();
+    await open_library_project("caglayan-sev.gtk");
+    await open_library_project("ornek-proje.gtk");
+    expect((await get_project()).meta).toMatchObject({ name: "Kaydedilen", engineer: "Yeni Mühendis" });
+    await expect(delete_library_project("ornek-proje.gtk")).rejects.toMatchObject({ code: "project_open" });
+    expect((await get_session()).dirty).toBe(false);
+  });
+
+  it("round-trips settings, ignores supplied recent and caps deduplicated recent paths", async () => {
+    const initial = await get_settings();
+    const changed = await put_settings({ ...initial, library_dir: "C:/Projects", language: "en", recent: ["ignored"] });
+    expect(changed).toEqual({ library_dir: "C:/Projects", language: "en", recent: initial.recent });
+    expect(await get_settings()).toEqual(changed);
+    for (let index = 0; index < 12; index += 1) await create_library_project({ name: `Recent ${index}` });
+    await open_library_project("recent-10.gtk");
+    const recent = (await get_settings()).recent;
+    expect(recent).toHaveLength(10);
+    expect(new Set(recent).size).toBe(10);
+    expect(recent[0]).toBe("C:/Projects/recent-10.gtk");
+  });
+
+  it("exports and imports metadata and rejects invalid project paths", async () => {
+    const project = await create_library_project({ name: "Aktarım", engineer: "Ece" });
+    expect(await export_library_project(project.file, "C:/Export/aktarim.gtk")).toEqual({ path: "C:/Export/aktarim.gtk" });
+    const imported = await import_library_project("C:/Export/aktarim.gtk");
+    expect(imported).toMatchObject({ name: project.name, engineer: "Ece" });
+    expect(imported.file).not.toBe(project.file);
+    expect(await list_library()).toContainEqual(imported);
+    expect((await get_session()).file).toBe(project.file);
+    await expect(import_library_project("C:/Export/file.txt")).rejects.toMatchObject({ status: 422, code: "invalid_project_file" });
+    await expect(open_library_project("../outside.gtk")).rejects.toMatchObject({ status: 400, code: "invalid_file_name" });
+  });
+
+  it("dispatches the longest prefix first, falls through and propagates handler errors", async () => {
+    registerMockHandlers("/w2-test", () => ({ status: 200, data: "broad" }));
+    registerMockHandlers("/w2-test/specific", (_method, path) => path.endsWith("/fallback")
+      ? NOT_HANDLED : { status: 200, data: "specific" });
+    expect(await request("GET", "/w2-test/specific")).toBe("specific");
+    expect(await request("GET", "/w2-test/specific/fallback")).toBe("broad");
+    registerMockHandlers("/w2-test/throw", () => {
+      throw new ApiError(409, { code: "project_open", message: "Test error" });
+    });
+    await expect(request("GET", "/w2-test/throw")).rejects.toMatchObject({ status: 409, code: "project_open" });
+    expect(await mockRequest("GET", "/health")).toMatchObject({ status: 200, data: { status: "ok" } });
+  });
+});
+
+describe("new library project", () => {
+  it("starts without seed profiles or structures but keeps investigations", async () => {
+    await create_library_project({ name: "Bos Proje" } as never);
+    expect((await mockRequest("GET", "/m/soil/profiles")).data).toEqual([]);
+    expect((await mockRequest("GET", "/structures")).data).toEqual([]);
+    const inv = (await mockRequest("GET", "/m/soil/investigations")).data as { boreholes: unknown[] };
+    expect(inv.boreholes.length).toBeGreaterThan(0);
+  });
+});
+
+describe("core data/profiles and POST /structures soil source", () => {
+  const wall = { kind: "retaining_wall", name: "W", wall_type: "cantilever", height: 4 };
+  const manualSoil = {
+    source_profile_id: null,
+    profile: {
+      id: "manual", name: "Manual", origin: "manual", source_ids: [], layering: null,
+      gwt: { depth_insitu: 3, depth_design: null, depth_seismic: null },
+      layers: [{ id: "L1", top: 0, bottom: 10, gamma: 18 }],
+    },
+  };
+
+  it("lists profile summaries from the shared store", async () => {
+    const rows = await list_project_profiles();
+    expect(rows.length).toBeGreaterThan(0);
+    expect(rows[0]).toMatchObject({ id: expect.any(String), layer_count: expect.any(Number) });
+    await create_library_project({ name: "Bos Proje" } as never);
+    expect(await list_project_profiles()).toEqual([]);
+  });
+
+  it("empty project without soil is 409 no_soil_source", async () => {
+    await create_library_project({ name: "Bos Proje" } as never);
+    const res = await mockRequest("POST", "/structures", wall);
+    expect(res.status).toBe(409);
+    expect(res.data).toMatchObject({ code: "no_soil_source" });
+  });
+
+  it("empty project with manual soil keeps a null source", async () => {
+    await create_library_project({ name: "Bos Proje" } as never);
+    const res = await mockRequest("POST", "/structures", { ...wall, soil: manualSoil });
+    expect(res.status).toBe(200);
+    const soil = (res.data as { soil: Record<string, unknown> }).soil;
+    expect(soil.source_profile_id).toBeNull();
+    expect(soil.source_hash ?? null).toBeNull();
+    expect(soil.retained_fill ?? []).toEqual([]);
+  });
+
+  it("data/profiles is 409 no_project_open when no session is open", async () => {
+    await close_project();
+    const res = await mockRequest("GET", "/data/profiles");
+    expect(res.status).toBe(409);
+    expect(res.data).toMatchObject({ code: "no_project_open" });
+  });
+
+  it("profile_id: unknown id is 404 not_found, known id is used, no id uses the active profile", async () => {
+    const missing = await mockRequest("POST", "/structures", { ...wall, profile_id: "nope" });
+    expect(missing.status).toBe(404);
+    expect(missing.data).toMatchObject({ code: "not_found" });
+    const rows = await list_project_profiles();
+    const explicit = await mockRequest("POST", "/structures", { ...wall, profile_id: rows[rows.length - 1].id });
+    expect((explicit.data as { soil: { source_profile_id: string } }).soil.source_profile_id).toBe(rows[rows.length - 1].id);
+    const active = (await get_project()).active_profile_id;
+    const implicit = await mockRequest("POST", "/structures", wall);
+    expect((implicit.data as { soil: { source_profile_id: string } }).soil.source_profile_id).toBe(active);
+  });
+
+  it("profiles but no active profile and no profile_id is 409 no_soil_source (no first-profile fallback)", async () => {
+    await mockRequest("PUT", "/project/active-profile", { profile_id: null });
+    const res = await mockRequest("POST", "/structures", wall);
+    expect(res.status).toBe(409);
+    expect(res.data).toMatchObject({ code: "no_soil_source" });
+  });
+});

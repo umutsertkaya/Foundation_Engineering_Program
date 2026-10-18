@@ -16,13 +16,39 @@ from pathlib import Path
 SUPPORTED = ("tr", "en")
 FALLBACK = "en"
 _current = "tr"
+_MODULES_DIR = Path(__file__).parent.parent / "modules"
 
 
 @cache
 def _catalog(lang: str) -> dict[str, str]:
     path = Path(__file__).parent / f"{lang}.json"
     with open(path, encoding="utf-8") as fh:
-        return json.load(fh)
+        catalog = json.load(fh)
+    core_keys = set(catalog)
+    for fragment_path in sorted(_MODULES_DIR.glob(f"*/i18n/{lang}.json")):
+        module_id = fragment_path.parent.parent.name
+        if module_id.startswith("_"):
+            continue
+        with open(fragment_path, encoding="utf-8") as fh:
+            fragment = json.load(fh)
+        if not isinstance(fragment, dict):
+            raise ValueError(f"Fragment {fragment_path}: must be a JSON object")
+        for key, value in fragment.items():
+            if not isinstance(value, str):
+                raise ValueError(f"Fragment {fragment_path}: value of {key!r} must be a string")
+            if key in core_keys:
+                raise ValueError(f"Fragment {fragment_path}: key {key!r} collides with core")
+            if not key.startswith(f"{module_id}."):
+                raise ValueError(
+                    f"Fragment {fragment_path}: key {key!r} must start with {module_id + '.'!r}"
+                )
+        catalog.update(fragment)
+    return catalog
+
+
+def clear_cache() -> None:
+    """Reload core catalogs and module fragments on the next translation."""
+    _catalog.cache_clear()
 
 
 def set_language(lang: str) -> None:
