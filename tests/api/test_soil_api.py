@@ -204,6 +204,52 @@ def test_import_rejects_session_changes_during_parse(opened, monkeypatch, kind, 
 
 
 @pytest.mark.parametrize("kind", ["cpt", "spt"])
+@pytest.mark.parametrize("action", ["close", "switch"])
+def test_import_rejects_session_changes_during_body_read(opened, monkeypatch, kind, action):
+    session = opened.app.state.session
+    original = session.project
+    before = original.model_dump()
+    replacement = original.model_copy(deep=True)
+    replacement.meta.name = "Replacement project"
+    replacement_before = replacement.model_dump()
+    read_upload = service.read_upload
+
+    async def change_session(request):
+        body = await read_upload(request)
+        if action == "close":
+            session.close()
+        else:
+            session.open_project(replacement)
+        return body
+
+    def fail(*args, **kwargs):
+        raise AssertionError("A stale upload must be rejected before parsing")
+
+    monkeypatch.setattr(service, "read_upload", change_session)
+    monkeypatch.setattr(service, "multipart", fail)
+    response = upload(opened, kind)
+    assert response.status_code == 409, response.text
+    assert error_code(response) == ("no_project_open" if action == "close" else "project_changed")
+    assert original.model_dump() == before
+    assert replacement.model_dump() == replacement_before
+    assert original.investigations.cpts == original.investigations.boreholes == []
+    assert replacement.investigations.cpts == replacement.investigations.boreholes == []
+    assert session.project is (None if action == "close" else replacement)
+    assert session.dirty is False
+
+
+@pytest.mark.parametrize("kind", ["cpt", "spt"])
+def test_import_without_project_does_not_read_body(shell, monkeypatch, kind):
+    async def fail(request):
+        raise AssertionError("No open project: the body must not be read")
+
+    monkeypatch.setattr(service, "read_upload", fail)
+    response = upload(shell, kind)
+    assert response.status_code == 409, response.text
+    assert error_code(response) == "no_project_open"
+
+
+@pytest.mark.parametrize("kind", ["cpt", "spt"])
 def test_import_holds_session_lock_through_validation(opened, monkeypatch, kind):
     from threading import Thread
 
@@ -219,12 +265,14 @@ def test_import_holds_session_lock_through_validation(opened, monkeypatch, kind)
         body_read = True
         return body
 
-    def require_after_body():
-        assert body_read, "The body must be read before checking the open project"
+    checks = []
+
+    def require_during_upload():
+        checks.append(body_read)
         return require_project()
 
     monkeypatch.setattr(service, "read_upload", read_body)
-    monkeypatch.setattr(session, "require_project", require_after_body)
+    monkeypatch.setattr(session, "require_project", require_during_upload)
     for stage in ["multipart", "import_csv", "commit"]:
         original = getattr(service, stage)
 
@@ -249,6 +297,7 @@ def test_import_holds_session_lock_through_validation(opened, monkeypatch, kind)
     response = upload(opened, kind)
     assert response.status_code == 200, response.text
     assert calls == ["multipart", "import_csv", "commit"]
+    assert checks[0] is False and all(checks[1:])
 
 
 @pytest.mark.parametrize("kind", ["cpt", "spt"])
@@ -546,13 +595,12 @@ def selection(parameter, value, *, approved=True):
     }
 
 
-def assert_reset_selections(layer, keys):
-    assert set(layer["selections"]) == set(keys)
+def assert_stale_selections(layer, previous):
+    assert set(layer["selections"]) == set(previous)
     for key, state in layer["selections"].items():
         assert state == {
-            "parameter": key, "candidates": [], "suggested": None, "mode": None,
-            "method_id": None, "statistic": None, "k_sd": None, "manual_value": None,
-            "selected": None, "approved": False, "approved_at": None, "basis_hash": None,
+            **previous[key], "candidates": [], "suggested": None,
+            "approved": False, "approved_at": None, "basis_hash": None,
         }
     assert layer["params"] == {}
 
@@ -576,10 +624,8 @@ def test_split_invalidates_approved_and_unapproved_selections_only_on_children(o
     layers = response.json()["layers"]
     assert [(layer["top"], layer["bottom"]) for layer in layers] == [(0, 5), (5, 10), (10, 20)]
     for child in layers[:2]:
-        assert_reset_selections(child, selections)
-        assert child["design"] == {
-            "phi_eff": None, "c_eff": 0.0, "su": None, "E": None, "delta_base": None,
-        }
+        assert_stale_selections(child, profile["layers"][0]["selections"])
+        assert child["design"] == values
         assert child["gamma"] == 18
     assert layers[2] == profile["layers"][1]
     assert opened.get(path).json() == response.json()
@@ -587,17 +633,18 @@ def test_split_invalidates_approved_and_unapproved_selections_only_on_children(o
 
 
 @pytest.mark.parametrize("reverse", [False, True])
-def test_merge_resets_union_of_both_layers_approved_selections(opened, reverse):
+def test_merge_keeps_equal_design_values_stale_from_both_layers(opened, reverse):
+    values = {"phi_eff": 30, "c_eff": 10, "su": 80, "E": 20000, "delta_base": 25}
     upper = {"phi_eff": selection("phi_eff", 30), "c_eff": selection("c_eff", 10)}
-    lower = {"phi_eff": selection("phi_eff", 40), "su": selection("su", 80),
+    lower = {"phi_eff": selection("phi_eff", 30), "su": selection("su", 80),
              "E": selection("E", 20000), "delta_base": selection("delta_base", 25)}
     payload = deepcopy(CREATE)
     payload["layers"] = [
         {"id": "upper", "top": 0, "bottom": 10, "gamma": 18,
-         "design": {"phi_eff": 30, "c_eff": 10, "E": 10000}, "selections": upper,
+         "design": values, "selections": upper,
          "params": {"phi_eff": upper["phi_eff"]["selected"]}},
         {"id": "lower", "top": 10, "bottom": 20, "gamma": 21,
-         "design": {"phi_eff": 40, "su": 80, "E": 20000, "delta_base": 25},
+         "design": values,
          "selections": lower, "params": {"su": lower["su"]["selected"]}},
         {"id": "untouched", "top": 20, "bottom": 25, "gamma": 19,
          "design": {"phi_eff": 33}, "selections": {"phi_eff": selection("phi_eff", 33)}},
@@ -610,14 +657,105 @@ def test_merge_resets_union_of_both_layers_approved_selections(opened, reverse):
     assert response.status_code == 200, response.text
     merged, untouched = response.json()["layers"]
     assert (merged["top"], merged["bottom"], merged["id"]) == (0, 20, ids[0])
-    assert_reset_selections(merged, set(upper) | set(lower))
-    assert merged["design"] == {
-        "phi_eff": None, "c_eff": 0.0, "su": None, "E": None, "delta_base": None,
-    }
+    previous = {**profile["layers"][1]["selections"], **profile["layers"][0]["selections"]}
+    assert_stale_selections(merged, previous)
+    assert merged["design"] == values
+    assert "Warning" not in response.headers
     assert merged["gamma"] == 18
     assert untouched == profile["layers"][2]
     assert opened.get(path).json() == response.json()
     assert opened.app.state.session.dirty is True
+
+
+@pytest.mark.parametrize("reverse", [False, True])
+@pytest.mark.parametrize("key,other", [
+    ("phi_eff", 40), ("su", 100), ("E", 30000), ("delta_base", 15),
+    ("phi_eff", None), ("su", None), ("E", None), ("delta_base", None),
+])
+def test_merge_clears_conflicting_design_values_and_warns(opened, key, other, reverse):
+    values = {"phi_eff": 30, "c_eff": 12, "su": 80, "E": 20000, "delta_base": 25}
+    selections = {name: selection(name, value) for name, value in values.items()}
+    payload = deepcopy(CREATE)
+    payload["layers"] = [
+        {"id": "upper", "top": 0, "bottom": 10, "gamma": 18,
+         "design": values, "selections": selections},
+        {"id": "lower", "top": 10, "bottom": 20, "gamma": 18,
+         "design": {**values, key: other},
+         "selections": {key: selection(key, other)} if other is not None else {}},
+        {"id": "untouched", "top": 20, "bottom": 25, "gamma": 19},
+    ]
+    profile = create_profile(opened, payload)
+    clean(opened)
+    path = f"{PREFIX}/profiles/{profile['id']}"
+    ids = [layer["id"] for layer in profile["layers"][:2]]
+    response = opened.post(f"{path}/layers/merge", json={"layer_ids": ids[::-1] if reverse else ids})
+    assert response.status_code == 200, response.text
+    merged, untouched = response.json()["layers"]
+    assert merged["design"] == {**values, key: None}
+    assert f"Conflicting design value {key} cleared" in response.headers["Warning"]
+    assert merged["selections"][key] == {
+        "parameter": key, "candidates": [], "suggested": None, "mode": None,
+        "method_id": None, "statistic": None, "k_sd": None, "manual_value": None,
+        "selected": None, "approved": False, "approved_at": None, "basis_hash": None,
+    }
+    retained = {name: state for name, state in merged["selections"].items() if name != key}
+    assert_stale_selections({**merged, "selections": retained}, {
+        name: state for name, state in profile["layers"][0]["selections"].items() if name != key
+    })
+    assert untouched == profile["layers"][2]
+    assert opened.get(path).json() == response.json()
+    assert opened.app.state.session.dirty is True
+
+
+def test_merge_reports_all_conflicts_without_existing_selections(opened):
+    payload = deepcopy(CREATE)
+    payload["layers"] = [
+        {"id": "upper", "top": 0, "bottom": 10, "gamma": 18,
+         "design": {"phi_eff": 30, "c_eff": 12, "E": 10000}},
+        {"id": "lower", "top": 10, "bottom": 20, "gamma": 18,
+         "design": {"phi_eff": 40, "c_eff": 12, "E": 20000}},
+    ]
+    profile = create_profile(opened, payload)
+    path = f"{PREFIX}/profiles/{profile['id']}"
+    response = opened.post(f"{path}/layers/merge", json={
+        "layer_ids": [layer["id"] for layer in profile["layers"]],
+    })
+    assert response.status_code == 200, response.text
+    merged = response.json()["layers"][0]
+    assert merged["design"]["c_eff"] == 12
+    assert set(merged["selections"]) == {"phi_eff", "E"}
+    for key in ["phi_eff", "E"]:
+        assert merged["design"][key] is None
+        assert merged["selections"][key]["selected"] is None
+        assert merged["selections"][key]["approved"] is False
+        assert f"Conflicting design value {key} cleared" in response.headers["Warning"]
+    assert opened.get(path).json() == response.json()
+
+
+@pytest.mark.parametrize("reverse", [False, True])
+@pytest.mark.parametrize("lower_cohesion", [0, 20])
+def test_merge_rejects_conflicting_required_cohesion_atomically(opened, reverse, lower_cohesion):
+    payload = deepcopy(CREATE)
+    payload["layers"] = [
+        {"id": "upper", "top": 0, "bottom": 10, "gamma": 18,
+         "design": {"phi_eff": 30, "c_eff": 12},
+         "selections": {"c_eff": selection("c_eff", 12)}},
+        {"id": "lower", "top": 10, "bottom": 20, "gamma": 18,
+         "design": {"phi_eff": 40, "c_eff": lower_cohesion}},
+    ]
+    profile = create_profile(opened, payload)
+    clean(opened)
+    session = opened.app.state.session
+    before = session.project.model_dump()
+    ids = [layer["id"] for layer in profile["layers"]]
+    path = f"{PREFIX}/profiles/{profile['id']}"
+    response = opened.post(f"{path}/layers/merge", json={"layer_ids": ids[::-1] if reverse else ids})
+    assert response.status_code == 409, response.text
+    assert error_code(response) == "design_conflict"
+    assert set(response.json()["details"]["conflicting_keys"]) == {"phi_eff", "c_eff"}
+    assert session.project.model_dump() == before
+    assert session.dirty is False
+    assert opened.get(path).json() == profile
 
 
 def test_split_merge_preserve_values_and_structure_copies(opened):

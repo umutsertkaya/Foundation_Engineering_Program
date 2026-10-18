@@ -116,31 +116,30 @@ def materialise(payload: ProfileCreate) -> SoilProfile:
 
 
 def reset_interval(layer: SoilLayer, *others: SoilLayer) -> dict:
-    """Invalidate selection state after changing the represented depth interval.
+    """Retain design values and choices pending reapproval for the new interval.
 
-    Drop all candidates, suggestions, resolved choices and legacy params so E3 can
-    recompute them for the new bounds. Merge retains the union of selection keys
-    as empty, unapproved selections; neither layer's choice wins. Reset associated
-    design fields to their model defaults (including c_eff's required 0.0 default).
-    Explicit unit weights and design fields without selections remain supplied inputs.
+    Candidates, suggestions and legacy params must be recomputed for the new bounds.
+    Existing resolved choices remain traceable, but cannot carry an approval or its
+    old basis into a different interval. Merge includes selections from both layers.
     """
     data = layer.model_dump()
-    keys = set(layer.selections)
+    selections = dict(layer.selections)
     for other in others:
-        keys.update(other.selections)
-    defaults = DesignParameters().model_dump()
-    for key in keys:
-        if key in defaults:
-            data["design"][key] = defaults[key]
+        for key, state in other.selections.items():
+            selections.setdefault(key, state)
     data["params"] = {}
     data["selections"] = {
-        key: ParameterSelection(parameter=key).model_dump() for key in sorted(keys)
+        key: {
+            **state.model_dump(), "candidates": [], "suggested": None,
+            "approved": False, "approved_at": None, "basis_hash": None,
+        }
+        for key, state in sorted(selections.items())
     }
     return data
 
 
 def split(profile: SoilProfile, layer_id: str, depth: float) -> SoilProfile:
-    """Keep the upper id, invalidating derived values and approvals on both children."""
+    """Keep the upper id and design values, requiring reapproval on both children."""
     layer = find(profile.layers, layer_id)
     if not layer.top + DEPTH_TOL < depth < layer.bottom - DEPTH_TOL:
         api_error(422, "validation", "Split depth must lie strictly inside the layer.")
@@ -157,19 +156,43 @@ def split(profile: SoilProfile, layer_id: str, depth: float) -> SoilProfile:
     return validate(SoilProfile, {**profile.model_dump(), "layers": layers})
 
 
-def merge(profile: SoilProfile, layer_ids: list[str]) -> SoilProfile:
-    """Keep upper physical inputs; reset selections from both layers for recomputation."""
+def merge(profile: SoilProfile, layer_ids: list[str]) -> tuple[SoilProfile, list[str]]:
+    """Keep equal design values stale; clear conflicts and report them to the caller.
+
+    The core model requires numeric c_eff, so conflicting cohesion cannot be cleared
+    within this module. Reject that merge atomically instead of fabricating zero.
+    """
     for identifier in layer_ids:
         find(profile.layers, identifier)
     indices = sorted(i for i, layer in enumerate(profile.layers) if layer.id in layer_ids)
     if len(indices) != 2 or indices[1] != indices[0] + 1:
         api_error(422, "validation", "Merge requires two distinct adjacent layers.")
     upper, lower = indices
+    first, second = profile.layers[upper], profile.layers[lower]
+    conflicts = [
+        key for key in DesignParameters.model_fields
+        if getattr(first.design, key) != getattr(second.design, key)
+    ]
+    if "c_eff" in conflicts:
+        api_error(
+            409, "design_conflict",
+            "Conflicting c_eff values cannot be cleared: the core model requires a number. "
+            "Resolve cohesion explicitly before merging; no layers were changed.",
+            conflicting_keys=conflicts,
+        )
     layers = [layer.model_dump() for layer in profile.layers]
-    layers[upper] = reset_interval(profile.layers[upper], profile.layers[lower])
+    layers[upper] = reset_interval(first, second)
+    warnings = []
+    for key in conflicts:
+        layers[upper]["design"][key] = None
+        # Neither original choice is a resolved choice for the merged interval.
+        layers[upper]["selections"][key] = ParameterSelection(parameter=key).model_dump()
+        warnings.append(
+            f"Conflicting design value {key} cleared; explicit selection and reapproval required."
+        )
     layers[upper]["bottom"] = layers[lower]["bottom"]
     del layers[lower]
-    return validate(SoilProfile, {**profile.model_dump(), "layers": layers})
+    return validate(SoilProfile, {**profile.model_dump(), "layers": layers}), warnings
 
 
 async def read_upload(request: Request) -> bytes:

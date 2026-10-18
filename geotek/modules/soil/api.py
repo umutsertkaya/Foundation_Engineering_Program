@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Annotated, NoReturn
 
-from fastapi import APIRouter, Depends, Request
+from fastapi import APIRouter, Depends, Request, Response
 
 from geotek.api import schemas as dto
 from geotek.api.common import ERROR_RESPONSES, multipart_body, not_implemented
@@ -79,9 +79,13 @@ def router() -> APIRouter:
         qc_unit applies to the file's cone resistance; stored sounding stresses are kPa.
         Multipart parsing does not require the optional python-multipart package.
         """
+        with session.lock:
+            expected = session.require_project()
         body = await service.read_upload(request)
         with session.lock:
             project = session.require_project()
+            if project is not expected:
+                api_error(409, "project_changed", "The open project changed during CSV upload.")
             parts = service.multipart(body, request.headers.get("content-type", ""),
                                       "sounding_id", cpt=True)
             sounding = service.import_csv(parts, cpt=True)
@@ -99,9 +103,13 @@ def router() -> APIRouter:
     )
     async def import_spt(request: Request, session: SessionDep) -> Borehole:
         """Import multipart file and borehole_id form parts."""
+        with session.lock:
+            expected = session.require_project()
         body = await service.read_upload(request)
         with session.lock:
             project = session.require_project()
+            if project is not expected:
+                api_error(409, "project_changed", "The open project changed during CSV upload.")
             parts = service.multipart(body, request.headers.get("content-type", ""), "borehole_id")
             borehole = service.import_csv(parts, cpt=False)
             if session.require_project() is not project:
@@ -261,11 +269,19 @@ def router() -> APIRouter:
     @api.post(
         "/profiles/{id}/layers/merge", response_model=SoilProfile, operation_id="merge_layers",
     )
-    def merge_layers(id: str, payload: LayerMerge, session: SessionDep) -> SoilProfile:
+    def merge_layers(
+        id: str, payload: LayerMerge, session: SessionDep, response: Response,
+    ) -> SoilProfile:
         """Merge two adjacent layers in the selected profile."""
         with session.lock:
             profile = service.find(session.require_project().soil_profiles, id)
-            return _profile(session, service.merge(profile, payload.layer_ids))
+            merged, warnings = service.merge(profile, payload.layer_ids)
+            result = _profile(session, merged)
+            if warnings:
+                response.headers["Warning"] = ", ".join(
+                    f'299 geotek "{warning}"' for warning in warnings
+                )
+            return result
 
     @api.get(
         "/profiles/{id}/layers/{layer_id}/parameters", response_model=list[ParameterSelection],
