@@ -8,5 +8,12 @@
   "walls.type.gravity.description": "Zemin itkisini kendi ağırlığıyla karşılayan kütle beton veya taş duvar.",
   "walls.nav.list": "Duvarlar",
   "walls.nav.new": "Yeni duvar",
-  "walls.placeholder": "Bu bölümün ekranları sonraki adımda bu modüle taşınacak."
+  "walls.placeholder": "Bu bölümün ekranları sonraki adımda bu modüle taşınacak.",
+  "walls.type_picker.subtitle": "Tasarlamak istediğiniz istinat duvarı tipini seçin.",
+  "walls.type_picker.load_error": "Duvar tipleri yüklenemedi.",
+  "walls.type_picker.name": "Duvar adı",
+  "walls.type_picker.height": "Duvar yüksekliği H (m)",
+  "walls.type_picker.cancel": "Vazgeç",
+  "walls.type_picker.create": "Oluştur",
+  "walls.type_picker.created": "Duvar oluşturuldu."
 }

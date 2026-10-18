@@ -5,8 +5,8 @@ import {
   ApiError,
   parseApiError,
   setMockMode,
-  size_wall,
 } from "../shared/api/client";
+import { size_wall } from "../modules/walls/api";
 import { resetMockState } from "../shared/api/mock";
 import type { WallResultDTO } from "../shared/api/types";
 import { useJob } from "../shared/hooks/useJob";

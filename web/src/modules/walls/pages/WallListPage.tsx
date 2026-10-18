@@ -5,24 +5,19 @@ import {
   Button,
   Card,
   Group,
-  Modal,
-  NumberInput,
-  SegmentedControl,
   SimpleGrid,
   Stack,
   Text,
-  TextInput,
   Title,
 } from "@mantine/core";
-import { notifications } from "@mantine/notifications";
 import { IconArrowRight, IconPlus } from "@tabler/icons-react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
-import { ApiError, create_structure, list_structures } from "../shared/api/client";
-import type { StructureSummary, WallType } from "../shared/api/types";
-import { EmptyState } from "../shared/components/EmptyState";
+import { ApiError, list_structures } from "../../../shared/api/client";
+import type { StructureSummary } from "../../../shared/api/types";
+import { EmptyState } from "../../../shared/components/EmptyState";
 
-export function StructuresPage() {
+export function WallListPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
 
@@ -30,17 +25,12 @@ export function StructuresPage() {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<ApiError | null>(null);
 
-  const [modalOpen, setModalOpen] = useState<boolean>(false);
-  const [newName, setNewName] = useState<string>("D-Yeni");
-  const [newWallType, setNewWallType] = useState<WallType>("cantilever");
-  const [newHeight, setNewHeight] = useState<number>(5.0);
-
   const loadStructures = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
       const list = await list_structures();
-      setStructures(list);
+      setStructures(list.filter((s) => s.kind === "retaining_wall"));
     } catch (err) {
       if (err instanceof ApiError) {
         setError(err);
@@ -53,28 +43,6 @@ export function StructuresPage() {
   useEffect(() => {
     void loadStructures();
   }, [loadStructures]);
-
-  const handleCreateStub = async () => {
-    try {
-      const created = await create_structure({
-        kind: "retaining_wall",
-        name: newName.trim() || t("ui.nav.wall"),
-        wall_type: newWallType,
-        height: newHeight,
-      });
-      notifications.show({
-        color: "green",
-        message: t("web.structures.new_stub_msg"),
-      });
-      setModalOpen(false);
-      await loadStructures();
-      navigate(`/structures/${created.id}`);
-    } catch (err) {
-      if (err instanceof ApiError) {
-        setError(err);
-      }
-    }
-  };
 
   if (loading && structures.length === 0) {
     return <Text size="sm">{t("web.common.loading")}</Text>;
@@ -92,7 +60,7 @@ export function StructuresPage() {
         <Button
           size="xs"
           leftSection={<IconPlus size={14} />}
-          onClick={() => setModalOpen(true)}
+          onClick={() => navigate("/m/walls/new")}
         >
           {t("web.structures.new_btn")}
         </Button>
@@ -112,7 +80,7 @@ export function StructuresPage() {
             <Button
               size="xs"
               leftSection={<IconPlus size={14} />}
-              onClick={() => setModalOpen(true)}
+              onClick={() => navigate("/m/walls/new")}
             >
               {t("web.structures.new_btn")}
             </Button>
@@ -131,7 +99,7 @@ export function StructuresPage() {
                     size="compact-xs"
                     variant="light"
                     rightSection={<IconArrowRight size={13} />}
-                    onClick={() => navigate(`/structures/${s.id}`)}
+                    onClick={() => navigate(`/m/walls/s/${s.id}`)}
                   >
                     {t("web.common.open")}
                   </Button>
@@ -173,57 +141,6 @@ export function StructuresPage() {
         </SimpleGrid>
       )}
 
-      <Modal
-        opened={modalOpen}
-        onClose={() => setModalOpen(false)}
-        title={t("web.structures.modal_title")}
-        size="sm"
-      >
-        <Stack gap="sm">
-          <TextInput
-            size="xs"
-            label={t("web.project.name")}
-            value={newName}
-            onChange={(e) => setNewName(e.currentTarget.value)}
-          />
-          <Stack gap={4}>
-            <Text size="xs" fw={500}>
-              {t("ui.wall.type")}
-            </Text>
-            <SegmentedControl
-              size="xs"
-              value={newWallType}
-              onChange={(v) => setNewWallType(v as WallType)}
-              data={[
-                { value: "cantilever", label: t("ui.wall.cantilever") },
-                { value: "gravity", label: t("ui.wall.gravity") },
-              ]}
-            />
-          </Stack>
-          <NumberInput
-            size="xs"
-            label={t("ui.wall.height")}
-            value={newHeight}
-            min={1.0}
-            max={15.0}
-            step={0.25}
-            decimalScale={2}
-            onChange={(val) => {
-              if (typeof val === "number" && Number.isFinite(val)) {
-                setNewHeight(val);
-              }
-            }}
-          />
-          <Group justify="flex-end" gap="xs">
-            <Button size="xs" variant="default" onClick={() => setModalOpen(false)}>
-              {t("web.common.cancel")}
-            </Button>
-            <Button size="xs" onClick={() => void handleCreateStub()}>
-              {t("web.common.create")}
-            </Button>
-          </Group>
-        </Stack>
-      </Modal>
     </Stack>
   );
 }

@@ -22,16 +22,8 @@ export function rewriteModulePath(path: string): string {
   return rest.startsWith("/structures/") ? rest : path;
 }
 
-const WALL_TYPES = [
-  { id: "cantilever", title_key: "walls.type.cantilever" },
-  { id: "gravity", title_key: "walls.type.gravity" },
-];
-
 /** Handlers return the same {status, data} envelope as the legacy mock. */
 export async function mockRequest(method: string, path: string, body?: unknown): Promise<MockResponse> {
-  if (method.toUpperCase() === "GET" && path.split("?")[0] === "/m/walls/wall-types") {
-    return { status: 200, data: WALL_TYPES.map((type) => ({ ...type })) } as MockResponse;
-  }
   const matches = handlers.filter(({ prefix }) => path.startsWith(prefix))
     .sort((a, b) => b.prefix.length - a.prefix.length);
   for (const { handler } of matches) {

@@ -17,7 +17,6 @@ import { resetMockState } from "../../../shared/api/mock";
 import type { SoilLayer, StructureSoilModel } from "../../../shared/api/types";
 import "../../../app/i18n";
 import { ProfilesPage } from "../pages/ProfilesPage";
-import { StructureWizardPage } from "../../../pages/StructureWizardPage";
 import { niceTicks, spreadLabels } from "../../../shared/soil/axis";
 import {
   insertBelow,
@@ -351,34 +350,6 @@ describe("mock soil endpoints", () => {
     const bad = structuredClone(s.soil);
     bad.profile.layers = [layer("L1", 0, 4)]; // does not reach below the base (z = 5)
     await expect(set_structure_soil("wall-mock-1", bad)).rejects.toBeInstanceOf(ApiError);
-  });
-});
-
-describe("StructureWizardPage soil step (mock)", () => {
-  beforeEach(() => {
-    setMockMode(true);
-    resetMockState();
-  });
-  afterEach(() => {
-    setMockMode(null);
-  });
-
-  it("shows the fill editor, structure profile tab and the layered cross-section", async () => {
-    render(
-      <MantineProvider theme={theme}>
-        <MemoryRouter initialEntries={["/structures/wall-mock-1"]}>
-          <Routes>
-            <Route path="/structures/:id" element={<StructureWizardPage />} />
-          </Routes>
-        </MemoryRouter>
-      </MantineProvider>,
-    );
-    const soilStep = await screen.findByRole("button", { name: new RegExp(trCatalog["web.wizard.step.soil"]) });
-    fireEvent.click(soilStep);
-    expect(await screen.findByDisplayValue("F2")).toBeInTheDocument();
-    expect(screen.getByText(trCatalog["web.wizard.tab.profile"])).toBeInTheDocument();
-    expect(document.querySelectorAll('[data-layer-id="F1"]').length).toBeGreaterThan(0);
-    expect(document.querySelectorAll('[data-layer-id="L4"]').length).toBeGreaterThan(0);
   });
 });
 

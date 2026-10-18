@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { discoverModules } from "../app/moduleRegistry";
-import { list_wall_types, run_liquefaction, setMockMode } from "../shared/api/client";
+import { run_liquefaction, setMockMode } from "../shared/api/client";
+import { list_wall_types } from "../modules/walls/api";
 import { list_investigations, list_profiles } from "../modules/soil/api";
 import { rewriteModulePath } from "../shared/api/mock/dispatcher";
 import { mockRequest } from "../shared/api/mock";

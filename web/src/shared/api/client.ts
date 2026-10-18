@@ -96,22 +96,6 @@ export function resync_structure_soil(id: string): Promise<Structure> {
   return request<Structure>("POST", `/structures/${encodeURIComponent(id)}/soil/resync`);
 }
 
-export function list_wall_types(): Promise<WallTypeInfo[]> {
-  return request<WallTypeInfo[]>("GET", "/m/walls/wall-types");
-}
-
-export function get_structure_required_factors(id: string): Promise<MissingFactorDTO[]> {
-  return request<MissingFactorDTO[]>("POST", `/m/walls/structures/${encodeURIComponent(id)}/required-factors`);
-}
-
-export function size_wall(id: string): Promise<JobRef> {
-  return request<JobRef>("POST", `/m/walls/structures/${encodeURIComponent(id)}/size`);
-}
-
-export function check_wall(id: string): Promise<JobRef> {
-  return request<JobRef>("POST", `/m/walls/structures/${encodeURIComponent(id)}/check`);
-}
-
 export function get_job(job_id: string): Promise<JobState> {
   return request<JobState>("GET", `/jobs/${encodeURIComponent(job_id)}`);
 }

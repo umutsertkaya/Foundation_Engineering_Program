@@ -8,5 +8,12 @@
   "walls.type.gravity.description": "Mass concrete or masonry wall resisting earth pressure by its own weight.",
   "walls.nav.list": "Walls",
   "walls.nav.new": "New wall",
-  "walls.placeholder": "This section's screens will be moved into this module in a later step."
+  "walls.placeholder": "This section's screens will be moved into this module in a later step.",
+  "walls.type_picker.subtitle": "Choose the type of retaining wall to design.",
+  "walls.type_picker.load_error": "Wall types could not be loaded.",
+  "walls.type_picker.name": "Wall name",
+  "walls.type_picker.height": "Wall height H (m)",
+  "walls.type_picker.cancel": "Cancel",
+  "walls.type_picker.create": "Create",
+  "walls.type_picker.created": "Wall created."
 }
