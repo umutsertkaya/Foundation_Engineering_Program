@@ -1,5 +1,6 @@
 """Design-code endpoints use the supplied code data and project factor overrides."""
 
+import json
 from dataclasses import replace
 
 import pytest
@@ -143,6 +144,24 @@ def test_nonfinite_override_rejected(shell):
                          headers={"Content-Type": "application/json"})
     assert response.status_code == 422 and error_code(response) == "validation"
     assert not shell.app.state.session.dirty
+
+
+@pytest.mark.parametrize("suffix", ["factors", "required"])
+def test_invalid_persisted_override_is_validation_error(shell, library_dir, suffix):
+    entry = shell.post("/api/library", json={"name": "Invalid factors"}).json()
+    path = library_dir / entry["file"]
+    data = json.loads(path.read_text(encoding="utf-8"))
+    data["design_overrides"] = {"asd": {"safety.sliding.static": {"value": 0.9}}}
+    path.write_text(json.dumps(data), encoding="utf-8")
+    shell.post("/api/project/close")
+    opened = shell.post(f"/api/library/{entry['file']}/open")
+    assert opened.status_code == 200, opened.text
+    session = shell.app.state.session
+    before = session.project.model_dump()
+    response = shell.get(f"/api/codes/asd/{suffix}")
+    assert response.status_code == 422, response.text
+    assert error_code(response) == "validation"
+    assert session.project.model_dump() == before and not session.dirty
 
 
 def test_module_design_codes_use_same_services(shell, tmp_path, monkeypatch):

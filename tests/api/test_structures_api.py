@@ -1,11 +1,17 @@
 """Structure resources, isolated soil copies and atomic validation failures."""
 
+import json
 from copy import deepcopy
 
 import pytest
+from pydantic import TypeAdapter
 
+from geotek.api import app as core_api, schemas as dto
+from geotek.config.codes import FactorOverride
 from geotek.core.models.project import Project, ProjectMeta
+from geotek.core.models.structures import Structure, StructureSoilModel
 from geotek.io.project_io import load_project
+from geotek.services.structures import calculation_fingerprint
 
 from .conftest import error_code
 
@@ -98,7 +104,7 @@ def test_list_filter_and_summary_freshness(shell, opened):
     assert shell.get("/api/structures").json() == []
     wall = shell.post("/api/structures", json=WALL).json()
     pile = shell.post("/api/structures", json=PILE).json()
-    opened.structures[0].result_hash = "previous-result"
+    opened.structures[0].result_hash = calculation_fingerprint(opened, opened.structures[0])
     rows = shell.get("/api/structures").json()
     assert [row["id"] for row in rows] == [wall["id"], pile["id"]]
     assert rows[0] == {"id": wall["id"], "name": "Wall", "kind": "retaining_wall",
@@ -229,3 +235,135 @@ def test_structure_and_manual_soil_persist(shell, library_dir):
     shell.post("/api/project/close")
     shell.post(f"/api/library/{entry['file']}/open")
     assert shell.get(f"/api/structures/{wall['id']}").json() == wall
+
+
+NONFINITE_JSON = ["1e999", "-1e999", "NaN", "Infinity", "-Infinity", '"Infinity"']
+
+
+@pytest.mark.parametrize("kind", [WALL, PILE])
+@pytest.mark.parametrize("operation", ["create", "update", "soil"])
+@pytest.mark.parametrize("number", NONFINITE_JSON)
+@pytest.mark.parametrize("dirty", [False, True])
+def test_nonfinite_nested_soil_is_atomic(shell, opened, kind, operation, number, dirty):
+    created = shell.post("/api/structures", json=kind).json()
+    soil = deepcopy(SOIL)
+    # An unconstrained domain float nested inside a dictionary and a layer list.
+    soil["profile"]["layers"][0]["params"] = {
+        "phi": {"value": 30, "unit": "deg", "method_id": "user", "source": "user",
+                "inputs_used": {"sample": "NONFINITE"}},
+    }
+    url = f"/api/structures/{created['id']}"
+    method, path, body = {
+        "create": ("POST", "/api/structures", {**kind, "soil": soil}),
+        "update": ("PUT", url, {**created, "soil": soil}),
+        "soil": ("PUT", url + "/soil", soil),
+    }[operation]
+    session = shell.app.state.session
+    session.dirty = dirty
+    before = opened.model_dump()
+    response = shell.request(method, path,
+                             content=json.dumps(body).replace('"NONFINITE"', number),
+                             headers={"Content-Type": "application/json"})
+    assert response.status_code == 422, response.text
+    assert error_code(response) == "validation"
+    assert opened.model_dump() == before and session.dirty is dirty
+
+
+@pytest.mark.parametrize("operation", ["create", "update"])
+@pytest.mark.parametrize("field", ["inputs", "settings"])
+@pytest.mark.parametrize("number", NONFINITE_JSON)
+def test_nonfinite_wall_inputs_and_factors_are_atomic(shell, opened, operation, field, number):
+    created = shell.post("/api/structures", json=WALL).json()
+    body = deepcopy(WALL if operation == "create" else created)
+    body[field] = ({"surcharge": "NONFINITE"} if field == "inputs" else
+                   {"factor_overrides": {"safety.sliding.static": {"value": "NONFINITE"}}})
+    session = shell.app.state.session
+    session.dirty = False
+    before = opened.model_dump()
+    response = shell.request(
+        "POST" if operation == "create" else "PUT",
+        "/api/structures" if operation == "create" else f"/api/structures/{created['id']}",
+        content=json.dumps(body).replace('"NONFINITE"', number),
+        headers={"Content-Type": "application/json"},
+    )
+    assert response.status_code == 422, response.text
+    assert error_code(response) == "validation"
+    assert opened.model_dump() == before and not session.dirty
+
+
+@pytest.mark.parametrize("kind", [WALL, PILE])
+@pytest.mark.parametrize("mutation", ["inputs", "soil", "resync", "override", "clear_override"])
+def test_changed_calculation_inputs_make_saved_result_stale(shell, opened, kind, mutation):
+    created = shell.post("/api/structures", json=kind).json()
+    structure = opened.structure(created["id"])
+    if mutation == "clear_override":
+        opened.design_overrides["asd"] = {"safety.sliding.static": FactorOverride(value=1.6)}
+    result_hash = calculation_fingerprint(opened, structure)
+    structure.result_hash = result_hash
+    url = f"/api/structures/{structure.id}"
+    assert shell.get("/api/structures").json()[0]["stale"] is False
+    assert shell.get("/api/structures").json()[0]["has_result"] is True
+    body = shell.get(url).json()
+    if mutation == "inputs":
+        if kind["kind"] == "retaining_wall":
+            body["inputs"]["surcharge"] = 12
+        else:
+            body["surcharge"] = 12
+        response = shell.put(url, json=body)
+    elif mutation == "soil":
+        body["soil"]["profile"]["layers"][0]["gamma"] = 20
+        response = shell.put(url + "/soil", json=body["soil"])
+    elif mutation == "resync":
+        opened.profile("P1").layers[0].gamma = 20
+        response = shell.post(url + "/soil/resync")
+        assert not opened.structure(structure.id).soil.is_stale(opened.profile("P1"))
+    else:
+        overrides = ({"safety.sliding.static": {"value": 1.6}}
+                     if mutation == "override" else {})
+        response = shell.put("/api/project/design-overrides/asd", json=overrides)
+    assert response.status_code == 200, response.text
+    assert opened.structure(structure.id).result_hash == result_hash
+    for rows in (shell.get("/api/structures").json(),
+                 shell.get("/api/project").json()["structures"]):
+        assert rows[0]["stale"] is True and rows[0]["has_result"] is True
+
+
+@pytest.mark.parametrize("kind", [WALL, PILE])
+def test_unrelated_code_override_keeps_result_fresh(shell, opened, kind):
+    created = shell.post("/api/structures", json=kind).json()
+    structure = opened.structure(created["id"])
+    structure.result_hash = calculation_fingerprint(opened, structure)
+    response = shell.put("/api/project/design-overrides/ec7",
+                         json={"DA1-C1.load.G_unfav": {"value": 1.4}})
+    assert response.status_code == 200, response.text
+    assert shell.get("/api/structures").json()[0]["stale"] is False
+
+
+@pytest.mark.parametrize("kind", [WALL, PILE])
+@pytest.mark.parametrize("operation", ["create", "get", "update", "soil", "resync"])
+def test_structure_route_returns_independent_snapshot(shell, opened, kind, operation):
+    session = shell.app.state.session
+    if operation == "create":
+        snapshot = core_api.create_structure(
+            TypeAdapter(dto.StructureCreate).validate_python(kind), session)
+    else:
+        created = shell.post("/api/structures", json=kind).json()
+        id = created["id"]
+        if operation == "get":
+            snapshot = core_api.get_structure(id, session)
+        elif operation == "update":
+            snapshot = core_api.update_structure(
+                id, TypeAdapter(Structure).validate_python({**created, "name": "Updated"}), session)
+        elif operation == "soil":
+            snapshot = core_api.set_structure_soil(
+                id, StructureSoilModel.model_validate(created["soil"]), session)
+        else:
+            snapshot = core_api.resync_structure_soil(id, session)
+    stored = opened.structure(snapshot.id)
+    assert snapshot is not stored
+    before = stored.model_dump()
+    snapshot.name = "Response edit"
+    snapshot.soil.profile.layers[0].gamma = 22
+    assert stored.model_dump() == before
+    stored.soil.profile.layers[0].gamma = 21
+    assert snapshot.soil.profile.layers[0].gamma == 22

@@ -96,6 +96,13 @@ def _fingerprint(project, structure, code_id):
     return hashlib.sha256(encoded.encode("utf-8")).hexdigest()
 
 
+def calculation_fingerprint(
+    project: Project, structure: RetainingWallStructure | SheetPileStructure,
+) -> str:
+    """Current input hash, using the same effective code as the calculation service."""
+    return _fingerprint(project, structure, _settings(project, structure).design_code)
+
+
 def _water(soil, base, case):
     return min(soil.front_profile().gwt.depth_for(case), soil.retained_profile().gwt.depth_for(case)) < base
 

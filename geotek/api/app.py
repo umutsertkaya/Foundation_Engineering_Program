@@ -30,6 +30,7 @@ from geotek.core.models.structures import Structure, StructureSoilModel
 from geotek.i18n import _catalog
 from geotek.io.project_io import save_project
 from geotek.library import load_settings
+from geotek.services.structures import calculation_fingerprint
 from geotek.services.walls_advanced import list_factors, required_inputs
 
 API_VERSION = "0.2.0"
@@ -68,7 +69,9 @@ def _summary(project: Project) -> dto.ProjectSummary:
             dto.StructureSummary(
                 id=item.id, name=item.name, kind=item.kind,
                 wall_type=getattr(item, "wall_type", None),
-                stale=item.soil.is_stale(profiles.get(item.soil.source_profile_id)),
+                stale=(item.soil.is_stale(profiles.get(item.soil.source_profile_id))
+                       or (item.result_hash is not None
+                           and item.result_hash != calculation_fingerprint(project, item))),
                 has_result=item.result_hash is not None,
             )
             for item in project.structures
@@ -214,15 +217,32 @@ def _structure(current: Project, id: str) -> Structure:
         api_error(404, "not_found", f"Structure not found: {id}")
 
 
+def _require_finite(value: object, loc: tuple[str | int, ...] = ()) -> None:
+    """DTO configuration does not propagate into nested domain models."""
+    if isinstance(value, float) and not math.isfinite(value):
+        api_error(422, "validation", "Structure numbers must be finite.", errors=[
+            {"loc": list(loc), "msg": "Input should be a finite number", "type": "finite_number"}
+        ])
+    if isinstance(value, dict):
+        for key, item in value.items():
+            _require_finite(item, (*loc, key))
+    elif isinstance(value, (list, tuple)):
+        for index, item in enumerate(value):
+            _require_finite(item, (*loc, index))
+
+
 def _validated_structure(data: dict) -> Structure:
     """Validate assembled inputs before changing any project state."""
+    _require_finite(data)
     try:
-        return TypeAdapter(Structure).validate_python(data)
+        validated = TypeAdapter(Structure).validate_python(data)
     except ValidationError as exc:
         api_error(422, "validation", "Invalid structure.", errors=[
             {"loc": list(item["loc"]), "msg": item["msg"], "type": item["type"]}
             for item in exc.errors()
         ])
+    _require_finite(validated.model_dump())
+    return validated
 
 
 @structures.post("/structures", response_model=Structure, operation_id="create_structure")
@@ -253,14 +273,14 @@ def create_structure(
         })
         current.structures.append(created)
         session.dirty = True
-        return created
+        return created.model_copy(deep=True)
 
 
 @structures.get("/structures/{id}", response_model=Structure, operation_id="get_structure")
 def get_structure(id: str, session: SessionDep) -> Structure:
     """Return a complete structure, discriminated by kind."""
     with session.lock:
-        return _structure(session.require_project(), id)
+        return _structure(session.require_project(), id).model_copy(deep=True)
 
 
 @structures.put("/structures/{id}", response_model=Structure, operation_id="update_structure")
@@ -274,9 +294,10 @@ def update_structure(
         existing = _structure(current, id)
         if payload.id != id:
             api_error(422, "validation", "Body id must match the structure path id.")
-        current.structures[current.structures.index(existing)] = payload
+        updated = _validated_structure(payload.model_dump())
+        current.structures[current.structures.index(existing)] = updated
         session.dirty = True
-        return payload
+        return updated.model_copy(deep=True)
 
 
 @structures.delete(
@@ -302,7 +323,7 @@ def set_structure_soil(id: str, payload: StructureSoilModel, session: SessionDep
         updated = _validated_structure({**existing.model_dump(), "soil": payload.model_dump()})
         current.structures[current.structures.index(existing)] = updated
         session.dirty = True
-        return updated
+        return updated.model_copy(deep=True)
 
 
 @structures.post(
@@ -324,7 +345,7 @@ def resync_structure_soil(id: str, session: SessionDep) -> Structure:
         updated = _validated_structure({**existing.model_dump(), "soil": soil})
         current.structures[current.structures.index(existing)] = updated
         session.dirty = True
-        return updated
+        return updated.model_copy(deep=True)
 
 @jobs.get("/jobs/{job_id}", response_model=dto.JobState, operation_id="get_job")
 def get_job(job_id: str) -> NoReturn:
@@ -366,8 +387,11 @@ def list_code_factors(code_id: str, session: SessionDep) -> list[dto.FactorRowDT
     """Return code factor values and their provenance."""
     with session.lock:
         overrides = _code_overrides(code_id, session)
-        return [dto.FactorRowDTO.model_validate(row) for row in list_factors(
-            code_id, overrides, extra_dirs=list(registry.design_code_dirs()))]
+        try:
+            rows = list_factors(code_id, overrides, extra_dirs=list(registry.design_code_dirs()))
+        except GeoTekError as exc:
+            api_error(422, "validation", str(exc))
+        return [dto.FactorRowDTO.model_validate(row) for row in rows]
 
 
 @codes.get(
