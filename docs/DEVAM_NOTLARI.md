@@ -1,6 +1,6 @@
 # GeoTek v2: devam notları
 
-Son güncelleme: 2026-10-19. Kapı 2 ve yapı kapısı Y1/Y2 onaylandı. Modüler yeniden yapılanma 2026-10-19'da bitti (M1–M5, X1–X3); `restructure/modules` dalı `main`'e yerel olarak birleştiriliyor (push edilmedi). Kapı 3 (F1 tasarımı) onaylanmadı; kullanıcının zemin ekranlarına görsel onayı bekleniyor. Paralel A1/E2 işi git worktree'lerinde sürüyor, bkz. "Paralel çalışma". Yeni oturum prompt'u: `docs/DEVAM_PROMPT.md`.
+Son güncelleme: 2026-10-19. Kapı 2 ve yapı kapısı Y1/Y2 onaylandı. Modüler yeniden yapılanma 2026-10-19'da bitti (M1–M5, X1–X3); `restructure/modules` dalı `main`'e yerel olarak birleştirildi (push edilmedi); çalışma artık `main` üzerinde. Kapı 3 (F1 tasarımı) onaylanmadı; kullanıcının zemin ekranlarına görsel onayı bekleniyor. Oturum 2026-10-19'da kullanıcı isteğiyle durduruldu; paralel A1/E2/E3 dallarının durumu "Paralel çalışma" tablosunda. Yeni oturum prompt'u: `docs/DEVAM_PROMPT.md`.
 
 Yönergeler:
 - Orkestra yönergesi: `docs/ORKESTRA_PROMPT.md`.
@@ -96,19 +96,26 @@ M2, M4 ve M5 paralel yürüyebilir; ortak dosyalara (`shared/api/client.ts`, leg
 - X2: `docs/MODULE_GUIDE.md`, `tools/new_module.py`, `tests/unit/test_new_module.py`. Yeni modüller bu araçla iskelelenir.
 - X3: `.gitattributes` (LF normalizasyonu); `web/src/shared/api/mock/legacy.ts` kalktı → `mock/store.ts` + `mock/coreRoutes.ts`; walls/sheet_pile mock rotaları kendi `/m/<id>` yollarında, `rewriteModulePath` kaldırıldı. Yol haritası yeniden hedeflendi (`docs/ORKESTRA_PROMPT.md`).
 
-## Paralel çalışma (2026-10-19 başladı)
+## Paralel çalışma (2026-10-19, oturum burada durduruldu)
 
-Git worktree'leri `C:\Users\thebi\Documents\geotek-wt\` altında (GPT yazdı, inceleme/düzeltme aşamasında):
-- `feat/a1-core`: yapı CRUD, zemin set/resync, katsayılar, tasarım geçersiz kılmaları, i18n uç noktası.
-- `feat/a1-soil`: araştırmalar/içe aktarma/CRUD/processed, profil CRUD, böl/birleştir. Katmanlama ve parametre rotaları hâlâ 501.
-- `feat/e2-layering`: `geotek/engine/layering/`, `geotek/services/layering.py`.
+`restructure/modules` main'e birleştirildi (06cfa1a, push edilmedi). `feat/a1-core` de birleştirildi ve entegre edildi (4b67435 + cb63bb6: IMPLEMENTED kümesi, openapi/schema.d.ts, mock yapı 404'leri). main: 316 API testi + 125 web testi yeşil.
 
-Her biri düzeltme, iki inceleme ve tam testlerden sonra birleştirilir; ardından orkestra `test_contract.py` IMPLEMENTED kümesini ve openapi/schema.d.ts'i günceller. Bunlardan sonra açık kalanlar: A1 işleri (`/api/jobs*`), duvar boyut/kontrol, palplanş tasarımı, sıvılaşma `run`, katmanlama/parametre rotaları (E3 gerekir).
+Git worktree'leri `C:\Users\thebi\Documents\geotek-wt\` altında; hepsinin işi kendi dalına commit'li. GPT kodu yazıyor; Codex sandbox'ı Python çalıştıramıyor, testleri orkestra koşuyor (worktree kökünden ana `.venv\Scripts\python.exe -m pytest`; worktree'deki `geotek` kullanılır).
+
+| Dal | Durum | Sıradaki adım |
+|---|---|---|
+| `feat/a1-core` | main'e birleşti | Worktree silinebilir (`git worktree remove`). |
+| `feat/a1-soil` (22ff111) | 2. düzeltme turu bitti, testler yeşil (yalnız beklenen test_contract hataları) | gpt-6-astra yeniden incelemesi (yükleme yarışı; böl/birleştir'de tasarım değerleri P1_CONTRACTS'a göre bayat tutuluyor mu) → main'e birleştir → IMPLEMENTED'a 17 soil rotası, `test_profile_creation_alternatives` ilk beklenti 501→409, openapi/schema.d.ts yeniden üret. |
+| `feat/e2-layering` (4eba380) | 3. düzeltme turu bitti, 794 unit testi yeşil. Opus: onay (düzeltmelerle); astra 2. turda P1'i çözülmüş saydı, kalan iki P2 3. turda ele alındı | astra son incelemesi → kullanıcıya formül özeti (Robertson Ic/zonlar, RC2010 γ, uyarı kodları) → birleştir. Uyarı kodları (`layering.warning.*`) i18n'e eklenmeli; uyarı biçimi `kod: anahtar=değer`, ayrıştırıcı `geotek/engine/layering/common.py`. |
+| `feat/a1-jobs` (05321ab) | GPT yazdı (iş çalıştırıcı, `/api/jobs*`, walls wall-types/required-factors/size/check, sheet_pile design, liquefaction run); **test edilmedi, incelenmedi** | Testleri koş → düzelt → astra + Opus incelemesi → birleştir. IMPLEMENTED'a 8 rota; core i18n'e `job.step.{sizing,static_checks,seismic_checks,processing,liquefaction}`; openapi + web tipleri/mock'ları. `services/structures.py` ve `core/models/structures.py` değişti: 5 m duvar regresyonu (B=4.60, seismic:bearing) mutlaka doğrulanmalı. |
+| `feat/e3-parameters` | Worktree boş: GPT çağrısı kesildi, hiçbir şey yazılmadı | E3 brief'ini yeniden gönder (gpt-6.1-sol high): `docs/contracts/P1_CONTRACTS.md` imzaları, yalnız mevcut korelasyon kaydı, el hesabı testleri, iki inceleme. |
+
+Birleştirme sırası önerisi: a1-soil → e2-layering → a1-jobs. Soil katmanlama/parametre rotaları iş altyapısına ve E3'e bağlı; onlar en son bağlanır.
 
 Küçük açık noktalar:
 - Web mock `POST .../required-factors` projeyi hâlâ kirli işaretliyor (eski davranış korundu).
-- Mock yapı PUT'u upsert ediyor, olmayanı DELETE 200 dönüyor; backend A1 ise 404 veriyor. `feat/a1-core` birleşince mock backend'e hizalanacak.
 - Tüm mock 501 mesajları artık "(Mock)" ile bitiyor.
+- Python ile dosya yazarken `write_text(..., newline="")` kullan; aksi halde Windows'ta CRLF yazılır.
 
 ## Açık konular
 

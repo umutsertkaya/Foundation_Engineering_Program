@@ -4,7 +4,7 @@ Aşağıdaki metni yeni bir Claude Code oturumuna ilk mesaj olarak yapıştırı
 
 ---
 
-GeoTek v2'yi orkestra şefi olarak kaldığı yerden sürdür. Modüler yeniden yapılanma bitti (2026-10-19). Sıradaki iş: paralel worktree'lerdeki (`C:\Users\thebi\Documents\geotek-wt\`) `feat/a1-core`, `feat/a1-soil`, `feat/e2-layering` dallarını incelemek, düzeltmek ve birleştirmek; sonra A1 işleri, E3, F4/F5.
+GeoTek v2'yi orkestra şefi olarak kaldığı yerden sürdür. Modüler yeniden yapılanma bitti (2026-10-19). Sıradaki iş: `docs/DEVAM_NOTLARI.md` "Paralel çalışma" tablosundaki worktree dallarını (`C:\Users\thebi\Documents\geotek-wt\`) sırayla bitirmek: `feat/a1-soil` (astra yeniden incelemesi → birleştir), `feat/e2-layering` (astra son inceleme → kullanıcıya formül özeti → birleştir), `feat/a1-jobs` (test → düzelt → iki inceleme → birleştir), `feat/e3-parameters` (brief'i yeniden gönder). Sonra katmanlama/parametre rotaları, F4/F5.
 
 Önce şunları oku:
 1. `docs/DEVAM_NOTLARI.md`: durum, onaylı kapılar, "Paralel çalışma", açık konular, ortam notları.
@@ -12,9 +12,10 @@ GeoTek v2'yi orkestra şefi olarak kaldığı yerden sürdür. Modüler yeniden 
 3. `docs/contracts/CORE_SHELL_API.md` ve `docs/ORKESTRA_PROMPT.md`: delegasyon protokolü, "Yapma" kuralları, yeniden hedeflenmiş yol haritası.
 
 Durum:
-- `restructure/modules`, `main`'e yerel olarak birleştiriliyor (push edilmedi).
+- `restructure/modules` ve `feat/a1-core` `main`'e yerel olarak birleştirildi (push edilmedi); çalışma `main` üzerinde.
 - Kapı 2, Y1 ve Y2 onaylandı. Kapı 3 (F1 tasarımı) onaylanmadı; kullanıcının zemin ekranlarına görsel onayı bekleniyor.
-- 874 pytest, 124 web testi; typecheck ve build yeşil.
+- main: pytest yeşil (son tam koşu 874 + a1-core testleri), 125 web testi; typecheck ve build yeşil.
+- GPT (Codex) sandbox'ı Python çalıştıramıyor: GPT kod yazar, testleri orkestra worktree kökünden koşar.
 
 Çalışma kuralları:
 - Git PATH'te değil; `C:\Program Files\Git\cmd\git.exe` kullan. Python: `.venv\Scripts\python.exe`.
