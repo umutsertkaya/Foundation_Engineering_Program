@@ -116,6 +116,16 @@ export function getMockProjectMeta(): ProjectMeta {
   return { ...store.meta };
 }
 
+/** A brand-new project: no seed profiles/structures; investigations stay (site data). */
+export function resetMockStateEmptyProject(): void {
+  const fresh = createInitialStore();
+  fresh.profiles = [];
+  fresh.structures = [];
+  fresh.active_profile_id = null;
+  fresh.profileSeq = 0;
+  store = fresh;
+}
+
 export function resetMockState(): void {
   store = createInitialStore();
 }

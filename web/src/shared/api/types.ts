@@ -615,6 +615,7 @@ export interface JobState {
   error: ApiErrorDTO | null;
 }
 
+// Module-owned schemas (e.g. CPTProcessedDTO, SPTProcessedDTO, InvestigationsDTO, ProfileCreate) are mirrored in web/src/modules/<id>/types.ts, not here.
 export interface components {
   schemas: {
     ActiveProfileUpdate: ActiveProfileUpdate;

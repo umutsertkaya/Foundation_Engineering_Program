@@ -1,7 +1,7 @@
 import type { AppSettings, LibraryEntry, ModuleInfo, NewProjectRequest, ProjectMeta, SessionInfo } from "../types";
 import { MOCK_DEFAULT_META } from "./data";
 import { NOT_HANDLED, type MockHandler } from "./dispatcher";
-import { getMockProjectMeta, resetMockState, setMockMutationListener, setMockProjectMeta } from "./legacy";
+import { getMockProjectMeta, resetMockState, resetMockStateEmptyProject, setMockMutationListener, setMockProjectMeta } from "./legacy";
 
 interface LibraryRecord {
   entry: LibraryEntry;
@@ -153,6 +153,7 @@ export const coreMockHandler: MockHandler = (method, path, body) => {
       language: project.language ?? settings.language,
     });
     library.set(file, record);
+    resetMockStateEmptyProject();
     openRecord(record);
     return ok(record.entry);
   }

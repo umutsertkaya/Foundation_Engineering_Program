@@ -91,9 +91,14 @@ function handleSoil(method: string, path: string, body: unknown): Reply | typeof
 const handle: MockHandler = (method, path, body) => {
   const result = handleSoil(method, path, body);
   if (result === NOT_HANDLED) return NOT_HANDLED;
-  if (result.status < 400 && ["POST", "PUT", "PATCH", "DELETE"].includes(method.toUpperCase())) {
-    // Same edit tracking the legacy mock did for /profiles routes.
-    notifyMockMutation(path.split("?")[0].slice(PREFIX.length));
+  const legacyPath = path.split("?")[0].slice(PREFIX.length);
+  if (
+    result.status < 400
+    && ["POST", "PUT", "PATCH", "DELETE"].includes(method.toUpperCase())
+    && /^\/profiles(\/|$)/.test(legacyPath)
+  ) {
+    // Same edit tracking the legacy mock did for /profiles routes (read-only POSTs never dirty the project).
+    notifyMockMutation(legacyPath);
   }
   return result;
 };

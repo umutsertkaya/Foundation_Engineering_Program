@@ -52,13 +52,13 @@ describe("core shell mock", () => {
     expect((await get_project()).meta).toMatchObject({ name: sample.name, number: sample.number, engineer: sample.engineer });
   });
 
-  it("creates, transliterates and opens a project without losing sample data", async () => {
+  it("creates, transliterates and opens a project with empty profiles", async () => {
     const project = await create_library_project({ name: "İğdır Şev Çözümü", number: "W2-1", engineer: "Özgür", language: "en" });
     expect(project.file).toBe("igdir-sev-cozumu.gtk");
     expect(await list_library()).toContainEqual(project);
     expect(await get_session()).toEqual({ open: true, file: project.file, dirty: false });
     expect((await get_project()).meta).toMatchObject({ name: project.name, number: "W2-1", engineer: "Özgür", language: "en" });
-    expect((await get_project()).counts.profiles).toBeGreaterThan(0);
+    expect((await get_project()).counts).toMatchObject({ profiles: 0, structures: 0 });
     const second = await create_library_project({ name: "İğdır Şev Çözümü" });
     expect(second.file).not.toBe(project.file);
     expect(await list_library()).toHaveLength(5);
@@ -181,5 +181,15 @@ describe("core shell mock", () => {
     });
     await expect(request("GET", "/w2-test/throw")).rejects.toMatchObject({ status: 409, code: "project_open" });
     expect(await mockRequest("GET", "/health")).toMatchObject({ status: 200, data: { status: "ok" } });
+  });
+});
+
+describe("new library project", () => {
+  it("starts without seed profiles or structures but keeps investigations", async () => {
+    await create_library_project({ name: "Bos Proje" } as never);
+    expect((await mockRequest("GET", "/m/soil/profiles")).data).toEqual([]);
+    expect((await mockRequest("GET", "/structures")).data).toEqual([]);
+    const inv = (await mockRequest("GET", "/m/soil/investigations")).data as { boreholes: unknown[] };
+    expect(inv.boreholes.length).toBeGreaterThan(0);
   });
 });
