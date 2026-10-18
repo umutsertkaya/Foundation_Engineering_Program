@@ -230,4 +230,30 @@ describe("core data/profiles and POST /structures soil source", () => {
     expect(soil.source_hash ?? null).toBeNull();
     expect(soil.retained_fill ?? []).toEqual([]);
   });
+
+  it("data/profiles is 409 no_project_open when no session is open", async () => {
+    await close_project();
+    const res = await mockRequest("GET", "/data/profiles");
+    expect(res.status).toBe(409);
+    expect(res.data).toMatchObject({ code: "no_project_open" });
+  });
+
+  it("profile_id: unknown id is 404 not_found, known id is used, no id uses the active profile", async () => {
+    const missing = await mockRequest("POST", "/structures", { ...wall, profile_id: "nope" });
+    expect(missing.status).toBe(404);
+    expect(missing.data).toMatchObject({ code: "not_found" });
+    const rows = await list_project_profiles();
+    const explicit = await mockRequest("POST", "/structures", { ...wall, profile_id: rows[rows.length - 1].id });
+    expect((explicit.data as { soil: { source_profile_id: string } }).soil.source_profile_id).toBe(rows[rows.length - 1].id);
+    const active = (await get_project()).active_profile_id;
+    const implicit = await mockRequest("POST", "/structures", wall);
+    expect((implicit.data as { soil: { source_profile_id: string } }).soil.source_profile_id).toBe(active);
+  });
+
+  it("profiles but no active profile and no profile_id is 409 no_soil_source (no first-profile fallback)", async () => {
+    await mockRequest("PUT", "/project/active-profile", { profile_id: null });
+    const res = await mockRequest("POST", "/structures", wall);
+    expect(res.status).toBe(409);
+    expect(res.data).toMatchObject({ code: "no_soil_source" });
+  });
 });

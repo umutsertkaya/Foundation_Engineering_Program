@@ -126,7 +126,11 @@ export const coreMockHandler: MockHandler = (method, path, body) => {
     return ok(settings);
   }
   if (verb === "GET" && cleanPath === "/session") return ok(session);
-  if (verb === "GET" && cleanPath === "/data/profiles") return ok(getMockStore().profiles.map(toProfileSummary));
+  if (verb === "GET" && cleanPath === "/data/profiles") {
+    return session.open
+      ? ok(getMockStore().profiles.map(toProfileSummary))
+      : error(409, "no_project_open", "No project is open.");
+  }
   if (verb === "GET" && cleanPath === "/project") {
     return session.open ? NOT_HANDLED : error(409, "no_project_open", "No project is open.");
   }

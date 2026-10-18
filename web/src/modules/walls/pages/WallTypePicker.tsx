@@ -33,7 +33,7 @@ import type {
 import { EmptyState } from "../../../shared/components/EmptyState";
 import { ErrorAlert } from "../../../shared/components/ErrorAlert";
 import { CommitNumberInput } from "../../../shared/soil/CommitInputs";
-import { IssueList, LayerEditor } from "../../../shared/soil/LayerEditor";
+import { LayerEditor } from "../../../shared/soil/LayerEditor";
 import { blankLayer, validateGwt, validateLayers } from "../../../shared/soil/layerOps";
 
 type SoilSource = "copy" | "manual";
@@ -71,7 +71,7 @@ export function WallTypePicker() {
     Promise.all([
       list_wall_types(),
       list_project_profiles(),
-      get_project().then((p) => p.active_profile_id).catch(() => null),
+      get_project().then((p) => p.active_profile_id),
     ])
       .then(([data, profs, active]) => {
         if (seq !== loadSeq.current) return;
@@ -356,9 +356,6 @@ export function WallTypePicker() {
                   ariaLabel={t("walls.soil_source.layers")}
                 />
               </div>
-              {layerIssues.length + gwtIssues.length > 0 && (
-                <IssueList issues={[...layerIssues, ...gwtIssues]} layers={layers} />
-              )}
             </Stack>
           )}
         </Stack>

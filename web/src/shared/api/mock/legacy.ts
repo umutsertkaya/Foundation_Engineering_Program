@@ -484,11 +484,20 @@ async function handleMockRequest(
   if (upperMethod === "POST" && cleanPath === "/structures") {
     const payload = body as StructureCreate;
     const id = `wall-mock-${store.structures.length + 1}`;
-    const sourceProfile = payload.soil
-      ? undefined
-      : (payload.profile_id ? store.profiles.find((p) => p.id === payload.profile_id) : undefined) ??
-        store.profiles.find((p) => p.id === store.active_profile_id) ??
-        store.profiles[0];
+    let sourceProfile: (typeof store.profiles)[number] | undefined;
+    if (!payload.soil) {
+      if (payload.profile_id) {
+        sourceProfile = store.profiles.find((p) => p.id === payload.profile_id);
+        if (!sourceProfile) {
+          return {
+            status: 404,
+            data: { code: "not_found", message: "Profile not found (Mock).", details: {}, missing_factors: [] },
+          };
+        }
+      } else {
+        sourceProfile = store.profiles.find((p) => p.id === store.active_profile_id);
+      }
+    }
     if (!payload.soil && !sourceProfile) {
       return {
         status: 409,

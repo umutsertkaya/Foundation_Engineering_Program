@@ -1,6 +1,6 @@
 # GeoTek v2: devam notları
 
-Son güncelleme: 2026-10-18. Kapı 2 ve yapı kapısı Y1 onaylandı. Modüler yeniden yapılanma `restructure/modules` dalında sürüyor. M1 ve Y2 tamam (Y2 onayı 2026-10-18). **M2 tamam.** Sıradaki: M3 (profilsiz elle zemin girişi); M4/M5 M3'ten bağımsız. Yeni oturum prompt'u: `docs/DEVAM_PROMPT.md`.
+Son güncelleme: 2026-10-18. Kapı 2 ve yapı kapısı Y1 onaylandı. Modüler yeniden yapılanma `restructure/modules` dalında sürüyor. M1 ve Y2 tamam (Y2 onayı 2026-10-18). M2 ve **M3 tamam.** Sıradaki: M4 (palplanş) ve M5 (sıvılaşma), birbirinden bağımsız. Yeni oturum prompt'u: `docs/DEVAM_PROMPT.md`.
 
 Yönergeler:
 - Orkestra yönergesi: `docs/ORKESTRA_PROMPT.md`.
@@ -17,7 +17,7 @@ Yönergeler:
 | F1 web iskeleti | Tamam. Kapı 3 **onaylanmadı**; kullanıcı zemin yönetimini istedi, bkz. "Zemin arayüzü" |
 | Zemin arayüzü (F3'ün öne çekilen kısmı) | Tamam: zemin kolonu ve desenler, katman editörü, profil ana-detay ekranı, duvar Zemin adımında bölgeli kesit. Ekran görüntüleri `docs/qa/soil/`. Kullanıcının görsel onayı bekleniyor |
 | E4 katmanlı duvar motoru | Tamam: chunk C dahil (620 pytest, 35 web testi, typecheck geçiyor). Kapı 2 kullanıcı tarafından onaylandı (2026-10-17) |
-| Modüler yapı (başlangıç ekranı → ana menü → modüller) | C0–C6, W1–W4 tamam (`restructure/modules` dalı). Başlangıç/kütüphane, ana menü, 4 modül kabuğu, gerçek oturum+kütüphane API'si, şema 1.3, modül i18n parçaları. İncelemeler (gpt-6-astra backend, Opus web, Sonnet görsel QA) düzeltildi. 827 pytest, 69 web testi. Ekranlar `docs/qa/shell/`. Yapı kapısı Y1 onaylandı (2026-10-17). M1 tamam (2026-10-18): zemin sayfaları, `/m/soil` istemcisi, DTO'lar ve mock `web/src/modules/soil/` altında; Opus incelemesi (yalnız P3) düzeltildi; 75 web testi; ekranlar `docs/qa/soil_module/`. Y2 onaylandı. M2 tamam: `modules/walls` (WallListPage, WallTypePicker, WallWizardPage, api, mock); Opus incelemesi düzeltildi; 81 web testi; ekranlar `docs/qa/walls_module/`. Plan `docs/plans/MODULER_YAPI.md`, sözleşme `docs/contracts/CORE_SHELL_API.md` |
+| Modüler yapı (başlangıç ekranı → ana menü → modüller) | C0–C6, W1–W4 tamam (`restructure/modules` dalı). Başlangıç/kütüphane, ana menü, 4 modül kabuğu, gerçek oturum+kütüphane API'si, şema 1.3, modül i18n parçaları. İncelemeler (gpt-6-astra backend, Opus web, Sonnet görsel QA) düzeltildi. 827 pytest, 69 web testi. Ekranlar `docs/qa/shell/`. Yapı kapısı Y1 onaylandı (2026-10-17). M1 tamam (2026-10-18): zemin sayfaları, `/m/soil` istemcisi, DTO'lar ve mock `web/src/modules/soil/` altında; Opus incelemesi (yalnız P3) düzeltildi; 75 web testi; ekranlar `docs/qa/soil_module/`. Y2 onaylandı. M2 tamam: `modules/walls` (WallListPage, WallTypePicker, WallWizardPage, api, mock); Opus incelemesi düzeltildi; 81 web testi; ekranlar `docs/qa/walls_module/`. M3 tamam: çekirdek `GET /api/data/profiles`, `no_soil_source` sözleşmesi (409; backend `POST /structures` A1'de), seçicide zemin kaynağı (profilden kopyala / elle gir); gpt-6-astra incelemesi düzeltildi; 91 web testi, 829 pytest; ekranlar `docs/qa/walls_manual_soil/`. Plan `docs/plans/MODULER_YAPI.md`, sözleşme `docs/contracts/CORE_SHELL_API.md` |
 | E2, E3, A1, F2, F4–F6, T1, Q1, K1, D1 | Başlamadı |
 
 ## M1 sonrası açık noktalar

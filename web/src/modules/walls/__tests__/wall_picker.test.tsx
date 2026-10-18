@@ -103,6 +103,23 @@ describe("walls pages (mock)", () => {
     expect(screen.getByTestId("loc").textContent).toBe("/m/walls/new");
   });
 
+  it("get_project failure shows the error with retry instead of preselecting a profile", async () => {
+    vi.spyOn(client, "get_project").mockRejectedValueOnce(new client.ApiError(500, { code: "engine_error", message: "boom" } as never));
+    renderAt("/m/walls/new");
+    expect(await screen.findByText(trCatalog["error.engine_error"])).toBeInTheDocument();
+    expect(screen.queryAllByRole("radio")).toHaveLength(0);
+    fireEvent.click(screen.getByRole("button", { name: trCatalog["web.common.retry"] }));
+    expect((await screen.findAllByRole("radio")).length).toBeGreaterThan(1);
+  });
+
+  it("manual soil issues are listed once", async () => {
+    resetMockStateEmptyProject();
+    renderAt("/m/walls/new");
+    await screen.findAllByRole("radio");
+    fill(`${trCatalog["ui.layer.gamma"]} L1`, "50");
+    expect(await screen.findAllByText(trCatalog["web.soil.error.gamma_range"])).toHaveLength(1);
+  });
+
   it("list shows only retaining_wall structures", async () => {
     vi.spyOn(client, "list_structures").mockResolvedValue([
       { id: "w1", name: "Wall One", kind: "retaining_wall", wall_type: "cantilever", stale: false, has_result: false },
