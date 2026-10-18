@@ -254,6 +254,7 @@ export interface LayeringProposal {
 }
 
 export interface LiquefactionSettingsDTO {
+  profile_id?: string | null;
   method: "youd2001" | "bi2014";
   amax_g: number;
   mw: number;

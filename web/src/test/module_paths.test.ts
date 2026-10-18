@@ -26,8 +26,6 @@ describe("module API paths in the mock", () => {
 
   it("answers routes without a legacy handler with a clear not_implemented 501", async () => {
     for (const [method, path] of [
-      ["POST", "/m/liquefaction/run"],
-      ["POST", "/m/sheet_pile/structures/s1/design"],
       ["GET", "/m/soil/cpts/c1/processed"],
       ["POST", "/m/soil/layering/cpt/c1"],
       ["GET", "/m/liquefaction/runs"],
@@ -37,7 +35,8 @@ describe("module API paths in the mock", () => {
       expect(response.data, path).toMatchObject({ code: "not_implemented" });
       expect((response.data as { message: string }).message).toContain(path);
     }
-    await expect(run_liquefaction({} as never)).rejects.toMatchObject({ status: 501, code: "not_implemented" });
+    // /m/liquefaction/run now has a module mock: an empty payload is rejected, not left unimplemented.
+    await expect(run_liquefaction({} as never)).rejects.toMatchObject({ status: 422 });
   });
 
   it("serves the client wrappers through the module paths", async () => {
