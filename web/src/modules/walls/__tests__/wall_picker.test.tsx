@@ -5,7 +5,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import trCatalog from "../../../../../geotek/i18n/tr.json";
 import { setMockMode } from "../../../shared/api/client";
 import * as client from "../../../shared/api/client";
-import { resetMockState } from "../../../shared/api/mock";
+import { resetMockState, resetMockStateEmptyProject } from "../../../shared/api/mock";
+import { getMockStore } from "../../../shared/api/mock/legacy";
 import "../../../app/i18n";
 import { theme } from "../../../app/theme";
 import { WallListPage } from "../pages/WallListPage";
@@ -52,6 +53,45 @@ describe("walls pages (mock)", () => {
     expect(create).toBeEnabled();
     fireEvent.click(create);
     await waitFor(() => expect(screen.getByTestId("loc").textContent).toMatch(/^\/m\/walls\/s\/.+/));
+  });
+
+  function fill(label: string, value: string) {
+    const input = screen.getByLabelText(label);
+    fireEvent.change(input, { target: { value } });
+    fireEvent.blur(input);
+  }
+
+  it("empty project forces manual soil entry; Create needs gamma and GWT, then stores a manual profile", async () => {
+    resetMockStateEmptyProject();
+    renderAt("/m/walls/new");
+    await screen.findAllByRole("radio");
+    expect(screen.getByText("Projede zemin profili yok; duvarın zeminini elle girin.")).toBeInTheDocument();
+    const create = screen.getByRole("button", { name: "Oluştur" });
+    expect(create).toBeDisabled();
+    fill(`${trCatalog["ui.layer.gamma"]} L1`, "18");
+    expect(create).toBeDisabled();
+    fill(`${trCatalog["ui.layer.phi_eff"]} L1`, "30");
+    expect(create).toBeDisabled();
+    fill("YASS derinliği (m)", "3");
+    await waitFor(() => expect(create).toBeEnabled());
+    fireEvent.click(create);
+    await waitFor(() => expect(screen.getByTestId("loc").textContent).toMatch(/^\/m\/walls\/s\/.+/));
+    const made = getMockStore().structures.at(-1) as { soil: { source_profile_id: string | null; profile: { gwt: { depth_insitu: number }; layers: { gamma: number }[] } } };
+    expect(made.soil.source_profile_id).toBeNull();
+    expect(made.soil.profile.gwt.depth_insitu).toBe(3);
+    expect(made.soil.profile.layers[0].gamma).toBe(18);
+  });
+
+  it("project with profiles defaults to copy mode and sends a profile_id", async () => {
+    const spy = vi.spyOn(client, "create_structure");
+    renderAt("/m/walls/new");
+    await screen.findAllByRole("radio");
+    expect(screen.getByRole("radio", { name: "Proje profilinden kopyala" })).toBeChecked();
+    fireEvent.click(screen.getByRole("button", { name: "Oluştur" }));
+    await waitFor(() => expect(spy).toHaveBeenCalled());
+    const payload = spy.mock.calls[0][0] as { profile_id?: string; soil?: unknown };
+    expect(typeof payload.profile_id).toBe("string");
+    expect(payload.soil).toBeUndefined();
   });
 
   it("picker shows an error alert when create fails", async () => {

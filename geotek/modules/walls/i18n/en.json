@@ -17,5 +17,15 @@
   "walls.type_picker.create": "Create",
   "walls.type_picker.created": "Wall created.",
   "walls.type_picker.empty_title": "No wall types available",
-  "walls.type_picker.empty_desc": "There are no retaining wall types to choose from."
+  "walls.type_picker.empty_desc": "There are no retaining wall types to choose from.",
+  "walls.soil_source.title": "Soil source",
+  "walls.soil_source.copy": "Copy from project profile",
+  "walls.soil_source.manual": "Enter manually",
+  "walls.soil_source.profile": "Soil profile",
+  "walls.soil_source.active": "active",
+  "walls.soil_source.no_profile": "The project has no soil profile; enter the wall soil manually.",
+  "walls.soil_source.manual_hint": "This soil belongs to this wall only. You must enter the unit weights and the groundwater depth yourself.",
+  "walls.soil_source.gwt": "GWT depth (m)",
+  "walls.soil_source.gwt_hint": "A large depth (below the profile bottom) means there is no groundwater.",
+  "walls.soil_source.layers": "Soil layers"
 }

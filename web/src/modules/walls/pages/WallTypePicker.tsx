@@ -7,21 +7,36 @@ import {
   Group,
   Loader,
   NumberInput,
+  Radio,
+  Select,
   SimpleGrid,
   Stack,
   Text,
   TextInput,
   ThemeIcon,
+  Tooltip,
   Title,
   UnstyledButton,
 } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
-import { IconBox, IconCheck, IconWall } from "@tabler/icons-react";
+import { IconBox, IconCheck, IconInfoCircle, IconWall } from "@tabler/icons-react";
 import { list_wall_types } from "../api";
-import { ApiError, create_structure } from "../../../shared/api/client";
-import type { WallType, WallTypeInfo } from "../../../shared/api/types";
+import { ApiError, create_structure, get_project } from "../../../shared/api/client";
+import { list_project_profiles } from "../../../shared/api/core";
+import type {
+  ProfileSummary,
+  RetainingWallCreate,
+  SoilLayer,
+  WallType,
+  WallTypeInfo,
+} from "../../../shared/api/types";
 import { EmptyState } from "../../../shared/components/EmptyState";
 import { ErrorAlert } from "../../../shared/components/ErrorAlert";
+import { CommitNumberInput } from "../../../shared/soil/CommitInputs";
+import { IssueList, LayerEditor } from "../../../shared/soil/LayerEditor";
+import { blankLayer, validateGwt, validateLayers } from "../../../shared/soil/layerOps";
+
+type SoilSource = "copy" | "manual";
 
 /** Retaining wall type picker and creation screen (`/m/walls/new`). */
 export function WallTypePicker() {
@@ -35,6 +50,15 @@ export function WallTypePicker() {
   const [selected, setSelected] = useState<WallType | null>(null);
   const [name, setName] = useState("");
   const [height, setHeight] = useState<number>(5);
+  const [profiles, setProfiles] = useState<ProfileSummary[]>([]);
+  const [activeId, setActiveId] = useState<string | null>(null);
+  const [source, setSource] = useState<SoilSource>("copy");
+  const [profileId, setProfileId] = useState<string | null>(null);
+  // null until the user edits the layers: the starting depth then follows the wall height.
+  const [editedLayers, setEditedLayers] = useState<SoilLayer[] | null>(null);
+  const [selectedLayer, setSelectedLayer] = useState<string | null>("L1");
+  // NaN until the user enters it; never defaulted.
+  const [gwtDepth, setGwtDepth] = useState<number>(Number.NaN);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<unknown>(null);
   const cardRefs = useRef<Array<HTMLButtonElement | null>>([]);
@@ -44,10 +68,22 @@ export function WallTypePicker() {
     const seq = ++loadSeq.current;
     setLoading(true);
     setLoadError(null);
-    list_wall_types()
-      .then((data) => {
+    Promise.all([
+      list_wall_types(),
+      list_project_profiles(),
+      get_project().then((p) => p.active_profile_id).catch(() => null),
+    ])
+      .then(([data, profs, active]) => {
         if (seq !== loadSeq.current) return;
         setTypes(data);
+        setProfiles(profs);
+        setActiveId(active);
+        setSource(profs.length > 0 ? "copy" : "manual");
+        setProfileId((cur) =>
+          cur && profs.some((p) => p.id === cur)
+            ? cur
+            : profs.find((p) => p.id === active)?.id ?? profs[0]?.id ?? null,
+        );
         setSelected((cur) => cur ?? data.find((i) => i.id === "cantilever")?.id ?? data[0]?.id ?? null);
         setLoading(false);
       })
@@ -98,18 +134,50 @@ export function WallTypePicker() {
   }
 
   const selectedInfo = types.find((info) => info.id === selected);
+  const hasProfiles = profiles.length > 0;
+  const manual = source === "manual" || !hasProfiles;
+  const effectiveName = name.trim() || (selectedInfo ? t(selectedInfo.title_key) : "");
+
+  // A geometric starting depth (not a soil property); the user edits it.
+  const layers = editedLayers ?? [blankLayer("L1", 0, height + 5)];
+  const gwt = { depth_insitu: gwtDepth, depth_design: null, depth_seismic: null };
+  const layerIssues = manual ? validateLayers(layers, { minBottom: height }) : [];
+  const gwtIssues = manual ? validateGwt(gwt) : [];
+  const manualInvalid = layerIssues.length + gwtIssues.length > 0;
+  const copyInvalid = !manual && !profileId;
 
   async function handleCreate() {
-    if (!selected || !selectedInfo) return;
+    if (!selected || !selectedInfo || manualInvalid || copyInvalid) return;
     setSubmitting(true);
     setSubmitError(null);
     try {
-      const created = await create_structure({
+      const payload: RetainingWallCreate = {
         kind: "retaining_wall",
-        name: name.trim() || t(selectedInfo.title_key),
+        name: effectiveName,
         wall_type: selected,
         height,
-      });
+        ...(manual
+          ? {
+              soil: {
+                source_profile_id: null,
+                source_hash: null,
+                profile: {
+                  id: "manual",
+                  name: effectiveName,
+                  origin: "manual",
+                  source_ids: [],
+                  layering: null,
+                  gwt,
+                  layers,
+                },
+                retained_fill: [],
+                gwt_retained: null,
+                gwt_front: null,
+              },
+            }
+          : { profile_id: profileId }),
+      };
+      const created = await create_structure(payload);
       notifications.show({
         color: "green",
         message: t("walls.type_picker.created"),
@@ -220,12 +288,88 @@ export function WallTypePicker() {
         decimalScale={2}
       />
 
+      <Card withBorder padding="md" radius="md">
+        <Stack gap="sm">
+          <Text fw={600}>{t("walls.soil_source.title")}</Text>
+          {hasProfiles ? (
+            <Radio.Group
+              value={manual ? "manual" : "copy"}
+              onChange={(v) => setSource(v as SoilSource)}
+              aria-label={t("walls.soil_source.title")}
+            >
+              <Group gap="lg">
+                <Radio value="copy" label={t("walls.soil_source.copy")} />
+                <Radio value="manual" label={t("walls.soil_source.manual")} />
+              </Group>
+            </Radio.Group>
+          ) : (
+            <Group gap={6} wrap="nowrap" align="flex-start">
+              <IconInfoCircle size={16} style={{ flexShrink: 0, marginTop: 2 }} aria-hidden />
+              <Text size="sm">{t("walls.soil_source.no_profile")}</Text>
+            </Group>
+          )}
+
+          {!manual && (
+            <Select
+              label={t("walls.soil_source.profile")}
+              value={profileId}
+              onChange={setProfileId}
+              allowDeselect={false}
+              data={profiles.map((p) => ({
+                value: p.id,
+                label: p.id === activeId ? `${p.name} (${t("walls.soil_source.active")})` : p.name,
+              }))}
+            />
+          )}
+
+          {manual && (
+            <Stack gap="sm">
+              <Text size="xs" c="dimmed">
+                {t("walls.soil_source.manual_hint")}
+              </Text>
+              <Group gap="xs" align="flex-end" wrap="nowrap">
+                <CommitNumberInput
+                  label={t("walls.soil_source.gwt")}
+                  value={gwtDepth}
+                  width={120}
+                  ariaLabel={t("walls.soil_source.gwt")}
+                  error={gwtIssues.length > 0 ? t("web.soil.error.gwt_negative") : null}
+                  onCommit={(v) => setGwtDepth(v ?? Number.NaN)}
+                />
+                <Tooltip label={t("walls.soil_source.gwt_hint")} multiline w={260} withArrow>
+                  <IconInfoCircle
+                    size={18}
+                    style={{ marginBottom: 6 }}
+                    aria-label={t("walls.soil_source.gwt_hint")}
+                    role="img"
+                  />
+                </Tooltip>
+              </Group>
+              <div style={{ overflowX: "auto" }}>
+                <LayerEditor
+                  layers={layers}
+                  onChange={setEditedLayers}
+                  issues={layerIssues}
+                  selectedId={selectedLayer}
+                  onSelect={(id) => setSelectedLayer(id)}
+                  idPrefix="L"
+                  ariaLabel={t("walls.soil_source.layers")}
+                />
+              </div>
+              {layerIssues.length + gwtIssues.length > 0 && (
+                <IssueList issues={[...layerIssues, ...gwtIssues]} layers={layers} />
+              )}
+            </Stack>
+          )}
+        </Stack>
+      </Card>
+
       {submitError != null && <ErrorAlert error={submitError} />}
 
       <Group justify="flex-end">
         {cancelButton}
         <Button
-          disabled={!selected || submitting}
+          disabled={!selected || submitting || manualInvalid || copyInvalid}
           loading={submitting}
           onClick={handleCreate}
         >
