@@ -17,7 +17,10 @@ from geotek.engine.earth_pressure.distribution import PressureDistribution
 from geotek.engine.limit_state import SheetPileDesign
 from geotek.engine.sheet_pile import cantilever_sheet_pile
 from geotek.engine.walls.layered import soil_from_basic
-from geotek.services.structures import check_structure, design_sheet_pile_structure, required_factors, size_structure
+from geotek.services.structures import (
+    calculation_fingerprint, check_structure, design_sheet_pile_structure, required_factors,
+    size_structure,
+)
 from geotek.services.walls_advanced import required_inputs
 from geotek.services.walls_basic import BasicSheetPileResult, BasicWallInput, proportion_for, size_wall
 
@@ -32,6 +35,7 @@ def test_engineer_choices_are_honoured_and_reported_in_both_levels(advanced, cod
     structure.soil.profile.layers[0].gamma_sat = 21
     structure.soil.gwt_front = GroundwaterCondition(depth_insitu=5 + structure.geometry.width / 2)
     default = check_structure(project, "wall")
+    assert calculation_fingerprint(project, structure) == default.result_hash
     structure.settings.uplift_moment = "resisting"
     structure.settings.gwt_bearing_correction = False
     before = project.model_dump_json()
@@ -364,6 +368,7 @@ def test_hash_stable_excludes_result_hash_and_is_canonical():
     expected = hashlib.sha256(json.dumps(payload, sort_keys=True, ensure_ascii=False,
                                          separators=(",", ":"), allow_nan=False).encode("utf-8")).hexdigest()
     assert result.result_hash == expected
+    assert calculation_fingerprint(project, structure) == expected
     structure.result_hash = "previous-result"
     assert check_structure(project, "wall").result_hash == expected
     reordered = Project.model_validate_json(project.model_dump_json())

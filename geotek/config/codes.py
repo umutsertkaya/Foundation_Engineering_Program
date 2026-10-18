@@ -213,8 +213,9 @@ class FactorLog:
         return list(self.used.values())
 
 
-def resolve_code(code_id: str, overrides: dict[str, FactorOverride] | None = None) -> DesignCode:
-    return get_design_code(code_id).with_overrides(overrides)
+def resolve_code(code_id: str, overrides: dict[str, FactorOverride] | None = None, *,
+                 extra_dirs: list[str | Path] | None = None) -> DesignCode:
+    return get_design_code(code_id, extra_dirs).with_overrides(overrides)
 
 
 def require_factor(value: float | None, name: str) -> float:
