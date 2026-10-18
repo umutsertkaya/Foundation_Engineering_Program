@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import math
 from dataclasses import dataclass, field
+from pathlib import Path
 from typing import Literal
 
 from pydantic import BaseModel
@@ -77,9 +78,10 @@ def _paths(code: DesignCode, approach: str | None, seismic: bool) -> list[str]:
 
 
 def required_inputs(code_id: str, *, approach: str | None = None, seismic: bool = False,
-                    overrides: dict[str, FactorOverride] | None = None) -> list[MissingFactor]:
+                    overrides: dict[str, FactorOverride] | None = None,
+                    extra_dirs: list[str | Path] | None = None) -> list[MissingFactor]:
     """Factors the analysis needs but the code file (plus overrides) does not provide."""
-    code = resolve_code(code_id, overrides)
+    code = resolve_code(code_id, overrides, extra_dirs=extra_dirs)
     missing = []
     for path in _paths(code, approach, seismic):
         if code.get(path) is None:
@@ -97,9 +99,10 @@ class FactorRow(BaseModel):
     source: str
 
 
-def list_factors(code_id: str, overrides: dict[str, FactorOverride] | None = None) -> list[FactorRow]:
+def list_factors(code_id: str, overrides: dict[str, FactorOverride] | None = None, *,
+                 extra_dirs: list[str | Path] | None = None) -> list[FactorRow]:
     """Every factor of a design code with its value (None = not given) and source label."""
-    code = resolve_code(code_id, overrides)
+    code = resolve_code(code_id, overrides, extra_dirs=extra_dirs)
     paths: list[str] = []
     if code.approach == "global_fs":
         paths += [f"safety.{k}.{case}" for k, v in code.safety_factors.items() for case in v]

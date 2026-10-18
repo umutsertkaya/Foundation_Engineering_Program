@@ -7,24 +7,30 @@ Multipart is documented explicitly so creating the contract needs no parser pack
 
 from __future__ import annotations
 
+import math
 from pathlib import Path
 from typing import Annotated, NoReturn
+from uuid import uuid4
 
 from fastapi import APIRouter, Body, Depends, FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
-from pydantic import ValidationError
+from pydantic import TypeAdapter, ValidationError
 
 from geotek.api import library_routes, registry
 from geotek.api import schemas as dto
 from geotek.api.common import ERROR_RESPONSES, not_implemented
 from geotek.api.session import Session, api_error, get_session, load_external
-from geotek.config.codes import FactorOverride
+from geotek.config.codes import FactorOverride, get_design_code, list_design_codes
+from geotek.core.errors import GeoTekError
 from geotek.core.models.project import Project, ProjectMeta, SiteSeismic
 from geotek.core.models.structures import Structure, StructureSoilModel
+from geotek.i18n import _catalog
 from geotek.io.project_io import save_project
+from geotek.library import load_settings
+from geotek.services.walls_advanced import list_factors, required_inputs
 
 API_VERSION = "0.2.0"
 
@@ -44,9 +50,9 @@ def get_health() -> dto.HealthResponse:
 
 
 @meta.get("/i18n/{lang}", response_model=dict[str, str], operation_id="get_i18n")
-def get_i18n(lang: dto.Language) -> NoReturn:
+def get_i18n(lang: dto.Language) -> dict[str, str]:
     """Return the flat translation key-to-string catalog in the selected language."""
-    not_implemented()
+    return _catalog(lang).copy()
 
 
 def _summary(project: Project) -> dto.ProjectSummary:
@@ -191,55 +197,134 @@ def list_project_profiles(session: SessionDep) -> list[dto.ProfileSummary]:
 @structures.get(
     "/structures", response_model=list[dto.StructureSummary], operation_id="list_structures",
 )
-def list_structures() -> NoReturn:
+def list_structures(
+    session: SessionDep, kind: dto.StructureKind | None = None,
+) -> list[dto.StructureSummary]:
     """List structures and their soil/result freshness state."""
-    not_implemented()
+    with session.lock:
+        return [item for item in _summary(session.require_project()).structures
+                if kind is None or item.kind == kind]
+
+
+def _structure(current: Project, id: str) -> Structure:
+    """Look up an existing resource using the domain model."""
+    try:
+        return current.structure(id)
+    except KeyError:
+        api_error(404, "not_found", f"Structure not found: {id}")
+
+
+def _validated_structure(data: dict) -> Structure:
+    """Validate assembled inputs before changing any project state."""
+    try:
+        return TypeAdapter(Structure).validate_python(data)
+    except ValidationError as exc:
+        api_error(422, "validation", "Invalid structure.", errors=[
+            {"loc": list(item["loc"]), "msg": item["msg"], "type": item["type"]}
+            for item in exc.errors()
+        ])
 
 
 @structures.post("/structures", response_model=Structure, operation_id="create_structure")
 def create_structure(
     payload: Annotated[dto.StructureCreate, Body(discriminator="kind")],
-) -> NoReturn:
+    session: SessionDep,
+) -> Structure:
     """Create a wall or sheet pile with its own soil copy; choose the variant by kind."""
-    not_implemented()
+    with session.lock:
+        current = session.require_project()
+        soil = payload.soil
+        if soil is not None and payload.profile_id is not None:
+            api_error(422, "validation", "Supply either soil or profile_id.")
+        if soil is None:
+            try:
+                source = (current.profile(payload.profile_id) if payload.profile_id is not None
+                          else current.active_profile())
+            except KeyError:
+                api_error(404, "not_found", f"Profile not found: {payload.profile_id}")
+            if source is None:
+                api_error(409, "no_soil_source", "Select a soil profile or supply manual soil.")
+            soil = StructureSoilModel(source_profile_id=source.id,
+                                      source_hash=source.content_hash(),
+                                      profile=source.model_copy(deep=True))
+        created = _validated_structure({
+            **payload.model_dump(exclude={"soil", "profile_id"}, exclude_none=True),
+            "id": str(uuid4()), "soil": soil.model_dump(),
+        })
+        current.structures.append(created)
+        session.dirty = True
+        return created
 
 
 @structures.get("/structures/{id}", response_model=Structure, operation_id="get_structure")
-def get_structure(id: str) -> NoReturn:
+def get_structure(id: str, session: SessionDep) -> Structure:
     """Return a complete structure, discriminated by kind."""
-    not_implemented()
+    with session.lock:
+        return _structure(session.require_project(), id)
 
 
 @structures.put("/structures/{id}", response_model=Structure, operation_id="update_structure")
 def update_structure(
     id: str, payload: Annotated[Structure, Body(discriminator="kind")],
-) -> NoReturn:
+    session: SessionDep,
+) -> Structure:
     """Replace a structure; the body id must identify the path resource."""
-    not_implemented()
+    with session.lock:
+        current = session.require_project()
+        existing = _structure(current, id)
+        if payload.id != id:
+            api_error(422, "validation", "Body id must match the structure path id.")
+        current.structures[current.structures.index(existing)] = payload
+        session.dirty = True
+        return payload
 
 
 @structures.delete(
     "/structures/{id}", response_model=dto.DeletionResponse, operation_id="delete_structure",
 )
-def delete_structure(id: str) -> NoReturn:
+def delete_structure(id: str, session: SessionDep) -> dto.DeletionResponse:
     """Delete a structure and return a JSON acknowledgement."""
-    not_implemented()
+    with session.lock:
+        current = session.require_project()
+        current.structures.remove(_structure(current, id))
+        session.dirty = True
+        return dto.DeletionResponse(id=id, deleted=True)
 
 
 @structures.put(
     "/structures/{id}/soil", response_model=Structure, operation_id="set_structure_soil",
 )
-def set_structure_soil(id: str, payload: StructureSoilModel) -> NoReturn:
+def set_structure_soil(id: str, payload: StructureSoilModel, session: SessionDep) -> Structure:
     """Replace the structure-specific soil model."""
-    not_implemented()
+    with session.lock:
+        current = session.require_project()
+        existing = _structure(current, id)
+        updated = _validated_structure({**existing.model_dump(), "soil": payload.model_dump()})
+        current.structures[current.structures.index(existing)] = updated
+        session.dirty = True
+        return updated
 
 
 @structures.post(
     "/structures/{id}/soil/resync", response_model=Structure, operation_id="resync_structure_soil",
 )
-def resync_structure_soil(id: str) -> NoReturn:
+def resync_structure_soil(id: str, session: SessionDep) -> Structure:
     """Re-copy soil from the structure's source project profile."""
-    not_implemented()
+    with session.lock:
+        current = session.require_project()
+        existing = _structure(current, id)
+        if existing.soil.source_profile_id is None:
+            api_error(404, "not_found", "Source profile not found.")
+        try:
+            source = current.profile(existing.soil.source_profile_id)
+        except KeyError:
+            api_error(404, "not_found", "Source profile not found.")
+        soil = {**existing.soil.model_dump(), "profile": source.model_dump(),
+                "source_hash": source.content_hash()}
+        updated = _validated_structure({**existing.model_dump(), "soil": soil})
+        current.structures[current.structures.index(existing)] = updated
+        session.dirty = True
+        return updated
 
 @jobs.get("/jobs/{job_id}", response_model=dto.JobState, operation_id="get_job")
 def get_job(job_id: str) -> NoReturn:
@@ -253,18 +338,36 @@ def cancel_job(job_id: str) -> NoReturn:
     not_implemented()
 
 @codes.get("/codes", response_model=list[dto.DesignCodeSummary], operation_id="list_codes")
-def list_codes() -> NoReturn:
+def list_codes(session: SessionDep) -> list[dto.DesignCodeSummary]:
     """List design codes in the project language and their named approaches."""
-    not_implemented()
+    with session.lock:
+        language = (session.project.meta.language if session.project is not None
+                    else load_settings().language)
+        return [dto.DesignCodeSummary(id=code.id, name=code.label.get(language),
+                                      approach=code.approach, approaches=list(code.approaches))
+                for code in list_design_codes(list(registry.design_code_dirs())).values()]
+
+
+def _code_overrides(code_id: str, session: Session) -> dict[str, FactorOverride]:
+    """Check the code id before passing optional project overrides to the services."""
+    try:
+        get_design_code(code_id, list(registry.design_code_dirs()))
+    except GeoTekError:
+        api_error(404, "not_found", f"Design code not found: {code_id}")
+    return (session.project.design_overrides.get(code_id, {})
+            if session.project is not None else {})
 
 
 @codes.get(
     "/codes/{code_id}/factors", response_model=list[dto.FactorRowDTO],
     operation_id="list_code_factors",
 )
-def list_code_factors(code_id: str) -> NoReturn:
+def list_code_factors(code_id: str, session: SessionDep) -> list[dto.FactorRowDTO]:
     """Return code factor values and their provenance."""
-    not_implemented()
+    with session.lock:
+        overrides = _code_overrides(code_id, session)
+        return [dto.FactorRowDTO.model_validate(row) for row in list_factors(
+            code_id, overrides, extra_dirs=list(registry.design_code_dirs()))]
 
 
 @codes.get(
@@ -272,19 +375,43 @@ def list_code_factors(code_id: str) -> NoReturn:
     operation_id="get_code_required_factors",
 )
 def get_code_required_factors(
-    code_id: str, approach: str | None = None, seismic: bool = False,
-) -> NoReturn:
+    code_id: str, session: SessionDep, approach: str | None = None, seismic: bool = False,
+) -> list[dto.MissingFactorDTO]:
     """List missing factors for the selected approach and seismic/static case."""
-    not_implemented()
+    with session.lock:
+        overrides = _code_overrides(code_id, session)
+        try:
+            missing = required_inputs(code_id, approach=approach, seismic=seismic,
+                                      overrides=overrides,
+                                      extra_dirs=list(registry.design_code_dirs()))
+        except GeoTekError as exc:
+            api_error(422, "validation", str(exc))
+        return [dto.MissingFactorDTO.model_validate(item) for item in missing]
 
 
 @codes.put(
     "/project/design-overrides/{code_id}", response_model=dict[str, FactorOverride],
     operation_id="set_design_overrides",
 )
-def set_design_overrides(code_id: str, payload: dict[str, FactorOverride]) -> NoReturn:
+def set_design_overrides(
+    code_id: str, payload: dict[str, FactorOverride], session: SessionDep,
+) -> dict[str, FactorOverride]:
     """Replace the project's user factor overrides for one design code."""
-    not_implemented()
+    with session.lock:
+        current = session.require_project()
+        _code_overrides(code_id, session)
+        try:
+            code = get_design_code(code_id, list(registry.design_code_dirs()))
+            for path, override in payload.items():
+                code.get(path)
+                if not math.isfinite(override.value):
+                    api_error(422, "validation", "Factor values must be finite.")
+            code.with_overrides(payload)
+        except GeoTekError as exc:
+            api_error(422, "validation", str(exc))
+        current.design_overrides[code_id] = payload
+        session.dirty = True
+        return payload
 
 
 def create_app(session: Session | None = None) -> FastAPI:
