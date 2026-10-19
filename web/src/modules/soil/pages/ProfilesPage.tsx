@@ -42,6 +42,7 @@ import { LayerEditor } from "../../../shared/soil/LayerEditor";
 import { LayerLegend } from "../../../shared/soil/LayerLegend";
 import { blankLayer, layerErrorKey, validateGwt, validateLayers } from "../../../shared/soil/layerOps";
 import { SoilColumn } from "../../../shared/soil/SoilColumn";
+import { LayeringModal, type LayeringKind } from "../components/LayeringModal";
 
 const NEW_ID = "__new__";
 
@@ -72,7 +73,7 @@ export function ProfilesPage() {
   const [notice, setNotice] = useState<string | null>(null);
   const [selectedLayerId, setSelectedLayerId] = useState<string | null>(null);
   const [pendingAction, setPendingAction] = useState<(() => void) | null>(null);
-  const [autoStub, setAutoStub] = useState<"cpt" | "spt" | null>(null);
+  const [layeringKind, setLayeringKind] = useState<LayeringKind | null>(null);
 
   const draft = useUndoable<SoilProfile | null>(null);
   const profile = draft.value;
@@ -246,10 +247,10 @@ export function ProfilesPage() {
         <Menu.Item leftSection={<IconPencil size={14} />} onClick={() => guard(startManual)}>
           {t("web.soil.new.manual")}
         </Menu.Item>
-        <Menu.Item leftSection={<IconFileImport size={14} />} onClick={() => setAutoStub("cpt")}>
+        <Menu.Item leftSection={<IconFileImport size={14} />} onClick={() => guard(() => setLayeringKind("cpt"))}>
           {t("web.soil.new.from_cpt")}
         </Menu.Item>
-        <Menu.Item leftSection={<IconFileImport size={14} />} onClick={() => setAutoStub("spt")}>
+        <Menu.Item leftSection={<IconFileImport size={14} />} onClick={() => guard(() => setLayeringKind("spt"))}>
           {t("web.soil.new.from_spt")}
         </Menu.Item>
       </Menu.Dropdown>
@@ -547,26 +548,18 @@ export function ProfilesPage() {
         </Stack>
       </Modal>
 
-      <Modal
-        opened={autoStub !== null}
-        onClose={() => setAutoStub(null)}
-        title={autoStub === "spt" ? t("web.soil.new.from_spt") : t("web.soil.new.from_cpt")}
-        size="md"
-      >
-        <Stack gap="sm">
-          <Alert color="blue" variant="light">
-            <Text size="sm">{t("web.soil.auto.stub")}</Text>
-          </Alert>
-          <Text size="xs" c="dimmed">
-            {t("web.soil.auto.stub_hint")}
-          </Text>
-          <Group justify="flex-end">
-            <Button size="xs" variant="default" onClick={() => setAutoStub(null)}>
-              {t("web.common.close")}
-            </Button>
-          </Group>
-        </Stack>
-      </Modal>
+      <LayeringModal
+        kind={layeringKind}
+        onClose={() => setLayeringKind(null)}
+        onCreated={(created) => {
+          setLayeringKind(null);
+          void (async () => {
+            await loadList();
+            await openProfile(created.id);
+            setNotice(t("web.soil.saved"));
+          })();
+        }}
+      />
     </Stack>
   );
 }

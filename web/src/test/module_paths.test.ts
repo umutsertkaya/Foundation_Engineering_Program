@@ -28,8 +28,8 @@ describe("module API paths in the mock", () => {
 
   it("answers routes without a mock handler with a clear not_implemented 501", async () => {
     for (const [method, path] of [
-      ["GET", "/m/soil/cpts/c1/processed"],
-      ["POST", "/m/soil/layering/cpt/c1"],
+      ["POST", "/m/soil/profiles/p1/layers/merge"],
+      ["POST", "/m/soil/profiles/p1/layers/L1/split"],
       ["GET", "/m/liquefaction/runs"],
     ]) {
       const response = await mockRequest(method, path);
