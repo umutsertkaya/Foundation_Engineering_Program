@@ -46,6 +46,23 @@ describe("buildSectionLayout: cantilever", () => {
     expect(L.groundRetained[1][1]).toBeCloseTo(wallTop, 1); // no slope
   });
 
+  it("uses the actual embedment, including 0, instead of a default", () => {
+    for (const embedment of [0, 1.2]) {
+      const lay = buildSectionLayout({ wallType: "cantilever", geometry: { ...CANTILEVER, embedment }, height: 5 });
+      expect(lay.D).toBe(embedment);
+      expect((lay.baseY - lay.groundFront[0][1]) / lay.scale).toBeCloseTo(embedment, 1);
+    }
+    const gravity = buildSectionLayout({ wallType: "gravity", geometry: { ...GRAVITY, embedment: 0 }, height: 5 });
+    expect(gravity.D).toBe(0);
+  });
+
+  it("does not distort real dimensions: small values are drawn to scale", () => {
+    const thin = buildSectionLayout({ wallType: "cantilever", geometry: { ...CANTILEVER, stem_top: 0.05, stem_bottom: 0.08 }, height: 5 });
+    const [, stem] = thin.wall;
+    const bottom = stem.filter((p) => p[1] === Math.max(...ys(stem)));
+    expect(span(xs(bottom)) / thin.scale).toBeCloseTo(0.08, 2);
+  });
+
   it("raises the retained ground line by tan(beta)", () => {
     const sloped = buildSectionLayout({ wallType: "cantilever", geometry: CANTILEVER, height: 5, backfillSlope: 20 });
     const [a, b] = sloped.groundRetained;

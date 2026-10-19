@@ -40,9 +40,8 @@ describe("PermeabilityEditor", () => {
     ]);
     expect(input("F2")).toHaveValue("1e-6");
     expect(input("F1")).toHaveValue("");
-    const f2 = screen.getAllByTestId("permeability-row")[1];
-    expect(within(f2).getByText(tr["walls.perm.class.impervious"])).toBeInTheDocument();
-    expect(within(screen.getAllByTestId("permeability-row")[0]).getByText(tr["walls.perm.class.none"])).toBeInTheDocument();
+    // k only: no classification or threshold is shown
+    expect(document.body.textContent).not.toMatch(/geçirimsiz|geçirimli sayılır|5·10|5e-4/);
   });
 
   it("commits a valid k to a fill layer and a profile layer without touching the others", () => {
@@ -63,26 +62,32 @@ describe("PermeabilityEditor", () => {
     expect(next.profile.layers[1].gamma).toBe(19);
   });
 
-  it("classes k at 5e-4 m/s as pervious and clears k when the cell is emptied", () => {
+  it("clears k when the cell is emptied", () => {
     const onChange = vi.fn();
     renderThemed(<Harness initial={soil} onChange={onChange} />);
-    fireEvent.change(input("F1"), { target: { value: "5e-4" } });
-    fireEvent.blur(input("F1"));
-    expect(within(screen.getAllByTestId("permeability-row")[0]).getByText(tr["walls.perm.class.pervious"])).toBeInTheDocument();
     fireEvent.change(input("F2"), { target: { value: "" } });
     fireEvent.blur(input("F2"));
     const next = onChange.mock.calls.at(-1)![0] as StructureSoilModel;
     expect(layerPermeability(next.retained_fill![1])).toBeNull();
   });
 
-  it("rejects invalid input with an error and does not change the soil", () => {
+  it("an invalid entry is cleared explicitly (never silently keeps the old value) and says so", () => {
     const onChange = vi.fn();
     renderThemed(<Harness initial={soil} onChange={onChange} />);
-    for (const bad of ["abc", "0", "-1e-5"]) {
-      fireEvent.change(input("F1"), { target: { value: bad } });
-      fireEvent.blur(input("F1"));
-      expect(screen.getByText(tr["walls.perm.invalid"]), bad).toBeInTheDocument();
-    }
+    // no stored k: stays "not entered", with the explanation
+    fireEvent.change(input("F1"), { target: { value: "abc" } });
+    fireEvent.blur(input("F1"));
+    expect(input("F1")).toHaveValue("");
+    expect(screen.getAllByText(tr["walls.perm.invalid_cleared"])).toHaveLength(1);
     expect(onChange).not.toHaveBeenCalled();
+    // stored k: the invalid entry removes it from the soil and shows the message
+    for (const bad of ["0", "-1e-5"]) {
+      fireEvent.change(input("F2"), { target: { value: bad } });
+      fireEvent.blur(input("F2"));
+      expect(input("F2")).toHaveValue("");
+    }
+    const next = onChange.mock.calls.at(-1)![0] as StructureSoilModel;
+    expect(layerPermeability(next.retained_fill![1])).toBeNull();
+    expect(screen.getAllByText(tr["walls.perm.invalid_cleared"]).length).toBeGreaterThan(0);
   });
 });

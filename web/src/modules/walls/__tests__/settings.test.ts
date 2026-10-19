@@ -4,10 +4,9 @@ import {
   applyOptions,
   formatPermeability,
   layerPermeability,
-  missingPermeabilityIds,
+  layersWithoutPermeability,
   optionsFromSettings,
   parsePermeability,
-  wetRetainedLayers,
   withPermeability,
 } from "../settings";
 import { layer, soilModel } from "./helpers";
@@ -64,20 +63,20 @@ describe("permeability k", () => {
   });
 });
 
-describe("wet retained layers", () => {
-  it("only lists layers below the seismic groundwater table and above the base", () => {
+describe("layers without k (conservative hint)", () => {
+  it("lists every retained-side layer without k: fill first, then the profile below the fill", () => {
     const soil = soilModel({
       gwt: 1.5,
       fill: [layer("F1", 0, 1), withPermeability(layer("F2", 1, 3), 1e-6)],
       layers: [layer("L1", 0, 4), layer("L2", 4, 12)],
     });
-    // retained profile: F1, F2, then L1 trimmed below the fill (3 to 4); L2 lies under the base (H = 4)
-    expect(wetRetainedLayers(soil, 4).map((l) => l.id)).toEqual(["F2", "L1"]);
-    expect(missingPermeabilityIds(soil, 4)).toEqual(["L1"]);
+    // retained side = F1, F2, then L1 (below the fill) and L2: no water-table or height logic is reimplemented
+    expect(layersWithoutPermeability(soil)).toEqual(["F1", "L1", "L2"]);
   });
 
-  it("is empty when the water table is below the base level", () => {
-    expect(missingPermeabilityIds(soilModel({ gwt: 9 }), 4)).toEqual([]);
-    expect(missingPermeabilityIds(null, 4)).toEqual([]);
+  it("is empty when every layer has k or there is no soil", () => {
+    const all = soilModel({ layers: [withPermeability(layer("L1", 0, 4), 1e-5), withPermeability(layer("L2", 4, 12), 1e-7)] });
+    expect(layersWithoutPermeability(all)).toEqual([]);
+    expect(layersWithoutPermeability(null)).toEqual([]);
   });
 });

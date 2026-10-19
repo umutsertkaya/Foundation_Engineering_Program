@@ -1,8 +1,7 @@
 import { Alert, Badge, Card, Group, SimpleGrid, Stack, Table, Text } from "@mantine/core";
 import { IconAlertTriangle } from "@tabler/icons-react";
 import { useTranslation } from "react-i18next";
-import type { StructureSoilModel, WallResultDTO, WallType } from "../../../shared/api/types";
-import type { GwtCase } from "../../../shared/soil/zones";
+import type { CantileverGeometry, GravityGeometry, WallResultDTO, WallType } from "../../../shared/api/types";
 import { factorPathLabel } from "../labels";
 import { WallCheckCards, type RunMode } from "./WallCheckCards";
 import { WallCrossSection } from "./WallCrossSection";
@@ -10,18 +9,35 @@ import { WallCrossSection } from "./WallCrossSection";
 export interface WallResultViewProps {
   result: WallResultDTO;
   mode: RunMode;
-  wallType: WallType;
-  height: number;
-  backfillSlope: number;
-  soil: StructureSoilModel | null;
-  gwtCase: GwtCase;
+  /** The shown result no longer matches the current inputs, or its job did not complete. */
+  stale?: boolean;
+  staleReason?: "inputs" | "job";
+}
+
+/** Wall type and structure height H of a result geometry (cantilever: base + stem; gravity: its own height). */
+export function resultSectionBasis(geometry: CantileverGeometry | GravityGeometry): { wallType: WallType; height: number } {
+  return "stem_bottom" in geometry
+    ? { wallType: "cantilever", height: geometry.base_thickness + geometry.stem_height }
+    : { wallType: "gravity", height: geometry.height };
+}
+
+export function StaleNotice({ reason }: { reason: "inputs" | "job" }) {
+  const { t } = useTranslation();
+  return (
+    <Alert color="orange" variant="light" icon={<IconAlertTriangle size={16} />} p="xs" data-testid="result-stale">
+      <Text size="xs">{t(reason === "job" ? "walls.result.stale_job" : "walls.result.stale_inputs")}</Text>
+    </Alert>
+  );
 }
 
 /** Results screen: verdict, warnings, to-scale section, per-check utilisation cards, factors and assumptions. */
-export function WallResultView({ result, mode, wallType, height, backfillSlope, soil, gwtCase }: WallResultViewProps) {
+export function WallResultView({ result, mode, stale = false, staleReason = "inputs" }: WallResultViewProps) {
   const { t } = useTranslation();
+  const basis = resultSectionBasis(result.geometry);
   return (
-    <Stack gap="sm">
+    <Stack gap="sm" data-stale={stale || undefined}>
+      {stale && <StaleNotice reason={staleReason} />}
+      <Stack gap="sm" style={stale ? { opacity: 0.55 } : undefined}>
       <Alert color={result.passed ? "green" : "red"} variant="light" data-testid="result-verdict">
         <Group justify="space-between" gap="xs">
           <Text fw={700} size="sm">
@@ -48,17 +64,18 @@ export function WallResultView({ result, mode, wallType, height, backfillSlope, 
       )}
 
       <SimpleGrid cols={{ base: 1, lg: 2 }} spacing="sm">
+        {/* Geometry only: the result carries neither the soil nor the slope the run used. */}
         <WallCrossSection
-          wallType={wallType}
+          wallType={basis.wallType}
           geometry={result.geometry}
-          height={height}
-          backfillSlope={backfillSlope}
-          soil={soil}
-          gwtCase={gwtCase}
+          height={basis.height}
           title={t("web.wizard.result_section_title")}
         />
         <WallCheckCards result={result} mode={mode} />
       </SimpleGrid>
+      <Text size="xs" c="dimmed">
+        {t("walls.result.section_geometry_only")}
+      </Text>
 
       <SimpleGrid cols={{ base: 1, md: 2 }} spacing="sm">
         <Card withBorder padding="sm" radius="sm">
@@ -121,6 +138,7 @@ export function WallResultView({ result, mode, wallType, height, backfillSlope, 
           </Stack>
         </Card>
       </SimpleGrid>
+      </Stack>
     </Stack>
   );
 }

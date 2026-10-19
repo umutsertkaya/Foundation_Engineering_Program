@@ -1,6 +1,6 @@
 import type { AnalysisOptions, SoilLayerK, WallSettingsPayload } from "./types";
 import type { SoilLayer, StructureSoilModel } from "../../shared/api/types";
-import { gwtDepth, retainedGwt, retainedLayers } from "../../shared/soil/zones";
+import { retainedLayers } from "../../shared/soil/zones";
 
 /** Model defaults of `WallSettings` in `geotek/core/models/walls.py` (mirrored by the OpenAPI `@default`s). */
 export const ANALYSIS_DEFAULTS: AnalysisOptions = {
@@ -15,9 +15,6 @@ export const ANALYSIS_DEFAULTS: AnalysisOptions = {
 export const KV_SIGNS = ["envelope", "up", "down"] as const;
 export const SUBMERGED_MODES = ["envelope", "impervious", "pervious", "by_permeability"] as const;
 export const UPLIFT_MODES = ["overturning", "resisting"] as const;
-
-/** `SoilLayer.permeability` below this value [m/s] is treated as impervious (`_submerged_dynamic`). */
-export const IMPERVIOUS_BELOW_K = 5e-4;
 
 export function optionsFromSettings(settings: WallSettingsPayload | null | undefined): AnalysisOptions {
   return {
@@ -59,19 +56,15 @@ export function formatPermeability(k: number | null): string {
 }
 
 /**
- * Retained-side layers wetted by the seismic water table above the wall base level H
- * (`_submerged_dynamic`: `min(bottom, H) > max(top, gwt)`), i.e. the layers whose permeability matters.
+ * Conservative hint for the "by permeability" mode: every retained-side layer (fill, then the profile
+ * below it) that has no k. Which layers the engine finally classifies depends on its own geometry and
+ * water-table handling, so this is a reminder that k is needed, not a computed verdict; the engine
+ * reports the layers it actually could not classify in the result warnings.
  */
-export function wetRetainedLayers(soil: StructureSoilModel, height: number): SoilLayer[] {
-  const gwt = gwtDepth(retainedGwt(soil).gwt, "seismic");
+export function layersWithoutPermeability(soil: StructureSoilModel | null): string[] {
+  if (!soil) return [];
   return retainedLayers(soil)
     .map((item) => item.layer)
-    .filter((layer) => Math.min(layer.bottom, height) > Math.max(layer.top, gwt));
-}
-
-export function missingPermeabilityIds(soil: StructureSoilModel | null, height: number): string[] {
-  if (!soil) return [];
-  return wetRetainedLayers(soil, height)
     .filter((layer) => layerPermeability(layer) === null)
     .map((layer) => layer.id);
 }

@@ -1,14 +1,8 @@
-import { useState } from "react";
-import { Badge, Card, Group, Stack, Table, Text, TextInput } from "@mantine/core";
+import { useEffect, useState } from "react";
+import { Card, Group, Stack, Table, Text, TextInput } from "@mantine/core";
 import { useTranslation } from "react-i18next";
 import type { SoilLayer, StructureSoilModel } from "../../../shared/api/types";
-import {
-  formatPermeability,
-  IMPERVIOUS_BELOW_K,
-  layerPermeability,
-  parsePermeability,
-  withPermeability,
-} from "../settings";
+import { formatPermeability, layerPermeability, parsePermeability, withPermeability } from "../settings";
 
 export interface PermeabilityEditorProps {
   soil: StructureSoilModel;
@@ -27,10 +21,16 @@ function PermeabilityRow({ layer, origin, onCommit }: RowProps) {
   const [text, setText] = useState(formatPermeability(stored));
   const [error, setError] = useState(false);
 
+  // follow external changes of the stored value (undo/redo, re-sync)
+  useEffect(() => setText(formatPermeability(stored)), [stored]);
+
   const commit = () => {
     const parsed = parsePermeability(text);
     if (!parsed.ok) {
+      // Explicit, not silent: the invalid entry clears k (the layer counts as "k not entered") and says so.
       setError(true);
+      setText("");
+      if (stored !== null) onCommit(null);
       return;
     }
     setError(false);
@@ -59,7 +59,7 @@ function PermeabilityRow({ layer, origin, onCommit }: RowProps) {
           placeholder="1e-5"
           aria-label={t("walls.perm.input_label", { id: layer.id })}
           value={text}
-          error={error ? t("walls.perm.invalid") : undefined}
+          error={error ? t("walls.perm.invalid_cleared") : undefined}
           onChange={(e) => {
             setText(e.currentTarget.value);
             setError(false);
@@ -69,17 +69,6 @@ function PermeabilityRow({ layer, origin, onCommit }: RowProps) {
             if (e.key === "Enter") commit();
           }}
         />
-      </Table.Td>
-      <Table.Td>
-        {stored === null ? (
-          <Badge size="xs" variant="light" color="gray" style={{ overflow: "visible" }}>
-            {t("walls.perm.class.none")}
-          </Badge>
-        ) : (
-          <Badge size="xs" variant="light" color={stored < IMPERVIOUS_BELOW_K ? "teal" : "orange"} style={{ overflow: "visible" }}>
-            {t(stored < IMPERVIOUS_BELOW_K ? "walls.perm.class.impervious" : "walls.perm.class.pervious")}
-          </Badge>
-        )}
       </Table.Td>
     </Table.Tr>
   );
@@ -107,7 +96,7 @@ export function PermeabilityEditor({ soil, onChange }: PermeabilityEditorProps) 
             {t("walls.perm.title")}
           </Text>
           <Text size="xs" c="dimmed">
-            {t("walls.perm.hint", { limit: "5·10⁻⁴" })}
+            {t("walls.perm.hint")}
           </Text>
         </div>
         <Group>
@@ -118,15 +107,14 @@ export function PermeabilityEditor({ soil, onChange }: PermeabilityEditorProps) 
                 <Table.Th>{t("walls.perm.col.origin")}</Table.Th>
                 <Table.Th>{t("walls.perm.col.depth")}</Table.Th>
                 <Table.Th>{t("walls.perm.col.k")}</Table.Th>
-                <Table.Th>{t("walls.perm.col.class")}</Table.Th>
               </Table.Tr>
             </Table.Thead>
             <Table.Tbody>
               {fill.map((layer, i) => (
-                <PermeabilityRow key={`f-${layer.id}-${layerPermeability(layer)}`} layer={layer} origin="fill" onCommit={(k) => setFill(i, k)} />
+                <PermeabilityRow key={`f-${layer.id}`} layer={layer} origin="fill" onCommit={(k) => setFill(i, k)} />
               ))}
               {profile.map((layer, i) => (
-                <PermeabilityRow key={`p-${layer.id}-${layerPermeability(layer)}`} layer={layer} origin="profile" onCommit={(k) => setProfile(i, k)} />
+                <PermeabilityRow key={`p-${layer.id}`} layer={layer} origin="profile" onCommit={(k) => setProfile(i, k)} />
               ))}
             </Table.Tbody>
           </Table>

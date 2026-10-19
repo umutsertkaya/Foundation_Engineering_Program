@@ -47,9 +47,9 @@ import { AnalysisOptionsForm } from "../components/AnalysisOptionsForm";
 import { PermeabilityEditor } from "../components/PermeabilityEditor";
 import { WallCheckCards, type RunMode } from "../components/WallCheckCards";
 import { WallCrossSection } from "../components/WallCrossSection";
-import { WallResultView } from "../components/WallResultView";
+import { StaleNotice, WallResultView } from "../components/WallResultView";
 import { WizardStepBar } from "../components/WizardStepBar";
-import { ANALYSIS_DEFAULTS, applyOptions, missingPermeabilityIds, optionsFromSettings } from "../settings";
+import { ANALYSIS_DEFAULTS, applyOptions, layersWithoutPermeability, optionsFromSettings } from "../settings";
 import type { AnalysisOptions } from "../types";
 
 type GeometrySource = "draft" | "suggested" | "user";
@@ -107,6 +107,9 @@ export function WallWizardPage() {
   const [resultMode, setResultMode] = useState<RunMode>("suggest");
   const [analysisOptions, setAnalysisOptions] = useState<AnalysisOptions>({ ...ANALYSIS_DEFAULTS });
   const [passiveConfirmed, setPassiveConfirmed] = useState<boolean>(false);
+  /** Inputs signature at the moment the shown result was produced (see `inputSignature`). */
+  const [resultSig, setResultSig] = useState<string | null>(null);
+  const [captureSig, setCaptureSig] = useState<boolean>(false);
 
   const job = useJob<WallResultDTO>();
 
@@ -174,6 +177,7 @@ export function WallWizardPage() {
     if (job.status === "done" && job.result) {
       setLastResult(job.result);
       setResultMode(lastRunMode);
+      setCaptureSig(true);
       if (lastRunMode === "suggest") {
         if ("stem_bottom" in job.result.geometry) {
           setCantileverGeo({ ...job.result.geometry });
@@ -217,6 +221,25 @@ export function WallWizardPage() {
         checks.fill.length + checks.profile.length + gwtProfile.length + gwtRetained.length + gwtFront.length,
     };
   }, [soilDraft.value, height]);
+
+  /** Everything a run depends on; a result is stale once this differs from the value it was produced with. */
+  const inputSignature = useMemo(
+    () =>
+      JSON.stringify([
+        wallType, height, embedment, backfillSlope,
+        wallType === "cantilever" ? cantileverGeo : gravityGeo,
+        surcharge, sds, rFactor, includeGlobal, analysisLevel, designCode, analysisOptions, soilDraft.value,
+      ]),
+    [wallType, height, embedment, backfillSlope, cantileverGeo, gravityGeo, surcharge, sds, rFactor, includeGlobal, analysisLevel, designCode, analysisOptions, soilDraft.value],
+  );
+
+  // Capture the signature after the finished run's own state updates (e.g. the proposed geometry) have rendered.
+  useEffect(() => {
+    if (captureSig) {
+      setResultSig(inputSignature);
+      setCaptureSig(false);
+    }
+  }, [captureSig, inputSignature]);
 
   const handleCantileverEdit = (field: keyof CantileverGeometry, val: string | number) => {
     const num = typeof val === "number" ? val : Number.parseFloat(val);
@@ -268,15 +291,17 @@ export function WallWizardPage() {
     return saved;
   };
 
+  const passiveUnconfirmed = () => analysisLevel === "advanced" && analysisOptions.use_passive && !passiveConfirmed;
+
   const handleSuggest = async () => {
-    if (!structure) return;
+    if (!structure || passiveUnconfirmed()) return;
     setLastRunMode("suggest");
     if (!(await syncStructureBeforeRun())) return;
     await job.start(() => size_wall(structure.id));
   };
 
   const handleCheck = async () => {
-    if (!structure) return;
+    if (!structure || passiveUnconfirmed()) return;
     setLastRunMode("check");
     if (!(await syncStructureBeforeRun())) return;
     await job.start(() => check_wall(structure.id));
@@ -327,6 +352,13 @@ export function WallWizardPage() {
   }
 
   const isRunning = job.status === "queued" || job.status === "running";
+  const jobIncomplete = job.status === "failed" || job.status === "cancelled" || isRunning;
+  const staleResult =
+    lastResult !== null && !captureSig && (jobIncomplete || (resultSig !== null && resultSig !== inputSignature));
+  const staleReason: "inputs" | "job" = jobIncomplete ? "job" : "inputs";
+  // The service writes "mühendis seçimi" for the passive reduction: it must be confirmed in this session first
+  // (at the basic level the service ignores passive resistance, so nothing needs confirming).
+  const passiveBlocked = analysisLevel === "advanced" && analysisOptions.use_passive && !passiveConfirmed;
   const missingFactors =
     job.error?.code === "missing_factors" || (job.error?.missing_factors.length ?? 0) > 0
       ? job.error?.missing_factors ?? []
@@ -669,7 +701,7 @@ export function WallWizardPage() {
               value={analysisOptions}
               onChange={setAnalysisOptions}
               level={analysisLevel}
-              missingPermeability={missingPermeabilityIds(soilDraft.value, height)}
+              missingPermeability={layersWithoutPermeability(soilDraft.value)}
               passiveConfirmed={passiveConfirmed}
               onConfirmPassive={setPassiveConfirmed}
               onGoToSoil={() => setActiveStep(1)}
@@ -699,7 +731,7 @@ export function WallWizardPage() {
                       size="xs"
                       color="blue"
                       loading={isRunning && lastRunMode === "suggest"}
-                      disabled={isRunning}
+                      disabled={isRunning || passiveBlocked}
                       leftSection={<IconSparkles size={14} />}
                       onClick={() => void handleSuggest()}
                     >
@@ -709,7 +741,7 @@ export function WallWizardPage() {
                       size="xs"
                       variant="default"
                       loading={isRunning && lastRunMode === "check"}
-                      disabled={isRunning}
+                      disabled={isRunning || passiveBlocked}
                       leftSection={<IconPlayerPlay size={14} />}
                       onClick={() => void handleCheck()}
                     >
@@ -864,6 +896,19 @@ export function WallWizardPage() {
               </Alert>
             )}
 
+            {staleResult && <StaleNotice reason={staleReason} />}
+
+            {passiveBlocked && (
+              <Alert color="orange" variant="light" p="xs" data-testid="passive-run-blocked">
+                <Group justify="space-between" gap="xs">
+                  <Text size="xs">{t("walls.run.passive_unconfirmed", { value: analysisOptions.passive_reduction.toFixed(2) })}</Text>
+                  <Button size="compact-xs" variant="light" onClick={() => setActiveStep(2)}>
+                    {t("web.wizard.step.loads")}
+                  </Button>
+                </Group>
+              </Alert>
+            )}
+
             {job.status === "cancelled" && (
               <Alert color="gray" variant="light" p="xs" data-testid="job-cancelled">
                 <Text size="xs">{t("walls.run.cancelled")}</Text>
@@ -879,7 +924,7 @@ export function WallWizardPage() {
                 soil={soilDraft.value}
                 gwtCase={gwtView}
               />
-              {lastResult && <WallCheckCards result={lastResult} mode={resultMode} />}
+              {lastResult && <WallCheckCards result={lastResult} mode={resultMode} stale={staleResult} />}
             </SimpleGrid>
           </Stack>
         </>
@@ -900,15 +945,7 @@ export function WallWizardPage() {
                 }
               />
             ) : (
-              <WallResultView
-                result={lastResult}
-                mode={resultMode}
-                wallType={wallType}
-                height={height}
-                backfillSlope={backfillSlope}
-                soil={soilDraft.value}
-                gwtCase={gwtView}
-              />
+              <WallResultView result={lastResult} mode={resultMode} stale={staleResult} staleReason={staleReason} />
             )}
           </Stack>
         </>

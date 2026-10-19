@@ -11,7 +11,7 @@ import type {
   Structure,
   WallResultDTO,
 } from "../../shared/api/types";
-import { missingPermeabilityIds, optionsFromSettings } from "./settings";
+import { layersWithoutPermeability, optionsFromSettings } from "./settings";
 
 const PREFIX = "/m/walls";
 
@@ -94,7 +94,7 @@ export function shapeMockWallResult(
     warnings.push("Düşey deprem katsayısı ±kv zarfı uygulandı (TBDY 16.12.2.3); yöneten işaret kontrol bazında detayda belirtilmiştir.");
   }
   if (seismic && options.submerged_seismic === "by_permeability") {
-    for (const id of missingPermeabilityIds(wall.soil, wall.height)) {
+    for (const id of layersWithoutPermeability(wall.soil)) {
       warnings.push(`Katman ${id}: permeabilite k girilmedi; su altı deprem hesabında envelope zarfı kullanıldı.`);
     }
   }

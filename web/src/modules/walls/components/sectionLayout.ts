@@ -106,6 +106,11 @@ const PAD_B = 30;
 const GUTTER_R = 116;
 const MAX_PLOT_H = 400;
 const MAX_SLOPE_DEG = 35;
+/**
+ * Smallest dimension drawn [m]. Only guards against zero-size or negative values from a half-edited draft
+ * (a degenerate polygon would break the clip paths); real dimensions are never altered by it.
+ */
+const EPS = 1e-3;
 
 function isCantilever(
   wallType: WallType,
@@ -139,13 +144,14 @@ export function buildSectionLayout(input: SectionInput): SectionLayout {
 
   if (isCantilever(wallType, geometry)) {
     const toe = Math.max(0, geometry.toe);
-    const stemBottom = Math.max(0.1, geometry.stem_bottom);
-    const stemTop = Math.max(0.1, Math.min(stemBottom, geometry.stem_top));
+    const stemBottom = Math.max(EPS, geometry.stem_bottom);
+    const stemTop = Math.max(EPS, geometry.stem_top);
     const heel = Math.max(0, geometry.heel);
-    const tb = Math.max(0.1, geometry.base_thickness);
+    const tb = Math.max(EPS, geometry.base_thickness);
     B = toe + stemBottom + heel;
-    H = Math.max(tb + 0.2, input.height ?? tb + geometry.stem_height);
-    D = Math.max(0, Math.min(H - 0.05, geometry.embedment ?? 0.6));
+    H = Math.max(tb + EPS, input.height ?? tb + geometry.stem_height);
+    // embedment is drawn as given (0 allowed); only D >= H would invert the front ground
+    D = Math.max(0, Math.min(H - EPS, geometry.embedment ?? 0));
     const xBack = toe + stemBottom;
     const xFrontTop = xBack - stemTop;
     wall = [
@@ -167,11 +173,11 @@ export function buildSectionLayout(input: SectionInput): SectionLayout {
     stemCentre = [(xFrontTop + xBack) / 2, tb + (H - tb) / 2];
   } else {
     const grav = geometry as GravityGeometry;
-    B = Math.max(0.2, grav.base_width);
-    H = Math.max(0.5, input.height ?? grav.height);
-    const topW = Math.max(0.1, Math.min(B, grav.top_width));
-    const backOffset = Math.max(0, Math.min(B - topW, grav.back_offset ?? 0));
-    D = Math.max(0, Math.min(H - 0.05, grav.embedment ?? 0.6));
+    B = Math.max(EPS, grav.base_width);
+    H = Math.max(EPS, input.height ?? grav.height);
+    const topW = Math.max(EPS, grav.top_width);
+    const backOffset = Math.max(0, grav.back_offset ?? 0);
+    D = Math.max(0, Math.min(H - EPS, grav.embedment ?? 0));
     const xBackTop = B - backOffset;
     const xFrontTop = xBackTop - topW;
     wall = [[[0, 0], [B, 0], [xBackTop, H], [xFrontTop, H]]];

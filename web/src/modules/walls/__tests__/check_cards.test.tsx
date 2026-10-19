@@ -4,7 +4,7 @@ import trCatalog from "../../../../../geotek/i18n/tr.json";
 import wallsTr from "../../../../../geotek/modules/walls/i18n/tr.json";
 import { WallCheckCards, formatQuantity } from "../components/WallCheckCards";
 import { WallResultView } from "../components/WallResultView";
-import { check, CANTILEVER, renderThemed, result, soilModel } from "./helpers";
+import { check, GRAVITY, renderThemed, result } from "./helpers";
 
 const tr = { ...trCatalog, ...wallsTr } as Record<string, string>;
 
@@ -110,9 +110,7 @@ describe("WallResultView", () => {
       ],
       warnings: ["Düşey deprem katsayısı ±kv zarfı uygulandı"],
     });
-    renderThemed(
-      <WallResultView result={r} mode="check" wallType="cantilever" height={5} backfillSlope={0} soil={soilModel()} gwtCase="design" />,
-    );
+    renderThemed(<WallResultView result={r} mode="check" />);
     const rows = document.querySelectorAll("tbody tr");
     const text = Array.from(rows).map((row) => row.textContent ?? "");
     expect(text.some((x) => x.includes("TBDY depremli birleşim › Direnç katsayıları › Devrilme"))).toBe(true);
@@ -122,5 +120,24 @@ describe("WallResultView", () => {
     expect(screen.getByTitle("TBDY-seismic.resistance.overturning")).toBeInTheDocument();
     expect(screen.getByTestId("result-warnings")).toHaveTextContent("±kv zarfı");
     expect(screen.getByTestId("wall-section")).toBeInTheDocument();
+  });
+
+  it("draws the section from the result geometry only (no soil), deriving type and height from it", () => {
+    renderThemed(<WallResultView result={result({ geometry: GRAVITY, checks: CHECKS })} mode="check" />);
+    const svg = document.querySelector("svg")!;
+    expect(svg.querySelector('[data-part="wall"]')).not.toBeNull(); // gravity body, whatever the wizard draft says
+    expect(svg.querySelectorAll('[data-part="band"]')).toHaveLength(0);
+    expect(svg.querySelectorAll('[data-part="water"]')).toHaveLength(0);
+    expect(svg.getAttribute("aria-label")).toContain("H = 5.00");
+    expect(screen.getByText(tr["walls.result.section_geometry_only"])).toBeInTheDocument();
+  });
+
+  it("marks a stale result with a notice and dimmed cards", () => {
+    const fresh = renderThemed(<WallResultView result={result({ checks: CHECKS })} mode="check" />);
+    expect(screen.queryByTestId("result-stale")).toBeNull();
+    fresh.unmount();
+    renderThemed(<WallResultView result={result({ checks: CHECKS })} mode="check" stale staleReason="job" />);
+    expect(screen.getByTestId("result-stale")).toHaveTextContent(tr["walls.result.stale_job"]);
+    expect(document.querySelector('[data-stale="true"]')).not.toBeNull();
   });
 });

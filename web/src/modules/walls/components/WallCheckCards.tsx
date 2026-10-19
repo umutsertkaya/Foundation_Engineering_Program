@@ -125,17 +125,19 @@ export interface WallCheckCardsProps {
   mode: RunMode;
   /** Two columns by default; the results page puts the cards next to the section. */
   cols?: number;
+  /** Dim the cards: they belong to an earlier run or to inputs that have since changed. */
+  stale?: boolean;
 }
 
 /** Governing summary line + per-check utilisation cards. */
-export function WallCheckCards({ result, mode, cols }: WallCheckCardsProps) {
+export function WallCheckCards({ result, mode, cols, stale = false }: WallCheckCardsProps) {
   const { t } = useTranslation();
   const governing = deriveGoverning(result, mode);
   const keys = new Set(governing.keys);
   const seismicEnvelope = result.checks.some((c) => parseKvSign(c.detail).direction !== null);
 
   return (
-    <Stack gap="xs">
+    <Stack gap="xs" data-stale={stale || undefined} style={stale ? { opacity: 0.55 } : undefined}>
       {governing.kind !== null && (
         <Alert variant="light" color={result.passed ? "blue" : "red"} p="xs" data-testid="governing-summary">
           <Text size="sm" fw={600}>
