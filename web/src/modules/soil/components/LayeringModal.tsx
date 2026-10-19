@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Alert,
   Badge,
@@ -15,10 +15,11 @@ import {
   TextInput,
 } from "@mantine/core";
 import { useTranslation } from "react-i18next";
-import { ApiError } from "../../../shared/api/client";
 import type { LayeringProposal, LayeringSettings, SoilProfile } from "../../../shared/api/types";
 import { create_profile, list_investigations, propose_cpt_layers, propose_spt_layers } from "../api";
 import type { InvestigationsDTO } from "../types";
+import { LatestGuard } from "../latest";
+import { ErrorAlert } from "./ErrorAlert";
 import { WarningList } from "./WarningList";
 
 export type LayeringKind = "cpt" | "spt";
@@ -66,7 +67,8 @@ function LayeringBody({ kind, onClose, onCreated }: { kind: LayeringKind; onClos
   const [name, setName] = useState("");
   const [gwt, setGwt] = useState<number | string>("");
   const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<ApiError | null>(null);
+  const [error, setError] = useState<unknown>(null);
+  const guard = useRef(new LatestGuard());
 
   useEffect(() => {
     let cancelled = false;
@@ -78,10 +80,11 @@ function LayeringBody({ kind, onClose, onCreated }: { kind: LayeringKind; onClos
         if (first) setSourceId(first);
       })
       .catch((err) => {
-        if (!cancelled && err instanceof ApiError) setError(err);
+        if (!cancelled) setError(err);
       });
     return () => {
       cancelled = true;
+      guard.current.cancel();
     };
   }, [kind]);
 
@@ -96,6 +99,7 @@ function LayeringBody({ kind, onClose, onCreated }: { kind: LayeringKind; onClos
 
   const propose = async () => {
     if (!sourceId) return;
+    const token = guard.current.begin();
     setBusy(true);
     setError(null);
     // Send only what the engineer typed; everything else keeps the server default.
@@ -107,6 +111,7 @@ function LayeringBody({ kind, onClose, onCreated }: { kind: LayeringKind; onClos
     try {
       const result =
         kind === "cpt" ? await propose_cpt_layers(sourceId, settings) : await propose_spt_layers(sourceId, settings);
+      if (!guard.current.isCurrent(token)) return;
       setProposal(result);
       setOutdated(false);
       setGammas({});
@@ -114,16 +119,17 @@ function LayeringBody({ kind, onClose, onCreated }: { kind: LayeringKind; onClos
       const source = (kind === "cpt" ? data?.cpts : data?.boreholes)?.find((s) => s.id === sourceId);
       setGwt(source?.gwt_depth ?? "");
     } catch (err) {
-      if (err instanceof ApiError) setError(err);
+      if (guard.current.isCurrent(token)) setError(err);
     } finally {
-      setBusy(false);
+      if (guard.current.isCurrent(token)) setBusy(false);
     }
   };
 
-  const needsGamma = (i: number) => proposal?.layers[i].gamma_suggested === null || proposal?.layers[i].gamma_suggested === undefined;
-  const anyNeedsGamma = proposal ? proposal.layers.some((_, i) => needsGamma(i)) : false;
+  // Every layer needs a unit weight the engineer confirmed or typed; a suggestion is never filled in silently.
+  const suggestionOf = (i: number): number | null => proposal?.layers[i].gamma_suggested ?? null;
+  const anySuggestion = proposal ? proposal.layers.some((_, i) => suggestionOf(i) !== null) : false;
   const gammasComplete = proposal
-    ? proposal.layers.every((_, i) => !needsGamma(i) || (finite(gammas[i] ?? "") && (gammas[i] as number) > 0))
+    ? proposal.layers.every((_, i) => finite(gammas[i] ?? "") && (gammas[i] as number) > 0)
     : false;
   const gwtValid = finite(gwt) && gwt >= 0;
   const canCreate = proposal !== null && !outdated && gammasComplete && gwtValid && name.trim().length > 0;
@@ -132,14 +138,11 @@ function LayeringBody({ kind, onClose, onCreated }: { kind: LayeringKind; onClos
     if (!proposal || !canCreate) return;
     setBusy(true);
     setError(null);
-    // Unit weights the program could not suggest are the engineer's own entries; they are the only
-    // edit made to the proposal (see the open question about `layer_gamma` in P1_CONTRACTS).
+    // The unit weights are the engineer entries (confirmed suggestion or typed value) and the only edit made
+    // to the proposal; the backend stores no provenance for them (open question: layer_gamma, gamma_sat).
     const supplied: LayeringProposal = {
       ...proposal,
-      layers: proposal.layers.map((layer, i) => ({
-        ...layer,
-        gamma_suggested: needsGamma(i) ? (gammas[i] as number) : layer.gamma_suggested,
-      })),
+      layers: proposal.layers.map((layer, i) => ({ ...layer, gamma_suggested: gammas[i] as number })),
     };
     try {
       const created = await create_profile({
@@ -151,7 +154,7 @@ function LayeringBody({ kind, onClose, onCreated }: { kind: LayeringKind; onClos
       });
       onCreated(created);
     } catch (err) {
-      if (err instanceof ApiError) setError(err);
+      setError(err);
     } finally {
       setBusy(false);
     }
@@ -171,11 +174,7 @@ function LayeringBody({ kind, onClose, onCreated }: { kind: LayeringKind; onClos
         </Text>
       </div>
 
-      {error && (
-        <Alert color="red" title={t(`error.${error.code}`)} withCloseButton onClose={() => setError(null)}>
-          <Text size="xs">{error.message}</Text>
-        </Alert>
-      )}
+      <ErrorAlert error={error} onClose={() => setError(null)} />
 
       {noSources ? (
         <Alert color="blue" variant="light">
@@ -189,6 +188,7 @@ function LayeringBody({ kind, onClose, onCreated }: { kind: LayeringKind; onClos
               label={t(`soil.layering.source.${kind}`)}
               data={sources}
               value={sourceId}
+              disabled={busy}
               onChange={(e) => {
                 setSourceId(e.currentTarget.value);
                 invalidate();
@@ -200,7 +200,7 @@ function LayeringBody({ kind, onClose, onCreated }: { kind: LayeringKind; onClos
               label={t("soil.layering.method")}
               data={METHODS[kind].map((m) => ({ value: m, label: t(`soil.layering.method.${m}`) }))}
               value={method}
-              disabled={METHODS[kind].length === 1}
+              disabled={busy || METHODS[kind].length === 1}
               onChange={(e) => {
                 setMethod(e.currentTarget.value as MethodId);
                 invalidate();
@@ -224,6 +224,7 @@ function LayeringBody({ kind, onClose, onCreated }: { kind: LayeringKind; onClos
                   label={t(`soil.layering.setting.${field}`)}
                   placeholder={t("soil.layering.default_placeholder")}
                   value={values[field] ?? ""}
+                  disabled={busy}
                   onChange={(v) => {
                     setValues((prev) => ({ ...prev, [field]: v }));
                     invalidate();
@@ -294,27 +295,32 @@ function LayeringBody({ kind, onClose, onCreated }: { kind: LayeringKind; onClos
                     {kind === "cpt" && <Table.Td>{layer.ic_mean ?? t("web.common.none")}</Table.Td>}
                     <Table.Td>{t(`soil.layering.behaviour.${layer.behaviour}`)}</Table.Td>
                     <Table.Td>
-                      {needsGamma(i) ? (
+                      <Group gap={4} wrap="nowrap">
                         <NumberInput
                           size="xs"
-                          w={90}
+                          w={84}
                           min={0}
                           decimalScale={2}
                           hideControls
+                          disabled={busy}
                           aria-label={t("soil.layering.gamma_enter")}
                           placeholder={t("soil.layering.gamma_enter")}
                           value={gammas[i] ?? ""}
                           onChange={(v) => setGammas((prev) => ({ ...prev, [i]: v }))}
                           data-testid={`layering-gamma-${i}`}
                         />
-                      ) : (
-                        <Text size="xs">
-                          {layer.gamma_suggested}{" "}
-                          <Text span size="xs" c="dimmed">
-                            ({t("soil.layering.gamma_suggested")})
-                          </Text>
-                        </Text>
-                      )}
+                        {suggestionOf(i) !== null && (
+                          <Button
+                            size="compact-xs"
+                            variant="light"
+                            disabled={busy}
+                            onClick={() => setGammas((prev) => ({ ...prev, [i]: suggestionOf(i) as number }))}
+                            data-testid={`layering-gamma-use-${i}`}
+                          >
+                            {t("soil.layering.gamma_use", { value: suggestionOf(i) })}
+                          </Button>
+                        )}
+                      </Group>
                     </Table.Td>
                   </Table.Tr>
                 ))}
@@ -322,11 +328,37 @@ function LayeringBody({ kind, onClose, onCreated }: { kind: LayeringKind; onClos
             </Table>
           </Table.ScrollContainer>
 
-          {anyNeedsGamma && (
-            <Text size="xs" c="dimmed">
-              {t("soil.layering.gamma_needed")}
+          <Stack gap={4}>
+            {anySuggestion && (
+              <Group gap="xs">
+                <Button
+                  size="compact-xs"
+                  variant="default"
+                  disabled={busy}
+                  onClick={() =>
+                    setGammas((prev) => {
+                      const next = { ...prev };
+                      proposal.layers.forEach((l, i) => {
+                        if (l.gamma_suggested !== null && l.gamma_suggested !== undefined) next[i] = l.gamma_suggested;
+                      });
+                      return next;
+                    })
+                  }
+                  data-testid="layering-gamma-use-all"
+                >
+                  {t("soil.layering.gamma_use_all")}
+                </Button>
+                {!gammasComplete && (
+                  <Text size="xs" c="orange.8">
+                    {t("soil.layering.gamma_confirm_needed")}
+                  </Text>
+                )}
+              </Group>
+            )}
+            <Text size="xs" c="dimmed" data-testid="layering-gamma-note">
+              {t("soil.layering.gamma_note")}
             </Text>
-          )}
+          </Stack>
 
           <Stack gap={2}>
             <Text size="xs" fw={600}>
@@ -347,6 +379,7 @@ function LayeringBody({ kind, onClose, onCreated }: { kind: LayeringKind; onClos
               size="xs"
               label={t("soil.layering.profile_name")}
               value={name}
+              disabled={busy}
               onChange={(e) => setName(e.currentTarget.value)}
               data-testid="layering-name"
             />
@@ -358,6 +391,7 @@ function LayeringBody({ kind, onClose, onCreated }: { kind: LayeringKind; onClos
               label={t("soil.layering.gwt")}
               description={t("soil.layering.gwt_hint")}
               value={gwt}
+              disabled={busy}
               onChange={setGwt}
               data-testid="layering-gwt"
             />
@@ -370,7 +404,7 @@ function LayeringBody({ kind, onClose, onCreated }: { kind: LayeringKind; onClos
               <Button size="xs" variant="default" onClick={onClose}>
                 {t("web.common.close")}
               </Button>
-              <Button size="xs" onClick={() => void create()} disabled={!canCreate} loading={busy && proposal !== null} data-testid="layering-create">
+              <Button size="xs" onClick={() => void create()} disabled={!canCreate || busy} loading={busy && proposal !== null} data-testid="layering-create">
                 {t("soil.layering.create")}
               </Button>
             </Group>

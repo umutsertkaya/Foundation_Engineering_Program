@@ -226,7 +226,7 @@ function mockCandidates(
         make("b", base + 3, { reliability: "C" }),
         make("c", base + 7, {
           validity_ok: false,
-          warnings: [mockWarning("parameters.warning.outside_validity", { method: "mock_phi_eff_c" })],
+          warnings: [mockWarning("parameters.warning.value_not_computable", { method_id: "mock_phi_eff_c" })],
         }),
       ];
       return { candidates, suggested: suggest(candidates[0]) };
@@ -253,7 +253,9 @@ function mockCandidates(
     }
     case "gamma":
     case "gamma_sat": {
-      const base = key === "gamma" ? layer.gamma : layer.gamma_sat ?? layer.gamma + 1;
+      // No derived gamma_sat: a candidate exists only when the layer already carries a value.
+      const base = key === "gamma" ? layer.gamma : layer.gamma_sat;
+      if (base === undefined || base === null) return { candidates: [], suggested: null };
       const candidates = [make("rc", base, { source: "combined" })];
       return { candidates, suggested: suggest(candidates[0]) };
     }
@@ -404,12 +406,18 @@ function handleLayeringAndParameters(method: string, cleanPath: string, body: un
     next.selections = { ...(next.selections ?? {}) };
     next.design = { ...(next.design ?? {}) };
     for (const key of keys) {
-      const sel = refreshedSelection(next, key);
-      if (!sel.selected || !sel.mode) return bad(`No selection to approve for ${key}`, { key });
+      // Like the backend: re-resolve the stored choice against the fresh candidates, so the approved value and
+      // the basis describe the same inputs (a previously shown `selected` may be out of date).
+      const fresh = refreshedSelection(next, key);
+      if (!fresh.mode) return bad(`No selection to approve for ${key}`, { key });
+      const resolved = resolveSelection(fresh);
+      if ("error" in resolved) return bad(resolved.error, { key });
+      const sel = resolved.selection;
       next.selections[key] = { ...sel, approved: true, approved_at: new Date().toISOString(), basis_hash: basisOf(next) };
-      if (key === "gamma") next.gamma = sel.selected.value;
-      else if (key === "gamma_sat") next.gamma_sat = sel.selected.value;
-      else next.design[key] = sel.selected.value;
+      const value = (sel.selected as DerivedParameter).value;
+      if (key === "gamma") next.gamma = value;
+      else if (key === "gamma_sat") next.gamma_sat = value;
+      else next.design[key] = value;
     }
     found.profile.layers = found.profile.layers.map((l) => (l.id === next.id ? next : l));
     return { status: 200, data: structuredClone(next) };

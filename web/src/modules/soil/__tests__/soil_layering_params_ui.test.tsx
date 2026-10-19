@@ -56,11 +56,20 @@ describe("LayeringModal", () => {
     expect(within(warnings).getAllByRole("listitem")).toHaveLength(2);
     expect(warnings.textContent).toContain("layering.warning.similar_merged");
 
+    // The program's unit weights are shown but never filled in: Create stays blocked until each one is confirmed.
     const create = screen.getByTestId("layering-create");
+    expect(create).toBeDisabled();
+    expect(screen.getByTestId("layering-gamma-0")).toHaveValue("");
+    expect(screen.getByTestId("layering-gamma-use-0")).toHaveTextContent("18.2");
+    fireEvent.click(screen.getByTestId("layering-gamma-use-0"));
+    typeInto("layering-gamma-1", "17"); // override the suggestion of layer 2
+    expect(create).toBeDisabled(); // layer 3 is still open
+    fireEvent.click(screen.getByTestId("layering-gamma-use-2"));
     await waitFor(() => expect(create).not.toBeDisabled());
     fireEvent.click(create);
     await waitFor(() => expect(onCreated).toHaveBeenCalledTimes(1));
     const created = onCreated.mock.calls[0][0] as SoilProfile;
+    expect(created.layers.map((l) => l.gamma)).toEqual([18.2, 17, 19.6]);
     expect(created.origin).toBe("cpt");
     expect(created.source_ids).toEqual(["CPT-M1"]);
     expect(created.layering?.method).toBe("cpt_ic");
@@ -89,7 +98,10 @@ describe("LayeringModal", () => {
     await waitFor(() => expect(propose).not.toBeDisabled());
     fireEvent.click(propose);
     await screen.findByTestId("layering-proposal");
-    expect(screen.getByText(/No unit weight could be suggested/)).toBeInTheDocument();
+    // Plain wording: the unit weights are the engineer entries, no claim about provenance or gamma_sat.
+    expect(screen.getByTestId("layering-gamma-note")).toHaveTextContent(/your entries/);
+    expect(screen.getByTestId("layering-gamma-note")).toHaveTextContent(/not where it came from/);
+    expect(screen.queryByTestId("layering-gamma-use-all")).toBeNull(); // SPT has no suggestion to confirm
 
     const create = screen.getByTestId("layering-create");
     expect(create).toBeDisabled();
@@ -131,7 +143,7 @@ describe("ParametersPage", () => {
     expect(candidates.textContent).toContain("deg");
     // An invalid candidate is flagged and its warning is shown (raw string: key not in the catalog yet).
     expect(candidates.textContent).toContain("outside validity range");
-    expect(candidates.textContent).toContain("parameters.warning.outside_validity");
+    expect(candidates.textContent).toContain("parameters.warning.value_not_computable");
     expect(within(screen.getByTestId("param-card-su")).getByTestId("param-state-su")).toHaveTextContent("Not approved");
   });
 
@@ -167,10 +179,7 @@ describe("ParametersPage", () => {
     await waitFor(() => expect(within(card).getByTestId("param-apply-phi_eff")).not.toBeDisabled());
   });
 
-  it("a stale approval is shown as stale and is not counted as approved", async () => {
-    // Approve phi' on L2, then move the L1/L2 boundary: the basis changes, the approval trace stays.
-    const before = await get_profile("prof-mock-1");
-    expect(before.layers[1].id).toBe("L2");
+  it("a stale approval cannot be approved as is: re-apply first, then the fresh value is approved", async () => {
     await renderPage();
     fireEvent.click(screen.getByTestId("params-layer-L2"));
     const card = await screen.findByTestId("param-card-phi_eff");
@@ -179,18 +188,66 @@ describe("ParametersPage", () => {
     await waitFor(() => expect(within(card).getByTestId("param-approve-phi_eff")).not.toBeDisabled());
     fireEvent.click(within(card).getByTestId("param-approve-phi_eff"));
     await waitFor(() => expect(within(card).getByTestId("param-state-phi_eff")).toHaveTextContent("Approved"));
+    expect(screen.getByTestId("params-badge-L2")).toHaveTextContent(/1\/7 approved/);
+    const oldValue = (await get_profile("prof-mock-1")).layers[1].design?.phi_eff;
 
+    // Move the L1/L2 boundary: the basis changes, the candidates change, the approval trace stays.
     const moved = await get_profile("prof-mock-1");
     moved.layers[0].bottom = 1.2;
     moved.layers[1].top = 1.2;
     await update_profile(moved.id, moved);
 
-    // Re-open the layer through the page (select another layer, then back) to re-read the parameters.
-    fireEvent.click(screen.getByTestId("params-layer-L3"));
-    await waitFor(() => expect(screen.getByTestId("params-layer-L3")).toHaveAttribute("aria-current", "true"));
+    // Re-read through the page (switch profile and back).
+    fireEvent.change(screen.getByTestId("params-profile"), { target: { value: "prof-mock-2" } });
+    await waitFor(() => expect(screen.getByTestId("params-layer-S1")).toBeInTheDocument());
+    fireEvent.change(screen.getByTestId("params-profile"), { target: { value: "prof-mock-1" } });
+    await waitFor(() => expect(screen.getByTestId("params-layer-L2")).toBeInTheDocument());
     fireEvent.click(screen.getByTestId("params-layer-L2"));
     await waitFor(() => expect(screen.getByTestId("param-state-phi_eff")).toHaveTextContent("Stale"));
-    expect(screen.getByTestId("param-stale-phi_eff")).toBeInTheDocument();
+    expect(screen.getByTestId("params-badge-L2")).toHaveTextContent(/0\/7 approved/); // counted from fresh data
+    expect(screen.getByTestId("param-approve-phi_eff")).toBeDisabled();
+    expect(screen.getByTestId("param-reapply-phi_eff")).toBeInTheDocument();
+
+    fireEvent.click(screen.getByTestId("param-apply-phi_eff")); // re-apply: re-evaluated on the current candidates
+    await waitFor(() => expect(screen.getByTestId("param-state-phi_eff")).toHaveTextContent("Not approved"));
+    const shown = Number(screen.getByTestId("param-selected-phi_eff").textContent?.split(" ")[0]);
+    await waitFor(() => expect(screen.getByTestId("param-approve-phi_eff")).not.toBeDisabled());
+    fireEvent.click(screen.getByTestId("param-approve-phi_eff"));
+    await waitFor(() => expect(screen.getByTestId("param-state-phi_eff")).toHaveTextContent("Approved"));
+    const approved = (await get_profile("prof-mock-1")).layers[1].design?.phi_eff;
+    expect(approved).toBe(shown); // the value shown is the value the server approved
+    expect(approved).not.toBe(oldValue);
+  });
+
+  it("bulk approve is blocked while a draft is unapplied and lists exact keys and values before approving", async () => {
+    await renderPage();
+    fireEvent.click(screen.getByTestId("params-layer-L2"));
+    const phi = await screen.findByTestId("param-card-phi_eff");
+    const bulk = screen.getByTestId("params-approve-ready");
+    expect(bulk).toBeDisabled(); // nothing applied yet
+
+    fireEvent.click(within(phi).getByRole("radio", { name: "Manual" }));
+    typeInto("param-manual-phi_eff", "31");
+    expect(bulk).toBeDisabled(); // unapplied draft
+    fireEvent.click(within(phi).getByTestId("param-apply-phi_eff"));
+    await waitFor(() => expect(within(phi).getByTestId("param-selected-phi_eff")).toHaveTextContent("31"));
+    const suCard = screen.getByTestId("param-card-su");
+    fireEvent.click(within(suCard).getByRole("radio", { name: "Manual" }));
+    typeInto("param-manual-su", "77"); // a second, still-unapplied draft
+    expect(bulk).toBeDisabled();
+    // Discard the draft by leaving the layer (cards remount with what the server stores).
+    fireEvent.click(screen.getByTestId("params-layer-L3"));
+    fireEvent.click(screen.getByTestId("params-layer-L2"));
+    await waitFor(() => expect(screen.getByTestId("params-approve-ready")).not.toBeDisabled());
+
+    fireEvent.click(screen.getByTestId("params-approve-ready"));
+    const dialog = await screen.findByTestId("params-confirm");
+    expect(within(dialog).getByTestId("params-confirm-phi_eff")).toHaveTextContent("31");
+    expect(within(dialog).queryByTestId("params-confirm-su")).toBeNull();
+    expect((await get_profile("prof-mock-1")).layers[1].design?.phi_eff).toBe(29); // nothing approved yet
+    fireEvent.click(within(dialog).getByTestId("params-confirm-approve"));
+    await waitFor(() => expect(screen.getByTestId("param-state-phi_eff")).toHaveTextContent("Approved"));
+    expect((await get_profile("prof-mock-1")).layers[1].design?.phi_eff).toBe(31);
   });
 
   it("suggest-all refreshes suggestions and reports that nothing was approved", async () => {

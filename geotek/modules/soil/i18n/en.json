@@ -38,7 +38,6 @@
   "soil.layering.col.gamma": "γ [kN/m³]",
   "soil.layering.gamma_suggested": "suggested",
   "soil.layering.gamma_enter": "γ (you enter)",
-  "soil.layering.gamma_needed": "No unit weight could be suggested for these layers. Enter γ for every layer: it is stored as supplied by you, not as a program suggestion.",
   "soil.layering.behaviour.drained": "Drained",
   "soil.layering.behaviour.undrained": "Undrained",
   "soil.layering.warnings": "Warnings",
@@ -111,5 +110,19 @@
   "soil.params.manual_value": "Value [{unit}]",
   "soil.params.apply": "Apply selection",
   "soil.params.unapplied": "Unapplied changes: apply the selection before approving.",
-  "soil.params.pick_needed": "Choose how to select a value."
+  "soil.params.pick_needed": "Choose how to select a value.",
+  "soil.error.unexpected": "Unexpected error",
+  "soil.params.layer_range": "{top}–{bottom} m",
+  "soil.params.reapply_needed": "The earlier approval no longer holds. Apply the selection again (it is re-evaluated on the current candidates) and check the value before approving.",
+  "soil.params.outdated_hint": "The candidates changed after this selection was applied, so the shown value is not what would be approved. Apply the selection again.",
+  "soil.params.approve_confirm_title": "Approve these values?",
+  "soil.params.approve_confirm_body": "Layer {layer}: the values below will be approved as design values.",
+  "soil.params.approve_confirm": "Approve",
+  "soil.params.bulk_blocked_dirty": "Apply or discard the unapplied selections first.",
+  "soil.params.bulk_none": "No value is ready to approve.",
+  "soil.layering.gamma_use": "Use {value}",
+  "soil.layering.gamma_use_all": "Use all suggested values",
+  "soil.layering.gamma_confirm_needed": "Confirm the suggested value or type your own for every layer. Nothing is filled in for you.",
+  "soil.layering.gamma_suggestion_label": "suggested: {value}",
+  "soil.layering.gamma_note": "Unit weights are your entries (a confirmed suggestion or a value you typed); the profile stores only the number, not where it came from. Saturated unit weight is not set by layering."
 }

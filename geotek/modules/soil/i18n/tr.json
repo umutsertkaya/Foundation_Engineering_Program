@@ -38,7 +38,6 @@
   "soil.layering.col.gamma": "γ [kN/m³]",
   "soil.layering.gamma_suggested": "önerilen",
   "soil.layering.gamma_enter": "γ (siz girin)",
-  "soil.layering.gamma_needed": "Bu tabakalar için birim hacim ağırlığı önerilemedi. Her tabaka için γ girin: değer sizin girdiğiniz değer olarak saklanır, program önerisi olarak değil.",
   "soil.layering.behaviour.drained": "Drenajlı",
   "soil.layering.behaviour.undrained": "Drenajsız",
   "soil.layering.warnings": "Uyarılar",
@@ -111,5 +110,19 @@
   "soil.params.manual_value": "Değer [{unit}]",
   "soil.params.apply": "Seçimi uygula",
   "soil.params.unapplied": "Uygulanmamış değişiklik var: onaylamadan önce seçimi uygulayın.",
-  "soil.params.pick_needed": "Değerin nasıl seçileceğini belirleyin."
+  "soil.params.pick_needed": "Değerin nasıl seçileceğini belirleyin.",
+  "soil.error.unexpected": "Beklenmeyen hata",
+  "soil.params.layer_range": "{top}–{bottom} m",
+  "soil.params.reapply_needed": "Önceki onay geçerli değil. Seçimi yeniden uygulayın (güncel adaylar üzerinde yeniden hesaplanır) ve onaylamadan önce değeri kontrol edin.",
+  "soil.params.outdated_hint": "Seçim uygulandıktan sonra adaylar değişti; gösterilen değer onaylanacak değer değil. Seçimi yeniden uygulayın.",
+  "soil.params.approve_confirm_title": "Bu değerler onaylansın mı?",
+  "soil.params.approve_confirm_body": "{layer} tabakası: aşağıdaki değerler tasarım değeri olarak onaylanacak.",
+  "soil.params.approve_confirm": "Onayla",
+  "soil.params.bulk_blocked_dirty": "Önce uygulanmamış seçimleri uygulayın veya vazgeçin.",
+  "soil.params.bulk_none": "Onaya hazır değer yok.",
+  "soil.layering.gamma_use": "{value} kullan",
+  "soil.layering.gamma_use_all": "Önerilen tüm değerleri kullan",
+  "soil.layering.gamma_confirm_needed": "Her tabaka için önerilen değeri onaylayın veya kendi değerinizi yazın. Sizin yerinize hiçbir değer doldurulmaz.",
+  "soil.layering.gamma_suggestion_label": "önerilen: {value}",
+  "soil.layering.gamma_note": "Birim hacim ağırlıkları sizin girdilerinizdir (onayladığınız bir öneri veya yazdığınız değer); profil yalnızca sayıyı saklar, nereden geldiğini saklamaz. Doygun birim hacim ağırlığı tabakalama ile belirlenmez."
 }

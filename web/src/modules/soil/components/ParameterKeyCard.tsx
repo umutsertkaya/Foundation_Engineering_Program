@@ -8,6 +8,7 @@ import {
   draftFromSelection,
   formatValue,
   isDirty,
+  readiness,
   STATISTICS,
   type PickMode,
   type SelectionDraft,
@@ -23,6 +24,8 @@ interface Props {
   /** Persist the draft (PUT); resolves when the parent has reloaded the list. */
   onApply: (update: NonNullable<ReturnType<typeof buildUpdate>>) => Promise<void>;
   onApprove: () => Promise<void>;
+  /** Reports whether the card holds an unapplied draft, so bulk actions can exclude it. */
+  onDirtyChange?: (key: ParameterSelection["parameter"], dirty: boolean) => void;
 }
 
 function formatDate(iso: string | null | undefined, locale: string): string {
@@ -88,7 +91,7 @@ function CandidateRows({ rows, selection }: { rows: { key: string; candidate: De
   );
 }
 
-export function ParameterKeyCard({ selection, busy, onApply, onApprove }: Props) {
+export function ParameterKeyCard({ selection, busy, onApply, onApprove, onDirtyChange }: Props) {
   const { t, i18n } = useTranslation();
   const key = selection.parameter;
   const [draft, setDraft] = useState<SelectionDraft>(() => draftFromSelection(selection));
@@ -108,6 +111,15 @@ export function ParameterKeyCard({ selection, busy, onApply, onApprove }: Props)
   const statisticPossible = validCandidates(selection).length > 0;
   const update = buildUpdate(draft, selection);
   const dirty = isDirty(draft, selection);
+  const ready = readiness(selection);
+  // A stale approval or candidates that moved on since the choice was applied: the server re-resolves on
+  // approve, so the engineer must re-apply (PUT) and see the value that will actually be approved.
+  const needsReapply = ready === "stale" || ready === "outdated";
+
+  useEffect(() => {
+    onDirtyChange?.(key, dirty);
+  }, [key, dirty, onDirtyChange]);
+  useEffect(() => () => onDirtyChange?.(key, false), [key, onDirtyChange]);
 
   const suggestedIsCandidate = candidates.some((c) => c.method_id === selection.suggested?.method_id);
   const rows = [
@@ -122,7 +134,7 @@ export function ParameterKeyCard({ selection, busy, onApply, onApprove }: Props)
     { value: "manual", label: t("soil.params.mode.manual"), disabled: false },
   ];
 
-  const canApprove = state !== "approved" && selection.selected != null && selection.mode != null && !dirty;
+  const canApprove = ready === "ready" && !dirty;
 
   return (
     <Card withBorder padding="sm" radius="sm" data-testid={`param-card-${key}`}>
@@ -264,7 +276,7 @@ export function ParameterKeyCard({ selection, busy, onApply, onApprove }: Props)
           <Button
             size="xs"
             variant="default"
-            disabled={busy || update === null || !dirty}
+            disabled={busy || update === null || (!dirty && !needsReapply)}
             onClick={() => update && void onApply(update)}
             data-testid={`param-apply-${key}`}
           >
@@ -276,6 +288,10 @@ export function ParameterKeyCard({ selection, busy, onApply, onApprove }: Props)
           {dirty ? (
             <Text size="xs" c="orange.8">
               {t("soil.params.unapplied")}
+            </Text>
+          ) : needsReapply ? (
+            <Text size="xs" c="orange.8" data-testid={`param-reapply-${key}`}>
+              {ready === "stale" ? t("soil.params.reapply_needed") : t("soil.params.outdated_hint")}
             </Text>
           ) : (
             state === "approved" && (

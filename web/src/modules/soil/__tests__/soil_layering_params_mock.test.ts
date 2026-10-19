@@ -107,6 +107,32 @@ describe("mock parameter routes", () => {
     expect(revoked.approved_at).toBeNull();
   });
 
+  it("approve re-resolves the stored choice against fresh candidates, like the backend", async () => {
+    const layerPath = "/m/soil/profiles/prof-mock-1/layers/L2/parameters";
+    const at = async () => (await mockRequest("GET", layerPath)).data as ParameterSelection[];
+    const put = (await mockRequest("PUT", `${layerPath}/phi_eff`, { mode: "correlation", method_id: "mock_phi_eff_a" })).data as ParameterSelection;
+    const profile = (await mockRequest("GET", "/m/soil/profiles/prof-mock-1")).data as SoilProfile;
+    profile.layers[0].bottom = 1.2;
+    profile.layers[1].top = 1.2; // changes the (demo) candidates of L2
+    await mockRequest("PUT", "/m/soil/profiles/prof-mock-1", profile);
+    const fresh = (await at())[0];
+    const freshA = fresh.candidates!.find((c) => c.method_id === "mock_phi_eff_a")!.value;
+    expect(freshA).not.toBe(put.selected?.value);
+    expect(fresh.selected?.value).toBe(put.selected?.value); // the GET still shows the old resolved value
+    const layer = (await mockRequest("POST", `${layerPath}/approve`, { keys: ["phi_eff"] })).data as SoilLayer;
+    expect(layer.design?.phi_eff).toBe(freshA); // ...but the server approves the fresh one
+  });
+
+  it("does not derive a saturated unit weight: no gamma_sat candidate when the layer has none", async () => {
+    const profile = (await mockRequest("GET", "/m/soil/profiles/prof-mock-1")).data as SoilProfile;
+    delete profile.layers[1].gamma_sat;
+    await mockRequest("PUT", "/m/soil/profiles/prof-mock-1", profile);
+    const all = (await mockRequest("GET", "/m/soil/profiles/prof-mock-1/layers/L2/parameters")).data as ParameterSelection[];
+    const gammaSat = all.find((s) => s.parameter === "gamma_sat")!;
+    expect(gammaSat.candidates).toEqual([]);
+    expect(gammaSat.suggested).toBeNull();
+  });
+
   it("suggest-all fills suggestions on every layer and approves nothing", async () => {
     const res = await mockRequest("POST", "/m/soil/profiles/prof-mock-2/parameters/suggest-all");
     expect(res.status).toBe(200);

@@ -4,7 +4,8 @@
  * geotek/engine/layering/common.py). This module mirrors that parser and renders `t(code, params)`,
  * falling back to the raw string when the key is missing or the string is not in that format.
  */
-export type Translate = (key: string, options?: Record<string, unknown>) => string;
+/** Values go under `replace` so a parameter named count, context, lng, ns, defaultValue... cannot change lookup behaviour. */
+export type Translate = (key: string, options?: { replace?: Record<string, string | number | boolean> }) => string;
 
 export interface ParsedWarning {
   code: string;
@@ -94,5 +95,5 @@ export function renderWarning(
   if (!parsed || !exists(parsed.code)) return message;
   const params: Record<string, string | number | boolean> = {};
   for (const [key, value] of Object.entries(parsed.params)) params[key] = interpolationValue(value);
-  return String(t(parsed.code, params));
+  return String(t(parsed.code, { replace: params }));
 }

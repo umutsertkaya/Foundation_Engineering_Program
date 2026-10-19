@@ -103,3 +103,69 @@ export function formatValue(value: number | null | undefined): string {
   if (value === null || value === undefined || !Number.isFinite(value)) return "-";
   return String(Number(value.toPrecision(5)));
 }
+
+/**
+ * The value the server would approve for this selection: the explicit choice re-resolved against the
+ * candidates it just returned (same rules as `resolve` in geotek/services/parameters.py: statistics
+ * over valid finite candidates, population SD). Null when the choice cannot be resolved.
+ */
+export function previewValue(selection: ParameterSelection): number | null {
+  switch (selection.mode) {
+    case "manual":
+      return selection.manual_value !== null && selection.manual_value !== undefined && Number.isFinite(selection.manual_value)
+        ? selection.manual_value
+        : null;
+    case "correlation": {
+      const pool = [...(selection.candidates ?? []), ...(selection.suggested ? [selection.suggested] : [])];
+      return pool.find((c) => c.method_id === selection.method_id)?.value ?? null;
+    }
+    case "statistic": {
+      const values = validCandidates(selection).map((c) => c.value);
+      if (values.length === 0) return null;
+      const mean = values.reduce((a, b) => a + b, 0) / values.length;
+      const sorted = [...values].sort((a, b) => a - b);
+      switch (selection.statistic) {
+        case "mean":
+          return mean;
+        case "median": {
+          const mid = Math.floor(sorted.length / 2);
+          return sorted.length % 2 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2;
+        }
+        case "min":
+          return sorted[0];
+        case "max":
+          return sorted[sorted.length - 1];
+        case "mean_minus_k_sd": {
+          if (selection.k_sd === null || selection.k_sd === undefined) return null;
+          const sd = Math.sqrt(values.reduce((a, v) => a + (v - mean) ** 2, 0) / values.length);
+          return mean - selection.k_sd * sd;
+        }
+        default:
+          return null;
+      }
+    }
+    default:
+      return null;
+  }
+}
+
+/**
+ * Whether the stored selection may be approved as shown.
+ * - `ready`: not approved, a selection is applied, and its value equals what the server would approve;
+ * - `stale`: the old approval no longer holds, so the choice must be applied again (PUT) first;
+ * - `outdated`: candidates changed after the choice was applied, so the shown value is not what would be approved;
+ * - `no_selection`: nothing applied yet; `approved`: nothing to do.
+ */
+export type Readiness = "ready" | "stale" | "outdated" | "no_selection" | "approved";
+
+export function readiness(selection: ParameterSelection): Readiness {
+  const state = approvalState(selection);
+  if (state === "approved") return "approved";
+  if (state === "stale") return "stale";
+  if (!selection.selected || !selection.mode) return "no_selection";
+  const preview = previewValue(selection);
+  if (preview === null) return "outdated";
+  const shown = selection.selected.value;
+  const tolerance = 1e-9 * Math.max(1, Math.abs(shown), Math.abs(preview));
+  return Math.abs(preview - shown) <= tolerance ? "ready" : "outdated";
+}

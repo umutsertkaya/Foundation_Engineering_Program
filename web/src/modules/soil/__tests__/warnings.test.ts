@@ -1,3 +1,4 @@
+import { createInstance } from "i18next";
 import { describe, expect, it } from "vitest";
 import { parseWarning, renderWarning, type Translate } from "../warnings";
 
@@ -49,7 +50,7 @@ describe("renderWarning", () => {
     "layering.warning.list": "Zones {ids}",
   };
   const t: Translate = (key, options = {}) =>
-    catalog[key].replace(/\{(\w+)\}/g, (_, name: string) => String(options[name]));
+    catalog[key].replace(/\{(\w+)\}/g, (_, name: string) => String(options.replace?.[name]));
   const exists = (key: string) => key in catalog;
 
   it("renders t(code, params) when the key exists", () => {
@@ -65,6 +66,19 @@ describe("renderWarning", () => {
     expect(renderWarning("layering.warning.unknown: a=1", t, exists)).toBe("layering.warning.unknown: a=1");
     expect(renderWarning("Free text: not coded", t, exists)).toBe("Free text: not coded");
     expect(renderWarning("layering.warning.gap: top=", t, exists)).toBe("layering.warning.gap: top=");
+  });
+
+  it("is safe for parameter names that collide with i18next option names (real i18next)", async () => {
+    const instance = createInstance();
+    await instance.init({
+      lng: "en",
+      resources: { en: { translation: { "x.warning.c": "n={count} c={context} l={lng}", "x.warning.c_other": "PLURAL", "x.warning.c_ctx": "CONTEXT" } } },
+      keySeparator: false,
+      nsSeparator: false,
+      interpolation: { prefix: "{", suffix: "}", escapeValue: false },
+    });
+    const out = renderWarning("x.warning.c: count=2 context=\"ctx\" lng=\"de\"", instance.t as unknown as Translate, (k) => instance.exists(k));
+    expect(out).toBe("n=2 c=ctx l=de");
   });
 
   it("does not guess a prefix for a bare code", () => {
