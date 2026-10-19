@@ -313,7 +313,9 @@ def _evaluate_wall(structure, geometry, settings, loads, reporter, start, span, 
                                         min(_capacity_ratio(c) for c in item[0].checks.values()))
         if len(candidates) == 1:
             sign = _kv_sign(case_loads[key]) if key.startswith("seismic") else None
-            analyses[key] = replace(governing, checks={n: replace(c, kv_sign=sign) for n, c in governing.checks.items()})                 if sign else governing
+            analyses[key] = governing if sign is None else replace(governing, checks={
+                name: replace(check, kv_sign=sign) for name, check in governing.checks.items()
+            })
             continue
         checks = {}
         for name in governing.checks:
