@@ -27,6 +27,10 @@ def wall_result(id: str, result: StructureWallResult, fingerprint: str) -> dto.W
     pressures = []
     for key, pressure in result.pressures.items():
         case, side = key.rsplit(":", 1)
+        # The engine also returns diagnostic component diagrams (retained_static, retained_soil,
+        # front_water); the API contract exposes only the two resultant sides.
+        if side not in ("retained", "front"):
+            continue
         pressures.append(dto.PressureDiagramDTO(
             side=side, case=case, z=pressure.z.tolist(),
             sigma_h_eff=pressure.sigma_h_eff.tolist(), u=pressure.u.tolist(),
