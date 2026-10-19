@@ -303,6 +303,8 @@ class CheckDTO(DTO):
     comparison: Literal[">=", "<="]
     utilisation: ResultNumber
     detail: str
+    kv_sign: Literal["up", "down"] | None = None
+    """Vertical seismic sign chosen for this check (+kv up / -kv down); null for static checks."""
 
     @field_validator("utilisation")
     @classmethod
@@ -383,6 +385,10 @@ class WallResultDTO(DTO):
     geometry: CantileverGeometry | GravityGeometry
     passed: bool
     governing: str
+    governing_check_ids: list[str] = Field(default_factory=list)
+    """Ids ("case:name", as in checks) of failing checks, or the check that governed sizing."""
+    minimum_width_governs: bool = False
+    """True when sizing ended at the minimum width with no failing check."""
     checks: list[CheckDTO]
     forces: dict[str, list[ForceDTO]]
     pressures: list[PressureDiagramDTO]

@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import math
 from dataclasses import dataclass, field
+from typing import Literal
 
 import numpy as np
 
@@ -46,6 +47,8 @@ class CheckResult:
     factors_used: list[UsedFactor] = field(default_factory=list)
     comparison: str = ">="
     """How value is compared with required: '>=' (factor of safety) or '<=' (e.g. e/B)."""
+    kv_sign: Literal["up", "down"] | None = None
+    """Vertical seismic sign applied to this check (+kv up / -kv down); None for static checks."""
 
 
 @dataclass

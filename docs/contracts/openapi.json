@@ -8349,6 +8349,21 @@
           "detail": {
             "type": "string",
             "title": "Detail"
+          },
+          "kv_sign": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "up",
+                  "down"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Kv Sign"
           }
         },
         "additionalProperties": false,
@@ -12141,6 +12156,18 @@
           "governing": {
             "type": "string",
             "title": "Governing"
+          },
+          "governing_check_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Governing Check Ids"
+          },
+          "minimum_width_governs": {
+            "type": "boolean",
+            "title": "Minimum Width Governs",
+            "default": false
           },
           "checks": {
             "items": {

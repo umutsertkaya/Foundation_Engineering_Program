@@ -131,6 +131,11 @@ def test_structure_sizing_mandatory_basic_regression(compatibility_results):
     assert result.geometry.width == pytest.approx(4.60)
     assert result.geometry.model_dump() == basic.geometry.model_dump()
     assert result.governing == basic.governing == "seismic:bearing"
+    assert result.governing_check_ids == ["seismic:bearing"] and not result.minimum_width_governs
+    seismic = [c for case, a in result.analyses.items() if case == "seismic" for c in a.checks.values()]
+    assert seismic and all(c.kv_sign in ("up", "down") for c in seismic)
+    assert all(c.kv_sign is None for a in result.analyses.values() if a is result.analyses["static"]
+               for c in a.checks.values())
     assert result.iterations == basic.iterations
     assert result.kh == basic.kh and result.kv == basic.kv
     assert WallSettings().kv_sign == "envelope"
@@ -205,6 +210,7 @@ def test_check_kv_envelope_selects_each_check_and_keeps_governing_forces_and_pre
             assert (check.value, check.required, check.passed) == (expected.value, expected.required, expected.passed)
             direction = "yukarı" if sign == "up" else "aşağı"
             assert check.detail == f"kv {direction}: {expected.detail}"
+            assert check.kv_sign == sign and expected.kv_sign == sign
         critical = min(analysis.checks.values(), key=lambda c:
                        c.required / c.value if c.comparison == "<=" and c.value else
                        float("inf") if c.comparison == "<=" else c.value / c.required)
@@ -697,3 +703,14 @@ def test_dry_service_does_not_report_submerged_assumptions_or_warnings():
     result = check_structure(_project(), "wall")
     assert not any(a.source == "TBDY 2018 16.12.3.2, Denk. 16.26 ve 16.20" for a in result.assumptions)
     assert not any("Su altındaki dolgu:" in w or "16.07.2026 değişikliği" in w for w in result.warnings)
+
+
+def test_governing_check_ids_match_failing_checks_for_narrow_wall():
+    project = _project(sds=0.5)
+    project.structure("wall").geometry = proportion_for("cantilever", 5, 1.5, 0.6)
+    result = check_structure(project, "wall")
+    ids = [f"{case}:{name}" for case, a in result.analyses.items()
+           for name, c in a.checks.items() if not c.passed]
+    assert not result.passed and ids
+    assert result.governing_check_ids == ids == result.governing.split(", ")
+    assert not result.minimum_width_governs

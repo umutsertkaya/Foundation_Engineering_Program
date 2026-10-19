@@ -16,6 +16,7 @@ def _check(case, check) -> dto.CheckDTO:
         case=case, name=check.name, value=check.value, required=check.required,
         passed=check.passed, comparison=check.comparison,
         utilisation=numerator / divisor if divisor else None, detail=check.detail,
+        kv_sign=getattr(check, "kv_sign", None),
     )
 
 
@@ -40,6 +41,8 @@ def wall_result(id: str, result: StructureWallResult, fingerprint: str) -> dto.W
     return dto.WallResultDTO(
         structure_id=id, geometry=result.geometry, passed=result.passed,
         governing=result.governing, checks=checks,
+        governing_check_ids=list(getattr(result, "governing_check_ids", [])),
+        minimum_width_governs=getattr(result, "minimum_width_governs", False),
         forces={case: [dto.ForceDTO.model_validate(force) for force in analysis.forces]
                 for case, analysis in result.analyses.items()},
         pressures=pressures,

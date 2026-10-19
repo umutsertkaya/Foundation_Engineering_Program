@@ -1391,6 +1391,8 @@ export interface components {
             utilisation: number | null;
             /** Detail */
             detail: string;
+            /** Kv Sign */
+            kv_sign?: ("up" | "down") | null;
         };
         /**
          * DeletionResponse
@@ -2810,6 +2812,13 @@ export interface components {
             passed: boolean;
             /** Governing */
             governing: string;
+            /** Governing Check Ids */
+            governing_check_ids?: string[];
+            /**
+             * Minimum Width Governs
+             * @default false
+             */
+            minimum_width_governs: boolean;
             /** Checks */
             checks: components["schemas"]["CheckDTO"][];
             /** Forces */
