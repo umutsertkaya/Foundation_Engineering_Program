@@ -105,12 +105,12 @@ Git worktree'leri `C:\Users\thebi\Documents\geotek-wt\` altında; hepsinin işi 
 | Dal | Durum | Sıradaki adım |
 |---|---|---|
 | `feat/a1-core` | main'e birleşti | Worktree silinebilir (`git worktree remove`). |
-| `feat/a1-soil` (22ff111) | 2. düzeltme turu bitti, testler yeşil (yalnız beklenen test_contract hataları) | gpt-6-astra yeniden incelemesi (yükleme yarışı; böl/birleştir'de tasarım değerleri P1_CONTRACTS'a göre bayat tutuluyor mu) → main'e birleştir → IMPLEMENTED'a 17 soil rotası, `test_profile_creation_alternatives` ilk beklenti 501→409, openapi/schema.d.ts yeniden üret. |
-| `feat/e2-layering` (4eba380) | 3. düzeltme turu bitti, 794 unit testi yeşil. Opus: onay (düzeltmelerle); astra 2. turda P1'i çözülmüş saydı, kalan iki P2 3. turda ele alındı | astra son incelemesi → kullanıcıya formül özeti (Robertson Ic/zonlar, RC2010 γ, uyarı kodları) → birleştir. Uyarı kodları (`layering.warning.*`) i18n'e eklenmeli; uyarı biçimi `kod: anahtar=değer`, ayrıştırıcı `geotek/engine/layering/common.py`. |
-| `feat/a1-jobs` (05321ab) | GPT yazdı (iş çalıştırıcı, `/api/jobs*`, walls wall-types/required-factors/size/check, sheet_pile design, liquefaction run); **test edilmedi, incelenmedi** | Testleri koş → düzelt → astra + Opus incelemesi → birleştir. IMPLEMENTED'a 8 rota; core i18n'e `job.step.{sizing,static_checks,seismic_checks,processing,liquefaction}`; openapi + web tipleri/mock'ları. `services/structures.py` ve `core/models/structures.py` değişti: 5 m duvar regresyonu (B=4.60, seismic:bearing) mutlaka doğrulanmalı. |
-| `feat/e3-parameters` | Worktree boş: GPT çağrısı kesildi, hiçbir şey yazılmadı | E3 brief'ini yeniden gönder (gpt-6.1-sol high): `docs/contracts/P1_CONTRACTS.md` imzaları, yalnız mevcut korelasyon kaydı, el hesabı testleri, iki inceleme. |
+| `feat/a1-soil` | main'e birleşti (67408c9 + d2cd890: 17 rota IMPLEMENTED, openapi) | Worktree silinebilir. |
+| `feat/e2-layering` (e4b64fd) | 4. tur: SPT log boşlukları üst katmana, ilk katman z=0'a; `proposal_to_layers` eklendi. 805 unit testi yeşil. astra + Opus onayladı | **Kullanıcı formül onayı bekliyor** (özet sunuldu) → birleştir. Uyarı kodları (`layering.warning.*`) i18n'e eklenmeli; biçim `kod: anahtar=değer`, ayrıştırıcı `geotek/engine/layering/common.py`. |
+| `feat/a1-jobs` | main'e birleşti (f2b4f53 + 7e211f2: 8 rota IMPLEMENTED, eksik `job.step.*` anahtarları, openapi). İş sınırı `MAX_ACTIVE_JOBS=8`, dolunca 429 `too_many_jobs`. 5 m duvar regresyonu korunuyor. main: 1312 pytest + 125 web testi yeşil | Worktree silinebilir. |
+| `feat/e3-parameters` (3378f9b) | `geotek/services/parameters.py` yazıldı; düzeltmeler: δ_b onayı φ' tabanına bağlı, ince dane kanıtı c'=0'ı engeller. 58 unit testi yeşil. astra + Opus onayladı | **Kullanıcı formül onayı bekliyor** (δ_b = atan(min(tan φ', 0.6)) kuralının birincil kaynağı doğrulanmadı) → birleştir. |
 
-Birleştirme sırası önerisi: a1-soil → e2-layering → a1-jobs. Soil katmanlama/parametre rotaları iş altyapısına ve E3'e bağlı; onlar en son bağlanır.
+Kalan sıra: e2-layering ve e3-parameters (kullanıcı formül onayından sonra) → soil katmanlama/parametre rotaları (iş altyapısı artık main'de) → F4/F5.
 
 Küçük açık noktalar:
 - Web mock `POST .../required-factors` projeyi hâlâ kirli işaretliyor (eski davranış korundu).
