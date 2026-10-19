@@ -2,7 +2,7 @@
   "openapi": "3.1.0",
   "info": {
     "title": "GeoTek API",
-    "description": "GeoTek v2 local HTTP contract. Units: m, kPa, kN/m3 and degrees unless explicitly labelled otherwise. Non-finite result numbers are JSON null. The core shell (session, project, library, settings, modules) is implemented; other workflow routes return ApiError with HTTP 501.",
+    "description": "GeoTek v2 local HTTP contract. Units: m, kPa, kN/m3 and degrees unless explicitly labelled otherwise. Non-finite result numbers are JSON null. The core shell, wall and sheet pile calculations, liquefaction and job polling are implemented. Remaining workflow stubs return ApiError with HTTP 501.",
     "version": "0.2.0"
   },
   "servers": [
@@ -10697,6 +10697,18 @@
               }
             ],
             "title": "Result Hash"
+          },
+          "result": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Result"
           }
         },
         "type": "object",
@@ -11402,6 +11414,18 @@
               }
             ],
             "title": "Result Hash"
+          },
+          "result": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Result"
           }
         },
         "type": "object",

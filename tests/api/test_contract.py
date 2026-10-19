@@ -146,6 +146,10 @@ IMPLEMENTED = {
         "/api/m/soil/cpts/{id}/processed", "/api/m/soil/profiles", "/api/m/soil/profiles/{id}",
         "/api/m/soil/profiles/{id}/layers/{layer_id}/split",
         "/api/m/soil/profiles/{id}/layers/merge",
+        "/api/jobs/{job_id}", "/api/m/walls/wall-types",
+        "/api/m/walls/structures/{id}/required-factors", "/api/m/walls/structures/{id}/size",
+        "/api/m/walls/structures/{id}/check", "/api/m/sheet_pile/structures/{id}/design",
+        "/api/m/liquefaction/run",
     } or path.startswith("/api/library/{file}")
 }
 

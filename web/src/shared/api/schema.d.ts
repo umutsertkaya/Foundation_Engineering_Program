@@ -2340,6 +2340,10 @@ export interface components {
             approach?: string | null;
             /** Result Hash */
             result_hash?: string | null;
+            /** Result */
+            result?: {
+                [key: string]: unknown;
+            } | null;
         };
         /**
          * SPTProcessedDTO
@@ -2548,6 +2552,10 @@ export interface components {
             analysis_level: "basic" | "advanced";
             /** Result Hash */
             result_hash?: string | null;
+            /** Result */
+            result?: {
+                [key: string]: unknown;
+            } | null;
         };
         /** SiteSeismic */
         SiteSeismic: {
