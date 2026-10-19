@@ -51,10 +51,10 @@ describe("LayeringModal", () => {
     expect(await screen.findByTestId("layering-proposal")).toBeInTheDocument();
     expect(screen.getAllByTestId(/^layering-row-/)).toHaveLength(3);
     expect(screen.getByText(/Nothing is approved automatically/)).toBeInTheDocument();
-    // The core catalog does not have layering.warning.* yet (added in parallel), so the raw string is shown.
+    // Warnings are localised from the core catalog.
     const warnings = screen.getByTestId("layering-warnings");
     expect(within(warnings).getAllByRole("listitem")).toHaveLength(2);
-    expect(warnings.textContent).toContain("layering.warning.similar_merged");
+    expect(warnings.textContent).toContain("Adjacent layers of the same soil behaviour were merged.");
 
     // The program's unit weights are shown but never filled in: Create stays blocked until each one is confirmed.
     const create = screen.getByTestId("layering-create");
@@ -80,6 +80,10 @@ describe("LayeringModal", () => {
 
   it("renders localised warnings once the i18n key exists and keeps the raw string otherwise", async () => {
     const original = { ...(i18n.getResourceBundle("en", "translation") as Record<string, string>) };
+    const withoutDrainage = { ...original };
+    delete withoutDrainage["layering.warning.drainage_ic_based"];
+    i18n.removeResourceBundle("en", "translation");
+    i18n.addResourceBundle("en", "translation", withoutDrainage);
     i18n.addResource("en", "translation", "layering.warning.similar_merged", "Similar zones were merged");
     open("cpt");
     const propose = await screen.findByTestId("layering-propose");
@@ -141,9 +145,9 @@ describe("ParametersPage", () => {
     expect(candidates.textContent).toContain("mock_phi_eff_a");
     expect(candidates.textContent).toContain("Sentetik korelasyon A (Mock)");
     expect(candidates.textContent).toContain("deg");
-    // An invalid candidate is flagged and its warning is shown (raw string: key not in the catalog yet).
+    // An invalid candidate is flagged and its warning is shown, localised.
     expect(candidates.textContent).toContain("outside validity range");
-    expect(candidates.textContent).toContain("parameters.warning.value_not_computable");
+    expect(candidates.textContent).toContain("Value is not computable for method mock_phi_eff_c");
     expect(within(screen.getByTestId("param-card-su")).getByTestId("param-state-su")).toHaveTextContent("Not approved");
   });
 
