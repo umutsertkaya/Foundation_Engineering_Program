@@ -3,12 +3,11 @@ import { IconAlertTriangle } from "@tabler/icons-react";
 import { useTranslation } from "react-i18next";
 import type { CantileverGeometry, GravityGeometry, WallResultDTO, WallType } from "../../../shared/api/types";
 import { factorPathLabel } from "../labels";
-import { WallCheckCards, type RunMode } from "./WallCheckCards";
+import { WallCheckCards } from "./WallCheckCards";
 import { WallCrossSection } from "./WallCrossSection";
 
 export interface WallResultViewProps {
   result: WallResultDTO;
-  mode: RunMode;
   /** The shown result no longer matches the current inputs, or its job did not complete. */
   stale?: boolean;
   staleReason?: "inputs" | "job";
@@ -31,7 +30,7 @@ export function StaleNotice({ reason }: { reason: "inputs" | "job" }) {
 }
 
 /** Results screen: verdict, warnings, to-scale section, per-check utilisation cards, factors and assumptions. */
-export function WallResultView({ result, mode, stale = false, staleReason = "inputs" }: WallResultViewProps) {
+export function WallResultView({ result, stale = false, staleReason = "inputs" }: WallResultViewProps) {
   const { t } = useTranslation();
   const basis = resultSectionBasis(result.geometry);
   return (
@@ -71,7 +70,7 @@ export function WallResultView({ result, mode, stale = false, staleReason = "inp
           height={basis.height}
           title={t("web.wizard.result_section_title")}
         />
-        <WallCheckCards result={result} mode={mode} />
+        <WallCheckCards result={result} />
       </SimpleGrid>
       <Text size="xs" c="dimmed">
         {t("walls.result.section_geometry_only")}

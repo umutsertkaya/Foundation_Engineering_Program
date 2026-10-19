@@ -139,6 +139,8 @@ export interface CheckDTO {
   comparison: ">=" | "<=";
   utilisation: number | null;
   detail: string;
+  /** Governing vertical seismic coefficient sign of this check; null when it has none (static, kv = 0). */
+  kv_sign?: "up" | "down" | null;
 }
 
 export interface DeletionResponse {
@@ -572,6 +574,10 @@ export interface WallResultDTO {
   geometry: CantileverGeometry | GravityGeometry;
   passed: boolean;
   governing: string;
+  /** `<case>:<name>` ids of the governing checks (failing ones, or the check that last set the width when sizing). */
+  governing_check_ids?: string[];
+  /** Sizing succeeded at the smallest allowed width: no check governed the width. */
+  minimum_width_governs?: boolean;
   checks: CheckDTO[];
   forces: Record<string, ForceDTO[]>;
   pressures: PressureDiagramDTO[];

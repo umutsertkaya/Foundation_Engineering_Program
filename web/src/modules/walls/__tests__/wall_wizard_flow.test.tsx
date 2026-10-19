@@ -80,8 +80,11 @@ describe("walls wizard: options, jobs and results (mock API)", () => {
       uplift_moment: "resisting",
       gwt_bearing_correction: true,
     });
-    expect(document.querySelectorAll("[data-kv-sign]")).toHaveLength(0);
-    expect(screen.queryByTestId("kv-envelope-note")).toBeNull();
+    // a single sign: the service still reports it per seismic check, but the detail carries no prefix
+    const badges = Array.from(document.querySelectorAll("[data-kv-sign]"));
+    expect(badges.length).toBeGreaterThan(0);
+    expect(badges.every((b) => b.getAttribute("data-kv-sign") === "down")).toBe(true);
+    expect(document.body.textContent).not.toMatch(/kv (yukarı|aşağı):/);
   }, 20000);
 
   it("edits layer permeability in the soil step and carries it into the saved structure", async () => {

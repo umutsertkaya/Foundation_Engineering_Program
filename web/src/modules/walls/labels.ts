@@ -65,15 +65,16 @@ export function factorPathLabel(path: string, t: Translate): string {
 export type KvDirection = "up" | "down";
 
 /**
- * In envelope mode the engine prefixes the check detail with the governing kv sign
- * (`_kv_detail`: "kv yukarı: " / "kv aşağı: "). The prefix is stripped here and shown as a badge.
+ * In envelope mode the engine also prefixes the detail text with the governing kv sign ("kv yukarı: " /
+ * "kv aşağı: "). The sign itself comes from `CheckDTO.kv_sign`; the prefix is only stripped from the
+ * displayed text, and only for the expected sign.
  */
-const KV_PREFIX = /^kv (yukarı|aşağı): /;
+const KV_PREFIX: Record<KvDirection, string> = { up: "kv yukarı: ", down: "kv aşağı: " };
 
-export function parseKvSign(detail: string): { direction: KvDirection | null; text: string } {
-  const m = KV_PREFIX.exec(detail);
-  if (!m) return { direction: null, text: detail };
-  return { direction: m[1] === "yukarı" ? "up" : "down", text: detail.slice(m[0].length) };
+export function stripKvPrefix(detail: string, sign: KvDirection | null | undefined): string {
+  if (!sign) return detail;
+  const prefix = KV_PREFIX[sign];
+  return detail.startsWith(prefix) ? detail.slice(prefix.length) : detail;
 }
 
 export type GoverningKind = "failing" | "sizing" | "critical" | "minimum_width";
@@ -84,10 +85,7 @@ export interface GoverningInfo {
   keys: string[];
 }
 
-/**
- * Larger = closer to / past the limit. `utilisation` is null when undefined; a failing check
- * with undefined utilisation is treated as the worst.
- */
+/** Larger = closer to / past the limit; a failing check with undefined utilisation is the worst. */
 function severity(check: CheckDTO): number {
   if (check.utilisation !== null && Number.isFinite(check.utilisation)) return check.utilisation;
   return check.passed ? -1 : Number.POSITIVE_INFINITY;
@@ -102,25 +100,19 @@ export function criticalCheck(checks: CheckDTO[]): CheckDTO | null {
 }
 
 /**
- * `WallResultDTO.governing` is free text: a comma list of failing `<case>:<name>` keys, the check
- * that last forced a width increase when sizing, "minimum width", or empty when a check passes.
- * Resolve it against the checks and fall back to the highest-utilisation check.
+ * Governing checks come from the structured result fields: `governing_check_ids` (the failing checks, or
+ * after a passing size run the check that last set the width) and `minimum_width_governs`. Only when the
+ * result names none (a passing check run) is the highest-utilisation check shown, as "most critical".
  */
 export function deriveGoverning(
-  result: Pick<WallResultDTO, "governing" | "passed" | "checks">,
-  mode: "suggest" | "check",
+  result: Pick<WallResultDTO, "passed" | "checks" | "governing_check_ids" | "minimum_width_governs">,
 ): GoverningInfo {
   const known = new Set(result.checks.map(checkKey));
-  const tokens = result.governing
-    .split(",")
-    .map((s) => s.trim())
-    .filter((s) => known.has(s));
-  if (!result.passed && tokens.length > 0) return { kind: "failing", keys: tokens };
-  if (result.passed && mode === "suggest" && tokens.length > 0) return { kind: "sizing", keys: [tokens[0]] };
+  const ids = (result.governing_check_ids ?? []).filter((id) => known.has(id));
+  if (ids.length > 0) return { kind: result.passed ? "sizing" : "failing", keys: result.passed ? [ids[0]] : ids };
+  if (result.minimum_width_governs) return { kind: "minimum_width", keys: [] };
   const critical = criticalCheck(result.checks);
-  if (!critical) return { kind: null, keys: [] };
-  const minimumWidth = result.passed && mode === "suggest" && result.governing.trim() === "minimum width";
-  return { kind: minimumWidth ? "minimum_width" : "critical", keys: [checkKey(critical)] };
+  return critical ? { kind: "critical", keys: [checkKey(critical)] } : { kind: null, keys: [] };
 }
 
 export function utilisationPercent(check: CheckDTO): number | null {

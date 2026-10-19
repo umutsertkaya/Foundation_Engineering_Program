@@ -10,14 +10,14 @@ const tr = { ...trCatalog, ...wallsTr } as Record<string, string>;
 
 const CHECKS = [
   check("static:TBDY-static", "sliding", 2.0, 1.1, ">=", "V tan(30) + c_a B"),
-  check("seismic:TBDY-seismic", "bearing", 1.45, 1.4, ">=", "kv yukarı: q_ult / q_max"),
-  check("seismic:TBDY-seismic", "overturning", 2.8, 1.3, ">=", "kv aşağı: M_R / M_O"),
+  { ...check("seismic:TBDY-seismic", "bearing", 1.45, 1.4, ">=", "kv yukarı: q_ult / q_max"), kv_sign: "up" as const },
+  { ...check("seismic:TBDY-seismic", "overturning", 2.8, 1.3, ">=", "kv aşağı: M_R / M_O"), kv_sign: "down" as const },
   check("seismic:TBDY-seismic", "eccentricity", 0.2, 0.333, "<=", "e/B"),
 ];
 
 describe("WallCheckCards", () => {
   it("shows demand, limit, ratio and pass/fail per check with readable labels (no raw ids)", () => {
-    renderThemed(<WallCheckCards result={result({ checks: CHECKS })} mode="check" />);
+    renderThemed(<WallCheckCards result={result({ checks: CHECKS })} />);
     const cards = screen.getAllByTestId("check-card");
     expect(cards).toHaveLength(4);
 
@@ -37,8 +37,8 @@ describe("WallCheckCards", () => {
     expect(document.body.textContent).not.toMatch(/seismic:|static:|TBDY-seismic|check\.|case\./);
   });
 
-  it("highlights the most critical check when the engine reports nothing governing", () => {
-    renderThemed(<WallCheckCards result={result({ checks: CHECKS, governing: "" })} mode="check" />);
+  it("shows the most critical check only when the result names no governing check (passing check run)", () => {
+    renderThemed(<WallCheckCards result={result({ checks: CHECKS, governing_check_ids: [] })} />);
     const governing = screen.getAllByTestId("check-card").filter((c) => c.hasAttribute("data-governing"));
     expect(governing).toHaveLength(1);
     expect(governing[0]).toHaveAttribute("data-check-key", "seismic:TBDY-seismic:bearing");
@@ -51,7 +51,7 @@ describe("WallCheckCards", () => {
   it("highlights every failing check and names the verdict", () => {
     const failing = [check("static", "sliding", 1.2, 1.5), check("seismic", "bearing", 1.0, 1.4), check("static", "bearing", 4, 3)];
     renderThemed(
-      <WallCheckCards result={result({ checks: failing, passed: false, governing: "static:sliding, seismic:bearing" })} mode="check" />,
+      <WallCheckCards result={result({ checks: failing, passed: false, governing_check_ids: ["static:sliding", "seismic:bearing"] })} />,
     );
     const keys = screen
       .getAllByTestId("check-card")
@@ -63,7 +63,7 @@ describe("WallCheckCards", () => {
   });
 
   it("shows which kv sign governed in envelope mode and strips the prefix from the detail", () => {
-    renderThemed(<WallCheckCards result={result({ checks: CHECKS })} mode="check" />);
+    renderThemed(<WallCheckCards result={result({ checks: CHECKS })} />);
     const cards = screen.getAllByTestId("check-card");
     expect(cards[0].querySelector("[data-kv-sign]")).toBeNull();
     expect(cards[1].querySelector("[data-kv-sign]")).toHaveAttribute("data-kv-sign", "up");
@@ -76,19 +76,35 @@ describe("WallCheckCards", () => {
   });
 
   it("shows no kv badge and no envelope note when a single sign was used", () => {
-    const plain = CHECKS.map((c) => ({ ...c, detail: c.detail.replace(/^kv (yukarı|aşağı): /, "") }));
-    renderThemed(<WallCheckCards result={result({ checks: plain })} mode="check" />);
+    const plain = CHECKS.map((c) => ({ ...c, kv_sign: null }));
+    renderThemed(<WallCheckCards result={result({ checks: plain })} />);
     expect(document.querySelectorAll("[data-kv-sign]")).toHaveLength(0);
     expect(screen.queryByTestId("kv-envelope-note")).toBeNull();
   });
 
   it("labels the sizing-governing check when a size run succeeded", () => {
     renderThemed(
-      <WallCheckCards result={result({ checks: CHECKS, governing: "seismic:TBDY-seismic:overturning" })} mode="suggest" />,
+      <WallCheckCards result={result({ checks: CHECKS, governing_check_ids: ["seismic:TBDY-seismic:overturning"] })} />,
     );
     const card = screen.getAllByTestId("check-card").find((c) => c.hasAttribute("data-governing"))!;
     expect(card).toHaveAttribute("data-check-key", "seismic:TBDY-seismic:overturning");
     expect(within(card).getByText(tr["walls.governing.sizing"])).toBeInTheDocument();
+  });
+
+  it("takes the kv sign from the field, not from the detail text", () => {
+    const odd = [{ ...check("seismic", "sliding", 2, 1.1, ">=", "kv yukarı: text"), kv_sign: null }];
+    renderThemed(<WallCheckCards result={result({ checks: odd })} />);
+    expect(document.querySelectorAll("[data-kv-sign]")).toHaveLength(0);
+    expect(screen.getByTestId("check-card")).toHaveTextContent("kv yukarı: text"); // no field, nothing stripped
+  });
+
+  it("shows the sign of a single-sign run (no prefix in the detail) and the minimum-width case", () => {
+    const single = [{ ...check("seismic", "sliding", 2, 1.1, ">=", "V tan(d)"), kv_sign: "down" as const }];
+    renderThemed(<WallCheckCards result={result({ checks: single, minimum_width_governs: true })} />);
+    expect(screen.getByTestId("check-card").querySelector("[data-kv-sign]")).toHaveAttribute("data-kv-sign", "down");
+    expect(screen.getByTestId("check-card")).toHaveTextContent("V tan(d)");
+    expect(screen.getByTestId("governing-summary")).toHaveTextContent(tr["walls.governing.minimum_width_line"]);
+    expect(document.querySelectorAll("[data-governing]")).toHaveLength(0);
   });
 
   it("formats undefined and small quantities", () => {
@@ -110,7 +126,7 @@ describe("WallResultView", () => {
       ],
       warnings: ["Düşey deprem katsayısı ±kv zarfı uygulandı"],
     });
-    renderThemed(<WallResultView result={r} mode="check" />);
+    renderThemed(<WallResultView result={r} />);
     const rows = document.querySelectorAll("tbody tr");
     const text = Array.from(rows).map((row) => row.textContent ?? "");
     expect(text.some((x) => x.includes("TBDY depremli birleşim › Direnç katsayıları › Devrilme"))).toBe(true);
@@ -123,7 +139,7 @@ describe("WallResultView", () => {
   });
 
   it("draws the section from the result geometry only (no soil), deriving type and height from it", () => {
-    renderThemed(<WallResultView result={result({ geometry: GRAVITY, checks: CHECKS })} mode="check" />);
+    renderThemed(<WallResultView result={result({ geometry: GRAVITY, checks: CHECKS })} />);
     const svg = document.querySelector("svg")!;
     expect(svg.querySelector('[data-part="wall"]')).not.toBeNull(); // gravity body, whatever the wizard draft says
     expect(svg.querySelectorAll('[data-part="band"]')).toHaveLength(0);
@@ -133,10 +149,10 @@ describe("WallResultView", () => {
   });
 
   it("marks a stale result with a notice and dimmed cards", () => {
-    const fresh = renderThemed(<WallResultView result={result({ checks: CHECKS })} mode="check" />);
+    const fresh = renderThemed(<WallResultView result={result({ checks: CHECKS })} />);
     expect(screen.queryByTestId("result-stale")).toBeNull();
     fresh.unmount();
-    renderThemed(<WallResultView result={result({ checks: CHECKS })} mode="check" stale staleReason="job" />);
+    renderThemed(<WallResultView result={result({ checks: CHECKS })} stale staleReason="job" />);
     expect(screen.getByTestId("result-stale")).toHaveTextContent(tr["walls.result.stale_job"]);
     expect(document.querySelector('[data-stale="true"]')).not.toBeNull();
   });

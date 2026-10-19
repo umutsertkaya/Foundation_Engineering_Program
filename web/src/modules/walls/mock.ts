@@ -78,8 +78,11 @@ export function shapeMockWallResult(
     .filter((c) => seismic || c.case === "static")
     .map((c, i) => {
       let next: CheckDTO = { ...c, case: c.case === "static" ? ids.static : ids.seismic };
-      if (envelope && c.case === "seismic") {
-        next = { ...next, detail: `${KV_PREFIX[i % 2 === 0 ? "down" : "up"]}${next.detail}` };
+      if (seismic && c.case === "seismic") {
+        // like the service: every seismic check carries the kv sign it was evaluated with; only the envelope
+        // (several candidates) also prefixes the detail text
+        const sign = envelope ? (i % 2 === 0 ? "down" : "up") : options.kv_sign === "up" ? "up" : "down";
+        next = { ...next, kv_sign: sign, detail: envelope ? `${KV_PREFIX[sign]}${next.detail}` : next.detail };
       }
       if (failing && c.case === "seismic" && c.name === "sliding") {
         next = { ...next, value: 0.95, passed: false, utilisation: 1.16 };
@@ -111,13 +114,15 @@ export function shapeMockWallResult(
         { path: `${sdsCase.split(":")[1]}.load.G_fav`, value: 0.9, source: "TBDY 2018 Denk. 4.12 (Mock)", status: "verified" as const },
       ];
 
-  const governing =
-    failed.length > 0 ? failed.join(", ") : kind === "wall_size" ? `${ids.seismic}:bearing` : "";
+  // like the service: failing checks; after a passing size run the check that last set the width; none after a passing check
+  const governingIds = failed.length > 0 ? failed : kind === "wall_size" ? [`${ids.seismic}:bearing`] : [];
   return {
     ...base,
     geometry,
     checks,
-    governing,
+    governing: governingIds.join(", "),
+    governing_check_ids: governingIds,
+    minimum_width_governs: false,
     passed: failed.length === 0,
     warnings,
     factors_used: factors,

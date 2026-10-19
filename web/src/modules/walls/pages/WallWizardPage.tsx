@@ -45,7 +45,7 @@ import type { GwtCase } from "../../../shared/soil/zones";
 import { StructureSoilStep, type SoilStepValidation } from "../../../shared/structureSoil/StructureSoilStep";
 import { AnalysisOptionsForm } from "../components/AnalysisOptionsForm";
 import { PermeabilityEditor } from "../components/PermeabilityEditor";
-import { WallCheckCards, type RunMode } from "../components/WallCheckCards";
+import { WallCheckCards } from "../components/WallCheckCards";
 import { WallCrossSection } from "../components/WallCrossSection";
 import { StaleNotice, WallResultView } from "../components/WallResultView";
 import { WizardStepBar } from "../components/WizardStepBar";
@@ -102,9 +102,7 @@ export function WallWizardPage() {
   const [designCode, setDesignCode] = useState<string>("asd");
 
   const [lastResult, setLastResult] = useState<WallResultDTO | null>(null);
-  const [lastRunMode, setLastRunMode] = useState<RunMode>("suggest");
-  /** Mode of the run that produced `lastResult` (the cards depend on it, not on the next click). */
-  const [resultMode, setResultMode] = useState<RunMode>("suggest");
+  const [lastRunMode, setLastRunMode] = useState<"suggest" | "check">("suggest");
   const [analysisOptions, setAnalysisOptions] = useState<AnalysisOptions>({ ...ANALYSIS_DEFAULTS });
   const [passiveConfirmed, setPassiveConfirmed] = useState<boolean>(false);
   /** Inputs signature at the moment the shown result was produced (see `inputSignature`). */
@@ -176,7 +174,6 @@ export function WallWizardPage() {
   useEffect(() => {
     if (job.status === "done" && job.result) {
       setLastResult(job.result);
-      setResultMode(lastRunMode);
       setCaptureSig(true);
       if (lastRunMode === "suggest") {
         if ("stem_bottom" in job.result.geometry) {
@@ -924,7 +921,7 @@ export function WallWizardPage() {
                 soil={soilDraft.value}
                 gwtCase={gwtView}
               />
-              {lastResult && <WallCheckCards result={lastResult} mode={resultMode} stale={staleResult} />}
+              {lastResult && <WallCheckCards result={lastResult} stale={staleResult} />}
             </SimpleGrid>
           </Stack>
         </>
@@ -945,7 +942,7 @@ export function WallWizardPage() {
                 }
               />
             ) : (
-              <WallResultView result={lastResult} mode={resultMode} stale={staleResult} staleReason={staleReason} />
+              <WallResultView result={lastResult} stale={staleResult} staleReason={staleReason} />
             )}
           </Stack>
         </>

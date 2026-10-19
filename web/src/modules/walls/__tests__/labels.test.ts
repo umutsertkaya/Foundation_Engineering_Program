@@ -5,7 +5,7 @@ import {
   criticalCheck,
   deriveGoverning,
   factorPathLabel,
-  parseKvSign,
+  stripKvPrefix,
   splitCase,
   splitCheckKey,
   type Translate,
@@ -39,64 +39,69 @@ describe("case and check keys", () => {
   });
 });
 
-describe("kv sign prefix", () => {
-  it("extracts the governing sign and strips the prefix", () => {
-    expect(parseKvSign("kv yukarı: V tan(30) + c_a B")).toEqual({ direction: "up", text: "V tan(30) + c_a B" });
-    expect(parseKvSign("kv aşağı: M_R / M_O")).toEqual({ direction: "down", text: "M_R / M_O" });
+describe("kv prefix stripping (display only)", () => {
+  it("strips the prefix for the sign given by the field", () => {
+    expect(stripKvPrefix("kv yukarı: V tan(30)", "up")).toBe("V tan(30)");
+    expect(stripKvPrefix("kv aşağı: M_R / M_O", "down")).toBe("M_R / M_O");
   });
 
-  it("leaves details without a prefix alone", () => {
-    expect(parseKvSign("s_u B")).toEqual({ direction: null, text: "s_u B" });
-    expect(parseKvSign("a kv yukarı: b")).toEqual({ direction: null, text: "a kv yukarı: b" });
+  it("leaves the text alone without a sign or for a different prefix", () => {
+    expect(stripKvPrefix("kv yukarı: x", null)).toBe("kv yukarı: x");
+    expect(stripKvPrefix("kv yukarı: x", undefined)).toBe("kv yukarı: x");
+    expect(stripKvPrefix("kv aşağı: x", "up")).toBe("kv aşağı: x");
+    expect(stripKvPrefix("s_u B", "down")).toBe("s_u B");
   });
 });
 
-describe("governing check", () => {
+describe("governing check (structured fields)", () => {
   const checks = [
     check("static", "sliding", 2.0, 1.5),
     check("seismic:TBDY-seismic", "bearing", 1.45, 1.4),
     check("seismic:TBDY-seismic", "overturning", 3.0, 1.3),
   ];
 
-  it("picks the highest utilisation when nothing is listed (all checks pass, empty governing)", () => {
-    expect(criticalCheck(checks)?.name).toBe("bearing");
-    expect(deriveGoverning({ governing: "", passed: true, checks }, "check")).toEqual({
-      kind: "critical",
+  it("uses governing_check_ids for failing checks", () => {
+    const failing = [check("static", "sliding", 1.2, 1.5), check("seismic", "bearing", 1.0, 1.4), check("static", "bearing", 4, 3)];
+    expect(
+      deriveGoverning({ passed: false, checks: failing, governing_check_ids: ["static:sliding", "seismic:bearing"] }),
+    ).toEqual({ kind: "failing", keys: ["static:sliding", "seismic:bearing"] });
+  });
+
+  it("uses the id as the sizing-governing check after a passing size run", () => {
+    expect(deriveGoverning({ passed: true, checks, governing_check_ids: ["seismic:TBDY-seismic:bearing"] })).toEqual({
+      kind: "sizing",
       keys: ["seismic:TBDY-seismic:bearing"],
     });
   });
 
-  it("highlights every failing check from the comma list", () => {
-    const failing = [check("static", "sliding", 1.2, 1.5), check("seismic", "bearing", 1.0, 1.4), check("static", "bearing", 4, 3)];
-    expect(
-      deriveGoverning({ governing: "static:sliding, seismic:bearing", passed: false, checks: failing }, "check"),
-    ).toEqual({ kind: "failing", keys: ["static:sliding", "seismic:bearing"] });
-  });
-
-  it("reports the check that last forced a wider base when sizing succeeded", () => {
-    expect(
-      deriveGoverning({ governing: "seismic:TBDY-seismic:bearing", passed: true, checks }, "suggest"),
-    ).toEqual({ kind: "sizing", keys: ["seismic:TBDY-seismic:bearing"] });
-  });
-
-  it("handles the engine text 'minimum width'", () => {
-    expect(deriveGoverning({ governing: "minimum width", passed: true, checks }, "suggest").kind).toBe("minimum_width");
-    expect(deriveGoverning({ governing: "minimum width", passed: true, checks }, "check").kind).toBe("critical");
-  });
-
-  it("falls back to the worst check when the failing keys do not resolve", () => {
-    const failing = [check("static", "sliding", 1.0, 1.5), check("static", "bearing", 4, 3)];
-    expect(deriveGoverning({ governing: "garbage", passed: false, checks: failing }, "check")).toEqual({
-      kind: "critical",
-      keys: ["static:sliding"],
+  it("reports minimum width without highlighting any card", () => {
+    expect(deriveGoverning({ passed: true, checks, governing_check_ids: [], minimum_width_governs: true })).toEqual({
+      kind: "minimum_width",
+      keys: [],
     });
   });
 
-  it("returns nothing for an empty result", () => {
-    expect(deriveGoverning({ governing: "", passed: true, checks: [] }, "check")).toEqual({ kind: null, keys: [] });
+  it("falls back to the highest utilisation only when the result names no governing check", () => {
+    expect(criticalCheck(checks)?.name).toBe("bearing");
+    expect(deriveGoverning({ passed: true, checks, governing_check_ids: [] })).toEqual({
+      kind: "critical",
+      keys: ["seismic:TBDY-seismic:bearing"],
+    });
+    expect(deriveGoverning({ passed: true, checks })).toMatchObject({ kind: "critical" });
   });
 
-  it("treats a failing check with undefined utilisation as the worst", () => {
+  it("does not parse the free-text governing field", () => {
+    expect(deriveGoverning({ passed: false, checks, governing_check_ids: [], ...({ governing: "static:sliding" } as object) }).kind).toBe(
+      "critical",
+    );
+  });
+
+  it("ignores ids that match no check and handles an empty result", () => {
+    expect(deriveGoverning({ passed: false, checks, governing_check_ids: ["nope:x"] }).kind).toBe("critical");
+    expect(deriveGoverning({ passed: true, checks: [] })).toEqual({ kind: null, keys: [] });
+  });
+
+  it("treats a failing check with undefined utilisation as the worst critical check", () => {
     const broken = { ...check("static", "sliding", 0, 1.5), utilisation: null };
     expect(criticalCheck([check("static", "bearing", 1.4, 1.4), broken])?.name).toBe("sliding");
   });

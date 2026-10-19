@@ -8,14 +8,12 @@ import {
   checkNameLabel,
   comboLabel,
   deriveGoverning,
-  parseKvSign,
+  stripKvPrefix,
   splitCase,
   stateLabel,
   utilisationPercent,
   type GoverningInfo,
 } from "../labels";
-
-export type RunMode = "suggest" | "check";
 
 /** FS / ratio display: three decimals below 1 (e/B), two otherwise; non-finite = unlimited. */
 export function formatQuantity(value: number | null): string {
@@ -32,7 +30,8 @@ export interface WallCheckCardProps {
 export function WallCheckCard({ check, governing, governingKind }: WallCheckCardProps) {
   const { t } = useTranslation();
   const { state, combo } = splitCase(check.case);
-  const kv = parseKvSign(check.detail);
+  const kvSign = check.kv_sign ?? null;
+  const detail = stripKvPrefix(check.detail, kvSign);
   const percent = utilisationPercent(check);
   const color = utilisationColor(check.utilisation);
   const symbol = check.comparison === ">=" ? "≥" : "≤";
@@ -64,9 +63,9 @@ export function WallCheckCard({ check, governing, governingKind }: WallCheckCard
                   {comboLabel(combo, t)}
                 </Text>
               )}
-              {kv.direction !== null && (
-                <Badge size="xs" variant="outline" color="grape" style={{ overflow: "visible" }} data-kv-sign={kv.direction} title={t("walls.result.kv_governing_hint")}>
-                  {t(`walls.result.kv_${kv.direction}`)}
+              {kvSign !== null && (
+                <Badge size="xs" variant="outline" color="grape" style={{ overflow: "visible" }} data-kv-sign={kvSign} title={t("walls.result.kv_governing_hint")}>
+                  {t(`walls.result.kv_${kvSign}`)}
                 </Badge>
               )}
             </Group>
@@ -106,8 +105,8 @@ export function WallCheckCard({ check, governing, governingKind }: WallCheckCard
         <Progress value={bar} color={color} size="sm" radius="xs" aria-label={t("web.wizard.utilisation")} />
 
         <Group justify="space-between" gap={4} wrap="nowrap" align="flex-start">
-          <Text size="xs" c="dimmed" lineClamp={2} title={kv.text} style={{ minWidth: 0 }}>
-            {kv.text}
+          <Text size="xs" c="dimmed" lineClamp={2} title={detail} style={{ minWidth: 0 }}>
+            {detail}
           </Text>
           {governing && governingKind !== null && (
             <Badge size="xs" color="blue" variant="filled" style={{ flexShrink: 0, overflow: "visible" }} data-field="governing-badge">
@@ -121,8 +120,7 @@ export function WallCheckCard({ check, governing, governingKind }: WallCheckCard
 }
 
 export interface WallCheckCardsProps {
-  result: Pick<WallResultDTO, "checks" | "governing" | "passed">;
-  mode: RunMode;
+  result: Pick<WallResultDTO, "checks" | "passed" | "governing_check_ids" | "minimum_width_governs">;
   /** Two columns by default; the results page puts the cards next to the section. */
   cols?: number;
   /** Dim the cards: they belong to an earlier run or to inputs that have since changed. */
@@ -130,11 +128,11 @@ export interface WallCheckCardsProps {
 }
 
 /** Governing summary line + per-check utilisation cards. */
-export function WallCheckCards({ result, mode, cols, stale = false }: WallCheckCardsProps) {
+export function WallCheckCards({ result, cols, stale = false }: WallCheckCardsProps) {
   const { t } = useTranslation();
-  const governing = deriveGoverning(result, mode);
+  const governing = deriveGoverning(result);
   const keys = new Set(governing.keys);
-  const seismicEnvelope = result.checks.some((c) => parseKvSign(c.detail).direction !== null);
+  const seismicEnvelope = result.checks.some((c) => (c.kv_sign ?? null) !== null);
 
   return (
     <Stack gap="xs" data-stale={stale || undefined} style={stale ? { opacity: 0.55 } : undefined}>
