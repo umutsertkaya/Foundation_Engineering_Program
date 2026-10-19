@@ -285,6 +285,7 @@ def resolve(selection: ParameterSelection) -> ParameterSelection:
             case "mean_minus_k_sd":
                 if selection.k_sd is None:
                     raise ValueError("mean_minus_k_sd needs a user-entered k_sd")
+                # Population SD across method candidates, not sample/depth-point SD.
                 value = statistics.mean(values) - selection.k_sd * statistics.pstdev(values)
             case _:
                 raise ValueError("Statistic selection needs a statistic")
@@ -293,6 +294,7 @@ def resolve(selection: ParameterSelection) -> ParameterSelection:
             source="combined", reference="; ".join(c.reference for c in pool),
             inputs_used={"k_sd": selection.k_sd} if selection.k_sd is not None else {},
             stats=_spread(values),
+            # A < B < C: max intentionally keeps the least reliable grade (conservative).
             reliability=max((c.reliability for c in pool if c.reliability), default=None),
         )
     else:
@@ -306,13 +308,35 @@ def resolve(selection: ParameterSelection) -> ParameterSelection:
     return result
 
 
+def _invalidate_delta_approval(layer: SoilLayer) -> None:
+    """Keep the design/approval trace, but revoke delta when its phi basis changed."""
+    delta = layer.selections.get("delta_base")
+    phi = layer.design.phi_eff
+    if delta is not None and delta.approved and phi is not None:
+        # Missing provenance on a legacy approval cannot establish a matching basis.
+        if delta.selected.inputs_used.get("phi_eff") != phi:
+            delta.approved = False
+
+
 def approve(layer: SoilLayer, keys: list[DesignKey], basis_hash: str, now: datetime) -> SoilLayer:
     """Atomically resolve/approve requested choices and validate the resulting layer."""
     if not basis_hash:
         raise ValueError("Approval needs a nonempty basis_hash")
     data = layer.model_dump()
-    for key in dict.fromkeys(keys):
+    # Resolve phi first so a joint approval has the same basis in either key order.
+    for key in sorted(dict.fromkeys(keys), key=lambda key: key != "phi_eff"):
         selection = resolve(layer.selections[key])
+        if key == "delta_base":
+            context = SoilLayer.model_validate(data)
+            proposal = suggest([], "delta_base", context)
+            if selection.selected.method_id == "TBDY2018_delta_base":
+                if proposal is None:
+                    raise ValueError("Delta approval needs a finite phi_eff basis")
+                selection.selected = proposal
+                selection.suggested = proposal.model_copy(deep=True)
+            if proposal is not None:
+                # Manual delta approvals also depend on the phi available at approval.
+                selection.selected.inputs_used["phi_eff"] = proposal.inputs_used["phi_eff"]
         selection.approved = True
         selection.approved_at = now
         selection.basis_hash = basis_hash
@@ -322,7 +346,9 @@ def approve(layer: SoilLayer, keys: list[DesignKey], basis_hash: str, now: datet
         else:
             data["design"][key] = selection.selected.value
     # model_copy(update=...) alone would bypass the engineering range validators.
-    return SoilLayer.model_validate(data)
+    approved = SoilLayer.model_validate(data)
+    _invalidate_delta_approval(approved)
+    return approved
 
 
 def _point_json(point: dict[str, float]) -> str:
@@ -346,7 +372,7 @@ def refresh_profile(project: Project, profile_id: str) -> SoilProfile:
     """Return refreshed candidates and suggestions without modifying project/design.
 
     Stale selections retain selected/approved_at/basis_hash as the previous approval
-    trace, with approved=False. A matching basis preserves existing approval.
+    trace, with approved=False. Approval requires matching inputs and dependent phi.
     """
     profile = project.profile(profile_id)
     refreshed = profile.model_copy(deep=True)
@@ -366,9 +392,15 @@ def refresh_profile(project: Project, profile_id: str) -> SoilProfile:
             )
         elif context.params.get("Ic") is not None and context.params["Ic"].method_id == "CPT_Ic":
             context.params.pop("Ic")
-        if context.uscs is None:
-            symbols = [classification.symbol for record in lab
-                       if (classification := classify_lab_record(record)).symbol is not None]
+        symbols = [classification.symbol for record in lab
+                   if (classification := classify_lab_record(record)).symbol is not None]
+        # ASTM D2487: FC >= 50% is fine-grained even without LL/PI and a symbol.
+        fine_grained = any(record.FC is not None and record.FC >= 50 for record in lab)
+        fine_grained = fine_grained or any(
+            symbol and not symbol.strip().upper().startswith(("G", "S"))
+            for symbol in [*symbols, context.uscs]
+        )
+        if context.uscs is None and not fine_grained:
             if symbols and all(symbol.startswith(("G", "S")) for symbol in symbols):
                 # Temporary classification only: refreshing must not alter uscs/hash.
                 context.uscs = symbols[0]
@@ -376,6 +408,10 @@ def refresh_profile(project: Project, profile_id: str) -> SoilProfile:
             selection = layer.selections.get(key, ParameterSelection(parameter=key))
             selection.candidates = evaluate_candidates(points, key, lab)
             selection.suggested = suggest(selection.candidates, key, context)
+            if (fine_grained and key == "c_eff" and selection.suggested is not None
+                    and selection.suggested.method_id == "FHWA_GEC5_c_eff"):
+                # Contrary lab evidence vetoes the granular default, not measurements.
+                selection.suggested = None
             if selection.approved and selection.basis_hash != current_basis:
                 selection.approved = False
             layer.selections[key] = selection
@@ -385,4 +421,5 @@ def refresh_profile(project: Project, profile_id: str) -> SoilProfile:
             else:
                 context.params.pop(key, None)
         layer.params = context.params
+        _invalidate_delta_approval(layer)
     return refreshed

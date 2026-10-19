@@ -332,6 +332,80 @@ def test_approve_only_requested_keys_validate_and_preserve_input():
         approve(_layer(), ["phi_eff"], "basis", now)
 
 
+@pytest.mark.parametrize("phi, expected_approval", [(20, False), (30, True), (40, False)])
+def test_approve_phi_change_revokes_delta_without_changing_its_design_or_trace(phi, expected_approval):
+    layer = _layer(selections={key: ParameterSelection(
+        parameter=key, mode="manual", manual_value=30,
+    ) for key in ("phi_eff", "delta_base")})
+    now = dt.datetime(2026, 10, 19)
+    original_basis = basis_hash(layer, [])
+    layer = approve(layer, ["phi_eff", "delta_base"], original_basis, now)
+    delta_trace = layer.selections["delta_base"].model_dump()
+    assert delta_trace["selected"]["inputs_used"] == {"phi_eff": 30}
+    layer.selections["phi_eff"].manual_value = phi
+    before = layer.model_dump()
+    changed = approve(layer, ["phi_eff"], original_basis, now + dt.timedelta(hours=1))
+    expected_trace = {**delta_trace, "approved": expected_approval}
+    assert changed.selections["delta_base"].model_dump() == expected_trace
+    assert changed.design.delta_base == 30 and changed.design.phi_eff == phi
+    assert layer.model_dump() == before
+    project = _project(layers=[changed])
+    refreshed = refresh_profile(project, "P").layers[0]
+    assert refreshed.selections["delta_base"].model_dump(exclude={"suggested"}) == {
+        key: value for key, value in expected_trace.items() if key != "suggested"
+    }
+    assert refreshed.selections["delta_base"].suggested.inputs_used == {"phi_eff": phi}
+    assert refreshed.design.delta_base == 30
+    assert basis_hash(refreshed, []) == original_basis
+
+
+def test_refresh_revokes_delta_when_design_phi_changes_with_the_same_input_basis():
+    layer = _layer(design=DesignParameters(phi_eff=30), selections={
+        "delta_base": ParameterSelection(parameter="delta_base", mode="manual", manual_value=30),
+    })
+    now = dt.datetime(2026, 10, 19)
+    original_basis = basis_hash(layer, [])
+    layer = approve(layer, ["delta_base"], original_basis, now)
+    layer.design.phi_eff = 20
+    project = _project(layers=[layer])
+    before = project.model_dump()
+    result = refresh_profile(project, "P")
+    delta = result.layers[0].selections["delta_base"]
+    assert not delta.approved and delta.approved_at == now and delta.basis_hash == original_basis
+    assert delta.selected.value == 30 and delta.selected.inputs_used == {"phi_eff": 30}
+    assert delta.suggested.value == pytest.approx(20)
+    assert result.layers[0].design.delta_base == 30
+    assert result.content_hash() == project.profile("P").content_hash()
+    assert project.model_dump() == before
+
+
+@pytest.mark.parametrize("keys", [["phi_eff", "delta_base"], ["delta_base", "phi_eff"]])
+@pytest.mark.parametrize("mode, expected_delta", [("manual", 30), ("correlation", 20)])
+def test_joint_phi_delta_approval_uses_resulting_phi_in_either_key_order(keys, mode, expected_delta):
+    layer = _layer(design=DesignParameters(phi_eff=30))
+    old_suggestion = suggest([], "delta_base", layer)
+    layer.selections = {
+        "phi_eff": ParameterSelection(parameter="phi_eff", mode="manual", manual_value=20),
+        "delta_base": ParameterSelection(
+            parameter="delta_base", mode=mode, manual_value=30,
+            method_id=old_suggestion.method_id, suggested=old_suggestion,
+        ),
+    }
+    before = layer.model_dump()
+    now = dt.datetime(2026, 10, 19)
+    original_basis = basis_hash(layer, [])
+    result = approve(layer, keys, original_basis, now)
+    assert result.design.phi_eff == 20 and result.design.delta_base == pytest.approx(expected_delta)
+    delta = result.selections["delta_base"]
+    assert delta.approved and delta.selected.inputs_used == {"phi_eff": 20}
+    if mode == "correlation":
+        assert delta.suggested.value == pytest.approx(20)
+        assert delta.suggested.inputs_used == {"phi_eff": 20}
+    refreshed = refresh_profile(_project(layers=[result]), "P")
+    assert refreshed.layers[0].selections["delta_base"].approved
+    assert layer.model_dump() == before
+
+
 def test_basis_hash_tracks_bounds_and_input_multiset_only():
     layer = _layer()
     points = [{"depth": 1, "N60": 10}, {"depth": 2, "PI": 20}]
@@ -436,3 +510,27 @@ def test_refresh_uses_lab_classification_and_cpt_ic_without_editing_uscs():
     assert result.layers[0].params["Ic"].value < 2.6
     assert result.layers[0].selections["c_eff"].suggested.value == 0
     assert result.content_hash() == project.profile("P").content_hash()
+
+
+@pytest.mark.parametrize("fines, limits", [(50, {}), (80, {}), (80, {"LL": 40, "PL": 20})])
+@pytest.mark.parametrize("evidence", ["lab", "uscs", "cpt"])
+def test_mixed_fine_and_sand_samples_do_not_suggest_zero_cohesion(fines, limits, evidence):
+    # The first sample is SP; the second is fine-grained even if LL/PI are missing.
+    borehole = Borehole(id="BH", lab=[
+        LabRecord(depth=1, FC=3, gravel=0), LabRecord(depth=2, FC=fines, **limits),
+    ])
+    layer = _layer(uscs="SP" if evidence == "uscs" else None)
+    cpts = [CPTSounding(id="CPT", depth=[1], qc=[10000], fs=[10])] if evidence == "cpt" else []
+    project = _project(layers=[layer], boreholes=[borehole], cpts=cpts)
+    before = project.model_dump()
+    result = refresh_profile(project, "P")
+    assert result.layers[0].selections["c_eff"].suggested is None
+    assert "c_eff" not in result.layers[0].params
+    assert result.layers[0].uscs == layer.uscs
+    assert result.content_hash() == project.profile("P").content_hash()
+    assert project.model_dump() == before
+    # A direct measurement still wins over the default, including a measured zero.
+    for measured in (0, 7):
+        project.investigations.boreholes[0].lab[1].c_eff = measured
+        suggestion = refresh_profile(project, "P").layers[0].selections["c_eff"].suggested
+        assert suggestion.value == measured and suggestion.method_id == "lab_c_eff"
