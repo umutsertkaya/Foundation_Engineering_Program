@@ -87,7 +87,7 @@ def _settings(project, structure):
 
 def _fingerprint(project, structure, code_id):
     payload = {
-        "structure": structure.model_dump(mode="json", exclude={"result_hash"}),
+        "structure": structure.model_dump(mode="json", exclude={"result_hash", "result"}),
         "design_code": code_id,
         "design_overrides": {p: v.model_dump(mode="json")
                              for p, v in project.design_overrides.get(code_id, {}).items()},

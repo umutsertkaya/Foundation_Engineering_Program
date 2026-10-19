@@ -5,6 +5,7 @@ The GUI calls only these functions, so the whole workflow is testable without Qt
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from typing import Literal
 
@@ -107,16 +108,23 @@ def process_investigations(project: Project) -> Module1Results:
 
 
 def run_liquefaction(
-    project: Project, settings: LiquefactionSettings, results: Module1Results | None = None
+    project: Project, settings: LiquefactionSettings, results: Module1Results | None = None,
+    progress: Callable[[float, str], None] | None = None,
 ) -> Module1Results:
     """Process (if needed) and run the selected triggering method for every sounding."""
+    if progress is not None:
+        progress(0.0, "job.step.processing")
     results = results or process_investigations(project)
+    if progress is not None:
+        progress(0.2, "job.step.liquefaction")
     results.liquefaction.clear()
     profile = active_profile(project)
     boreholes = {b.id: b for b in project.investigations.boreholes}
     common = dict(method=settings.method, amax_g=settings.amax_g, mw=settings.mw,
                   target_fs=settings.target_fs)
 
+    count = len(results.spt) + len(results.cpt)
+    completed = 0
     for bh_id, processed in results.spt.items():
         try:
             fc, pi, notes = spt_fc_pi(boreholes[bh_id], settings.default_fc)
@@ -125,6 +133,9 @@ def run_liquefaction(
             results.liquefaction[bh_id] = r
         except Exception as exc:
             results.errors[bh_id] = str(exc)
+        completed += 1
+        if progress is not None:
+            progress(0.2 + 0.8 * completed / count, "job.step.liquefaction")
 
     for cpt_id, processed in results.cpt.items():
         try:
@@ -138,4 +149,9 @@ def run_liquefaction(
             )
         except Exception as exc:
             results.errors[cpt_id] = str(exc)
+        completed += 1
+        if progress is not None:
+            progress(0.2 + 0.8 * completed / count, "job.step.liquefaction")
+    if progress is not None:
+        progress(1.0, "job.step.liquefaction")
     return results

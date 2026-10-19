@@ -11,7 +11,7 @@ source profile id and its content hash; a hash mismatch marks the structure out 
 
 from __future__ import annotations
 
-from typing import Annotated, Literal
+from typing import Annotated, Any, Literal
 
 from pydantic import BaseModel, Field, model_validator
 
@@ -155,6 +155,8 @@ class RetainingWallStructure(BaseModel):
     """Design approach for partial-factor codes (e.g. 'DA1')."""
     result_hash: str | None = None
     """Fingerprint of the inputs of the last check; a mismatch marks the result out of date."""
+    result: dict[str, Any] | None = None
+    """Last JSON calculation payload; excluded from the input fingerprint."""
 
     @model_validator(mode="after")
     def _check(self) -> RetainingWallStructure:
@@ -194,6 +196,8 @@ class SheetPileStructure(BaseModel):
     allowable_stress_mpa: float | None = Field(None, gt=0)
     analysis_level: Literal["basic", "advanced"] = "basic"
     result_hash: str | None = None
+    result: dict[str, Any] | None = None
+    """Last JSON calculation payload; excluded from the input fingerprint."""
 
     @model_validator(mode="after")
     def _check(self) -> SheetPileStructure:
