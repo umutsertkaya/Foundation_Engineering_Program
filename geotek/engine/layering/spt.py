@@ -57,13 +57,14 @@ def _warn_refusal(z, refusal, top, bottom, warnings):
 def spt_log_layers(
     borehole: Borehole, processed: SPTProcessed | None, settings: LayeringSettings,
 ) -> Proposal:
-    """Preserve one layer per log interval, even thin intervals and unlogged gaps.
+    """Preserve log layers, absorbing unlogged gaps into the layer above.
 
     Tests at shared boundaries belong to the lower interval (SoilProfile convention);
     a test at the final log bottom belongs to the final interval. Finite non-refusal
     N60 alone contributes to means. All-refusal means are None: ResultNumber is
-    float | None (api/schemas.py), with no lower-bound field. Log proposals may
-    be non-contiguous; gaps and uncovered tests are warned, never extrapolated.
+    float | None (api/schemas.py), with no lower-bound field. The first layer is
+    extended to ground surface; all extensions are warned. Tests and means use
+    the resulting contiguous intervals; tests below the final bottom are warned.
     Adjacent tops within Borehole's DEPTH_TOL are snapped to the previous bottom;
     intervals with non-positive thickness after snapping are dropped and warned
     before assigning tests. The final retained interval includes its bottom test.
@@ -92,32 +93,37 @@ def spt_log_layers(
     intervals = []
     for interval in borehole.log:
         top = interval.top
-        previous = intervals[-1][0].bottom if intervals else 0.0
+        previous = intervals[-1][2] if intervals else 0.0
         if intervals and abs(top - previous) <= DEPTH_TOL:
             top = previous
         elif top > previous:
             warnings.append(format_warning("layering.warning.log_gap"))
             interval_warning(warnings, "no_data_interval", previous, top)
+            if intervals:
+                upper, upper_top, _ = intervals[-1]
+                intervals[-1] = (upper, upper_top, top)
+            else:
+                top = 0.0
         if interval.bottom <= top:
             interval_warning(warnings, "log_degenerate_interval", top, interval.bottom,
                              original_top=float(interval.top))
             continue
-        intervals.append((interval, top))
+        intervals.append((interval, top, interval.bottom))
     layers = []
-    for i, (interval, top) in enumerate(intervals):
-        inside = (z >= top) & (z < interval.bottom)
+    for i, (interval, top, bottom) in enumerate(intervals):
+        inside = (z >= top) & (z < bottom)
         if i == len(intervals) - 1:
-            inside |= z == interval.bottom
+            inside |= z == bottom
         covered |= inside
         n_mean = mean(n[inside])
-        _warn_refusal(z[inside], refusal[inside], top, interval.bottom, warnings)
+        _warn_refusal(z[inside], refusal[inside], top, bottom, warnings)
         if not inside.any():
             warnings.append(format_warning("layering.warning.log_no_test"))
         elif n_mean is None and not refusal[inside].all():
             warnings.append(format_warning("layering.warning.n_missing_or_zero"))
         if interval.uscs is None:
             warnings.append(format_warning("layering.warning.uscs_missing"))
-        layers.append(_layer(top, interval.bottom, interval.uscs,
+        layers.append(_layer(top, bottom, interval.uscs,
                              n_mean, interval.description))
     if not covered.all():
         warnings.append(format_warning("layering.warning.tests_outside_log"))

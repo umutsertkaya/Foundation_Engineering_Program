@@ -13,7 +13,7 @@ from geotek.core.models.investigations import (
 from geotek.core.models.profile import GroundwaterCondition, LayeringSettings, SoilLayer, SoilProfile
 from geotek.core.models.project import Project, ProjectMeta
 from geotek.engine.insitu.spt import SPTProcessed
-from geotek.engine.layering import spt_log_layers, spt_uscs_n_layers
+from geotek.engine.layering import proposal_to_layers, spt_log_layers, spt_uscs_n_layers
 from geotek.engine.layering.common import parse_warning
 from geotek.io.tabular import import_spt
 from geotek.services.layering import propose_layers
@@ -149,16 +149,59 @@ def test_unsorted_input_and_groups_are_sorted_together():
     assert asdict(result) == asdict(spt_uscs_n_layers(p, ["CL", "SP", "SP"], settings()))
 
 
-def test_log_gaps_no_tests_and_uncovered_tests():
+def test_log_gaps_extend_upper_layer_and_surface_before_assigning_tests():
     bh = Borehole(id="B", log=[
         BoreholeLayer(top=1, bottom=2), BoreholeLayer(top=3, bottom=4, uscs="CL"),
     ])
-    result = spt_log_layers(bh, processed([0.5, 3.5], [10, 20]), settings("spt_log"))
-    assert [(s.top, s.bottom) for s in result.layers] == [(1, 2), (3, 4)]
-    assert [s.n60_mean for s in result.layers] == [None, 20]
-    assert {"layering.warning.log_gap", "layering.warning.log_no_test",
+    before = bh.model_dump_json()
+    # Surface and gap tests join the upper layer, including its old bottom z=2.
+    # The new shared boundary z=3 joins the lower; z=4.5 remains outside.
+    p = processed([0, .5, 1.5, 2, 2.5, 3, 3.5, 4, 4.5],
+                  [2, 4, 6, 8, 10, 20, 22, 24, 1000])
+    result = spt_log_layers(bh, p, settings("spt_log"))
+    assert [(s.top, s.bottom) for s in result.layers] == [(0, 3), (3, 4)]
+    assert [s.n60_mean for s in result.layers] == [6, 22]
+    assert {"layering.warning.log_gap",
             "layering.warning.tests_outside_log", "layering.warning.uscs_missing"} <= set(
                 result.warnings)
+    assert "layering.warning.log_no_test" not in result.warnings
+    gaps = [parse_warning(w)[1] for w in result.warnings
+            if parse_warning(w)[0] == "layering.warning.no_data_interval"]
+    assert gaps == [dict(top=0.0, bottom=1.0), dict(top=2.0, bottom=3.0)]
+    profile = SoilProfile(
+        id="P", gwt=GroundwaterCondition(depth_insitu=2),
+        layers=proposal_to_layers(result, id_prefix="L", gamma={0: (18, 20), 1: (19, 21)}),
+    )
+    assert profile.boundaries().tolist() == [0, 3, 4]
+    assert bh.model_dump_json() == before
+
+
+def test_log_extended_intervals_include_refusals_and_cover_tests():
+    bh = Borehole(id="B", log=[BoreholeLayer(top=1, bottom=2, uscs="CL"),
+                               BoreholeLayer(top=3, bottom=4, uscs="SP")])
+    p = processed([.5, 2.5, 3, 4], [100, 200, 20, 40])
+    p.refusal = np.array([True, True, False, False])
+    result = spt_log_layers(bh, p, settings("spt_log"))
+    assert [s.n60_mean for s in result.layers] == [None, 30]
+    refusals = [parse_warning(w)[1] for w in result.warnings
+                if parse_warning(w)[0] == "layering.warning.refusal_in_layer"]
+    assert refusals == [dict(top=0.0, bottom=3.0, depths=[.5, 2.5])]
+    assert "layering.warning.tests_outside_log" not in result.warnings
+    assert "layering.warning.log_no_test" not in result.warnings
+
+
+def test_log_multiple_gaps_without_tests_remain_contiguous():
+    bh = Borehole(id="B", log=[BoreholeLayer(top=1, bottom=2),
+                               BoreholeLayer(top=3, bottom=4),
+                               BoreholeLayer(top=5, bottom=6)])
+    result = spt_log_layers(bh, None, settings("spt_log"))
+    assert [(s.top, s.bottom) for s in result.layers] == [(0, 3), (3, 5), (5, 6)]
+    assert all(s.n60_mean is None for s in result.layers)
+    assert "layering.warning.log_no_test" in result.warnings
+    gaps = [parse_warning(w)[1] for w in result.warnings
+            if parse_warning(w)[0] == "layering.warning.no_data_interval"]
+    assert gaps == [dict(top=0.0, bottom=1.0), dict(top=2.0, bottom=3.0),
+                    dict(top=4.0, bottom=5.0)]
 
 
 def test_log_preserves_thin_intervals():
