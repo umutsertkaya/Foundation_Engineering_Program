@@ -237,9 +237,21 @@ def router() -> APIRouter:
     def update_profile(id: str, payload: SoilProfile, session: SessionDep) -> SoilProfile:
         """Replace a profile; the body id must identify the path resource."""
         with session.lock:
-            service.find(session.require_project().soil_profiles, id)
+            current = service.find(session.require_project().soil_profiles, id)
             service.check_id(id, payload)
-            return _profile(session, payload)
+            existing = {layer.id: layer for layer in current.layers}
+            layers = []
+            for layer in payload.layers:
+                previous = existing.get(layer.id)
+                if (previous is None
+                        or (layer.top, layer.bottom) != (previous.top, previous.bottom)
+                        or set(layer.source_ids or payload.source_ids)
+                        != set(previous.source_ids or current.source_ids)):
+                    layers.append(service.reset_interval(layer))
+                else:
+                    layers.append(layer.model_dump())
+            updated = service.validate(SoilProfile, {**payload.model_dump(), "layers": layers})
+            return _profile(session, updated)
 
     @api.delete(
         "/profiles/{id}", response_model=dto.DeletionResponse, operation_id="delete_profile",

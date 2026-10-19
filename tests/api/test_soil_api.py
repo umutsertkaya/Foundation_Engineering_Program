@@ -605,6 +605,54 @@ def assert_stale_selections(layer, previous):
     assert layer["params"] == {}
 
 
+@pytest.mark.parametrize("change", ["bottom", "boundary", "new", "layer_sources", "profile_sources",
+                                   "unchanged"])
+def test_profile_put_invalidates_only_changed_layers(opened, change):
+    assert upload(opened).status_code == 200
+    assert upload(opened, identifier="C2").status_code == 200
+    payload = deepcopy(CREATE)
+    payload["source_ids"] = ["C1"]
+    payload["layers"] = [
+        {"id": f"L{i}", "top": top, "bottom": bottom, "gamma": 18,
+         "source_ids": ["C1"] if i == 0 else [],
+         "design": {"phi_eff": 30}, "selections": {"phi_eff": selection("phi_eff", 30)},
+         "params": {"phi_eff": selection("phi_eff", 30)["selected"]}}
+        for i, (top, bottom) in enumerate([(0, 5), (5, 10), (10, 20)])
+    ]
+    profile = create_profile(opened, payload)
+    path = f"{PREFIX}/profiles/{profile['id']}"
+    incoming = opened.get(path).json()
+    changed = {2}
+    if change == "bottom":
+        incoming["layers"][2]["bottom"] = 25
+    elif change == "boundary":
+        incoming["layers"][1]["bottom"] = incoming["layers"][2]["top"] = 12
+        changed = {1, 2}
+    elif change == "new":
+        incoming["layers"][2]["id"] = "new-layer"
+    elif change == "layer_sources":
+        incoming["layers"][2]["source_ids"] = ["C2"]
+    elif change == "profile_sources":
+        incoming["source_ids"] = ["C1", "C2"]
+        changed = {1, 2}
+    else:
+        incoming["name"] = "Renamed"
+        changed = set()
+    # Match stored layers by id even if the client sends them in a different order.
+    incoming["layers"].reverse()
+    response = opened.put(path, json=incoming)
+    assert response.status_code == 200, response.text
+    stored = opened.get(path).json()
+    assert stored == response.json()
+    for i, layer in enumerate(stored["layers"]):
+        assert layer["design"] == profile["layers"][i]["design"]
+        assert layer["gamma"] == profile["layers"][i]["gamma"]
+        if i in changed:
+            assert_stale_selections(layer, profile["layers"][i]["selections"])
+        else:
+            assert layer == profile["layers"][i]
+
+
 def test_split_invalidates_approved_and_unapproved_selections_only_on_children(opened):
     values = {"phi_eff": 31, "c_eff": 12, "su": 60, "E": 15000, "delta_base": 20}
     selections = {key: selection(key, value) for key, value in values.items()}
