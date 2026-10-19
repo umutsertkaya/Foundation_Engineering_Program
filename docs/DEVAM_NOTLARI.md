@@ -108,9 +108,9 @@ Git worktree'leri `C:\Users\thebi\Documents\geotek-wt\` altında; hepsinin işi 
 | `feat/a1-soil` | main'e birleşti (67408c9 + d2cd890: 17 rota IMPLEMENTED, openapi) | Worktree silinebilir. |
 | `feat/e2-layering` | main'e birleşti (kullanıcı formül özetini onayladı, 2026-10-19) | Worktree silinebilir. Katmanlama rotaları bağlanırken uyarı kodları (`layering.warning.*`) i18n'e eklenmeli; biçim `kod: anahtar=değer`, ayrıştırıcı `geotek/engine/layering/common.py`. |
 | `feat/a1-jobs` | main'e birleşti (f2b4f53 + 7e211f2: 8 rota IMPLEMENTED, eksik `job.step.*` anahtarları, openapi). İş sınırı `MAX_ACTIVE_JOBS=8`, dolunca 429 `too_many_jobs`. 5 m duvar regresyonu korunuyor. main: 1312 pytest + 125 web testi yeşil | Worktree silinebilir. |
-| `feat/e3-parameters` (3378f9b) | `geotek/services/parameters.py` yazıldı; 58 unit testi yeşil; astra + Opus onayladı. Kullanıcı birleştirmeyi δ_b kuralı birincil kaynakla doğrulanana kadar bekletti | TBDY 2018 16.8.4.3 / Tablo 16.3 doğrulandı: tan δ ≤ 0.6 yalnız üst sınır (yerinde dökme beton – sıkıştırılmış taban zemini; prekast 0.4, beton–beton 0.5, beton–kaya 0.5). δ = φ' tabanı TBDY'de yok; kullanıcı kararı bekleniyor → etiket/kural düzelt → birleştir. |
+| `feat/e3-parameters` | main'e birleşti. δ_b etiketi: EN 1997-1 6.5.3(10) (δd = φ'cv,d, JRC EUR 26227 ile doğrulandı) + TBDY 2018 16.8.4.3 / Tablo 16.3 (tan δ ≤ 0.6, resmî metinle doğrulandı); φ'cv modelde yok, öneri `phi_cv_assumed_equal_phi_eff` uyarısı taşır. main: 1503 pytest yeşil | Worktree silinebilir. İleride: φ'cv alanı ve prekast (2/3 φ'cv, tan δ ≤ 0.4) ara yüz seçimi düşünülebilir. |
 
-Kalan sıra: e3-parameters (δ_b kararı sonrası) → soil katmanlama/parametre rotaları (iş altyapısı ve E2 artık main'de) → F4/F5.
+Kalan sıra: soil katmanlama/parametre rotaları (E2, E3 ve iş altyapısı main'de; `layering.warning.*` ve `phi_cv_assumed_equal_phi_eff` uyarı anahtarları i18n'e) → F4/F5.
 
 Küçük açık noktalar:
 - Web mock `POST .../required-factors` projeyi hâlâ kirli işaretliyor (eski davranış korundu).

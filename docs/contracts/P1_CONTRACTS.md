@@ -119,7 +119,10 @@ def refresh_profile(project: Project, profile_id: str) -> SoilProfile  # candida
 Öneri kuralları (yeni katsayı yok): lab değeri varsa o; yoksa geçerlilik aralığındaki adayların
 `registry.combine` ortalaması. `c_eff`: korelasyon yok; lab yoksa öneri 0 **yalnız granüler katmanda**
 (USCS G*/S* veya Ic < 2.6), etiket "FHWA GEC-5: granüler zeminde c' = 0"; ince daneli katmanda öneri yok.
-`delta_base`: öneri `atan(min(tan φ', 0.6))`, etiket "TBDY 2018 Tablo 16.3 (yerinde dökme beton)". SPT'den γ
+`delta_base`: öneri `atan(min(tan φ', 0.6))`, etiket "EN 1997-1 6.5.3(10): δd = φ'cv,d (yerinde dökme beton);
+TBDY 2018 16.8.4.3, Tablo 16.3: tan δ ≤ 0.6". Modelde φ'cv olmadığı için onaylı φ' kullanılır ve öneri
+`phi_cv_assumed_equal_phi_eff` uyarısı taşır (φ' tepe değerse güvensiz tarafta; mühendis kontrol eder).
+Kaynak doğrulaması 2026-10-19: TBDY 2018 resmî metni; EN 1997-1 kuralı JRC EUR 26227 (2013) üzerinden. SPT'den γ
 önerisi yok. Sınır/girdi değişince onaylar bayat işaretlenir; `design` değerleri yeniden onaya kadar korunur
 ama yapılar bayat görünür.
 
