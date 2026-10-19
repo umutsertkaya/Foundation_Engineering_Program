@@ -25,6 +25,7 @@ from geotek.core.models.profile import SoilLayer, SoilProfile
 from geotek.core.models.project import Project
 from geotek.engine.classification.uscs import classify_lab_record
 from geotek.engine.correlations import registry
+from geotek.engine.layering.common import format_warning
 from geotek.engine.insitu.cpt import process_cpt
 from geotek.engine.insitu.spt import process_borehole
 
@@ -185,8 +186,8 @@ def evaluate_candidates(
                     reference=correlation.reference, source=correlation.source,
                     reliability=correlation.reliability, validity_ok=False,
                     inputs_used=dict(correlation.options),
-                    warnings=["parameters.warning.value_not_computable: reason="
-                              + json.dumps(str(exc), ensure_ascii=False)],
+                    warnings=[format_warning(
+                        "parameters.warning.value_not_computable", method_id=correlation.id)],
                 )
             result.inputs_used = {**inputs, **result.inputs_used}
             by_method.setdefault(result.method_id, []).append(result)
@@ -248,7 +249,8 @@ def suggest(
                 unit="deg", method_id="TBDY2018_delta_base", source="combined",
                 reference=DELTA_BASE_REFERENCE,
                 inputs_used={"phi_eff": phi},
-                warnings=[f"parameters.warning.phi_cv_assumed_equal_phi_eff: phi_eff={phi:g}"],
+                warnings=[format_warning(
+                    "parameters.warning.phi_cv_assumed_equal_phi_eff", phi_eff=phi)],
             )
     return None
 

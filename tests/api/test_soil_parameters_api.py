@@ -171,3 +171,34 @@ def test_i18n_contains_warning_codes_and_rejects_unknown_language(shell, lang):
     assert "layering.warning.thin_merged" in catalog
     assert "parameters.warning.phi_cv_assumed_equal_phi_eff" in catalog
     assert shell.get("/api/i18n/de").status_code == 422
+
+
+def test_approve_resolves_against_fresh_candidates_after_data_change(opened):
+    assert upload(opened, content=CPT_CSV).status_code == 200
+    profile = sourced_profile(opened)
+    method = next(c["method_id"] for c in opened.get(params_path(profile)).json()[0]["candidates"]
+                  if c["validity_ok"])
+    assert opened.put(params_path(profile, suffix="/phi_eff"),
+                      json={"mode": "correlation", "method_id": method}).status_code == 200
+    depths = [0.5 * i for i in range(1, 21)]
+    changed = {"id": "C1", "depth": depths, "qc": [8000 + 100 * i for i in range(20)],
+               "fs": [30 + i for i in range(20)]}
+    assert opened.put(f"{PREFIX}/cpts/C1", json=changed).status_code == 200
+    fresh = next(c for c in opened.get(params_path(profile)).json()[0]["candidates"]
+                 if c["method_id"] == method)
+    response = opened.post(params_path(profile, suffix="/approve"), json={"keys": ["phi_eff"]})
+    assert response.status_code == 200, response.text
+    layer = response.json()
+    assert layer["design"]["phi_eff"] == pytest.approx(fresh["value"])
+    assert layer["selections"]["phi_eff"]["selected"]["value"] == pytest.approx(fresh["value"])
+    # Approval and the next refresh agree on the basis, so nothing is flagged stale.
+    assert opened.get(params_path(profile)).json()[0]["approved"] is True
+
+
+def test_approve_without_selection_after_suggest_all_is_422(opened):
+    assert upload(opened, content=CPT_CSV).status_code == 200
+    profile = sourced_profile(opened)
+    assert opened.post(f"{PREFIX}/profiles/{profile['id']}/parameters/suggest-all"
+                       ).status_code == 200
+    response = opened.post(params_path(profile, suffix="/approve"), json={"keys": ["phi_eff"]})
+    assert response.status_code == 422 and error_code(response) == "validation"

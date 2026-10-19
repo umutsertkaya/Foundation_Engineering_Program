@@ -699,5 +699,5 @@
   "layering.warning.log_missing": "The borehole has no log; layering used laboratory USCS and N values instead.",
   "layering.warning.similar_merged": "Adjacent layers of the same soil behaviour were merged.",
   "parameters.warning.phi_cv_assumed_equal_phi_eff": "phi'cv is not modelled; phi' = {phi_eff} deg is used in its place, which is unconservative for a peak value.",
-  "parameters.warning.value_not_computable": "Value is not computable for these inputs: {reason}"
+  "parameters.warning.value_not_computable": "Value is not computable for method {method_id} with these inputs."
 }

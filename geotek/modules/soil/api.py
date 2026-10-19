@@ -66,10 +66,12 @@ def _propose(
     """Propose layers for one investigation without modifying the project."""
     with session.lock:
         project = session.require_project()
+        known = {item.id for item in project.investigations.cpts}
+        known |= {item.id for item in project.investigations.boreholes}
+        if identifier not in known:
+            api_error(404, "not_found", f"Investigation {identifier!r} not found.")
         try:
             proposal = propose_layers(project, identifier, settings)
-        except KeyError:
-            api_error(404, "not_found", f"Investigation {identifier!r} not found.")
         except ValueError as exc:
             api_error(422, "validation", str(exc))
         return dto.LayeringProposal.model_validate(asdict(proposal))
@@ -359,17 +361,17 @@ def router() -> APIRouter:
         """Choose a method, statistic or manual value without approving it."""
         with session.lock:
             profile, refreshed = _refreshed(session, id)
-            layer = service.find(profile.layers, layer_id)
-            chosen = service.find(refreshed.layers, layer_id).selections[key]
+            service.find(profile.layers, layer_id)
+            layer = service.find(refreshed.layers, layer_id)
+            chosen = layer.selections[key]
             chosen = chosen.model_copy(update=payload.model_dump())
             try:
                 resolved = parameters.resolve(chosen)
             except ValueError as exc:
                 api_error(422, "validation", str(exc))
-            stored = layer.model_copy(update={
-                "selections": {**layer.selections, key: resolved},
-            })
-            _profile(session, _with_layer(profile, stored))
+            # Persist the whole refreshed layer so no key keeps stale candidates.
+            layer.selections[key] = resolved
+            _profile(session, _with_layer(profile, layer))
             return resolved
 
     @api.post(
@@ -383,14 +385,15 @@ def router() -> APIRouter:
         with session.lock:
             project = session.require_project()
             profile = service.find(project.soil_profiles, id)
-            layer = service.find(profile.layers, layer_id)
-            missing = [key for key in payload.keys if key not in layer.selections]
-            if missing:
-                api_error(422, "validation", f"No selection to approve for {missing}.")
+            stored = service.find(profile.layers, layer_id)
+            # Resolve against fresh candidates so the approved value and the basis hash
+            # describe the same inputs; the stored selection inputs are carried by refresh.
+            _, refreshed = _refreshed(session, id)
+            layer = service.find(refreshed.layers, layer_id)
             try:
-                points = parameters.layer_points(project, profile, layer)
+                points = parameters.layer_points(project, profile, stored)
                 approved = parameters.approve(
-                    layer, payload.keys, parameters.basis_hash(layer, points),
+                    layer, payload.keys, parameters.basis_hash(stored, points),
                     datetime.now(timezone.utc),
                 )
             except (KeyError, ValueError) as exc:

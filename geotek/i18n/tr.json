@@ -698,6 +698,6 @@
   "layering.warning.uscs_qualified": "Laboratuvar verisinden elde edilen USCS sınıflaması eksik veya şartlıdır.",
   "layering.warning.log_missing": "Sondajın logu yok; tabakalama laboratuvar USCS ve N değerlerine göre yapıldı.",
   "layering.warning.similar_merged": "Aynı zemin davranışına sahip komşu tabakalar birleştirildi.",
-  "parameters.warning.phi_cv_assumed_equal_phi_eff": "Kritik hal içsel sürtünme açısı (φ'cv) modellenmemiştir; yerine φ' = {phi_eff}° kullanılmıştır, tepe değer için güvenli taraf dışıdır.",
-  "parameters.warning.value_not_computable": "Bu girdiler için değer hesaplanamıyor: {reason}"
+  "parameters.warning.phi_cv_assumed_equal_phi_eff": "Kritik hal içsel sürtünme açısı (φ'cv) modellenmemiştir; yerine φ' = {phi_eff}° kullanılmıştır. φ' pik değer ise bu kabul güvensiz taraftadır.",
+  "parameters.warning.value_not_computable": "{method_id} yöntemi bu girdiler için hesaplanamıyor."
 }
