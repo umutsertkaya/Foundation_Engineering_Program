@@ -33,6 +33,11 @@ __all__ = (
     "basis_hash", "refresh_profile",
 )
 
+DELTA_BASE_REFERENCE = (
+    "EN 1997-1 6.5.3(10): δd = φ'cv,d (yerinde dökme beton); "
+    "TBDY 2018 16.8.4.3, Tablo 16.3: tan δ ≤ 0.6 (yerinde dökme beton – sıkıştırılmış taban zemini)"
+)
+
 
 def _unit(key: DesignKey) -> str:
     return {
@@ -234,11 +239,15 @@ def suggest(
             if proposal is not None and proposal.validity_ok:
                 phi = proposal.value
         if phi is not None and math.isfinite(phi):
+            # EN 1997-1 6.5.3(10) takes delta_d = phi'_cv,d for cast in-situ concrete; the model
+            # has no phi'_cv, so phi' stands in for it (unconservative when phi' is a peak value)
+            # and the suggestion carries a warning. TBDY 2018 16.8.4.3 caps tan(delta) at 0.6.
             return DerivedParameter(
                 value=math.degrees(math.atan(min(math.tan(math.radians(phi)), 0.6))),
                 unit="deg", method_id="TBDY2018_delta_base", source="combined",
-                reference="TBDY 2018 Tablo 16.3 (yerinde dökme beton)",
+                reference=DELTA_BASE_REFERENCE,
                 inputs_used={"phi_eff": phi},
+                warnings=[f"phi_cv_assumed_equal_phi_eff: phi_eff={phi:g}"],
             )
     return None
 
