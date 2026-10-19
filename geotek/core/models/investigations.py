@@ -7,6 +7,8 @@ from typing import Literal
 import numpy as np
 from pydantic import BaseModel, Field, field_validator, model_validator
 
+from geotek.core.constants import DEPTH_TOL
+
 
 class SPTRecord(BaseModel):
     depth: float = Field(gt=0, description="Test depth [m]")
@@ -92,7 +94,7 @@ class Borehole(BaseModel):
     def _sorted_non_overlapping(cls, log: list[BoreholeLayer]) -> list[BoreholeLayer]:
         log = sorted(log, key=lambda r: r.top)
         for upper, lower in zip(log, log[1:]):
-            if lower.top < upper.bottom - 1e-6:
+            if lower.top < upper.bottom - DEPTH_TOL:
                 raise ValueError(f"Log intervals overlap at {lower.top} m")
         return log
 
