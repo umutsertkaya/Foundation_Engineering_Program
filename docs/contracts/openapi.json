@@ -4309,7 +4309,7 @@
           "soil"
         ],
         "summary": "Import Cpt",
-        "description": "Import multipart file, sounding_id, qc_unit, delimiter and decimal form parts.\n\nqc_unit applies to the file's cone resistance; stored sounding stresses are kPa.\nThe stub deliberately does not parse uploads or require python-multipart.",
+        "description": "Import multipart file, sounding_id, qc_unit, delimiter and decimal form parts.\n\nqc_unit applies to the file's cone resistance; stored sounding stresses are kPa.\nMultipart parsing does not require the optional python-multipart package.",
         "operationId": "import_cpt",
         "requestBody": {
           "content": {

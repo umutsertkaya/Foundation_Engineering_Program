@@ -665,7 +665,7 @@ export interface paths {
          * @description Import multipart file, sounding_id, qc_unit, delimiter and decimal form parts.
          *
          *     qc_unit applies to the file's cone resistance; stored sounding stresses are kPa.
-         *     The stub deliberately does not parse uploads or require python-multipart.
+         *     Multipart parsing does not require the optional python-multipart package.
          */
         post: operations["import_cpt"];
         delete?: never;

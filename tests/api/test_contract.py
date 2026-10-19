@@ -140,6 +140,12 @@ IMPLEMENTED = {
         "/api/structures/{id}/soil", "/api/structures/{id}/soil/resync",
         "/api/codes", "/api/codes/{code_id}/factors", "/api/codes/{code_id}/required",
         "/api/project/design-overrides/{code_id}",
+        "/api/m/soil/import/cpt", "/api/m/soil/import/spt", "/api/m/soil/investigations",
+        "/api/m/soil/boreholes/{id}", "/api/m/soil/boreholes/{id}/log",
+        "/api/m/soil/boreholes/{id}/processed", "/api/m/soil/cpts/{id}",
+        "/api/m/soil/cpts/{id}/processed", "/api/m/soil/profiles", "/api/m/soil/profiles/{id}",
+        "/api/m/soil/profiles/{id}/layers/{layer_id}/split",
+        "/api/m/soil/profiles/{id}/layers/merge",
     } or path.startswith("/api/library/{file}")
 }
 
@@ -287,7 +293,8 @@ def test_metadata_patch_preserves_omission():
 def test_profile_creation_alternatives(client):
     from_proposal = {key: value for key, value in PROFILE_CREATE.items() if key != "layers"}
     from_proposal["from_proposal"] = PROPOSAL
-    assert client.post("/api/m/soil/profiles", json=from_proposal).status_code == 501
+    # Request validation passes; without an open project the route answers 409.
+    assert client.post("/api/m/soil/profiles", json=from_proposal).status_code == 409
     neither = {key: value for key, value in PROFILE_CREATE.items() if key != "layers"}
     both = {**PROFILE_CREATE, "from_proposal": PROPOSAL}
     assert client.post("/api/m/soil/profiles", json=neither).status_code == 422
