@@ -161,5 +161,11 @@
   "walls.term.sliding_precast_on_sand": "Kayma (öndökümlü, kum)",
   "walls.term.passive_resistance": "Pasif direnç",
   "walls.term.sheet_pile_passive": "Palplanş pasif direnci",
-  "walls.term.global_stability_supporting_structure": "Toptan göçme (destek yapısı)"
+  "walls.term.global_stability_supporting_structure": "Toptan göçme (destek yapısı)",
+  "walls.job.status.queued": "Sırada",
+  "walls.job.status.running": "Çalışıyor",
+  "walls.job.status.done": "Tamamlandı",
+  "walls.job.status.failed": "Başarısız",
+  "walls.job.status.cancelled": "İptal edildi",
+  "walls.job.status.idle": "Beklemede"
 }

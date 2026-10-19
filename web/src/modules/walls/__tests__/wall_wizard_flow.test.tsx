@@ -108,6 +108,9 @@ describe("walls wizard: options, jobs and results (mock API)", () => {
     expect(await screen.findByTestId("job-cancelled")).toHaveTextContent(tr["walls.run.cancelled"]);
     await waitFor(() => expect(screen.queryByRole("button", { name: tr["web.wizard.cancel_job"] })).toBeNull());
     expect(screen.queryAllByTestId("check-card")).toHaveLength(0);
+    // the progress line shows a translated status, never the raw enum value
+    expect(document.body.textContent).toContain(`${tr["web.wizard.job_progress"]}: ${tr["walls.job.status.cancelled"]}`);
+    expect(document.body.textContent).not.toMatch(/(cancelled|failed|running|queued)/);
   }, 20000);
 
   it("shows the result step with the section and the labelled factor table", async () => {

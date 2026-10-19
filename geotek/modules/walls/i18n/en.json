@@ -161,5 +161,11 @@
   "walls.term.sliding_precast_on_sand": "Sliding (precast, sand)",
   "walls.term.passive_resistance": "Passive resistance",
   "walls.term.sheet_pile_passive": "Sheet pile passive resistance",
-  "walls.term.global_stability_supporting_structure": "Global stability (supporting structure)"
+  "walls.term.global_stability_supporting_structure": "Global stability (supporting structure)",
+  "walls.job.status.queued": "Queued",
+  "walls.job.status.running": "Running",
+  "walls.job.status.done": "Done",
+  "walls.job.status.failed": "Failed",
+  "walls.job.status.cancelled": "Cancelled",
+  "walls.job.status.idle": "Idle"
 }

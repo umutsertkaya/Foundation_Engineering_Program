@@ -821,7 +821,7 @@ export function WallWizardPage() {
                     <Group justify="space-between">
                       <Text size="xs" fw={500}>
                         {t("web.wizard.job_progress")}:{" "}
-                        {job.messageKey ? t(job.messageKey) : job.status}
+                        {job.messageKey ? t(job.messageKey) : t(`walls.job.status.${job.status}`)}
                       </Text>
                       <Text size="xs" ff="monospace">
                         {Math.round(job.progress * 100)}%
