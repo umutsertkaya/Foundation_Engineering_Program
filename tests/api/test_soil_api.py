@@ -77,6 +77,12 @@ IMPLEMENTED_REQUESTS = [
     ("PUT", "/profiles/P1", PROFILE), ("DELETE", "/profiles/P1", None),
     ("POST", "/profiles/P1/layers/L1/split", {"depth": 1}),
     ("POST", "/profiles/P1/layers/merge", {"layer_ids": ["L1", "L2"]}),
+    ("POST", "/layering/cpt/C1", {"method": "cpt_ic"}),
+    ("POST", "/layering/spt/B1", {"method": "spt_log"}),
+    ("GET", "/profiles/P1/layers/L1/parameters", None),
+    ("PUT", "/profiles/P1/layers/L1/parameters/phi_eff", {"mode": "manual", "manual_value": 30}),
+    ("POST", "/profiles/P1/layers/L1/parameters/approve", {"keys": ["phi_eff"]}),
+    ("POST", "/profiles/P1/parameters/suggest-all", None),
 ]
 
 
@@ -947,20 +953,6 @@ def test_processing_uses_selected_profile_and_cpt_fallback(opened):
     assert opened.get("/api/session").json()["dirty"] is False
     assert opened.put("/api/project/active-profile", json={"profile_id": first["id"]}).status_code == 200
     assert opened.get(f"{PREFIX}/boreholes/B1/processed").status_code == 200
-
-
-@pytest.mark.parametrize("method,path,payload", [
-    ("POST", "/layering/cpt/C1", {"method": "cpt_ic"}),
-    ("POST", "/layering/spt/B1", {"method": "spt_log"}),
-    ("GET", "/profiles/P1/layers/L1/parameters", None),
-    ("PUT", "/profiles/P1/layers/L1/parameters/phi_eff", {"mode": "manual", "manual_value": 30}),
-    ("POST", "/profiles/P1/layers/L1/parameters/approve", {"keys": ["phi_eff"]}),
-    ("POST", "/profiles/P1/parameters/suggest-all", None),
-])
-def test_out_of_scope_routes_remain_stubs(shell, method, path, payload):
-    response = shell.request(method, PREFIX + path,
-                             **({"json": payload} if payload is not None else {}))
-    assert response.status_code == 501 and error_code(response) == "not_implemented"
 
 
 def test_reopen_full_soil_workflow(opened, library_dir):
