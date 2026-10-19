@@ -15,6 +15,7 @@ import {
 } from "../api";
 import { ErrorAlert } from "../components/ErrorAlert";
 import { ParameterKeyCard } from "../components/ParameterKeyCard";
+import { displayUnit } from "../units";
 import { LatestGuard } from "../latest";
 import { approvalState, formatValue, readiness } from "../parameterState";
 
@@ -289,7 +290,7 @@ export function ParametersPage() {
               const sel = selections.find((s) => s.parameter === key);
               return (
                 <Text key={key} size="sm" data-testid={`params-confirm-${key}`}>
-                  {t(`soil.params.key.${key}`)}: <b>{formatValue(sel?.selected?.value)}</b> {sel?.selected?.unit}
+                  {t(`soil.params.key.${key}`)}: <b>{formatValue(sel?.selected?.value)}</b> {displayUnit(sel?.selected?.unit)}
                 </Text>
               );
             })}

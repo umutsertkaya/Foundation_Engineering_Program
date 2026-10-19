@@ -144,7 +144,7 @@ describe("ParametersPage", () => {
     const candidates = within(card).getByTestId("param-candidates-phi_eff");
     expect(candidates.textContent).toContain("mock_phi_eff_a");
     expect(candidates.textContent).toContain("Sentetik korelasyon A (Mock)");
-    expect(candidates.textContent).toContain("deg");
+    expect(candidates.textContent).toContain("°");
     // An invalid candidate is flagged and its warning is shown, localised.
     expect(candidates.textContent).toContain("outside validity range");
     expect(candidates.textContent).toContain("Value is not computable for method mock_phi_eff_c");
@@ -162,7 +162,7 @@ describe("ParametersPage", () => {
     fireEvent.change(within(card).getByTestId("param-method-phi_eff"), { target: { value: "mock_phi_eff_b" } });
     expect(within(card).getByTestId("param-approve-phi_eff")).toBeDisabled(); // unapplied draft
     fireEvent.click(within(card).getByTestId("param-apply-phi_eff"));
-    await waitFor(() => expect(within(card).getByTestId("param-selected-phi_eff")).toHaveTextContent("deg"));
+    await waitFor(() => expect(within(card).getByTestId("param-selected-phi_eff")).toHaveTextContent("°"));
     expect(within(card).getByTestId("param-state-phi_eff")).toHaveTextContent("Not approved");
 
     fireEvent.click(within(card).getByTestId("param-approve-phi_eff"));

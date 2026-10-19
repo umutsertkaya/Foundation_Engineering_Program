@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { Badge, Button, Card, Group, NativeSelect, NumberInput, SegmentedControl, Stack, Table, Text } from "@mantine/core";
+import { useMediaQuery } from "@mantine/hooks";
+import { Badge, Button, Card, Group, NativeSelect, NumberInput, SegmentedControl, Stack, Table, Text, Tooltip } from "@mantine/core";
 import { useTranslation } from "react-i18next";
 import type { DerivedParameter, ParameterSelection } from "../../../shared/api/types";
 import {
@@ -14,6 +15,7 @@ import {
   type SelectionDraft,
   validCandidates,
 } from "../parameterState";
+import { displayUnit } from "../units";
 import { WarningList } from "./WarningList";
 
 const STATE_COLOR = { approved: "green", stale: "orange", unapproved: "gray" } as const;
@@ -36,8 +38,9 @@ function formatDate(iso: string | null | undefined, locale: string): string {
 
 function CandidateRows({ rows, selection }: { rows: { key: string; candidate: DerivedParameter; suggested: boolean }[]; selection: ParameterSelection }) {
   const { t } = useTranslation();
+  const narrow = useMediaQuery("(max-width: 900px)") ?? false;
   return (
-    <Table.ScrollContainer minWidth={620} type="native">
+    <Table.ScrollContainer minWidth={narrow ? 0 : 620} type="native">
       <Table withTableBorder withColumnBorders fz="xs" verticalSpacing={3} data-testid={`param-candidates-${selection.parameter}`}>
         <Table.Thead>
           <Table.Tr>
@@ -46,30 +49,37 @@ function CandidateRows({ rows, selection }: { rows: { key: string; candidate: De
             <Table.Th>{t("soil.params.col.stats")}</Table.Th>
             <Table.Th>{t("soil.params.col.reliability")}</Table.Th>
             <Table.Th>{t("soil.params.col.source")}</Table.Th>
-            <Table.Th>{t("soil.params.col.reference")}</Table.Th>
+            {!narrow && <Table.Th>{t("soil.params.col.reference")}</Table.Th>}
           </Table.Tr>
         </Table.Thead>
         <Table.Tbody>
           {rows.map(({ key, candidate: c, suggested }) => (
             <Table.Tr key={key} opacity={c.validity_ok === false ? 0.65 : 1}>
               <Table.Td>
-                <Text size="xs" ff="monospace" style={{ overflowWrap: "anywhere" }}>
-                  {c.method_id}
-                </Text>
+                <Tooltip label={c.reference || c.method_id} withArrow multiline w={280} disabled={!c.reference}>
+                  <Text size="xs" ff="monospace" style={{ whiteSpace: "nowrap" }}>
+                    {c.method_id}
+                  </Text>
+                </Tooltip>
+                {narrow && c.reference && (
+                  <Text size="xs" c="dimmed" style={{ overflowWrap: "anywhere" }}>
+                    {c.reference}
+                  </Text>
+                )}
                 {suggested && (
                   <Badge size="xs" variant="light" color="blue">
                     {t("soil.params.suggested_row")}
                   </Badge>
                 )}
                 {c.validity_ok === false && (
-                  <Badge size="xs" variant="light" color="orange" ml={4}>
+                  <Badge size="xs" variant="light" color="orange" ml={4} styles={{ root: { height: "auto", paddingBlock: 2 }, label: { whiteSpace: "normal" } }}>
                     {t("soil.params.invalid_candidate")}
                   </Badge>
                 )}
               </Table.Td>
               <Table.Td>
                 <Text size="xs" fw={600}>
-                  {formatValue(c.value)} {c.unit}
+                  {formatValue(c.value)} {displayUnit(c.unit)}
                 </Text>
               </Table.Td>
               <Table.Td>
@@ -77,10 +87,12 @@ function CandidateRows({ rows, selection }: { rows: { key: string; candidate: De
               </Table.Td>
               <Table.Td>{c.reliability ?? t("web.common.none")}</Table.Td>
               <Table.Td>{t(`soil.params.source.${c.source}`)}</Table.Td>
-              <Table.Td style={{ minWidth: 180 }}>
-                <Text size="xs" style={{ overflowWrap: "anywhere" }}>
-                  {c.reference ?? t("web.common.none")}
-                </Text>
+              <Table.Td style={narrow ? undefined : { minWidth: 180 }}>
+                {!narrow && (
+                  <Text size="xs" style={{ overflowWrap: "anywhere" }}>
+                    {c.reference ?? t("web.common.none")}
+                  </Text>
+                )}
                 <WarningList warnings={c.warnings ?? []} />
               </Table.Td>
             </Table.Tr>
@@ -105,7 +117,7 @@ export function ParameterKeyCard({ selection, busy, onApply, onApprove, onDirtyC
   }, [stamp]);
 
   const state = approvalState(selection);
-  const unit = selection.selected?.unit ?? selection.suggested?.unit ?? selection.candidates?.[0]?.unit ?? "";
+  const unit = displayUnit(selection.selected?.unit ?? selection.suggested?.unit ?? selection.candidates?.[0]?.unit ?? "");
   const hasSuggestion = Boolean(selection.suggested);
   const candidates = selection.candidates ?? [];
   const statisticPossible = validCandidates(selection).length > 0;
@@ -157,7 +169,7 @@ export function ParameterKeyCard({ selection, busy, onApply, onApprove, onDirtyC
           <Text size="xs" c="orange.8" data-testid={`param-stale-${key}`}>
             {t("soil.params.stale_hint", {
               date: formatDate(selection.approved_at, i18n.language),
-              value: selection.selected ? `${formatValue(selection.selected.value)} ${selection.selected.unit}` : "-",
+              value: selection.selected ? `${formatValue(selection.selected.value)} ${displayUnit(selection.selected.unit)}` : "-",
             })}
           </Text>
         )}
@@ -174,7 +186,7 @@ export function ParameterKeyCard({ selection, busy, onApply, onApprove, onDirtyC
           {selection.selected ? (
             <>
               <Text size="sm" fw={700} data-testid={`param-selected-${key}`}>
-                {formatValue(selection.selected.value)} {selection.selected.unit}
+                {formatValue(selection.selected.value)} {displayUnit(selection.selected.unit)}
               </Text>
               <Text size="xs" c="dimmed" ff="monospace" style={{ overflowWrap: "anywhere" }}>
                 {selection.selected.method_id}
@@ -221,7 +233,7 @@ export function ParameterKeyCard({ selection, busy, onApply, onApprove, onDirtyC
             <NativeSelect
               size="xs"
               label={t("soil.params.method")}
-              data={candidates.map((c) => ({ value: c.method_id, label: `${c.method_id}: ${formatValue(c.value)} ${c.unit}` }))}
+              data={candidates.map((c) => ({ value: c.method_id, label: `${c.method_id}: ${formatValue(c.value)} ${displayUnit(c.unit)}` }))}
               value={draft.method_id}
               onChange={(e) => setDraft((d) => ({ ...d, method_id: e.currentTarget.value }))}
               data-testid={`param-method-${key}`}
