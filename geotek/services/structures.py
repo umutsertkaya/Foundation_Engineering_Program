@@ -46,6 +46,9 @@ ProgressFn = Callable[[float, str], None]
 class StructureWallResult(BasicWallResult):
     pressures: dict[str, PressureDistribution] = field(default_factory=dict)
     result_hash: str = ""
+    governing_check_ids: list[str] = field(default_factory=list)
+    """Ids ("case:name") of failing checks, or the check that governed sizing when it passed."""
+    minimum_width_governs: bool = False
 
 
 class _Progress:
@@ -281,9 +284,13 @@ def _seismic_loads(loads, settings):
     return tuple(loads.model_copy(update={"kv": sign * abs(loads.kv)}) for sign in signs)
 
 
+def _kv_sign(loads):
+    return None if loads.kv == 0 else "up" if loads.kv > 0 else "down"
+
+
 def _kv_detail(check, loads):
     direction = "yukarı" if loads.kv > 0 else "aşağı"
-    return replace(check, detail=f"kv {direction}: {check.detail}")
+    return replace(check, detail=f"kv {direction}: {check.detail}", kv_sign=_kv_sign(loads))
 
 
 def _evaluate_wall(structure, geometry, settings, loads, reporter, start, span, *, sizing):
@@ -305,7 +312,8 @@ def _evaluate_wall(structure, geometry, settings, loads, reporter, start, span, 
         governing, case_loads[key] = min(candidates, key=lambda item:
                                         min(_capacity_ratio(c) for c in item[0].checks.values()))
         if len(candidates) == 1:
-            analyses[key] = governing
+            sign = _kv_sign(case_loads[key]) if key.startswith("seismic") else None
+            analyses[key] = replace(governing, checks={n: replace(c, kv_sign=sign) for n, c in governing.checks.items()})                 if sign else governing
             continue
         checks = {}
         for name in governing.checks:
@@ -346,6 +354,8 @@ def _evaluate_wall(structure, geometry, settings, loads, reporter, start, span, 
                                             factors_used=list(case.factors_used))
                     if len(load_cases) > 1:
                         check = _kv_detail(check, signed_loads)
+                    elif seismic and _kv_sign(signed_loads):
+                        check = replace(check, kv_sign=_kv_sign(signed_loads))
                     if key not in glob or _capacity_ratio(check) < _capacity_ratio(glob[key]):
                         glob[key], slips[key] = check, slip
     return analyses, glob, slips, case_loads
@@ -356,7 +366,8 @@ def _failures(analyses, glob):
             + [f"{case}:global_stability" for case, check in glob.items() if not check.passed])
 
 
-def _finish(project, structure, geometry, settings, loads, kh, kv, evaluated, iterations, governing):
+def _finish(project, structure, geometry, settings, loads, kh, kv, evaluated, iterations, governing,
+            governing_ids=None, min_width=False):
     analyses, glob, slips, case_loads = evaluated
     code = layered_design_code(settings)
     pressures = {}
@@ -411,7 +422,8 @@ def _finish(project, structure, geometry, settings, loads, kh, kv, evaluated, it
         warnings.insert(0, f"B=1.2H'ye kadar uygun genişlik bulunamadı; sağlanamayan: {governing}")
     return StructureWallResult(
         geometry=geometry, passed=not fails, analyses=analyses, global_stability=glob,
-        governing=governing, assumptions=_assumptions(structure, settings, geometry.embedment),
+        governing=governing, governing_check_ids=fails if governing_ids is None else governing_ids,
+        minimum_width_governs=min_width, assumptions=_assumptions(structure, settings, geometry.embedment),
         factors_used=list(used.values()), kh=kh, kv=kv, iterations=iterations, warnings=warnings,
         slip_results=slips, pressures=pressures, result_hash=_fingerprint(project, structure, code.id),
     )
@@ -450,7 +462,9 @@ def size_structure(project: Project, structure_id: str, progress: ProgressFn | N
         raise GeoTekError("No feasible geometry for these proportions")
     geometry, evaluated, fails = best
     governing = (last_fail[0] if last_fail else "minimum width") if not fails else ", ".join(fails)
-    result = _finish(project, structure, geometry, settings, loads, kh, kv, evaluated, iterations, governing)
+    ids = fails if fails else last_fail[:1]
+    result = _finish(project, structure, geometry, settings, loads, kh, kv, evaluated, iterations, governing,
+                     governing_ids=ids, min_width=not fails and not last_fail)
     reporter.emit(1.0, "job.step.sizing")
     return result
 

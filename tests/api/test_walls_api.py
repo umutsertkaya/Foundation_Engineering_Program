@@ -86,6 +86,10 @@ def test_five_metre_wall_regression_size_then_check_and_persist(shell, tmp_path)
     wall = project.structure("wall")
     assert wall.geometry.width == pytest.approx(4.60)
     assert result["passed"] and result["governing"] == "seismic:bearing"
+    assert result["governing_check_ids"] == ["seismic:bearing"] and result["minimum_width_governs"] is False
+    assert all(r["kv_sign"] in ("up", "down") for r in result["checks"] if r["case"] == "seismic")
+    assert all(r["kv_sign"] is None for r in result["checks"] if r["case"] == "static")
+    assert {(r["case"], r["name"]) for r in result["checks"]} >= {("seismic", "bearing")}
     assert result["geometry"] == wall.geometry.model_dump(mode="json")
     assert {row["case"] for row in result["checks"]} == {"static", "seismic"}
     assert any(row["name"] == "global_stability" for row in result["checks"])
@@ -103,6 +107,8 @@ def test_five_metre_wall_regression_size_then_check_and_persist(shell, tmp_path)
     check = poll_job(shell, submit(shell, f"{PREFIX}/check"), timeout=60)
     assert check["status"] == "done" and check["result"]["passed"]
     assert check["result"]["iterations"] == 0
+    assert check["result"]["governing_check_ids"] == [] and check["result"]["governing"] == ""
+    assert all(r["kv_sign"] in ("up", "down") for r in check["result"]["checks"] if r["case"] == "seismic")
     from geotek.io.project_io import load_project
     path = tmp_path / "calculated.gtk"
     assert shell.post("/api/project/save", json={"path": str(path)}).status_code == 200
