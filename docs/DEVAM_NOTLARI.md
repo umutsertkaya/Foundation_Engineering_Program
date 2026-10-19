@@ -106,11 +106,11 @@ Git worktree'leri `C:\Users\thebi\Documents\geotek-wt\` altında; hepsinin işi 
 |---|---|---|
 | `feat/a1-core` | main'e birleşti | Worktree silinebilir (`git worktree remove`). |
 | `feat/a1-soil` | main'e birleşti (67408c9 + d2cd890: 17 rota IMPLEMENTED, openapi) | Worktree silinebilir. |
-| `feat/e2-layering` (e4b64fd) | 4. tur: SPT log boşlukları üst katmana, ilk katman z=0'a; `proposal_to_layers` eklendi. 805 unit testi yeşil. astra + Opus onayladı | **Kullanıcı formül onayı bekliyor** (özet sunuldu) → birleştir. Uyarı kodları (`layering.warning.*`) i18n'e eklenmeli; biçim `kod: anahtar=değer`, ayrıştırıcı `geotek/engine/layering/common.py`. |
+| `feat/e2-layering` | main'e birleşti (kullanıcı formül özetini onayladı, 2026-10-19) | Worktree silinebilir. Katmanlama rotaları bağlanırken uyarı kodları (`layering.warning.*`) i18n'e eklenmeli; biçim `kod: anahtar=değer`, ayrıştırıcı `geotek/engine/layering/common.py`. |
 | `feat/a1-jobs` | main'e birleşti (f2b4f53 + 7e211f2: 8 rota IMPLEMENTED, eksik `job.step.*` anahtarları, openapi). İş sınırı `MAX_ACTIVE_JOBS=8`, dolunca 429 `too_many_jobs`. 5 m duvar regresyonu korunuyor. main: 1312 pytest + 125 web testi yeşil | Worktree silinebilir. |
-| `feat/e3-parameters` (3378f9b) | `geotek/services/parameters.py` yazıldı; düzeltmeler: δ_b onayı φ' tabanına bağlı, ince dane kanıtı c'=0'ı engeller. 58 unit testi yeşil. astra + Opus onayladı | **Kullanıcı formül onayı bekliyor** (δ_b = atan(min(tan φ', 0.6)) kuralının birincil kaynağı doğrulanmadı) → birleştir. |
+| `feat/e3-parameters` (3378f9b) | `geotek/services/parameters.py` yazıldı; 58 unit testi yeşil; astra + Opus onayladı. Kullanıcı birleştirmeyi δ_b kuralı birincil kaynakla doğrulanana kadar bekletti | TBDY 2018 16.8.4.3 / Tablo 16.3 doğrulandı: tan δ ≤ 0.6 yalnız üst sınır (yerinde dökme beton – sıkıştırılmış taban zemini; prekast 0.4, beton–beton 0.5, beton–kaya 0.5). δ = φ' tabanı TBDY'de yok; kullanıcı kararı bekleniyor → etiket/kural düzelt → birleştir. |
 
-Kalan sıra: e2-layering ve e3-parameters (kullanıcı formül onayından sonra) → soil katmanlama/parametre rotaları (iş altyapısı artık main'de) → F4/F5.
+Kalan sıra: e3-parameters (δ_b kararı sonrası) → soil katmanlama/parametre rotaları (iş altyapısı ve E2 artık main'de) → F4/F5.
 
 Küçük açık noktalar:
 - Web mock `POST .../required-factors` projeyi hâlâ kirli işaretliyor (eski davranış korundu).
