@@ -53,6 +53,22 @@ def test_liquefaction_invalid_settings(shell, liquefaction_project, patch):
     assert not shell.app.state.session.dirty
 
 
+@pytest.mark.parametrize("collection", ["boreholes", "cpts"])
+@pytest.mark.parametrize("field", ["x", "y", "elevation"])
+@pytest.mark.parametrize("value", [float("nan"), float("inf"), float("-inf")])
+def test_nonfinite_investigation_coordinates_return_validation(
+    shell, liquefaction_project, collection, field, value,
+):
+    project = liquefaction_project
+    setattr(getattr(project.investigations, collection)[0], field, value)
+    shell.app.state.session.open_project(project)
+    response = shell.post(PATH, json=SETTINGS)
+    assert response.status_code == 422
+    assert response.json()["code"] == "validation"
+    assert not shell.app.state.jobs._jobs
+    assert not shell.app.state.session.dirty
+
+
 @pytest.mark.parametrize("method", ["bi2014", "youd2001"])
 def test_liquefaction_matches_existing_service_and_finite_json(shell, liquefaction_project, method):
     project = liquefaction_project

@@ -24,7 +24,11 @@ def _inputs(project, profile_id, use_active):
     data = {"profile": project.profile(profile_id).model_dump(mode="json"),
             "investigations": project.investigations.model_dump(mode="json"),
             "active_profile_id": active.id if active is not None else None}
-    return hashlib.sha256(json.dumps(data, sort_keys=True, allow_nan=False).encode()).hexdigest()
+    try:
+        encoded = json.dumps(data, sort_keys=True, allow_nan=False).encode()
+    except ValueError:
+        api_error(422, "validation", "Liquefaction inputs must contain finite numbers.")
+    return hashlib.sha256(encoded).hexdigest()
 
 
 def router() -> APIRouter:
@@ -40,50 +44,51 @@ def router() -> APIRouter:
         the server answers 409 ``no_soil_source``. An unknown ``profile_id`` answers 404
         ``not_found``.
         """
-        with session.lock:
-            project = session.require_project()
-            try:
-                profile = (project.profile(payload.profile_id) if payload.profile_id is not None
-                           else project.active_profile())
-            except KeyError:
-                api_error(404, "not_found", f"Profile not found: {payload.profile_id}")
-            if profile is None:
-                api_error(409, "no_soil_source", "Select a soil profile for liquefaction.")
-            # Use the engine's established scalar limits before submitting work. The
-            # DTO already enforces finite numbers; no coefficients are selected here.
-            if not (0 < payload.amax_g <= 2 and 4 <= payload.mw <= 9.5
-                    and payload.target_fs >= 1):
-                api_error(422, "validation", "Invalid acceleration, magnitude or target FS.")
-            if ((payload.gwt_seismic is not None and payload.gwt_seismic < 0)
-                    or (payload.default_fc is not None and not 0 <= payload.default_fc <= 100)
-                    or payload.ic_cutoff <= 0):
-                api_error(422, "validation", "Invalid groundwater, fines content or Ic cutoff.")
-            profile_id = profile.id
-            use_active = payload.profile_id is None
-            before = _inputs(project, profile_id, use_active)
-            snapshot = project.model_copy(deep=True)
-            snapshot.active_profile_id = profile_id
-            settings_data = payload.model_dump(exclude={"profile_id"})
-            settings = module1.LiquefactionSettings(**settings_data)
-
-        def work(progress):
-            return liquefaction_result(module1.run_liquefaction(snapshot, settings, progress=progress))
-
-        def complete(result):
+        with runner.submission():
             with session.lock:
-                if session.project is not project:
-                    discard_stale()
+                project = session.require_project()
                 try:
-                    unchanged = _inputs(project, profile_id, use_active) == before
+                    profile = (project.profile(payload.profile_id) if payload.profile_id is not None
+                               else project.active_profile())
                 except KeyError:
-                    unchanged = False
-                if not unchanged:
-                    discard_stale()
-                section = project.modules.setdefault("liquefaction", ModuleSection())
-                section.data.update(profile_id=profile_id, settings=settings_data,
-                                    input_hash=before, result=result.model_dump(mode="json"))
-                session.dirty = True
+                    api_error(404, "not_found", f"Profile not found: {payload.profile_id}")
+                if profile is None:
+                    api_error(409, "no_soil_source", "Select a soil profile for liquefaction.")
+                # Use the engine's established scalar limits before submitting work. The
+                # DTO already enforces finite numbers; no coefficients are selected here.
+                if not (0 < payload.amax_g <= 2 and 4 <= payload.mw <= 9.5
+                        and payload.target_fs >= 1):
+                    api_error(422, "validation", "Invalid acceleration, magnitude or target FS.")
+                if ((payload.gwt_seismic is not None and payload.gwt_seismic < 0)
+                        or (payload.default_fc is not None and not 0 <= payload.default_fc <= 100)
+                        or payload.ic_cutoff <= 0):
+                    api_error(422, "validation", "Invalid groundwater, fines content or Ic cutoff.")
+                profile_id = profile.id
+                use_active = payload.profile_id is None
+                before = _inputs(project, profile_id, use_active)
+                snapshot = project.model_copy(deep=True)
+                snapshot.active_profile_id = profile_id
+                settings_data = payload.model_dump(exclude={"profile_id"})
+                settings = module1.LiquefactionSettings(**settings_data)
 
-        return runner.submit("liquefaction", work, complete=complete)
+            def work(progress):
+                return liquefaction_result(module1.run_liquefaction(snapshot, settings, progress=progress))
+
+            def complete(result):
+                with session.lock:
+                    if session.project is not project:
+                        discard_stale()
+                    try:
+                        unchanged = _inputs(project, profile_id, use_active) == before
+                    except KeyError:
+                        unchanged = False
+                    if not unchanged:
+                        discard_stale()
+                    section = project.modules.setdefault("liquefaction", ModuleSection())
+                    section.data.update(profile_id=profile_id, settings=settings_data,
+                                        input_hash=before, result=result.model_dump(mode="json"))
+                    session.dirty = True
+
+            return runner.submit("liquefaction", work, complete=complete)
 
     return api

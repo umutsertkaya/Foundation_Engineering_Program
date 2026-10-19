@@ -68,6 +68,11 @@ unknown or expired ids return 404 `not_found`, independently of the open project
 Success is `done` in `JobStatus`. Cancellation is cooperative: DELETE requests it,
 and a running job becomes `cancelled` at its next progress callback or before writeback.
 Cancelling a terminal job leaves its state unchanged. Progress never decreases.
+The runner accepts at most eight queued + running jobs (`MAX_ACTIVE_JOBS = 8`),
+reserving capacity before copying project inputs. At capacity, submissions return
+HTTP 429 with ApiError code `too_many_jobs`. Completion (success, failure or running
+cancellation) frees capacity; cancelling a queued future frees it immediately and
+releases its snapshot. A running cancellation holds capacity until work exits.
 The default runner has two worker threads and retains at most 256 finished jobs for
 one hour; cleanup runs on completion and job operations. Jobs are not restart-persistent.
 

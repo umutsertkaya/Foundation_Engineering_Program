@@ -5,12 +5,12 @@ import threading
 import pytest
 from fastapi import HTTPException
 
-from geotek.api.jobs import JobRunner
+from geotek.api.jobs import MAX_ACTIVE_JOBS, JobRunner
 from geotek.api.schemas import LiquefactionResultDTO
 from geotek.core.errors import GeoTekError, MissingFactorsError
 from geotek.services.walls_advanced import MissingFactor
 
-from .job_helpers import poll_job
+from .job_helpers import poll_job, wall_project
 
 
 def empty_result():
@@ -151,3 +151,110 @@ def test_job_registry_is_application_local(shell, library_dir):
     assert poll_job(shell, id)["status"] == "done"
     with TestClient(create_app()) as other:
         assert other.get(f"/api/jobs/{id}").status_code == 404
+
+
+@pytest.mark.parametrize("path,payload", [
+    ("/api/m/walls/structures/wall/size", None),
+    ("/api/m/walls/structures/wall/check", None),
+    ("/api/m/sheet_pile/structures/sheet/design", None),
+    ("/api/m/liquefaction/run", {"method": "bi2014", "amax_g": 0.4, "mw": 7.5,
+                               "target_fs": 1.1, "c_fc": 0, "ic_cutoff": 2.6}),
+])
+def test_active_job_cap_rejects_before_snapshot(shell, monkeypatch, path, payload):
+    shell.app.state.jobs.shutdown()
+    runner = shell.app.state.jobs = JobRunner(max_workers=1)
+    project = wall_project(geometry=True)
+    shell.app.state.session.open_project(project)
+    entered, release = threading.Event(), threading.Event()
+
+    def blocked(progress):
+        entered.set()
+        assert release.wait(10)
+        return empty_result()
+
+    def unexpected_copy(*args, **kwargs):
+        pytest.fail("A full runner must reject before copying the project")
+
+    try:
+        runner.submit("liquefaction", blocked)
+        assert entered.wait(10)
+        for _ in range(MAX_ACTIVE_JOBS - 1):
+            runner.submit("liquefaction", blocked)
+        monkeypatch.setattr(type(project), "model_copy", unexpected_copy)
+        response = shell.post(path, **({"json": payload} if payload is not None else {}))
+        assert response.status_code == 429
+        assert response.json()["code"] == "too_many_jobs"
+        assert set(response.json()) == {"code", "message", "details", "missing_factors"}
+        assert len(runner._jobs) == MAX_ACTIVE_JOBS
+        with pytest.raises(HTTPException) as error:
+            runner.submit("liquefaction", blocked)
+        assert error.value.status_code == 429
+    finally:
+        release.set()
+
+
+@pytest.mark.parametrize("outcome", ["done", "failed", "queued_cancel", "running_cancel"])
+def test_active_slot_freed_after_completion_or_cancellation(shell, outcome):
+    shell.app.state.jobs.shutdown()
+    runner = shell.app.state.jobs = JobRunner(max_workers=1)
+    entered, first_release, release = (threading.Event() for _ in range(3))
+
+    def first_work(progress):
+        entered.set()
+        assert first_release.wait(10)
+        if outcome == "failed":
+            raise ValueError("Invalid calculation")
+        return empty_result()
+
+    def blocked(progress):
+        assert release.wait(10)
+        return empty_result()
+
+    try:
+        first = runner.submit("liquefaction", first_work).job_id
+        assert entered.wait(10)
+        queued = [runner.submit("liquefaction", blocked).job_id
+                  for _ in range(MAX_ACTIVE_JOBS - 1)]
+        if outcome == "queued_cancel":
+            assert shell.delete(f"/api/jobs/{queued[-1]}").json()["status"] == "cancelled"
+            assert runner._jobs[queued[-1]].work is None
+        else:
+            if outcome == "running_cancel":
+                shell.delete(f"/api/jobs/{first}")
+                # Cooperative cancellation must not free a still-running slot.
+                with pytest.raises(HTTPException) as error:
+                    runner.submit("liquefaction", blocked)
+                assert error.value.status_code == 429
+            first_release.set()
+            state = poll_job(shell, first)
+            assert state["status"] == ("cancelled" if outcome == "running_cancel" else outcome)
+            # Publication and the finally block use separate lock acquisitions.
+            runner._jobs[first].future.result(timeout=10)
+        replacement = runner.submit("liquefaction", blocked).job_id
+        assert runner.get(replacement).status == "queued"
+        with pytest.raises(HTTPException) as error:
+            runner.submit("liquefaction", blocked)
+        assert error.value.status_code == 429
+    finally:
+        first_release.set()
+        release.set()
+
+
+def test_failed_preflight_and_executor_submission_do_not_consume_capacity(shell, monkeypatch):
+    runner = shell.app.state.jobs
+    for _ in range(MAX_ACTIVE_JOBS + 1):
+        with pytest.raises(ValueError):
+            with runner.submission():
+                raise ValueError("Snapshot preparation failed")
+
+    def refused(*args, **kwargs):
+        raise RuntimeError("Executor refused submission")
+
+    with monkeypatch.context() as patch:
+        patch.setattr(runner._executor, "submit", refused)
+        for _ in range(MAX_ACTIVE_JOBS + 1):
+            with pytest.raises(RuntimeError, match="Executor refused"):
+                runner.submit("liquefaction", lambda progress: empty_result())
+    assert not runner._jobs
+    id = runner.submit("liquefaction", lambda progress: empty_result()).job_id
+    assert poll_job(shell, id)["status"] == "done"

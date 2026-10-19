@@ -2,7 +2,7 @@
 
 Successful jobs use the contract's ``done`` status. Completion callbacks run once,
 before publication, and must check their snapshot under the session lock. Callers
-must release that lock before submitting a job (lock order: runner, then session).
+must reserve submission capacity before taking that lock (runner, then session).
 """
 
 from __future__ import annotations
@@ -10,8 +10,9 @@ from __future__ import annotations
 import math
 import threading
 import time
-from collections.abc import Callable
+from collections.abc import Callable, Iterator
 from concurrent.futures import Future, ThreadPoolExecutor
+from contextlib import contextmanager
 from dataclasses import dataclass
 from typing import Annotated, NoReturn
 from uuid import uuid4
@@ -24,6 +25,7 @@ from geotek.api.session import api_error
 from geotek.core.errors import Cancelled, GeoTekError, MissingFactorsError
 
 Progress = Callable[[float, str], None]
+MAX_ACTIVE_JOBS = 8
 JobResult = (dto.WallResultDTO | dto.SheetPileResultDTO | dto.LiquefactionResultDTO
              | dto.LayeringProposal)
 
@@ -61,13 +63,15 @@ def raise_service_error(exc: Exception) -> NoReturn:
 @dataclass
 class _Job:
     state: dto.JobState
+    work: Callable[[Progress], JobResult] | None = None
+    complete: Callable[[JobResult], None] | None = None
     cancelled: bool = False
     future: Future | None = None
     finished_at: float | None = None
 
 
 class JobRunner:
-    """Run at most two analyses concurrently; retain only bounded finished history."""
+    """Bound queued/running analyses and finished history independently."""
 
     def __init__(self, *, max_workers: int = 2, retention_seconds: float = 3600,
                  max_finished: int = 256) -> None:
@@ -93,22 +97,38 @@ class JobRunner:
                 if index < excess or now - ended >= self._retention_seconds:
                     del self._jobs[id]
 
-    def submit(self, kind: dto.JobKind, work: Callable[[Progress], JobResult], *,
-               complete: Callable[[JobResult], None] | None = None) -> dto.JobRef:
-        """Submit snapshot-only work and an optional guarded result writeback."""
+    @contextmanager
+    def submission(self) -> Iterator[None]:
+        """Reserve capacity before copying inputs, until submit or preflight failure.
+
+        Holding the reentrant runner lock reserves the available slot against other
+        submissions. Acquire this before the session lock and keep it through submit.
+        """
         with self._lock:
             self.cleanup()
             if self._closed:
                 api_error(409, "engine_error", "Job runner is shutting down.")
+            if sum(job.finished_at is None for job in self._jobs.values()) >= MAX_ACTIVE_JOBS:
+                api_error(429, "too_many_jobs", "Too many active calculation jobs.")
+            yield
+
+    def submit(self, kind: dto.JobKind, work: Callable[[Progress], JobResult], *,
+               complete: Callable[[JobResult], None] | None = None) -> dto.JobRef:
+        """Submit snapshot-only work and an optional guarded result writeback."""
+        with self.submission():
             id = str(uuid4())
             job = _Job(dto.JobState(job_id=id, kind=kind, status="queued", progress=0,
-                                    message_key="job.step.queued", result=None, error=None))
+                                    message_key="job.step.queued", result=None, error=None),
+                       work=work, complete=complete)
             self._jobs[id] = job
-            job.future = self._executor.submit(self._run, job, work, complete)
+            try:
+                job.future = self._executor.submit(self._run, job)
+            except BaseException:
+                del self._jobs[id]
+                raise
             return dto.JobRef(job_id=id)
 
-    def _run(self, job: _Job, work: Callable[[Progress], JobResult],
-             complete: Callable[[JobResult], None] | None) -> None:
+    def _run(self, job: _Job) -> None:
         def progress(fraction: float, key: str) -> None:
             with self._lock:
                 if job.cancelled:
@@ -123,6 +143,8 @@ class JobRunner:
                 if job.cancelled:
                     raise Cancelled()
                 job.state.status = "running"
+                work, complete = job.work, job.complete
+            assert work is not None
             result = work(progress)
             with self._lock:
                 # Cancellation and writeback are serialized, including when a service
@@ -152,6 +174,7 @@ class JobRunner:
                 job.state.message_key = None
         finally:
             with self._lock:
+                job.work = job.complete = None
                 job.finished_at = time.monotonic()
                 self.cleanup()
 
@@ -173,6 +196,9 @@ class JobRunner:
             if job.state.status in {"queued", "running"}:
                 job.cancelled = True
                 if job.future is not None and job.future.cancel():
+                    # Executor queue entries survive Future.cancel(); keep their
+                    # large snapshot closures off the queue entry itself.
+                    job.work = job.complete = None
                     job.state.status = "cancelled"
                     job.state.message_key = None
                     job.finished_at = time.monotonic()
