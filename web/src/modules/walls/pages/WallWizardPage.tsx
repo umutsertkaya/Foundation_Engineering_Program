@@ -13,12 +13,10 @@ import {
   Select,
   SimpleGrid,
   Stack,
-  Stepper,
-  Table,
   Text,
   Title,
 } from "@mantine/core";
-import { IconArrowLeft, IconCheck, IconPlayerPlay, IconSparkles } from "@tabler/icons-react";
+import { IconArrowLeft, IconPlayerPlay, IconSparkles } from "@tabler/icons-react";
 import { useTranslation } from "react-i18next";
 import { useNavigate, useParams } from "react-router-dom";
 import {
@@ -40,12 +38,19 @@ import type {
 import { EmptyState } from "../../../shared/components/EmptyState";
 import { MissingFactorsForm } from "../../../shared/components/MissingFactorsForm";
 import { StructureSoilSection } from "../../../shared/structureSoil/StructureSoilSection";
-import { UtilisationCards } from "../../../shared/components/UtilisationCards";
 import { useJob } from "../../../shared/hooks/useJob";
 import { useUndoable } from "../../../shared/hooks/useUndoable";
 import { validateGwt, validateStructureSoil } from "../../../shared/soil/layerOps";
 import type { GwtCase } from "../../../shared/soil/zones";
 import { StructureSoilStep, type SoilStepValidation } from "../../../shared/structureSoil/StructureSoilStep";
+import { AnalysisOptionsForm } from "../components/AnalysisOptionsForm";
+import { PermeabilityEditor } from "../components/PermeabilityEditor";
+import { WallCheckCards, type RunMode } from "../components/WallCheckCards";
+import { WallCrossSection } from "../components/WallCrossSection";
+import { StaleNotice, WallResultView } from "../components/WallResultView";
+import { WizardStepBar } from "../components/WizardStepBar";
+import { ANALYSIS_DEFAULTS, applyOptions, layersWithoutPermeability, optionsFromSettings } from "../settings";
+import type { AnalysisOptions } from "../types";
 
 type GeometrySource = "draft" | "suggested" | "user";
 
@@ -97,7 +102,14 @@ export function WallWizardPage() {
   const [designCode, setDesignCode] = useState<string>("asd");
 
   const [lastResult, setLastResult] = useState<WallResultDTO | null>(null);
-  const [lastRunMode, setLastRunMode] = useState<"suggest" | "check">("suggest");
+  const [lastRunMode, setLastRunMode] = useState<RunMode>("suggest");
+  /** Mode of the run that produced `lastResult` (the cards depend on it, not on the next click). */
+  const [resultMode, setResultMode] = useState<RunMode>("suggest");
+  const [analysisOptions, setAnalysisOptions] = useState<AnalysisOptions>({ ...ANALYSIS_DEFAULTS });
+  const [passiveConfirmed, setPassiveConfirmed] = useState<boolean>(false);
+  /** Inputs signature at the moment the shown result was produced (see `inputSignature`). */
+  const [resultSig, setResultSig] = useState<string | null>(null);
+  const [captureSig, setCaptureSig] = useState<boolean>(false);
 
   const job = useJob<WallResultDTO>();
 
@@ -144,6 +156,8 @@ export function WallWizardPage() {
       setIncludeGlobal(wall.inputs?.include_global_stability ?? true);
       setAnalysisLevel(wall.analysis_level ?? "basic");
       setDesignCode(wall.settings?.design_code ?? "asd");
+      setAnalysisOptions(optionsFromSettings(wall.settings));
+      setPassiveConfirmed(false);
     } catch (err) {
       if (err instanceof ApiError) {
         setLoadError(err);
@@ -162,6 +176,8 @@ export function WallWizardPage() {
   useEffect(() => {
     if (job.status === "done" && job.result) {
       setLastResult(job.result);
+      setResultMode(lastRunMode);
+      setCaptureSig(true);
       if (lastRunMode === "suggest") {
         if ("stem_bottom" in job.result.geometry) {
           setCantileverGeo({ ...job.result.geometry });
@@ -206,6 +222,25 @@ export function WallWizardPage() {
     };
   }, [soilDraft.value, height]);
 
+  /** Everything a run depends on; a result is stale once this differs from the value it was produced with. */
+  const inputSignature = useMemo(
+    () =>
+      JSON.stringify([
+        wallType, height, embedment, backfillSlope,
+        wallType === "cantilever" ? cantileverGeo : gravityGeo,
+        surcharge, sds, rFactor, includeGlobal, analysisLevel, designCode, analysisOptions, soilDraft.value,
+      ]),
+    [wallType, height, embedment, backfillSlope, cantileverGeo, gravityGeo, surcharge, sds, rFactor, includeGlobal, analysisLevel, designCode, analysisOptions, soilDraft.value],
+  );
+
+  // Capture the signature after the finished run's own state updates (e.g. the proposed geometry) have rendered.
+  useEffect(() => {
+    if (captureSig) {
+      setResultSig(inputSignature);
+      setCaptureSig(false);
+    }
+  }, [captureSig, inputSignature]);
+
   const handleCantileverEdit = (field: keyof CantileverGeometry, val: string | number) => {
     const num = typeof val === "number" ? val : Number.parseFloat(val);
     if (!Number.isFinite(num)) return;
@@ -246,7 +281,7 @@ export function WallWizardPage() {
         include_global_stability: includeGlobal,
       },
       settings: {
-        ...structure.settings,
+        ...applyOptions(structure.settings, analysisOptions),
         design_code: designCode,
       },
     };
@@ -256,15 +291,17 @@ export function WallWizardPage() {
     return saved;
   };
 
+  const passiveUnconfirmed = () => analysisLevel === "advanced" && analysisOptions.use_passive && !passiveConfirmed;
+
   const handleSuggest = async () => {
-    if (!structure) return;
+    if (!structure || passiveUnconfirmed()) return;
     setLastRunMode("suggest");
     if (!(await syncStructureBeforeRun())) return;
     await job.start(() => size_wall(structure.id));
   };
 
   const handleCheck = async () => {
-    if (!structure) return;
+    if (!structure || passiveUnconfirmed()) return;
     setLastRunMode("check");
     if (!(await syncStructureBeforeRun())) return;
     await job.start(() => check_wall(structure.id));
@@ -315,6 +352,13 @@ export function WallWizardPage() {
   }
 
   const isRunning = job.status === "queued" || job.status === "running";
+  const jobIncomplete = job.status === "failed" || job.status === "cancelled" || isRunning;
+  const staleResult =
+    lastResult !== null && !captureSig && (jobIncomplete || (resultSig !== null && resultSig !== inputSignature));
+  const staleReason: "inputs" | "job" = jobIncomplete ? "job" : "inputs";
+  // The service writes "mühendis seçimi" for the passive reduction: it must be confirmed in this session first
+  // (at the basic level the service ignores passive resistance, so nothing needs confirming).
+  const passiveBlocked = analysisLevel === "advanced" && analysisOptions.use_passive && !passiveConfirmed;
   const missingFactors =
     job.error?.code === "missing_factors" || (job.error?.missing_factors.length ?? 0) > 0
       ? job.error?.missing_factors ?? []
@@ -361,14 +405,22 @@ export function WallWizardPage() {
         </Group>
       </Group>
 
-      <Stepper
-        size="xs"
+      <WizardStepBar
+        ariaLabel={t("walls.wizard.steps")}
+        labels={[
+          t("web.wizard.step.geometry"),
+          t("web.wizard.step.soil"),
+          t("web.wizard.step.loads"),
+          t("web.wizard.step.run"),
+          t("web.wizard.step.result"),
+        ]}
         active={activeStep}
-        onStepClick={setActiveStep}
-        allowNextStepsSelect
-      >
+        onSelect={setActiveStep}
+      />
+      <div>
         {/* Step 0: Tip/geometri */}
-        <Stepper.Step label={t("web.wizard.step.geometry")}>
+        {activeStep === 0 && (
+<>
           <Grid gutter="sm" mt="sm">
             <Grid.Col span={{ base: 12, md: 5 }}>
             <Card withBorder padding="sm" radius="sm">
@@ -526,10 +578,12 @@ export function WallWizardPage() {
             />
             </Grid.Col>
           </Grid>
-        </Stepper.Step>
+        </>
+)}
 
         {/* Step 1: Zemin */}
-        <Stepper.Step label={t("web.wizard.step.soil")}>
+        {activeStep === 1 && (
+<>
           <StructureSoilStep
             structure={structure}
             draft={soilDraft}
@@ -547,10 +601,18 @@ export function WallWizardPage() {
               void refreshStale();
             }}
           />
-        </Stepper.Step>
+          {soilDraft.value && (
+            <Stack gap="sm" mt="sm">
+              <PermeabilityEditor soil={soilDraft.value} onChange={(next) => soilDraft.set(next)} />
+            </Stack>
+          )}
+        </>
+)}
         {/* Step 2: Yükler/deprem */}
-        <Stepper.Step label={t("web.wizard.step.loads")}>
+        {activeStep === 2 && (
+<>
           <SimpleGrid cols={{ base: 1, md: 2 }} spacing="sm" mt="sm">
+            <Stack gap="sm">
             <Card withBorder padding="sm" radius="sm">
               <Stack gap="xs">
                 <Text fw={600} size="sm">
@@ -633,11 +695,24 @@ export function WallWizardPage() {
                 />
               </Stack>
             </Card>
+            </Stack>
+
+            <AnalysisOptionsForm
+              value={analysisOptions}
+              onChange={setAnalysisOptions}
+              level={analysisLevel}
+              missingPermeability={layersWithoutPermeability(soilDraft.value)}
+              passiveConfirmed={passiveConfirmed}
+              onConfirmPassive={setPassiveConfirmed}
+              onGoToSoil={() => setActiveStep(1)}
+            />
           </SimpleGrid>
-        </Stepper.Step>
+        </>
+)}
 
         {/* Step 3: Öner/Kontrol */}
-        <Stepper.Step label={t("web.wizard.step.run")}>
+        {activeStep === 3 && (
+<>
           <Stack gap="sm" mt="sm">
             <Card withBorder padding="sm" radius="sm">
               <Stack gap="sm">
@@ -656,7 +731,7 @@ export function WallWizardPage() {
                       size="xs"
                       color="blue"
                       loading={isRunning && lastRunMode === "suggest"}
-                      disabled={isRunning}
+                      disabled={isRunning || passiveBlocked}
                       leftSection={<IconSparkles size={14} />}
                       onClick={() => void handleSuggest()}
                     >
@@ -666,7 +741,7 @@ export function WallWizardPage() {
                       size="xs"
                       variant="default"
                       loading={isRunning && lastRunMode === "check"}
-                      disabled={isRunning}
+                      disabled={isRunning || passiveBlocked}
                       leftSection={<IconPlayerPlay size={14} />}
                       onClick={() => void handleCheck()}
                     >
@@ -778,7 +853,7 @@ export function WallWizardPage() {
                     <Group justify="space-between">
                       <Text size="xs" fw={500}>
                         {t("web.wizard.job_progress")}:{" "}
-                        {job.messageKey ? t(job.messageKey) : job.status}
+                        {job.messageKey ? t(job.messageKey) : t(`walls.job.status.${job.status}`)}
                       </Text>
                       <Text size="xs" ff="monospace">
                         {Math.round(job.progress * 100)}%
@@ -821,8 +896,27 @@ export function WallWizardPage() {
               </Alert>
             )}
 
+            {staleResult && <StaleNotice reason={staleReason} />}
+
+            {passiveBlocked && (
+              <Alert color="orange" variant="light" p="xs" data-testid="passive-run-blocked">
+                <Group justify="space-between" gap="xs">
+                  <Text size="xs">{t("walls.run.passive_unconfirmed", { value: analysisOptions.passive_reduction.toFixed(2) })}</Text>
+                  <Button size="compact-xs" variant="light" onClick={() => setActiveStep(2)}>
+                    {t("web.wizard.step.loads")}
+                  </Button>
+                </Group>
+              </Alert>
+            )}
+
+            {job.status === "cancelled" && (
+              <Alert color="gray" variant="light" p="xs" data-testid="job-cancelled">
+                <Text size="xs">{t("walls.run.cancelled")}</Text>
+              </Alert>
+            )}
+
             <SimpleGrid cols={{ base: 1, lg: 2 }} spacing="sm">
-              <StructureSoilSection
+              <WallCrossSection
                 wallType={wallType}
                 geometry={currentGeometry}
                 height={height}
@@ -830,32 +924,15 @@ export function WallWizardPage() {
                 soil={soilDraft.value}
                 gwtCase={gwtView}
               />
-              {lastResult && (
-                <Stack gap="xs">
-                  <Group justify="space-between">
-                    <Badge
-                      color={lastResult.passed ? "green" : "red"}
-                      variant="filled"
-                      leftSection={<IconCheck size={12} />}
-                    >
-                      {lastResult.passed ? t("ui.ok") : t("ui.not_ok")}
-                    </Badge>
-                    <Text size="xs" fw={600}>
-                      {t("ui.wall.governing", { label: lastResult.governing })}
-                    </Text>
-                  </Group>
-                  <UtilisationCards
-                    checks={lastResult.checks}
-                    governing={lastResult.governing}
-                  />
-                </Stack>
-              )}
+              {lastResult && <WallCheckCards result={lastResult} mode={resultMode} stale={staleResult} />}
             </SimpleGrid>
           </Stack>
-        </Stepper.Step>
+        </>
+)}
 
         {/* Step 4: Sonuç */}
-        <Stepper.Step label={t("web.wizard.step.result")}>
+        {activeStep === 4 && (
+<>
           <Stack gap="sm" mt="sm">
             {!lastResult ? (
               <EmptyState
@@ -868,105 +945,12 @@ export function WallWizardPage() {
                 }
               />
             ) : (
-              <>
-                <Alert color={lastResult.passed ? "green" : "red"} variant="light">
-                  <Group justify="space-between">
-                    <Text fw={700} size="sm">
-                      {lastResult.passed ? t("ui.ok") : t("ui.not_ok")} —{" "}
-                      {t("ui.wall.governing", { label: lastResult.governing })}
-                    </Text>
-                    {lastResult.kh !== null && lastResult.kv !== null && (
-                      <Text size="xs" ff="monospace">
-                        kh = {lastResult.kh.toFixed(3)} · kv = {lastResult.kv.toFixed(3)}
-                      </Text>
-                    )}
-                  </Group>
-                </Alert>
-
-                <SimpleGrid cols={{ base: 1, lg: 2 }} spacing="sm">
-                  <StructureSoilSection
-                    wallType={wallType}
-                    geometry={lastResult.geometry}
-                    height={height}
-                    backfillSlope={backfillSlope}
-                    soil={soilDraft.value}
-                    gwtCase={gwtView}
-                    title={t("web.wizard.result_section_title")}
-                  />
-                  <UtilisationCards
-                    checks={lastResult.checks}
-                    governing={lastResult.governing}
-                  />
-                </SimpleGrid>
-
-                <SimpleGrid cols={{ base: 1, md: 2 }} spacing="sm">
-                  <Card withBorder padding="sm" radius="sm">
-                    <Stack gap="xs">
-                      <Text fw={600} size="sm">
-                        {t("ui.wall.tab.factors")}
-                      </Text>
-                      <Table withTableBorder withColumnBorders verticalSpacing={3}>
-                        <Table.Thead>
-                          <Table.Tr>
-                            <Table.Th>{t("ui.col.path")}</Table.Th>
-                            <Table.Th>{t("ui.col.value")}</Table.Th>
-                            <Table.Th>{t("ui.col.status")}</Table.Th>
-                            <Table.Th>{t("ui.col.source")}</Table.Th>
-                          </Table.Tr>
-                        </Table.Thead>
-                        <Table.Tbody>
-                          {lastResult.factors_used.map((f) => (
-                            <Table.Tr key={f.path}>
-                              <Table.Td ff="monospace" fz="xs">
-                                {f.path}
-                              </Table.Td>
-                              <Table.Td ff="monospace" fw={600}>
-                                {f.value ?? t("web.common.none")}
-                              </Table.Td>
-                              <Table.Td>
-                                <Badge size="xs" variant="light">
-                                  {t(`fstatus.${f.status}`)}
-                                </Badge>
-                              </Table.Td>
-                              <Table.Td fz="xs">{f.source}</Table.Td>
-                            </Table.Tr>
-                          ))}
-                        </Table.Tbody>
-                      </Table>
-                    </Stack>
-                  </Card>
-
-                  <Card withBorder padding="sm" radius="sm">
-                    <Stack gap="xs">
-                      <Text fw={600} size="sm">
-                        {t("ui.wall.tab.notes")}
-                      </Text>
-                      <Table withTableBorder withColumnBorders verticalSpacing={3}>
-                        <Table.Thead>
-                          <Table.Tr>
-                            <Table.Th>{t("ui.col.assumption")}</Table.Th>
-                            <Table.Th>{t("ui.col.source")}</Table.Th>
-                          </Table.Tr>
-                        </Table.Thead>
-                        <Table.Tbody>
-                          {lastResult.assumptions.map((a, idx) => (
-                            <Table.Tr key={`assumption-${idx}`}>
-                              <Table.Td fz="xs">{a.text}</Table.Td>
-                              <Table.Td fz="xs" ff="monospace">
-                                {a.source}
-                              </Table.Td>
-                            </Table.Tr>
-                          ))}
-                        </Table.Tbody>
-                      </Table>
-                    </Stack>
-                  </Card>
-                </SimpleGrid>
-              </>
+              <WallResultView result={lastResult} mode={resultMode} stale={staleResult} staleReason={staleReason} />
             )}
           </Stack>
-        </Stepper.Step>
-      </Stepper>
+        </>
+)}
+      </div>
 
       <Group justify="space-between">
         <Button
