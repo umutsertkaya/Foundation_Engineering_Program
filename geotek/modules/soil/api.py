@@ -1,13 +1,15 @@
-"""Soil routes mounted at /api/m/soil; layering and parameter workflows remain stubs."""
+"""Soil routes mounted at /api/m/soil: investigations, layering, profiles and parameters."""
 
 from __future__ import annotations
 
-from typing import Annotated, NoReturn
+from dataclasses import asdict
+from datetime import datetime, timezone
+from typing import Annotated, get_args
 
 from fastapi import APIRouter, Depends, Request, Response
 
 from geotek.api import schemas as dto
-from geotek.api.common import ERROR_RESPONSES, multipart_body, not_implemented
+from geotek.api.common import ERROR_RESPONSES, multipart_body
 from geotek.api.session import Session, api_error, get_session
 from geotek.core.models.investigations import Borehole, BoreholeLayer, CPTSounding
 from geotek.core.models.parameters import DesignKey, ParameterSelection
@@ -24,6 +26,8 @@ from geotek.modules.soil.schemas import (
     SelectionUpdate,
     SPTProcessedDTO,
 )
+from geotek.services import parameters
+from geotek.services.layering import propose_layers
 from geotek.services.module1 import process_investigations
 
 SessionDep = Annotated[Session, Depends(get_session)]
@@ -54,6 +58,38 @@ def _profile(session: Session, profile: SoilProfile) -> SoilProfile:
         profile if item.id == profile.id else item for item in project.soil_profiles
     ])
     return profile
+
+
+def _propose(
+    session: Session, identifier: str, settings: LayeringSettings,
+) -> dto.LayeringProposal:
+    """Propose layers for one investigation without modifying the project."""
+    with session.lock:
+        project = session.require_project()
+        try:
+            proposal = propose_layers(project, identifier, settings)
+        except KeyError:
+            api_error(404, "not_found", f"Investigation {identifier!r} not found.")
+        except ValueError as exc:
+            api_error(422, "validation", str(exc))
+        return dto.LayeringProposal.model_validate(asdict(proposal))
+
+
+def _refreshed(session: Session, profile_id: str) -> tuple[SoilProfile, SoilProfile]:
+    """Return the stored profile and its refreshed copy; caller holds the lock."""
+    project = session.require_project()
+    profile = service.find(project.soil_profiles, profile_id)
+    try:
+        return profile, parameters.refresh_profile(project, profile_id)
+    except (KeyError, ValueError) as exc:
+        api_error(422, "validation", str(exc))
+
+
+def _with_layer(profile: SoilProfile, layer: SoilLayer) -> SoilProfile:
+    """Return the profile with one layer replaced by id."""
+    return profile.model_copy(update={
+        "layers": [layer if item.id == layer.id else item for item in profile.layers],
+    })
 
 
 def router() -> APIRouter:
@@ -197,17 +233,21 @@ def router() -> APIRouter:
         "/layering/cpt/{cpt_id}", response_model=dto.LayeringProposal,
         operation_id="propose_cpt_layers",
     )
-    def propose_cpt_layers(cpt_id: str, payload: LayeringSettings) -> NoReturn:
+    def propose_cpt_layers(
+        cpt_id: str, payload: LayeringSettings, session: SessionDep,
+    ) -> dto.LayeringProposal:
         """Return a synchronous, unapproved CPT layering proposal."""
-        not_implemented()
+        return _propose(session, cpt_id, payload)
 
     @api.post(
         "/layering/spt/{borehole_id}", response_model=dto.LayeringProposal,
         operation_id="propose_spt_layers",
     )
-    def propose_spt_layers(borehole_id: str, payload: LayeringSettings) -> NoReturn:
+    def propose_spt_layers(
+        borehole_id: str, payload: LayeringSettings, session: SessionDep,
+    ) -> dto.LayeringProposal:
         """Return a synchronous, unapproved SPT layering proposal."""
-        not_implemented()
+        return _propose(session, borehole_id, payload)
 
     @api.get("/profiles", response_model=list[ProfileSummary], operation_id="list_profiles")
     def list_profiles(session: SessionDep) -> list[ProfileSummary]:
@@ -299,34 +339,73 @@ def router() -> APIRouter:
         "/profiles/{id}/layers/{layer_id}/parameters", response_model=list[ParameterSelection],
         operation_id="list_layer_parameters",
     )
-    def list_layer_parameters(id: str, layer_id: str) -> NoReturn:
+    def list_layer_parameters(
+        id: str, layer_id: str, session: SessionDep,
+    ) -> list[ParameterSelection]:
         """Return parameter selections and candidates evaluated on the server."""
-        not_implemented()
+        with session.lock:
+            profile, refreshed = _refreshed(session, id)
+            service.find(profile.layers, layer_id)
+            layer = service.find(refreshed.layers, layer_id)
+            return [layer.selections[key] for key in get_args(DesignKey)]
 
     @api.put(
         "/profiles/{id}/layers/{layer_id}/parameters/{key}", response_model=ParameterSelection,
         operation_id="update_parameter_selection",
     )
     def update_parameter_selection(
-        id: str, layer_id: str, key: DesignKey, payload: SelectionUpdate,
-    ) -> NoReturn:
+        id: str, layer_id: str, key: DesignKey, payload: SelectionUpdate, session: SessionDep,
+    ) -> ParameterSelection:
         """Choose a method, statistic or manual value without approving it."""
-        not_implemented()
+        with session.lock:
+            profile, refreshed = _refreshed(session, id)
+            layer = service.find(profile.layers, layer_id)
+            chosen = service.find(refreshed.layers, layer_id).selections[key]
+            chosen = chosen.model_copy(update=payload.model_dump())
+            try:
+                resolved = parameters.resolve(chosen)
+            except ValueError as exc:
+                api_error(422, "validation", str(exc))
+            stored = layer.model_copy(update={
+                "selections": {**layer.selections, key: resolved},
+            })
+            _profile(session, _with_layer(profile, stored))
+            return resolved
 
     @api.post(
         "/profiles/{id}/layers/{layer_id}/parameters/approve", response_model=SoilLayer,
         operation_id="approve_parameters",
     )
-    def approve_parameters(id: str, layer_id: str, payload: ParameterApproval) -> NoReturn:
+    def approve_parameters(
+        id: str, layer_id: str, payload: ParameterApproval, session: SessionDep,
+    ) -> SoilLayer:
         """Approve only the explicitly listed design quantities."""
-        not_implemented()
+        with session.lock:
+            project = session.require_project()
+            profile = service.find(project.soil_profiles, id)
+            layer = service.find(profile.layers, layer_id)
+            missing = [key for key in payload.keys if key not in layer.selections]
+            if missing:
+                api_error(422, "validation", f"No selection to approve for {missing}.")
+            try:
+                points = parameters.layer_points(project, profile, layer)
+                approved = parameters.approve(
+                    layer, payload.keys, parameters.basis_hash(layer, points),
+                    datetime.now(timezone.utc),
+                )
+            except (KeyError, ValueError) as exc:
+                api_error(422, "validation", str(exc))
+            _profile(session, _with_layer(profile, approved))
+            return approved
 
     @api.post(
         "/profiles/{id}/parameters/suggest-all", response_model=SoilProfile,
         operation_id="suggest_all_parameters",
     )
-    def suggest_all_parameters(id: str) -> NoReturn:
+    def suggest_all_parameters(id: str, session: SessionDep) -> SoilProfile:
         """Fill parameter suggestions throughout a profile; approve nothing."""
-        not_implemented()
+        with session.lock:
+            _, refreshed = _refreshed(session, id)
+            return _profile(session, refreshed)
 
     return api

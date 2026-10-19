@@ -213,7 +213,7 @@ def test_delta_base_formula_in_degrees(phi, expected):
     assert result.reference.startswith("EN 1997-1 6.5.3(10): δd = φ'cv,d")
     assert "TBDY 2018 16.8.4.3, Tablo 16.3: tan δ ≤ 0.6" in result.reference
     # phi'_cv is not in the model, so the suggestion warns that phi' stands in for it.
-    assert result.warnings == [f"phi_cv_assumed_equal_phi_eff: phi_eff={phi:g}"]
+    assert result.warnings == [f"parameters.warning.phi_cv_assumed_equal_phi_eff: phi_eff={phi:g}"]
 
 
 def test_delta_provisional_phi_and_no_spt_unit_weight():

@@ -185,7 +185,8 @@ def evaluate_candidates(
                     reference=correlation.reference, source=correlation.source,
                     reliability=correlation.reliability, validity_ok=False,
                     inputs_used=dict(correlation.options),
-                    warnings=[f"Value not computable for these inputs: {exc}"],
+                    warnings=["parameters.warning.value_not_computable: reason="
+                              + json.dumps(str(exc), ensure_ascii=False)],
                 )
             result.inputs_used = {**inputs, **result.inputs_used}
             by_method.setdefault(result.method_id, []).append(result)
@@ -247,7 +248,7 @@ def suggest(
                 unit="deg", method_id="TBDY2018_delta_base", source="combined",
                 reference=DELTA_BASE_REFERENCE,
                 inputs_used={"phi_eff": phi},
-                warnings=[f"phi_cv_assumed_equal_phi_eff: phi_eff={phi:g}"],
+                warnings=[f"parameters.warning.phi_cv_assumed_equal_phi_eff: phi_eff={phi:g}"],
             )
     return None
 
