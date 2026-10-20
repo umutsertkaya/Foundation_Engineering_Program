@@ -163,7 +163,7 @@ def test_non_finite_investigation_value_is_stale_not_a_server_error(shell, open_
     assert refused.status_code == 409 and refused.json()["code"] == "stale_result"
 
 
-@pytest.mark.parametrize("name, stem", [("Çözüm Şişli", "z_m_i_li"), ("", "report"), ("  ", "report")])
+@pytest.mark.parametrize("name, stem", [("Çözüm Şişli", "Cozum_Sisli"), ("", "report"), ("  ", "report")])
 def test_file_name_is_ascii_for_turkish_or_empty_project_names(shell, open_project, name, stem):
     open_project.meta.name = name
     response = shell.post(f"{BASE}/docx", json={"sections": ["project"]})
@@ -180,3 +180,29 @@ def test_untranslated_warning_codes_are_localised_in_the_document(shell, open_pr
     assert "Tension zone" not in tr_text and "Default FC" not in tr_text
     assert "Laboratuvar FC değeri olmayan" in tr_text
     assert "Default FC = 5.0%" in _text(shell.post(f"{BASE}/docx", json={"sections": ["liquefaction"], "language": "en"}))
+
+
+def test_docx_shows_names_and_translated_identifiers(shell, open_project):
+    """System check 2026-10-20: no raw profile id, enum ids or factor status in the report."""
+    open_project.meta.name = "Proje\x01 A"  # control characters cannot go into docx XML
+    response = shell.post(f"{BASE}/docx", json={"language": "en"})
+    assert response.status_code == 200, response.text
+    text = _text(response)
+    profile = open_project.profile(open_project.active_profile_id)
+    doc = Document(io.BytesIO(response.content))
+    rows = {row.cells[0].text: row.cells[-1].text for t in doc.tables for row in t.rows}
+    assert rows["Soil profile"] == (profile.name or "(unnamed profile)")
+    assert "Boulanger & Idriss (2014)" in text
+    for raw in ("\nbi2014\n", "\ncantilever\n", "\nunverified\n", "\nbasic\n", "\nasd\n"):
+        assert raw not in f"\n{text}\n"
+    assert "Proje A" in text
+
+
+def test_liquefaction_without_soundings_is_refused(shell, two_layer_profile):
+    project = wall_project()
+    project.soil_profiles.append(two_layer_profile)
+    project.active_profile_id = two_layer_profile.id
+    shell.app.state.session.open_project(project)
+    response = shell.post("/api/m/liquefaction/run", json=LIQ)
+    assert response.status_code == 422
+    assert response.json()["details"]["message_code"] == "liquefaction_no_data"

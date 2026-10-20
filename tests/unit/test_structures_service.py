@@ -369,7 +369,7 @@ def test_hash_stable_excludes_result_hash_and_is_canonical():
     structure = project.structure("wall")
     result = check_structure(project, "wall")
     assert len(result.result_hash) == 64
-    payload = {"structure": structure.model_dump(mode="json", exclude={"result_hash", "result"}),
+    payload = {"structure": structure.model_dump(mode="json", exclude={"name", "result_hash", "result"}),
                "design_code": "asd", "design_overrides": {}}
     expected = hashlib.sha256(json.dumps(payload, sort_keys=True, ensure_ascii=False,
                                          separators=(",", ":"), allow_nan=False).encode("utf-8")).hexdigest()
@@ -380,6 +380,8 @@ def test_hash_stable_excludes_result_hash_and_is_canonical():
     assert check_structure(project, "wall").result_hash == expected
     reordered = Project.model_validate_json(project.model_dump_json())
     assert check_structure(reordered, "wall").result_hash == expected
+    structure.name = "Renamed"  # display name only
+    assert check_structure(project, "wall").result_hash == expected
     structure.inputs.surcharge = 11
     changed = check_structure(project, "wall").result_hash
     assert changed != expected

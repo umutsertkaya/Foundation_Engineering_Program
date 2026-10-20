@@ -367,6 +367,7 @@
   "error.not_implemented": "Bu işlem henüz sunucuda uygulanmadı (501).",
   "error.network": "Sunucuya bağlanılamadı. Ağ veya yerel servis durumunu kontrol edin.",
   "error.detail.profile_in_use": "Bu profili kullanan yapılar: {structures}. Önce onları silin veya zeminlerini elle girin.",
+  "error.detail.liquefaction_no_data": "Projede CPT veya SPT verisi yok; sıvılaşma analizinden önce sondaj verisi içe aktarın.",
   "error.detail.layer_su_missing": "{top}–{bottom} m katmanı: onaylı tasarım s_u değeri girilmemiş (drenajsız analiz için gerekli).",
   "error.detail.layer_su_not_positive": "{top}–{bottom} m katmanı: temel için pozitif tasarım s_u değeri gerekli.",
   "error.detail.layer_phi_missing": "{top}–{bottom} m katmanı: onaylı tasarım φ′ değeri girilmemiş.",

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import re
+import unicodedata
 
 from fastapi import APIRouter, Response
 
@@ -17,7 +18,9 @@ _STATUS = {"unknown_section": 404, "no_result": 409, "stale_result": 409, "empty
 
 
 def _filename(name: str) -> str:
-    stem = re.sub(r"[^A-Za-z0-9_-]+", "_", name).strip("_") or "report"
+    # Header values stay ASCII: fold accents (Ş -> S, ç -> c) instead of dropping the letters.
+    folded = unicodedata.normalize("NFKD", name.replace("ı", "i")).encode("ascii", "ignore").decode()
+    stem = re.sub(r"[^A-Za-z0-9_-]+", "_", folded).strip("_") or "report"
     return f"{stem}_report.docx"
 
 

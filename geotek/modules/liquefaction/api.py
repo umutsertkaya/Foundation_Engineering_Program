@@ -46,6 +46,10 @@ def router() -> APIRouter:
                     api_error(404, "not_found", f"Profile not found: {payload.profile_id}")
                 if profile is None:
                     api_error(409, "no_soil_source", "Select a soil profile for liquefaction.")
+                inv = project.investigations
+                if not inv.cpts and not any(b.spt for b in inv.boreholes):
+                    api_error(422, "validation", "Liquefaction needs CPT or SPT data.",
+                              message_code="liquefaction_no_data")
                 # Use the engine's established scalar limits before submitting work. The
                 # DTO already enforces finite numbers; no coefficients are selected here.
                 if not (0 < payload.amax_g <= 2 and 4 <= payload.mw <= 9.5

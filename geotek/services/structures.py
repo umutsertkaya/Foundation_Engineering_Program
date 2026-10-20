@@ -429,6 +429,7 @@ def _finish(project, structure, geometry, settings, loads, kh, kv, evaluated, it
         if structure.soil.is_stale(source):
             warnings.append("Yapıya kopyalanan zemin profili kaynak profile göre bayat; yapı kopyasıyla hesaplandı")
     assumptions = _assumptions(structure, settings, geometry.embedment)
+    assumptions += _approach_assumption(code, structure.approach, "wall.default_approach")
     if "load.LS.extreme_I" in used:
         assumptions.append(Assumption(text=LS_EXTREME_ASSUMPTION, source=LS_EXTREME_SOURCE, code="wall.ls_extreme_i"))
         warnings.append(LS_EXTREME_ASSUMPTION)
@@ -524,6 +525,15 @@ def _sheet_soil(structure, soil):
     return soil.model_copy(update={
         "gwt_front": GroundwaterCondition(depth_insitu=structure.front_water_depth),
     })
+
+
+def _approach_assumption(code, approach, code_key):
+    """Make the EC7-style default design approach visible instead of a silent choice."""
+    if approach or code.approach != "partial_factors" or len(code.approaches) < 2:
+        return []
+    key = next(iter(code.approaches))
+    return [Assumption(text=f"Tasarım yaklaşımı seçilmedi; {code.id} için ilk yaklaşım {key} kullanıldı",
+                       source=f"{code.id} approaches", code=code_key, params={"approach": key})]
 
 
 def _sheet_assumptions(structure):
@@ -683,6 +693,8 @@ def design_sheet_pile_structure(project: Project, structure_id: str, progress: P
     return StructureSheetPileDesign(cases=results, D_required=results[gd].D, M_design=results[gm].M_max,
                            anchor_force_design=max(anchors) if anchors else None,
                            governing_embedment=gd, governing_moment=gm, factors_used=used,
-                           assumptions=_sheet_assumptions(structure),
+                           assumptions=_approach_assumption(code, structure.approach,
+                                                            "sheet_pile.default_approach")
+                           + _sheet_assumptions(structure),
                            anchor_spacing_used=structure.anchor_spacing,
                            anchor_inclination_used=structure.anchor_inclination)

@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import io
 import math
+import re
 from dataclasses import dataclass
 from typing import Any, Literal
 
@@ -92,6 +93,14 @@ def _fmt(value: Any, digits: int = 2) -> str:
     return str(value)
 
 
+_XML_INVALID = re.compile("[\x00-\x08\x0b\x0c\x0e-\x1f\ufffe\uffff]")
+
+
+def _xml_safe(text: str) -> str:
+    """docx (XML) cannot hold control characters; drop them instead of failing the report."""
+    return _XML_INVALID.sub("", str(text))
+
+
 class _Writer:
     def __init__(self, language: str) -> None:
         from docx import Document
@@ -118,26 +127,47 @@ class _Writer:
             return message
         return self.coded(code, params, message)
 
+    def enum(self, prefix: str, value: Any) -> str:
+        """Translated label of a stored identifier (``<prefix>.<value>``); unknown ids stay raw."""
+        if value is None or value == "":
+            return DASH
+        return self.coded(f"{prefix}.{value}", {}, value)
+
+    def code_label(self, code_id: str) -> str:
+        from geotek.config.codes import list_design_codes
+
+        code = list_design_codes().get(code_id)
+        return code.label.get(self.lang) if code is not None else code_id
+
+    def assumption(self, item: dict) -> str:
+        code = item.get("code")
+        text = item["text"]
+        if code and not code.startswith("wall."):
+            text = self.coded(f"sheet_pile.assumption.{code}", item.get("params") or {}, text)
+        elif code:
+            text = self.coded(f"report.assumption.{code}", item.get("params") or {}, text)
+        return f"{text} ({item['source']})"
+
     def heading(self, text: str, level: int = 1) -> None:
-        self.doc.add_heading(text, level=level)
+        self.doc.add_heading(_xml_safe(text), level=level)
 
     def paragraph(self, text: str, *, bold: bool = False) -> None:
-        run = self.doc.add_paragraph().add_run(text)
+        run = self.doc.add_paragraph().add_run(_xml_safe(text))
         run.bold = bold
 
     def bullets(self, items: list[str]) -> None:
         for item in items:
-            self.doc.add_paragraph(item, style="List Bullet")
+            self.doc.add_paragraph(_xml_safe(item), style="List Bullet")
 
     def table(self, header: list[str], rows: list[list[str]]) -> None:
         table = self.doc.add_table(rows=1, cols=len(header))
         table.style = "Table Grid"
         for cell, text in zip(table.rows[0].cells, header):
             cell.text = ""
-            cell.paragraphs[0].add_run(text).bold = True
+            cell.paragraphs[0].add_run(_xml_safe(text)).bold = True
         for row in rows:
             for cell, text in zip(table.add_row().cells, row):
-                cell.text = text
+                cell.text = _xml_safe(text)
         self.doc.add_paragraph()
 
     def key_values(self, pairs: list[tuple[str, str]]) -> None:
@@ -156,8 +186,8 @@ def _project_section(w: _Writer, project: Project) -> None:
         (w.tr("report.project.number"), meta.number or DASH),
         (w.tr("report.project.engineer"), meta.engineer or DASH),
         (w.tr("report.project.date"), meta.date.isoformat()),
-        (w.tr("report.project.code"), meta.design_code),
-        (w.tr("report.project.level"), meta.analysis_level),
+        (w.tr("report.project.code"), w.code_label(meta.design_code)),
+        (w.tr("report.project.level"), w.enum("ui.level", meta.analysis_level)),
         (w.tr("report.project.pga"), _fmt(site.pga_g, 3)),
         (w.tr("report.project.mw"), _fmt(site.mw, 1)),
         (w.tr("report.project.sds"), _fmt(site.sds, 3)),
@@ -167,7 +197,7 @@ def _project_section(w: _Writer, project: Project) -> None:
 
 
 def _soil_section(w: _Writer, profile: SoilProfile) -> None:
-    w.heading(w.tr("report.section.soil", name=profile.name or profile.id))
+    w.heading(w.tr("report.section.soil", name=profile.name or w.tr("report.profile.unnamed")))
     gwt = profile.gwt
     w.key_values([
         (w.tr("report.soil.gwt_insitu"), _fmt(gwt.depth_insitu)),
@@ -249,13 +279,14 @@ def _evidence(w: _Writer, result: dict) -> None:
     assumptions = result.get("assumptions") or []
     if assumptions:
         w.heading(w.tr("report.assumptions"), 3)
-        w.bullets([f"{item['text']} ({item['source']})" for item in assumptions])
+        w.bullets([w.assumption(item) for item in assumptions])
     factors = result.get("factors_used") or []
     if factors:
         w.heading(w.tr("report.factors"), 3)
         w.table([w.tr("report.factor.path"), w.tr("report.col.value"),
                  w.tr("report.factor.source"), w.tr("report.factor.status")],
-                [[f["path"], _fmt(f["value"], 3), f["source"], f["status"]] for f in factors])
+                [[f["path"], _fmt(f["value"], 3), f["source"], w.enum("fstatus", f["status"])]
+                 for f in factors])
     items = result.get("warning_items") or []
     warnings = ([w.coded(f"sheet_pile.warning.{i['code']}", i.get("params") or {}, i.get("params", {}).get("text"))
                  for i in items] if items else [w.message(m) for m in result.get("warnings") or []])
@@ -281,11 +312,11 @@ def _wall_section(w: _Writer, structure, result: dict) -> None:
     w.heading(w.tr("report.section.wall", name=structure.name or structure.id))
     inputs = structure.inputs
     w.key_values([
-        (w.tr("report.wall.type"), structure.wall_type),
+        (w.tr("report.wall.type"), w.enum("walls.type", structure.wall_type)),
         (w.tr("report.wall.height"), _fmt(structure.height)),
         (w.tr("report.wall.slope"), _fmt(structure.backfill_slope, 1)),
         (w.tr("report.wall.surcharge"), _fmt(inputs.surcharge)),
-        (w.tr("report.wall.gwt_case"), inputs.gwt_case),
+        (w.tr("report.wall.gwt_case"), w.enum("web.soil.gwt", f"{inputs.gwt_case}_short")),
         (w.tr("report.wall.approach"), structure.approach or DASH),
         (w.tr("report.wall.kh"), _fmt(result.get("kh"), 3)),
         (w.tr("report.wall.kv"), _fmt(result.get("kv"), 3)),
@@ -312,7 +343,7 @@ def _wall_section(w: _Writer, structure, result: dict) -> None:
 def _sheet_pile_section(w: _Writer, structure, result: dict) -> None:
     w.heading(w.tr("report.section.sheet_pile", name=structure.name or structure.id))
     w.key_values([
-        (w.tr("report.pile.support"), structure.support),
+        (w.tr("report.pile.support"), w.enum("sheet_pile.support", structure.support)),
         (w.tr("report.pile.surcharge"), _fmt(structure.surcharge)),
         (w.tr("report.wall.approach"), structure.approach or DASH),
         (w.tr("report.pile.H"), _fmt(result.get("H"))),
@@ -330,12 +361,22 @@ def _sheet_pile_section(w: _Writer, structure, result: dict) -> None:
 
 
 
-def _liquefaction_section(w: _Writer, data: dict) -> None:
+def _profile_label(w: _Writer, project: Project, profile_id: str | None) -> str:
+    """Profile name for display; a vanished or unnamed profile never shows its raw id."""
+    if not profile_id:
+        return DASH
+    profile = next((p for p in project.soil_profiles if p.id == profile_id), None)
+    if profile is None:
+        return w.tr("report.profile.deleted")
+    return profile.name or w.tr("report.profile.unnamed")
+
+
+def _liquefaction_section(w: _Writer, project: Project, data: dict) -> None:
     w.heading(w.tr("report.section.liquefaction"))
     settings = data.get("settings") or {}
     w.key_values([
-        (w.tr("report.liq.profile"), str(data.get("profile_id") or DASH)),
-        (w.tr("report.liq.method"), str(settings.get("method") or DASH)),
+        (w.tr("report.liq.profile"), _profile_label(w, project, data.get("profile_id"))),
+        (w.tr("report.liq.method"), w.enum("liquefaction.method", settings.get("method"))),
         (w.tr("report.liq.amax"), _fmt(settings.get("amax_g"), 3)),
         (w.tr("report.liq.mw"), _fmt(settings.get("mw"), 1)),
         (w.tr("report.liq.target_fs"), _fmt(settings.get("target_fs"), 2)),
@@ -404,7 +445,7 @@ def build_docx(project: Project, section_ids: list[str] | None = None,
         elif info.kind == "classification":
             _classification_section(w, project)
         elif info.kind == "liquefaction":
-            _liquefaction_section(w, project.modules[LIQUEFACTION_SECTION].data)
+            _liquefaction_section(w, project, project.modules[LIQUEFACTION_SECTION].data)
         else:
             structure = project.structure(info.id.removeprefix("structure:"))
             if info.kind == "retaining_wall":
