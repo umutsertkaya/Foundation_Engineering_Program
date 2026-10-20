@@ -102,6 +102,12 @@ def save_project(project: Project, path: str | Path) -> Path:
     return path
 
 
+def _reject_constant(name: str):
+    raise ValueError(f"Project file contains the non-finite number {name}")
+
+
 def load_project(path: str | Path) -> Project:
-    data = json.loads(Path(path).read_text(encoding="utf-8"))
+    # save_project never writes NaN/Infinity; such a file was edited by hand and would break
+    # fingerprints and JSON responses later, so refuse it on load.
+    data = json.loads(Path(path).read_text(encoding="utf-8"), parse_constant=_reject_constant)
     return Project.model_validate(_migrate(data))

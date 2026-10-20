@@ -58,6 +58,7 @@ def router() -> APIRouter:
                 profile_id = profile.id
                 use_active = payload.profile_id is None
                 before = _inputs(project, profile_id, use_active)
+                generation = session.generation
                 snapshot = project.model_copy(deep=True)
                 snapshot.active_profile_id = profile_id
                 settings_data = payload.model_dump(exclude={"profile_id"})
@@ -68,8 +69,9 @@ def router() -> APIRouter:
 
             def complete(result):
                 with session.lock:
-                    if session.project is not project:
+                    if session.generation != generation or session.project is None:
                         discard_stale()
+                    project = session.project  # soil edits may have replaced the object
                     try:
                         unchanged = _inputs(project, profile_id, use_active) == before
                     except KeyError:

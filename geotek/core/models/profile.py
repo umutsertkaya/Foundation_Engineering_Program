@@ -150,8 +150,10 @@ class SoilProfile(BaseModel):
     def content_hash(self) -> str:
         """Fingerprint used to flag dependent analyses as out of date.
 
-        Only engineering content counts: correlation candidates (``params``) and selection
-        bookkeeping (``selections``) are excluded; approved values reach ``design``/``gamma``.
+        Only engineering content counts: the display ``name``, correlation candidates
+        (``params``) and selection bookkeeping (``selections``) are excluded; approved values
+        reach ``design``/``gamma``.
         """
-        data = self.model_dump_json(exclude={"layers": {"__all__": {"params", "selections"}}})
+        data = self.model_dump_json(exclude={"name": True,
+                                             "layers": {"__all__": {"params", "selections"}}})
         return hashlib.sha256(data.encode("utf-8")).hexdigest()[:16]

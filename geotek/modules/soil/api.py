@@ -158,16 +158,18 @@ def router() -> APIRouter:
         Multipart parsing does not require the optional python-multipart package.
         """
         with session.lock:
-            expected = session.require_project()
+            session.require_project()
+            generation = session.generation
         body = await service.read_upload(request)
         with session.lock:
             project = session.require_project()
-            if project is not expected:
+            if session.generation != generation:
                 api_error(409, "project_changed", "The open project changed during CSV upload.")
             parts = service.multipart(body, request.headers.get("content-type", ""),
                                       "sounding_id", cpt=True)
             sounding = service.import_csv(parts, cpt=True)
-            if session.require_project() is not project:
+            project = session.require_project()
+            if session.generation != generation:
                 api_error(409, "project_changed", "The open project changed during CSV import.")
             investigations = project.investigations.model_copy(update={
                 "cpts": [*project.investigations.cpts, sounding],
@@ -182,15 +184,17 @@ def router() -> APIRouter:
     async def import_spt(request: Request, session: SessionDep) -> Borehole:
         """Import multipart file and borehole_id form parts."""
         with session.lock:
-            expected = session.require_project()
+            session.require_project()
+            generation = session.generation
         body = await service.read_upload(request)
         with session.lock:
             project = session.require_project()
-            if project is not expected:
+            if session.generation != generation:
                 api_error(409, "project_changed", "The open project changed during CSV upload.")
             parts = service.multipart(body, request.headers.get("content-type", ""), "borehole_id")
             borehole = service.import_csv(parts, cpt=False)
-            if session.require_project() is not project:
+            project = session.require_project()
+            if session.generation != generation:
                 api_error(409, "project_changed", "The open project changed during CSV import.")
             investigations = project.investigations.model_copy(update={
                 "boreholes": [*project.investigations.boreholes, borehole],
@@ -399,6 +403,23 @@ def router() -> APIRouter:
         with session.lock:
             return service.find(session.require_project().soil_profiles, id)
 
+    def _keep_approvals_honest(layer, previous) -> dict:
+        """Approval only comes from the approve route: an edited value (or a forged flag) revokes it."""
+        data = layer.model_dump()
+
+        def value(item, key):
+            return getattr(item, key) if key in ("gamma", "gamma_sat") else getattr(item.design, key)
+
+        for key, selection in data["selections"].items():
+            if not selection.get("approved"):
+                continue
+            before = previous.selections.get(key)
+            if (before is None or not before.approved
+                    or before.basis_hash != selection.get("basis_hash")
+                    or value(layer, key) != value(previous, key)):
+                selection.update(approved=False, approved_at=None, basis_hash=None)
+        return data
+
     @api.put("/profiles/{id}", response_model=SoilProfile, operation_id="update_profile")
     def update_profile(id: str, payload: SoilProfile, session: SessionDep) -> SoilProfile:
         """Replace a profile; the body id must identify the path resource."""
@@ -415,7 +436,7 @@ def router() -> APIRouter:
                         != set(previous.source_ids or current.source_ids)):
                     layers.append(service.reset_interval(layer))
                 else:
-                    layers.append(layer.model_dump())
+                    layers.append(_keep_approvals_honest(layer, previous))
             updated = service.validate(SoilProfile, {**payload.model_dump(), "layers": layers})
             return _profile(session, updated)
 
@@ -427,6 +448,11 @@ def router() -> APIRouter:
         with session.lock:
             project = session.require_project()
             service.find(project.soil_profiles, id)
+            users = [s.name for s in project.structures if s.soil.source_profile_id == id]
+            if users:
+                # Their soil copies would point at a missing source and stay stale for good.
+                api_error(409, "profile_in_use", "Structures copy their soil from this profile.",
+                          message_code="profile_in_use", params={"structures": ", ".join(users)})
             profiles = [profile for profile in project.soil_profiles if profile.id != id]
             active = project.active_profile_id
             if active == id:
