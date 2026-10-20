@@ -170,6 +170,11 @@ def analyze_cpt(
             processed.qc, processed.fs, processed.sigma_v, processed.sigma_v_eff, ic_cutoff=ic_cutoff
         )
         fc_used = np.full(n, np.nan)
+        undefined = int((~np.isfinite(r["ic"])).sum())
+        if undefined:
+            warnings.append(
+                f"I_c undefined at {undefined} point(s) (net q_c <= 0, f_s <= 0 or invalid stress); marked invalid"
+            )
     else:
         if fc is None:
             fc_used = fines_content_from_ic(processed.Ic, c_fc)

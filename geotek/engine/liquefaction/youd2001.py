@@ -17,7 +17,7 @@ from geotek.engine.classification.robertson import soil_behaviour_index
 
 NAME = "youd2001"
 MAX_DEPTH = 30.0
-"""r_d is defined to 30 m in Youd et al. (2001) eq. 2; deeper points are not evaluated."""
+"""Evaluation limit with the Robertson & Wride (1998) r_d extension; deeper points are not evaluated."""
 SPT_NCS_LIMIT = 30.0
 """(N1)60cs >= 30: too dense to liquefy (Youd et al. 2001)."""
 CPT_QCS_LIMIT = 160.0
@@ -26,7 +26,11 @@ CQ_MAX = 1.7
 
 
 def stress_reduction(z, mw=None):
-    """r_d (Liao & Whitman 1986; Robertson & Wride 1998 below 23 m). NaN below 30 m."""
+    """r_d from Youd et al. (2001), Eq. (2), through 23 m.
+
+    The 23-30 m branch is the Robertson & Wride (1998) extension.
+    Depths greater than 30 m return NaN.
+    """
     z = np.asarray(z, dtype=float)
     return np.select(
         [z <= 9.15, z <= 23.0, z <= 30.0],
@@ -89,22 +93,25 @@ def spt_resistance(n60, n1_60, fc, sigma_v_eff_test):
 
 
 def _normalised(qc, fs, sigma_v, sigma_v_eff, n):
-    """Robertson & Wride Q and F for exponent n (n = 1 uses net q_c)."""
+    """Q and F from Youd et al. (2001), Eqs. (15)-(17), using net q_c."""
     with np.errstate(divide="ignore", invalid="ignore"):
         net = qc - sigma_v
-        F = np.where(net > 0, fs / net * 100.0, np.nan)
+        # Undefined for net q_c <= 0 or fs <= 0 (log10 of F would be -inf or NaN): NaN -> INVALID.
+        F = np.where((net > 0) & (fs > 0), fs / net * 100.0, np.nan)
         Q = np.where(
             n == 1.0,
             net / sigma_v_eff,
-            (qc / PA) * (PA / sigma_v_eff) ** n,
+            (net / PA) * (PA / sigma_v_eff) ** n,
         )
         Q = np.where((Q > 0) & (sigma_v_eff > 0), Q, np.nan)
     return Q, F
 
 
 def robertson_wride_ic(qc, fs, sigma_v, sigma_v_eff):
-    """Iterative I_c of Robertson & Wride (1998): n = 1 (clay), 0.5 (sand) or 0.75 (between).
+    """Iterative I_c following Youd et al. (2001), Eqs. (14)-(17).
 
+    Uses n = 1 (clay), 0.5 (sand), or 0.7 (intermediate), rather than
+    the intermediate exponent 0.75 of Robertson & Wride (1998).
     Returns (Ic, n, F).
     """
     qc, fs = np.asarray(qc, dtype=float), np.asarray(fs, dtype=float)
@@ -112,23 +119,24 @@ def robertson_wride_ic(qc, fs, sigma_v, sigma_v_eff):
     ic1 = soil_behaviour_index(Q1, F)
     Q05, _ = _normalised(qc, fs, sigma_v, sigma_v_eff, 0.5)
     ic05 = soil_behaviour_index(Q05, F)
-    Q075, _ = _normalised(qc, fs, sigma_v, sigma_v_eff, 0.75)
-    ic075 = soil_behaviour_index(Q075, F)
-    n = np.where(ic1 > 2.6, 1.0, np.where(ic05 <= 2.6, 0.5, 0.75))
-    ic = np.select([n == 1.0, n == 0.5], [ic1, ic05], default=ic075)
+    Q07, _ = _normalised(qc, fs, sigma_v, sigma_v_eff, 0.7)
+    ic07 = soil_behaviour_index(Q07, F)
+    n = np.where(ic1 > 2.6, 1.0, np.where(ic05 <= 2.6, 0.5, 0.7))
+    ic = np.select([n == 1.0, n == 0.5], [ic1, ic05], default=ic07)
     return ic, n, F
 
 
 def kc_factor(ic, F=None):
-    """Grain characteristic correction K_c (Robertson & Wride 1998).
+    """Grain characteristic correction K_c from Youd et al. (2001), Eq. (19).
 
-    K_c = 1 for I_c <= 1.64 and also for 1.64 < I_c < 2.36 with F < 0.5 % (Youd et al. 2001).
+    Depends only on I_c. F is accepted for call compatibility and ignored;
+    the low-friction-ratio shortcut of Robertson & Wride (1998) is not used.
+    (R&W 1998 sets K_c = 1 for 1.64 < I_c < 2.36 with F < 0.5 %; it is absent from
+    Youd et al. 2001 Eq. 19. The surrounding PDF text was not verified.)
     """
     ic = np.asarray(ic, dtype=float)
     poly = -0.403 * ic**4 + 5.581 * ic**3 - 21.63 * ic**2 + 33.75 * ic - 17.88
     kc = np.where(ic <= 1.64, 1.0, poly)
-    if F is not None:
-        kc = np.where((ic > 1.64) & (ic < 2.36) & (np.asarray(F) < 0.5), 1.0, kc)
     return kc
 
 
