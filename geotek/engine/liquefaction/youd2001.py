@@ -96,7 +96,8 @@ def _normalised(qc, fs, sigma_v, sigma_v_eff, n):
     """Q and F from Youd et al. (2001), Eqs. (15)-(17), using net q_c."""
     with np.errstate(divide="ignore", invalid="ignore"):
         net = qc - sigma_v
-        F = np.where(net > 0, fs / net * 100.0, np.nan)
+        # Undefined for net q_c <= 0 or fs <= 0 (log10 of F would be -inf or NaN): NaN -> INVALID.
+        F = np.where((net > 0) & (fs > 0), fs / net * 100.0, np.nan)
         Q = np.where(
             n == 1.0,
             net / sigma_v_eff,
@@ -130,6 +131,8 @@ def kc_factor(ic, F=None):
 
     Depends only on I_c. F is accepted for call compatibility and ignored;
     the low-friction-ratio shortcut of Robertson & Wride (1998) is not used.
+    (R&W 1998 sets K_c = 1 for 1.64 < I_c < 2.36 with F < 0.5 %; it is absent from
+    Youd et al. 2001 Eq. 19. The surrounding PDF text was not verified.)
     """
     ic = np.asarray(ic, dtype=float)
     poly = -0.403 * ic**4 + 5.581 * ic**3 - 21.63 * ic**2 + 33.75 * ic - 17.88
