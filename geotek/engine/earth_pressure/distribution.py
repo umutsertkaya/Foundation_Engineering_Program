@@ -247,7 +247,9 @@ def lateral_pressure(
         z, seg = _insert_crossings(z, seg, she)
         K, vertical, u, she = evaluate(z, seg)
         if np.any(she < -1e-9):
-            warnings.append(f"Tension zone to {float(z[she < -1e-9].max() - top):.2f} m set to zero (tension crack)")
+            # Zone ends at the node following the deepest negative one (crossings are inserted as nodes).
+            ends = np.minimum(np.flatnonzero(she < -1e-9) + 1, z.size - 1)
+            warnings.append(f"Tension zone to {float(z[ends].max() - top):.2f} m set to zero (tension crack)")
         she = np.maximum(she, 0.0)
         if min_efp is not None:
             z, seg = _insert_crossings(z, seg, she - min_efp * (z - top))

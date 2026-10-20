@@ -58,7 +58,7 @@ def test_sheet_pile_real_pressure_warning_is_translatable():
     reference = service.design_sheet_pile_structure(project, "sheet")
     result = sheet_pile_result("sheet", reference)
     assert result.warnings == reference.warnings
-    assert any(w.code == "sheet_pile.tension_crack" and w.params["depth"] >= 0
+    assert any(w.code == "sheet_pile.tension_crack" and w.params["depth"] > 0
                for w in result.warning_items)
     assert all(w.code != "generic" for w in result.warning_items)
 

@@ -24,7 +24,7 @@ Compact veya devir öncesi yalnız bu üç satır güncellenir (kural: [WORKFLOW
 - T7b acik: OL/OH/Pt motorda yok (sayfada belirtildi); mock siniflandirma demo verisidir.
 
 - T9 biten (2026-10-20, dal feat/t9-pile-fix): palplanş web düzeltmeleri B1-B9, B11, Y1, Y3, Y5, Y7; B6 çevrilebilir uyarı/varsayım kodu sözleşmesi (warning_items, assumption code/params, anchor_force_per_anchor); modele depth_increase, anchor_spacing, anchor_inclination, front_water_depth (varsayılanda sonuçlar aynı; formül/katsayı yok). Test: pytest 1775 geçti 1 atlandı; web 289/289, typecheck, build, gen_code_map --check 0. Salt okuma Opus incelemesi: motor değişmedi, varsayılanlar aynı.
-- T9 açık: (a) eski palplanş yapılar yeni alanlar yüzünden bir kez 'stale' görünür (parmak izi); (b) motor uyarısı 'Tension zone to X m' X'i hep 0.00 yazıyor (distribution.py:250, mesaj hatası, hesap değil); (c) Y2/Y4 kapsam dışı, karar bekliyor; (d) gerçek API ile görsel/uçtan uca kabul Q1'de.
+- T9 açık: (a) eski palplanş yapılar yeni alanlar parmak izini değiştirdiği için bir kez 'stale' görünür; kabul edildi (2026-10-20); (b) 'Tension zone to X m' uyarısı artık gerçek derinliği yazar (yalnız mesaj değeri, hesap aynı; pytest 1776 geçti, 1 atlandı); (c) Y2/Y4 Dalga 3 sonrası, karar bekliyor: [T9b-PILE-SOIL](tasks/T9b-PILE-SOIL.md); (d) gerçek API ile görsel/uçtan uca kabul Q1'de.
 
 ## Koddan doğrulanan durum
 
