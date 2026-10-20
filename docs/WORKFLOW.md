@@ -15,6 +15,12 @@ Her bağımsız görev ayrı konudur. Aynı klasörde aynı anda tek yazıcı ç
 konuları `Documents/geotek-wt/<kart>` altında ayrı Git worktree kullanır.
 Claude modelleri `ai-orchestrator` üzerinden çağrılmaz (sunucu reddeder); Claude Code `Agent` aracı kullanılır.
 
+## Kipler
+
+`docs/MODE`: `device` = yukarıdaki tablo olduğu gibi (MCP + Codex/Antigravity). `cloud` = MCP yok, Codex/Antigravity
+çağrılmaz; tüm uygulama ve incelemeler Claude `Agent` alt ajanlarıyla yapılır (S0–S1 Haiku/Sonnet, S2–S3 Sonnet/Opus,
+S4 iki bağımsız Claude incelemesi). Geçiş: `python3 tools/set_mode.py cloud|device`; ayrıntı [CLOUD_MODE.md](CLOUD_MODE.md).
+
 ## Model ve efor yönlendirmesi
 
 Önce `orchestrator_status` / `list_engine_capabilities` ile envanteri doğrula (model çağırmaz).

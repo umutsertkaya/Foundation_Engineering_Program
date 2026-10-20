@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "geotek-codemap": {
+      "command": "node",
+      "args": ["tools/run_python.cjs", "tools/codemap_mcp.py"]
+    },
+    "ai-orchestrator": {
+      "command": "node",
+      "args": ["C:\\Users\\thebi\\.ai-orchestrator-mcp\\index.js"]
+    }
+  }
+}

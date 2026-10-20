@@ -3,6 +3,7 @@
 Bu depo yerel geoteknik uygulamasıdır: Python hesap motoru + FastAPI + React/TypeScript.
 Bu dosya Claude, Codex (`AGENTS.md`) ve Antigravity (`GEMINI.md`) için ortak kuraldır.
 Orkestrasyon, model yönlendirme ve compact kuralı: [docs/WORKFLOW.md](docs/WORKFLOW.md).
+**Kip:** `docs/MODE` (`device` veya `cloud`). Bulut kipinde MCP yoktur; kurallar ve geçiş: [docs/CLOUD_MODE.md](docs/CLOUD_MODE.md).
 
 ## Oturum başlangıcı
 
@@ -51,7 +52,7 @@ Kodda yer ararken dosyaları baştan okuma; `geotek-codemap` MCP araçlarını k
    Varsayılan 40 satır / 3000 karakter; üst sınır 80 / 5000. Gerekirse sonraki aralığı iste.
 3. Değişiklik etkisi için `code_map_impact`; ayrıntıda `code_map_file` / `code_map_route`.
 
-MCP yoksa `rg` ile isim/rota bulup dar satır aralığı oku. `docs/CODE_MAP.md` büyük, üretilmiş
+MCP yoksa (bulut kipi dahil) `rg` ile isim/rota bulup dar satır aralığı oku. `docs/CODE_MAP.md` büyük, üretilmiş
 insan başvurusudur; okunmaz. Harita statik çıkarımdır; çalışma zamanı izi veya test kanıtı değildir.
 
 **Güncel tutma:** kaynak dosya ekleyen, silen veya simge imzası değiştiren her yazıcı teslimden önce
