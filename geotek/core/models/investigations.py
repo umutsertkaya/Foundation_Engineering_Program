@@ -131,6 +131,9 @@ class CPTSounding(BaseModel):
         for name in ("qc", "fs") + (("u2",) if self.u2 is not None else ()):
             if len(getattr(self, name)) != n:
                 raise ValueError(f"CPT column {name!r} length differs from depth")
+        columns = ("depth", "qc", "fs") + (("u2",) if self.u2 is not None else ())
+        if not all(np.isfinite(getattr(self, name)).all() for name in columns):
+            raise ValueError("CPT columns must contain only finite numbers")
         if np.any(np.diff(self.depth) <= 0):
             raise ValueError("CPT depths must be strictly increasing")
         if self.depth[0] < 0:

@@ -173,6 +173,8 @@ class DesignCode(BaseModel):
 
 def _validate_override(code: DesignCode, path: str, value: float) -> None:
     parts = path.split(".")
+    if code.approach == "partial_factors" and len(parts) < 3:
+        raise GeoTekError(f"Design code {code.id!r} has no factor {path!r}")
     kind = parts[1] if code.approach == "partial_factors" else parts[0]
     if code.approach == "lrfd" and kind == "resistance":
         ok, rule = 0 < value <= 1.0, "0 < phi <= 1"

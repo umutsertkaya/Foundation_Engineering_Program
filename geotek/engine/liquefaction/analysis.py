@@ -43,6 +43,8 @@ def _check_inputs(method: str, amax_g: float, mw: float, target_fs: float):
 
 def _per_point(value, n: int, name: str) -> np.ndarray:
     arr = np.broadcast_to(np.asarray(value, dtype=float), (n,)).copy()
+    if not np.isfinite(arr).all():
+        raise ValueError(f"{name} must be finite at every point")
     if np.any(arr < 0):
         raise ValueError(f"{name} must be non-negative")
     return arr
@@ -207,6 +209,8 @@ def analyze_cpt(
     rd, csr, msf, ks, crr, fs, max_depth = _demand_and_capacity(
         method, "CPT", depth, sv, se, r["resistance"], r["crr75"], mw, amax_g, youd_f, msf_variant
     )
+    # A user FC must not give an FS where the CPT itself is undefined (q_t <= sigma_v0, f_s <= 0).
+    fs = np.where(np.isfinite(r["ic"]), fs, np.nan)
     status, fs = assign_status(
         depth=depth, gwt_depth=gwt, sigma_v_eff=se, fs=fs, target_fs=target_fs,
         max_depth=max_depth, clay_like=r["clay_like"], dense=r["dense"], exclude=exclude,

@@ -136,6 +136,9 @@ def bearing_capacity(
             m = (2 + ratio) / (1 + ratio)
             f["sc"] = 1 + ratio / 5.14
             f["dc"] = 1 + f["dc_prime"]
+            if H > 0 and m * H >= area * c * 5.14:
+                # i_c <= 0 (or s_u = 0 under H) has no physical capacity; refuse like Hansen above.
+                raise GeoTekError("Horizontal load exceeds base adhesion (m H >= A' s_u N_c)")
             f["ic"] = 1 - m * H / (area * c * 5.14) if H > 0 else 1.0
             q_ult = 5.14 * c * f["sc"] * f["dc"] * f["ic"] + q
 

@@ -46,11 +46,11 @@ def stress_exponent(Ic, sigma_v_eff):
 def normalise_iterative(qt, fs, sigma_v, sigma_v_eff, *, tol: float = 1e-3, max_iter: int = 50):
     """Solve Q_tn, n and I_c simultaneously (Robertson 2009).
 
-    Returns (Qtn, Fr, Ic, n, converged) as arrays; invalid points (q_t <= sigma_v0 or
-    sigma'_v0 <= 0) are NaN and count as converged.
+    Returns (Qtn, Fr, Ic, n, converged) as arrays; invalid points (q_t <= sigma_v0,
+    sigma'_v0 <= 0 or f_s <= 0, where I_c is undefined) are NaN and count as converged.
     """
     net = qt - sigma_v
-    valid = (net > 0) & (sigma_v_eff > 0)
+    valid = (net > 0) & (sigma_v_eff > 0) & (fs > 0)
     net_v = np.where(valid, net, np.nan)
     s_eff = np.where(valid, sigma_v_eff, np.nan)
     Fr = fs / net_v * 100.0
@@ -158,6 +158,20 @@ def process_cpt(
         if gwt is None:
             raise ValueError("Groundwater depth is required when no soil profile is given")
         gamma = unit_weight_robertson_cabal(qt, fs)
+        missing = ~np.isfinite(gamma)
+        if missing.all():
+            raise ValueError(f"CPT {sounding.id!r}: unit weight cannot be estimated (q_t <= 0 throughout)")
+        if missing.any():
+            # q_t <= 0 leaves gamma undefined; integrating NaN would void every deeper stress, so
+            # take the nearest estimated value and report it as a visible assumption.
+            good = np.flatnonzero(~missing)
+            nearest = good[np.abs(depth[good][None, :] - depth[missing][:, None]).argmin(axis=1)]
+            gamma = gamma.copy()
+            gamma[missing] = gamma[nearest]
+            warnings.append(format_warning(
+                "insitu.warning.cpt_gamma_nearest", count=int(missing.sum()),
+                depths=", ".join(f"{float(z):g}" for z in depth[missing]),
+            ))
         sigma_v, u0, sigma_eff = stresses_from_unit_weight(depth, gamma, gwt)
 
     with np.errstate(divide="ignore", invalid="ignore"):
