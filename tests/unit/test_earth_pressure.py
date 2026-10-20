@@ -122,12 +122,21 @@ def test_layer_boundary_jump():
     assert sorted(at3) == pytest.approx(sorted([ka1 * 54, ka2 * 54]))
 
 
+def test_tension_crack_warning_reports_depth_across_layer_boundary():
+    p = _profile([(0, 3, 20, 30, 18, 18, None), (3, 10, 20, 30, 18, 18, None)])
+    d = lateral_pressure(p, 8.0)
+    zc = 2 * 30 / (18 * math.sqrt(rankine_ka(20)))
+    assert zc > 3.0
+    assert d.warnings == [f"Tension zone to {zc:.2f} m set to zero (tension crack)"]
+
+
 def test_cohesion_tension_crack_and_min_efp():
     p = _profile([(0, 10, 20, 10, 18, 18, None)])
     d = lateral_pressure(p, 6.0)
     ka = rankine_ka(20)
     zc = 2 * 10 / (18 * math.sqrt(ka))
     assert any("Tension" in w for w in d.warnings)
+    assert d.warnings == [f"Tension zone to {zc:.2f} m set to zero (tension crack)"]
     assert np.all(d.sigma_h_eff[d.z < zc - 0.05] == 0)
     expected = 0.5 * (ka * 18 * 6 - 2 * 10 * math.sqrt(ka)) * (6 - zc)
     assert d.force == pytest.approx(expected, rel=2e-3)
