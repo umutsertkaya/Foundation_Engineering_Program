@@ -1,6 +1,6 @@
 # F5-PILE — palplanş oluşturma, tasarım ve sonuç
 
-Önkoşul: `CLAUDE.md`, `docs/STATUS.md`, `docs/WORKFLOW.md`. Görev henüz uygulanmadı.
+Durum: ilk teslim tamam (`998e937`, `76d2b4d`); bağımsız inceleme, gerçek API ve görsel kabul Q1'de. Yeniden başlatma.
 İki küçük teslim yap: (1) yapı oluşturma/girdi, (2) job takibi/sonuç. Her birini ayrı doğrula.
 
 ## Oku

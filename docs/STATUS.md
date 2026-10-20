@@ -1,8 +1,16 @@
 # GeoTek — güncel durum ve tek iş sırası
 
-Yönetim/harita denetimi: 2026-10-20 (İstanbul). Son gözlenen ürün commit'i: `main`, `998e937`.
+Yönetim/harita denetimi: 2026-10-20 (İstanbul). Son ürün commit'i `76d2b4d`; yönerge tabanı `ec89486` (`main`).
 Bu sayfa **tek güncel durum kaynağıdır**. Eski faz listeleri tarihsel kayıttır.
 Test kanıtları: [denetim raporu](audit/2026-10-19-sadelestirme.md).
+
+## Aktif iş
+
+Compact veya devir öncesi yalnız bu üç satır güncellenir (kural: [WORKFLOW](WORKFLOW.md#bağlam-ve-compact-kuralı)).
+
+- Biten: 2026-10-20 orkestrasyon düzeltmesi: ai-orchestrator 2.1.0, codemap Codex/Antigravity kaydı, yönergeler yenilendi.
+- Sıradaki: cihaz oturumunda canlı doğrulama (`orchestrator_status`, `.mcp.json` + `.claude/settings.json`, worktree prune), ardından sıfırdan plan.
+- Açık karar: yok.
 
 ## Koddan doğrulanan durum
 
@@ -75,9 +83,10 @@ Her oturumda `tools/project.py status` ile canlı Git durumunu gör; tarihsel yo
 Claude Code Projects aktarımı: [CLAUDE_PROJECTS.md](CLAUDE_PROJECTS.md).
 Koordinatör talimatı: [PROJECT_INSTRUCTIONS.md](PROJECT_INSTRUCTIONS.md).
 Model için kod bulma sırası: `code_map_target` → gerekli simgenin `code_map_read` kesiti;
-büyük CODE_MAP belgesi varsayılan bağlam değildir. Yerel MCP kaydı bir kez kullanıcı güven onayı
-bekliyor; Projects talimat alanına yükleme henüz yapılmadı. Kanıt:
-[2026-10-20 araç denetimi](audit/2026-10-20-projects-codemap.md).
+büyük CODE_MAP belgesi varsayılan bağlam değildir. `geotek-codemap` Codex ve Antigravity MCP ayarlarına
+eklendi (2026-10-20). Depo `.mcp.json`'a `ai-orchestrator` eklenmesi ve `.claude/settings.json` ön onayı
+uzak araçlarla yazılamadı; cihaz oturumunda yapılacak. Projects talimat alanına yükleme henüz yapılmadı.
+Kanıt: [2026-10-20 araç denetimi](audit/2026-10-20-projects-codemap.md).
 `http://127.0.0.1:8766` görünümü insan incelemesine yardımcıdır; ürün geliştirme
 konusu ayrı çalışıyor olabilir. Bu denetim ürünün Q1 işlerini tamamlandı olarak işaretlemez.
 

@@ -1,6 +1,6 @@
 # F5-LIQ — sıvılaşmada gerçek iş ve sonuç akışı
 
-Önkoşul: `CLAUDE.md`, `docs/STATUS.md`, `docs/WORKFLOW.md`. Görev henüz uygulanmadı.
+Durum: ilk iki teslim tamam (`fdd80b1`); kalan tablo/grafik, gerçek API ve görsel kabul Q1'de. Yeniden başlatma.
 İlk teslim için tercih: job kimliğini koru, ilerleme/iptal/hata göster, mevcut sonucu oku.
 Grafik ve tablo ayrıntısı ayrı ikinci teslim olabilir; şef önce gerçek sonuç DTO'sunu inceler.
 

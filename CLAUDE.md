@@ -1,17 +1,17 @@
-# GeoTek — kısa çalışma talimatı
+# GeoTek — ortak çalışma kuralları
 
 Bu depo yerel geoteknik uygulamasıdır: Python hesap motoru + FastAPI + React/TypeScript.
-Şef için hedef çalışma profili Sonnet 5.5 / medium; mühendislik işleri küçük kapsamlarla delege edilir.
-Model seçimi oturumda yapılır; bu dosya hesabın veya MCP sunucusunun ayarlarını değiştirmez.
+Bu dosya Claude, Codex (`AGENTS.md`) ve Antigravity (`GEMINI.md`) için ortak kuraldır.
+Orkestrasyon, model yönlendirme ve compact kuralı: [docs/WORKFLOW.md](docs/WORKFLOW.md).
 
 ## Oturum başlangıcı
 
 1. Bu dosyayı ve [docs/STATUS.md](docs/STATUS.md) dosyasını oku.
 2. `git status --short` ve `git log -5 --oneline` ile durumu kontrol et.
-3. STATUS içindeki sıradaki **tek** görev kartını oku. Sadece kartın ilgili kodunu aç.
-4. Delegasyon yapacaksan [docs/WORKFLOW.md](docs/WORKFLOW.md) protokolünü kullan.
+3. Sana verilen **tek** görev kartını oku (`docs/tasks/`). Sadece kartın ilgili kodunu aç.
+4. Şefsen [docs/WORKFLOW.md](docs/WORKFLOW.md) protokolünü kullan.
 5. Yolunu bulamıyorsan [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md); yeni modül için
-   [docs/MODULE_GUIDE.md](docs/MODULE_GUIDE.md). Arşivi başlangıç bağlamına yükleme.
+   [docs/MODULE_GUIDE.md](docs/MODULE_GUIDE.md). Arşivi (`docs/archive/`) başlangıç bağlamına yükleme.
 
 ## Değişmez kurallar
 
@@ -21,10 +21,10 @@ Model seçimi oturumda yapılır; bu dosya hesabın veya MCP sunucusunun ayarlar
   + kullanıcıya formül özeti gerekir. Hesap hatasını gizleme; etkilenen hesabı durdurup bildir.
 - Profil kaynağını yapı düzenlerken değiştirme; yapıya özel kopya, onay ve stale/hash denetimlerini koru.
 - Modüller birbirini import etmez. Ortak kod `core`, `services`, `shared` içinde kalır.
-- Aynı dosyaya aynı anda tek yazar. Şef ortak sözleşme ve entegrasyonun sahibidir.
-- Kullanıcının mevcut değişikliklerini koru. Git reset/clean, worktree silme veya eski dalı
-  yeniden birleştirme işlemlerini görev doğrulaması olmadan yapma.
-- Önceki onaylar ve açık onaylar STATUS'ta. Eski P0/P1/E4 işlerini yeniden başlatma.
+- Aynı dosyaya aynı anda tek yazar; aynı klasörde aynı anda tek yazıcı. Paralel yazıcı ayrı Git worktree kullanır.
+- Kullanıcının mevcut değişikliklerini koru. Git reset/clean, worktree silme, push veya eski dalı
+  yeniden birleştirme işlemlerini kullanıcı onayı olmadan yapma.
+- Önceki onaylar ve açık onay kapıları STATUS'ta. Eski P0/P1/E4 işlerini yeniden başlatma.
 - Mock ekran/test başarısı gerçek API ve mühendislik doğrulamasının yerine geçmez.
 - `geotek/ui` eski PySide6 yoludur; web eşdeğerliği ve paketleme doğrulanmadan kaldırma.
 
@@ -32,7 +32,7 @@ Model seçimi oturumda yapılır; bu dosya hesabın veya MCP sunucusunun ayarlar
 
 ```powershell
 .\.venv\Scripts\python.exe tools/project.py status
-.\.venv\Scripts\python.exe tools/project.py brief F5-LIQ
+.\.venv\Scripts\python.exe tools/project.py brief <KART>
 .\.venv\Scripts\python.exe tools/project.py check quick
 .\.venv\Scripts\python.exe tools/project.py check full
 ```
@@ -40,35 +40,25 @@ Model seçimi oturumda yapılır; bu dosya hesabın veya MCP sunucusunun ayarlar
 `check backend` yalnız Python paketini; `check web` typecheck, Vitest ve build'i çalıştırır.
 Kontrol komutları paket kurmaz, Git'i değiştirmez. Uzun çıktılar `.project/logs/` içine gider.
 Küçük değişiklikte ilgili testi çalıştır; bütün paketi entegrasyonda veya ortak sözleşme değişince çalıştır.
-Windows sandbox engeli test hatası değildir; izinli çalıştırma yolunu kullan ve çalışmayan kontrolü açık yaz.
+Windows sandbox engeli test hatası değildir; çalıştırılamayan kontrolü **çalıştırılamadı** diye yaz.
 
-## Kod haritası
+## Kod haritası (zorunlu, düşük bağlam)
 
-Amaç modelin düşük bağlamla hedef bulmasıdır. Varsayılan akış:
+Kodda yer ararken dosyaları baştan okuma; `geotek-codemap` MCP araçlarını kullan:
 
-1. `code_map_target(goal="Türkçe veya İngilizce somut hedef")`: birkaç dosya, gerçek simge/satır,
-   ilgili rota ve test konumu. Bu aşamada kaynak kodu okunmaz; tüm harita çıktısı istenmez.
-2. Yalnız gereken dosya/simge için `code_map_read(file=..., symbol=...)` veya `start_line=...`;
-   küçük satır/karakter sınırını koru. Aralığı gerektiğinde genişlet; dosyanın tümünü baştan okuma.
-3. Değişiklik etkisi için gerektiğinde `code_map_impact`; ayrıntıda `code_map_file` / `code_map_route`.
+1. `code_map_target(goal="somut hedef")`: en fazla üç dosya, simge/satır, rota ve test konumu.
+2. Yalnız gereken parça için `code_map_read(file=..., symbol=... | start_line=...)`.
+   Varsayılan 40 satır / 3000 karakter; üst sınır 80 / 5000. Gerekirse sonraki aralığı iste.
+3. Değişiklik etkisi için `code_map_impact`; ayrıntıda `code_map_file` / `code_map_route`.
 
-İndeksleyici kodu yerelde tarar; modeli besleyen yanıt yalnız seçilen küçük kesittir.
-MCP onayı/erişimi yoksa `rg` ile isim/rota bulup dar satır aralığı oku; bütün depoyu yükleme.
-[docs/CODE_MAP.md](docs/CODE_MAP.md) büyük, üretilmiş başvuru belgesidir; başlangıçta okunmaz.
-Yenileme: `node tools/run_python.cjs tools/gen_code_map.py`; `--check` eskiyse 1 döner.
-İnsan incelemesi için yardımcı görünüm: `node tools/run_python.cjs tools/code_map_view.py` →
-`http://127.0.0.1:8766`. Import/API ve bilinen keşif bağları çalışma zamanı çağrı izi değildir.
+MCP yoksa `rg` ile isim/rota bulup dar satır aralığı oku. `docs/CODE_MAP.md` büyük, üretilmiş
+insan başvurusudur; okunmaz. Harita statik çıkarımdır; çalışma zamanı izi veya test kanıtı değildir.
 
-## Claude Code Projects
-
-Projects koordinatörü yerel MCP'ye doğrudan erişmez; dosya/kod haritası işi mevcut klasöre
-bağlı **yerel konuya** verilir. Yerel konu başlangıçta cwd/branch/commit/değişiklik durumunu
-doğrular ve bu dosyayı okur. Projects memory yerel konuya otomatik yüklenmediğinden
-kalıcı depo kuralını burada, güncel işi STATUS'ta tut. Aynı klasörde tek yazıcı kullan.
-Kurulum ve yapıştırılacak talimat: [docs/CLAUDE_PROJECTS.md](docs/CLAUDE_PROJECTS.md).
+**Güncel tutma:** kaynak dosya ekleyen, silen veya simge imzası değiştiren her yazıcı teslimden önce
+`node tools/run_python.cjs tools/gen_code_map.py` çalıştırır; `--check` 0 dönmeden "tamam" denmez.
 
 ## Bitirme
 
-Diff'i incele, gerekli testleri ve görev kabul koşullarını doğrula. Yapılan/değişen/riskli noktaları
-kısa raporla; yalnız `docs/STATUS.md` içindeki güncel durumu değiştir. Geçmiş prompt'lara yeni not ekleme.
+Diff'i incele, gerekli testleri ve kart kabul koşullarını doğrula. Değişen dosyalar, davranış, gerçek
+test sonucu ve açık bulgularla kısa rapor ver (en çok ~15 satır). Güncel durumu yalnız `docs/STATUS.md`'ye yaz.
 Her test kaydında tarih, kapsam ve gerçek sonucu belirt; eski sayıyı güncel başarı diye kullanma.
