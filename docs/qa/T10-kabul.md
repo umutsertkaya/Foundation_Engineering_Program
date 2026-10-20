@@ -30,7 +30,7 @@ Koyu tema ve EN ekran görüntüleri alınmadı. Açık insan onayları (görsel
 ## 4. Bulgular
 **Düzeltildi (dal `fix/t10-report-section-labels`):** rapor sayfasında sınıflandırma ve sıvılaşma satırları boş etiketliydi
 (sunucu `name=""` döndürüyor) → `report.section.<kind>` çevirisine geri düşüş + Vitest.
-**Karta alındı** → [T10c-UI-LABELS](../tasks/T10c-UI-LABELS.md): (1) katman etiketleri UUID gösteriyor; (2) motor hata iletisi ham İngilizce + UUID;
+**Karta alındı** → T10c-UI-LABELS (tamamlandı; kayıt `docs/STATUS.md`): (1) katman etiketleri UUID gösteriyor; (2) motor hata iletisi ham İngilizce + UUID;
 (3) docx içinde çevrilmemiş İngilizce uyarılar (palplanş "Tension zone…", sıvılaşma "Default FC…"; T10b ile ilişkili);
 (4) sıvılaşma sonuç sayfası kayıtlı sonucu yüklemiyor (sunucuda var, rapora giriyor); (5) SBTn bölge özetinde sıfır kalınlıklı satırlar (`1.40–1.40`);
 (6) geçen duvarda "Belirleyici kontrol: -".

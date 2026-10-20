@@ -27,15 +27,12 @@ Cihaza dönüş: `python3 tools/set_mode.py device`, commit, push; cihazda `git 
 
 ```bash
 python3 -m venv /tmp/venv && /tmp/venv/bin/pip install -e ".[dev,web,report]"
-/tmp/venv/bin/python -m pytest -q          # ~5 dk; PySide6 kurulu değil, aşağıdaki not geçerli
+/tmp/venv/bin/python -m pytest -q          # ~5 dk
 node tools/run_python.cjs tools/gen_code_map.py --check
 npm --prefix web ci && npm --prefix web run typecheck && npm --prefix web test -- --run
 ```
 
 Bulut ortamı geçicidir: iş bittikçe commit + push et, yoksa kaybolur. `.venv` ve `node_modules` depoya girmez.
-Bilinen bulut farkı: `PySide6` (eski UI yolu) kurulu değil; `tests/ui` atlanır ve
-`tests/unit/test_services_plotting.py::test_dynamic_i18n_keys_exist` bu yüzden `ModuleNotFoundError` verir
-(test hatası değil, ortam farkı).
 
 ## Bulut kipinde açık sınırlar
 

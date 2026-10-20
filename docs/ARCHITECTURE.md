@@ -1,6 +1,6 @@
 # Mimari ve dosya haritası
 
-Başlangıçta yalnız `CLAUDE.md`, `docs/STATUS.md` ve `docs/WORKFLOW.md` okunur.
+Başlangıç okuma sırası `CLAUDE.md` içindedir.
 Bu haritadan göreve ait satırı seçin; bütün motoru, planları veya testleri bağlama yüklemeyin.
 Paket durumu ve sıradaki iş için tek kayıt `docs/STATUS.md` dosyasıdır.
 
@@ -10,15 +10,14 @@ Paket durumu ve sıradaki iş için tek kayıt `docs/STATUS.md` dosyasıdır.
 |---|---|
 | `geotek/core/models/` | Pydantic proje, profil, parametre ve yapı modelleri; `project.py`, `profile.py`, `parameters.py`, `structures.py`. |
 | `geotek/engine/` | Arayüzden bağımsız mühendislik hesapları; SPT/CPT, katmanlama, korelasyon, sıvılaşma, basınç, duvar ve palplanş. |
-| `geotek/services/` | Proje modellerini motorlara bağlayan iş akışları; `layering.py`, `parameters.py`, `structures.py`, `module1.py`, `walls_basic.py`, `walls_advanced.py`. |
-| `geotek/modules/<id>/` | Modüle ait `MANIFEST`, API, özel DTO ve TR/EN katalogları. Kimlikler: `soil`, `liquefaction`, `walls`, `sheet_pile`. |
+| `geotek/services/` | Proje modellerini motorlara bağlayan iş akışları; `layering.py`, `parameters.py`, `structures.py`, `module1.py`, `report.py` (docx), `walls_basic.py`, `walls_advanced.py`. |
+| `geotek/modules/<id>/` | Modüle ait `MANIFEST`, API, özel DTO ve TR/EN katalogları. Kimlikler: `soil`, `liquefaction`, `walls`, `sheet_pile`, `report`. |
 | `geotek/api/` | FastAPI kabuğu; `app.py` proje/yapı/kod rotaları, `library_routes.py` kütüphane, `session.py` açık proje, `jobs.py` işler. |
 | `geotek/io/`, `geotek/library/` | `.gtk` okuma/yazma ve göçler; yerel proje kütüphanesi ve ayarlar. |
 | `geotek/config/` | Kaynak ve doğrulama durumu taşıyan yönetmelik katsayıları; `design_codes/*.yaml`. |
 | `web/src/app/` | Başlangıç, proje seçimi, modül menüsü/kabuğu ve proje bağlamı. |
 | `web/src/modules/<id>/` | Modül rotaları, sayfaları, API istemcisi, mock ve testleri. |
 | `web/src/shared/` | HTTP/DTO, ortak zemin editörleri, yapı zemini, iş takibi ve genel bileşenler. |
-| `geotek/ui/`, `geotek/plotting/` | Mevcut PySide6 arayüzü ve çizimleri; web eşdeğerliği sağlanmadan kaldırılmaz. |
 
 ## İşe göre en küçük okuma kümesi
 
@@ -38,14 +37,10 @@ Jokerler dosya gruplarını gösterir; pytest'e tek tek dosya yolları veya dizi
 
 ## Uygulanan yüzey ve açık ekranlar
 
-Zemin API'si, katmanlama/parametre servisleri ve bunların web ekranları mevcuttur;
-eski E2/E3/F3 görevlerini sıfırdan başlatmayın. F4 duvar sihirbazı, boyut önerisi,
-kontrol, iş takibi ve sonuç görünümü uygulanmıştır; kabul kanıtı `STATUS.md` içindedir.
-F5 tarafında sıvılaşma formu işi başlatır fakat `ResultsPage.tsx` yer tutucudur ve
-form henüz işi takip etmez. Palplanş listesi vardır; ayrıntı/oluşturma/sonuç akışı
-eksiktir. Palplanş tasarım **backend'i uygulanmıştır**, web mock tasarımı 501 döndürür.
-Zemin `classification` rotası da yer tutucudur. `web/src/pages/ReportPage.tsx`
-yer tutucu bir dosyadır; mevcut `app/App.tsx` içinde rapor rotası bağlı değildir.
+Zemin (veri, profil, katmanlama, parametre onayı, sınıflandırma), duvar sihirbazı, palplanş,
+sıvılaşma (iş takibi, grafik/tablo, kayıtlı sonuç) ve docx rapor web akışları uygulanmıştır; eski
+E2/E3/F3/F4/F5 görevlerini sıfırdan başlatmayın. Gerçek API uçtan uca kabulü `docs/qa/T10-kabul.md`,
+görsel kontrol `docs/qa/T11-gorsel.md` içindedir. Rapor yalnız docx'tir (PDF/grafik yok).
 Mock yanıtları motorun çalıştığını veya mühendislik sonucunun doğrulandığını kanıtlamaz.
 
 ## Sınırlar ve hassas noktalar
@@ -53,7 +48,7 @@ Mock yanıtları motorun çalıştığını veya mühendislik sonucunun doğrula
 - Modüller birbirini import etmez. Ortak davranış `core/`, `services/` veya web `shared/` içindedir.
 - Keşif: `geotek/api/registry.py` ve `web/src/app/moduleRegistry.ts`; yeni merkezi import listesi oluşturmayın.
 - Proje ortak alanları çekirdektedir; modüle özel veri `Project.modules[id]` içindedir.
-  Bilinmeyen modül bölümleri korunur; `module2_inputs` eski arayüz için hâlâ tutulur.
+  Bilinmeyen modül bölümleri korunur; `module2_inputs` kaldırılan eski arayüzden kalan alandır, `.gtk` uyumu için korunur.
 - Yapı zemin kopyası, kaynak profil hash'i, parametre onay izi ve sonuç hash'i korunur.
   `services/structures.py` ile `api/calculation_jobs.py` değişiklikleri bu kuralları etkiler.
 - İşler proje kopyasıyla çalışır; kilitler, iptal ve değişmiş girdiye sonuç yazmama kuralları

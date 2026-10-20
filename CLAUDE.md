@@ -7,12 +7,12 @@ Orkestrasyon, model yönlendirme ve compact kuralı: [docs/WORKFLOW.md](docs/WOR
 
 ## Oturum başlangıcı
 
-1. Bu dosyayı ve [docs/STATUS.md](docs/STATUS.md) dosyasını oku.
+1. Bu dosyayı oku. Şef/konu sahibiysen [docs/STATUS.md](docs/STATUS.md) dosyasını da oku; alt ajan STATUS'u yalnız brief isterse okur.
 2. `git status --short` ve `git log -5 --oneline` ile durumu kontrol et.
 3. Sana verilen **tek** görev kartını oku (`docs/tasks/`). Sadece kartın ilgili kodunu aç.
 4. Şefsen [docs/WORKFLOW.md](docs/WORKFLOW.md) protokolünü kullan.
 5. Yolunu bulamıyorsan [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md); yeni modül için
-   [docs/MODULE_GUIDE.md](docs/MODULE_GUIDE.md). Arşivi (`docs/archive/`) başlangıç bağlamına yükleme.
+   [docs/MODULE_GUIDE.md](docs/MODULE_GUIDE.md). Eski kararlar için Git geçmişine bak; arşiv klasörü yoktur.
 
 ## Değişmez kurallar
 
@@ -27,7 +27,7 @@ Orkestrasyon, model yönlendirme ve compact kuralı: [docs/WORKFLOW.md](docs/WOR
   yeniden birleştirme işlemlerini kullanıcı onayı olmadan yapma.
 - Önceki onaylar ve açık onay kapıları STATUS'ta. Eski P0/P1/E4 işlerini yeniden başlatma.
 - Mock ekran/test başarısı gerçek API ve mühendislik doğrulamasının yerine geçmez.
-- `geotek/ui` eski PySide6 yoludur; web eşdeğerliği ve paketleme doğrulanmadan kaldırma.
+- Arayüz yalnız `web/`dir. Eski PySide6 yolu (`geotek/ui`, `geotek/plotting`) 2026-10-20'de kaldırıldı; geri ekleme.
 
 ## Komutlar (PowerShell, depo kökü)
 

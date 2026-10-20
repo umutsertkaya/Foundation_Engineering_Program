@@ -1,13 +1,13 @@
 GeoTek / Foundation Engineering Program
 
 Yerel geoteknik uygulaması: Python hesap motoru, FastAPI, React/TypeScript. Kullanıcıyla Türkçe konuş.
-Çalışma yeri: C:\Users\thebi\Documents\Foundation Engineering Tablolar (kullanıcının cihazı). Bulut kopyası veya Library yüklemesi canlı depo değildir.
+Ortak kaynak GitHub deposudur (umutsertkaya/Foundation_Engineering_Program, main). Cihaz klasörü (C:\Users\thebi\Documents\Foundation Engineering Tablolar) ve konuların bulut kapsayıcısı çalışma kopyalarıdır; teslim PR ile main'e birleşir. Library yüklemesi canlı depo değildir. Kip: docs/MODE (ayrıntı docs/CLOUD_MODE.md).
 
-Kural kaynakları depodadır: CLAUDE.md (ortak kurallar), docs/WORKFLOW.md (orkestrasyon, model/efor yönlendirme, compact, özerklik), docs/STATUS.md (tek güncel durum ve sıradaki kartlar). Projects memory'deki durum yerine canlı Git ve STATUS esas alınır. docs/archive/ etkin talimat değildir.
+Kural kaynakları depodadır: CLAUDE.md (ortak kurallar), docs/WORKFLOW.md (orkestrasyon, model/efor yönlendirme, compact, özerklik), docs/STATUS.md (tek güncel durum ve sıradaki kartlar). Projects memory'deki durum yerine canlı Git ve STATUS esas alınır. Eski planlar yalnız Git geçmişindedir; etkin talimat değildir.
 
-Koordinatör: her bağımsız görev kartı için ayrı konu (thread) açar; konuya kartı, seviyeyi (S0–S4) ve çalışma klasörünü/worktree'yi verir. Aynı klasörde aynı anda tek yazıcı; paralel yazıcılar ayrı Git worktree (Documents/geotek-wt/<kart>) kullanır.
+Koordinatör: her bağımsız görev kartı için ayrı konu (thread) açar; konuya kartı, seviyeyi (S0–S4) ve çalışma klasörünü/worktree'yi verir. Aynı klasörde aynı anda tek yazıcı; paralel yazıcılar ayrı Git worktree kullanır (cihazda Documents/geotek-wt/<kart>, bulutta konunun kendi dalı/worktree'si).
 
-Konu: dosya işini cihaz klasörü araçlarıyla yapar. Yerel MCP (ai-orchestrator, geotek-codemap) gerekiyorsa cihazda Remote Control ile Claude Code oturumu başlatır; bu oturum CLAUDE.md, STATUS ve kartı okur, cwd/branch/HEAD/kirli dosyaları kontrol eder, orchestrator_status ile envanteri doğrular (model çağırmaz). Codex/Antigravity işleri ai-orchestrator ile, Claude alt ajanları Claude Code Agent aracıyla çalışır.
+Konu: dosya işini cihaz klasörü araçlarıyla yapar. Yerel MCP (ai-orchestrator, geotek-codemap) gerekiyorsa cihazda Remote Control ile Claude Code oturumu başlatır; bu oturum CLAUDE.md, STATUS ve kartı okur, cwd/branch/HEAD/kirli dosyaları kontrol eder, orchestrator_status ile envanteri doğrular (model çağırmaz). Codex/Antigravity işleri cihaz oturumundan ai-orchestrator ile yapılır; Claude modelleriyle yapılacak işler (uygulama, inceleme, araştırma) cihaz oturumunda değil, Projects konusunun kendi Agent aracıyla alt ajan olarak çalışır (docs/WORKFLOW.md).
 
 Kod ararken önce code_map_target, sonra yalnız gereken aralık için code_map_read; bütün dosyaları veya docs/CODE_MAP.md'yi okuma. Kaynak ekleyen/silen yazıcı teslimden önce kod haritasını yeniler.
 

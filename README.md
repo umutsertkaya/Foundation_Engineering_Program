@@ -1,7 +1,7 @@
 # GeoTek — Geoteknik Mühendislik Yazılımı
 
 Yerel/offline kullanım hedefleyen Python hesap motoru, FastAPI ve React/TypeScript arayüzü.
-Dört modül: zemin, sıvılaşma, istinat duvarı ve palplanş. Eski PySide6 arayüzü geçiş boyunca korunur.
+Beş modül: zemin, sıvılaşma, istinat duvarı, palplanş ve rapor. Arayüz yalnız web'dir (eski PySide6 yolu 2026-10-20'de kaldırıldı).
 
 ## Buradan başla
 
@@ -12,8 +12,9 @@ Dört modül: zemin, sıvılaşma, istinat duvarı ve palplanş. Eski PySide6 ar
   [Projects alanına yapıştırılacak talimat](docs/PROJECT_INSTRUCTIONS.md).
 - **Neler değişti / test kanıtı:** [2026-10-19 düzenleme raporu](docs/audit/2026-10-19-sadelestirme.md).
 
-Zemin ve duvar web akışları uygulanmıştır. Sıvılaşma ve palplanş ilk web teslimleri de mevcuttur;
-gerçek API/görsel kabul, rapor ve tek exe teslimi beklemektedir. Ayrıntılı durum yalnız `docs/STATUS.md` içinde tutulur.
+Zemin, sınıflandırma, duvar, palplanş, sıvılaşma ve docx rapor web akışları uygulanmıştır; gerçek API
+uçtan uca ve görsel kontrol raporları `docs/qa/` altındadır. Tek exe teslimi ve insan onay kapıları beklemektedir.
+Ayrıntılı durum yalnız `docs/STATUS.md` içinde tutulur.
 
 Canlı kod ilişkileri: `node tools/run_python.cjs tools/code_map_view.py` →
 `http://127.0.0.1:8766`. Görünüm kaynak değişince yenilenir; import, API çağrısı,
@@ -34,25 +35,25 @@ npm.cmd --prefix web run dev -- --host 127.0.0.1 --port 5173
 ```
 
 Tarayıcı: `http://127.0.0.1:5173`. Yalnız arayüz demosu için `npm.cmd --prefix web run dev:mock`;
-mock, gerçek mühendislik hesabı yapmaz. Mevcut PySide6 girişi: `.\.venv\Scripts\python.exe -m geotek.ui`.
+mock, gerçek mühendislik hesabı yapmaz.
 
 Temiz ortam gerekirse Python >=3.11 ve Node/npm ile bağımlılıklar `pyproject.toml` ve
 `web/package-lock.json` üzerinden kurulur: `python -m venv .venv`,
-`.\.venv\Scripts\python.exe -m pip install -e '.[web,gui,dev]'`, `npm.cmd --prefix web ci`.
+`.\.venv\Scripts\python.exe -m pip install -e '.[web,report,dev]'`, `npm.cmd --prefix web ci`.
 Normal proje kontrolleri bu kurulumları otomatik yapmaz.
 
 ## Kontroller
 
 ```powershell
 .\.venv\Scripts\python.exe tools/project.py status
-.\.venv\Scripts\python.exe tools/project.py brief F5-LIQ
+.\.venv\Scripts\python.exe tools/project.py brief K1
 .\.venv\Scripts\python.exe tools/project.py check quick
 .\.venv\Scripts\python.exe tools/project.py check full
 ```
 
 `backend`: pytest. `web`: typecheck + Vitest + build. `full`: indeks kontrolü + ikisi.
-Kısa sonuç ekranda, ayrıntılı çıktı `.project/logs/` içindedir. Testleri aynı anda iki süreçte çalıştırmayın;
-pytest geçici dizini ve test ortamı paylaşılır. Hedefli testler [mimari haritada](docs/ARCHITECTURE.md).
+Kısa sonuç ekranda, ayrıntılı çıktı `.project/logs/` içindedir. Her pytest süreci kendi geçici dizinini
+(`.pytest_tmp/run-<pid>`) kullanır. Hedefli testler [mimari haritada](docs/ARCHITECTURE.md).
 
 ## Hesap ve kaynaklar
 
@@ -61,5 +62,3 @@ Katsayılar uydurulmaz; eksik girdiler açık gösterilir. Formül/katsayı değ
 regresyon ve iki bağımsız inceleme ister. [Katsayı doğrulama açıkları](docs/katsayi_dogrulama.md),
 [duvar formül kaydı](docs/contracts/E4_FORMULAS.md), [doğrulama veri kaynakları](tests/verification/data/README.md).
 
-Özgün planlar ve eski ajan anlaşmaları [baytları korunmuş arşivde](docs/archive/2026-10-19/README.md).
-Aktif talimat veya güncel iş listesi olarak kullanılmaz.
