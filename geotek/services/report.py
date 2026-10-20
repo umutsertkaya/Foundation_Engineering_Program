@@ -23,7 +23,8 @@ from geotek.services.structures import calculation_fingerprint
 
 SectionStatus = Literal["ready", "stale", "no_result"]
 SectionKind = Literal[
-    "project", "soil_profile", "classification", "retaining_wall", "sheet_pile", "liquefaction"]
+    "project", "soil_profile", "classification", "retaining_wall", "sheet_pile", "liquefaction",
+    "module"]
 
 PROJECT_SECTION = "project"
 LIQUEFACTION_SECTION = "liquefaction"
@@ -67,6 +68,25 @@ def _liquefaction_status(project: Project) -> SectionStatus:
     return module1.liquefaction_result_state(project)
 
 
+def _module_manifests():
+    # Lazy: the registry lives in the API layer and imports module packages.
+    from geotek.api.registry import discover
+
+    return [m for m in discover() if m.report_entries is not None]
+
+
+def _module_sections(project: Project) -> list[SectionInfo]:
+    """Sections contributed by modules through ``ModuleManifest.report_entries``."""
+    out: list[SectionInfo] = []
+    for manifest in _module_manifests():
+        for entry in manifest.report_entries(project):
+            if not entry.id.startswith(f"{manifest.id}:"):
+                raise GeoTekError(
+                    f"Module {manifest.id!r}: report entry id {entry.id!r} needs its module prefix")
+            out.append(SectionInfo(entry.id, "module", entry.name or entry.id, entry.status))
+    return out
+
+
 def list_sections(project: Project) -> list[SectionInfo]:
     """All reportable sections of the project with the state of their results."""
     sections = [SectionInfo(PROJECT_SECTION, "project", project.meta.name, "ready")]
@@ -80,7 +100,7 @@ def list_sections(project: Project) -> list[SectionInfo]:
                                 "ready" if has_data else "no_result"))
     sections.append(SectionInfo(LIQUEFACTION_SECTION, "liquefaction", "",
                                 _liquefaction_status(project)))
-    return sections
+    return sections + _module_sections(project)
 
 
 def _fmt(value: Any, digits: int = 2) -> str:
@@ -446,6 +466,9 @@ def build_docx(project: Project, section_ids: list[str] | None = None,
             _classification_section(w, project)
         elif info.kind == "liquefaction":
             _liquefaction_section(w, project, project.modules[LIQUEFACTION_SECTION].data)
+        elif info.kind == "module":
+            owner = next(m for m in _module_manifests() if info.id.startswith(f"{m.id}:"))
+            owner.report_writer(w, project, info.id)
         else:
             structure = project.structure(info.id.removeprefix("structure:"))
             if info.kind == "retaining_wall":

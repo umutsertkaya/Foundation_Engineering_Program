@@ -180,6 +180,28 @@ Gerçek repo köküne üretimde index aracı otomatik çalışır.
 Özel kökte yalnız takip komutu yazdırılır; o kökte ayrıca çalıştırın.
 Testler `scaffold(module_id, root, ...)` fonksiyonunu geçici dizinle çağırabilir.
 
+## Rapor bölümü ekleme
+
+Rapor servisini (`geotek/services/report.py`) düzenlemeden bölüm eklemek için manifest'e
+`report_entries(project) -> [ReportEntry]` ve `report_writer(writer, project, entry_id)`
+verilir; ikisi birlikte ya da hiç verilmez. `ReportEntry.id` `"<modül id>:"` ile başlar,
+`status` `ready`, `stale` veya `no_result` olur. Bu bölümler raporda `kind="module"` görünür;
+`name` boş bırakılmaz. Yerleşik bölümler (proje, zemin, yapılar, sınıflama, sıvılaşma) eskisi gibi kalır.
+
+## Exe (PyInstaller) ve yeni modül
+
+Donmuş uygulama paket dizinini tarayamaz; kayıt defteri `geotek/modules/_index.py` dosyasına döner.
+`python tools/pyinstaller_modules.py` her modül paketi için `--hidden-import` ve i18n klasörleri için
+`--add-data` satırlarını yazar; derleme adımı bu çıktıyı kullanırsa yeni modül için spec düzenlemek
+gerekmez. `python tools/pyinstaller_modules.py --check` dizin eskiyse hata verir. Web tarafı Vite
+glob'larıyla derlendiği için `web/dist` içinde yeni modül kendiliğinden bulunur.
+
+## Bilinen sınırlar
+
+- `JobKind` ve `StructureKind` (`geotek/api/schemas.py`, `web/src/shared/api/types.ts`) kapalı listelerdir:
+  yeni bir arka plan iş türü ya da yapı türü için bu iki yer ve sözleşme yeniden üretilir.
+- `web/src/test/module_paths.test.ts` içindeki sabit modül listesi elle güncellenir.
+
 ## Modül ekleme kontrol listesi
 
 1. Kimlik, başlıklar, simge ve sıralamanın backend/web uyumunu inceleyin.

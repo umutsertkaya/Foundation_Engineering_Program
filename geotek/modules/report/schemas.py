@@ -13,7 +13,7 @@ class ReportSectionDTO(DTO):
     """One reportable block; ``status`` says whether its stored result is usable."""
 
     id: str
-    kind: Literal["project", "soil_profile", "classification", "retaining_wall", "sheet_pile", "liquefaction"]
+    kind: Literal["project", "soil_profile", "classification", "retaining_wall", "sheet_pile", "liquefaction", "module"]
     name: str
     status: Literal["ready", "stale", "no_result"]
 

@@ -11514,7 +11514,8 @@
               "classification",
               "retaining_wall",
               "sheet_pile",
-              "liquefaction"
+              "liquefaction",
+              "module"
             ],
             "title": "Kind"
           },
