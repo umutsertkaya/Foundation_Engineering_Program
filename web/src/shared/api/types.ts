@@ -525,6 +525,7 @@ export interface SheetPileStructure {
   allowable_stress_mpa?: number | null;
   analysis_level?: "basic" | "advanced";
   result_hash?: string | null;
+  result?: SheetPileResultDTO | null;
 }
 
 export type Structure = RetainingWallStructure | SheetPileStructure;

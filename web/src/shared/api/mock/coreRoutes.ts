@@ -9,6 +9,7 @@
   ProjectNew,
   ProjectSummary,
   RetainingWallStructure,
+  SheetPileResultDTO,
   SheetPileStructure,
   SiteSeismic,
   Structure,
@@ -184,6 +185,7 @@ function pollJobState(jobId: string): { status: number; data: JobState | ApiErro
     wall.result_hash = (job.result as WallResultDTO).result_hash;
   } else if (target?.kind === "sheet_pile") {
     const pile = target as SheetPileStructure & { mock_result_snapshot?: string };
+    pile.result = structuredClone(job.result as SheetPileResultDTO);
     // Re-polls of a finished job must not re-baseline the snapshot (would hide later edits).
     if (pile.result_hash !== `mock-${job.job_id}`) {
     pile.result_hash = `mock-${job.job_id}`;
@@ -444,6 +446,9 @@ function handleCoreRoutes(
         }
         if (savedPile.result_hash == null) {
           savedPile.result_hash = currentPile.result_hash;
+        }
+        if (savedPile.result == null) {
+          savedPile.result = currentPile.result;
         }
       }
       store.structures[index] = saved;

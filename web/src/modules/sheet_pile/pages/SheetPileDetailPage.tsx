@@ -17,6 +17,7 @@ import { design_sheet_pile } from "../api";
 import { InputsForm } from "../components/InputsForm";
 import { JobPanel } from "../components/JobPanel";
 import { MissingList } from "../components/MissingList";
+import { ResultPanel } from "../components/ResultPanel";
 import { applyInputs, fromStructure, missingInputs, missingSoilInputs, type PileInputs } from "../inputs";
 
 export function SheetPileDetailPage() {
@@ -255,6 +256,14 @@ export function SheetPileDetailPage() {
           <Title order={5}>{t("sheet_pile.result.title")}</Title>
           <div style={summary?.stale ? { opacity: 0.5 } : undefined}>
             <JobPanel jobId={jobId} onDone={() => void refreshSummary()} />
+          </div>
+        </Stack>
+      )}
+      {!jobId && structure.result && (
+        <Stack gap="xs">
+          <Title order={5}>{t("sheet_pile.result.saved")}</Title>
+          <div style={summary?.stale ? { opacity: 0.5 } : undefined}>
+            <ResultPanel result={structure.result} />
           </div>
         </Stack>
       )}

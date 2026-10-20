@@ -7,9 +7,11 @@ import { resetCoreMock } from "../../../shared/api/mock/core";
 import { mockRequest, resetMockState, resetMockStateEmptyProject } from "../../../shared/api/mock";
 import { getMockStore } from "../../../shared/api/mock/store";
 import type { Structure } from "../../../shared/api/types";
+import type { SheetPileResultDTO } from "../../../shared/api/types";
 import "../../../app/i18n";
 import { theme } from "../../../app/theme";
 import { manifest } from "../manifest";
+import { ResultPanel } from "../components/ResultPanel";
 import Root from "../Root";
 
 function Loc() {
@@ -112,7 +114,7 @@ describe("sheet_pile shell (mock)", () => {
 
   it("detail shows inputs, source profile and runs the mock job to a result with units", async () => {
     seedSheetPile("sp-2", "Perde B", "anchored");
-    renderAt("/m/sheet_pile/s/sp-2");
+    const view = renderAt("/m/sheet_pile/s/sp-2");
     expect(await screen.findByRole("heading", { name: "Perde B" })).toBeInTheDocument();
     expect(screen.getByTestId("soil-source").textContent).toContain(getMockStore().profiles[0].id);
     fireEvent.click(screen.getByRole("button", { name: "Tasarımı çalıştır" }));
@@ -126,6 +128,42 @@ describe("sheet_pile shell (mock)", () => {
     // source profile untouched
     const st = getMockStore().structures.find((x) => x.id === "sp-2") as unknown as { soil: { source_profile_id: string } };
     expect(st.soil.source_profile_id).toBe(getMockStore().profiles[0].id);
+    view.unmount();
+    renderAt("/m/sheet_pile/s/sp-2");
+    expect(await screen.findByText("Kaydedilmiş sonuç")).toBeInTheDocument();
+    expect(screen.getByTestId("sheet-pile-result")).toBeInTheDocument();
+  });
+
+  it("renders a compact series table for 4000 result points", () => {
+    const z = Array.from({ length: 4000 }, (_, index) => index * 0.002);
+    const result: SheetPileResultDTO = {
+      structure_id: "sp-dense",
+      support: "cantilever",
+      H: 4,
+      D0: 2,
+      D: 3,
+      total_length: 7,
+      anchor_depth: null,
+      anchor_force: null,
+      toe_force: 10,
+      M_max: 120,
+      z_M_max: z[1500],
+      z,
+      shear: z.map((depth) => Math.sin(depth)),
+      moment: z.map((_, index) => (index === 1500 ? -120 : Math.sin(z[index]))),
+      net: z.map((depth) => depth),
+      section_modulus_cm3: 750,
+      assumptions: [],
+      warnings: [],
+    };
+    render(
+      <MantineProvider theme={theme}>
+        <ResultPanel result={result} />
+      </MantineProvider>,
+    );
+    const rows = screen.getByTestId("result-series").querySelectorAll("tbody tr");
+    expect(rows.length).toBeLessThanOrEqual(80);
+    expect(rows.length).toBeLessThan(4000);
   });
 
   it("refreshes stale summary after saving changed inputs and keeps old result dimmed", async () => {

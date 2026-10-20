@@ -2,6 +2,7 @@ import { Alert, Badge, Card, Group, List, SimpleGrid, Stack, Table, Text, Title 
 import { useTranslation } from "react-i18next";
 import i18n from "../../../app/i18n";
 import type { SheetPileResultDTO } from "../../../shared/api/types";
+import { decimateSheetPileSeries } from "../series";
 
 const MOCK_WARNING = "mock_result_not_a_calculation";
 
@@ -29,12 +30,13 @@ export function ResultPanel({ result }: { result: SheetPileResultDTO }) {
   const isMock = result.warnings.includes(MOCK_WARNING);
   const warnings = result.warnings.filter((w) => w !== MOCK_WARNING);
   const anchored = result.support === "anchored";
-  const rows = result.z.map((z, i) => ({
+  const allRows = result.z.map((z, i) => ({
     z,
     shear: result.shear[i] ?? null,
     moment: result.moment[i] ?? null,
     net: result.net[i] ?? null,
   }));
+  const rows = decimateSheetPileSeries(allRows);
 
   return (
     <Stack gap="md" data-testid="sheet-pile-result">
@@ -95,6 +97,9 @@ export function ResultPanel({ result }: { result: SheetPileResultDTO }) {
       {rows.length > 0 && (
         <>
         <Text size="xs" c="dimmed">{t("sheet_pile.result.series_toe_note")}</Text>
+        {rows.length < allRows.length && (
+          <Text size="xs" c="dimmed">{t("sheet_pile.result.series_points_shown", { shown: rows.length, total: allRows.length })}</Text>
+        )}
         <Table withTableBorder striped data-testid="result-series">
           <Table.Thead>
             <Table.Tr>
