@@ -4,6 +4,9 @@ import type { SoundingLiquefactionDTO } from "../../../shared/api/types";
 import { useWarningText } from "../../../shared/hooks/useWarningText";
 import { DepthChart } from "./DepthChart";
 
+/** FS above this is not meaningful for the chart; such points sit at the edge (the table keeps exact values). */
+const FS_AXIS_MAX = 3;
+
 const format = (value: number | null | undefined) =>
   typeof value === "number" && Number.isFinite(value) ? value.toFixed(3) : "—";
 
@@ -21,6 +24,7 @@ export function SoundingDetail({ id, sounding }: { id: string; sounding: Soundin
         <DepthChart depth={sounding.depth} ariaLabel={label("chart_fs")} xLabel={label("fs_dimensionless")}
           yLabel={label("depth_m")} reference={{ value: 1, label: label("fs_reference") }}
           highlightLabel={label("status.liquefiable")}
+          xCap={{ value: FS_AXIS_MAX, label: t("liquefaction.results.fs_clipped", { max: FS_AXIS_MAX }) }}
           series={[{ label: label("fs"), values: sounding.FS, color: "var(--mantine-color-blue-6)",
             highlighted: sounding.status.map((status) => status === "liquefiable") }]} />
         <DepthChart depth={sounding.depth} ariaLabel={label("chart_csr_crr")} xLabel={label("ratio_dimensionless")}

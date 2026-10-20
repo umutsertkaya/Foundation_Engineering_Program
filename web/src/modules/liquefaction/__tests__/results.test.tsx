@@ -61,6 +61,35 @@ describe("DepthChart", () => {
   });
 });
 
+describe("DepthChart x-axis cap", () => {
+  const cap = { value: 3, label: "capped" };
+  const xOf = (el: Element) => Number(el.getAttribute("cx"));
+
+  it("keeps the meaningful FS range readable when one value is extreme", () => {
+    const { container } = render(<DepthChart {...chartProps} depth={[1, 2, 4]} xCap={cap}
+      series={[{ label: label("fs"), values: [0.5, 1.5, 90.68], color }]} />);
+    const circles = container.querySelectorAll("circle");
+    expect(circles).toHaveLength(2);
+    // Axis runs 0..3 over 440 px from x=76, so FS 1.5 sits mid-axis instead of near the origin.
+    expect(xOf(circles[1])).toBeCloseTo(76 + 1.5 / 3 * 440);
+    const clippedPoints = container.querySelectorAll('[data-testid="clipped-point"]');
+    expect(clippedPoints).toHaveLength(1);
+    expect(clippedPoints[0].textContent).toBe("90.68");
+    expect(screen.getByTestId("clipped-note")).toHaveTextContent("capped");
+    const xTicks = [...container.querySelectorAll('text[y="355"]')].map((el) => el.textContent);
+    expect(xTicks.at(-1)).toBe("3.00");
+    expect(container.innerHTML).not.toMatch(/NaN|Infinity/);
+  });
+
+  it("leaves the axis unchanged when no value exceeds the cap", () => {
+    const { container } = render(<DepthChart {...chartProps} depth={[1, 2]} xCap={cap}
+      series={[{ label: label("fs"), values: [0.5, 2], color }]} />);
+    expect(container.querySelectorAll('[data-testid="clipped-point"]')).toHaveLength(0);
+    expect(screen.queryByTestId("clipped-note")).not.toBeInTheDocument();
+    expect(xOf(container.querySelectorAll("circle")[1])).toBeCloseTo(516);
+  });
+});
+
 const result: LiquefactionResultDTO = {
   per_sounding: {
     "BH-1": {

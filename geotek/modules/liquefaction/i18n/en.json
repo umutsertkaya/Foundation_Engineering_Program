@@ -60,6 +60,7 @@
   "liquefaction.results.select_sounding": "Select sounding",
   "liquefaction.results.detail_table": "Detailed sounding results",
   "liquefaction.results.warnings_scope": "Warnings apply to the whole sounding; no depth-specific mapping is provided.",
+  "liquefaction.results.fs_clipped": "FS > {max}: drawn at the chart edge (exact value in the table)",
   "liquefaction.results.no_chart_data": "No data to plot.",
   "liquefaction.warning.spt_iteration_not_converged": "(N1)60cs iteration did not converge at {count} point(s).",
   "liquefaction.warning.spt_refusal_lower_bound": "Refusal blow counts are lower bounds; their FS is conservative.",

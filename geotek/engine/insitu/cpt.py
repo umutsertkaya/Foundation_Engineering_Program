@@ -21,6 +21,7 @@ from geotek.core.constants import GAMMA_W, PA
 from geotek.core.errors import ProfileError
 from geotek.core.models.investigations import CPTSounding
 from geotek.core.models.profile import SoilProfile
+from geotek.core.warning_codes import format_warning
 from geotek.engine.classification.robertson import sbtn_zone, soil_behaviour_index
 from geotek.engine.correlations.physical import (
     fines_content_from_ic,
@@ -143,7 +144,7 @@ def process_cpt(
     qt = corrected_tip_resistance(qc, u2, sounding.area_ratio)
     warnings: list[str] = []
     if u2 is None:
-        warnings.append("No u2 data: q_t taken equal to q_c")
+        warnings.append(format_warning("insitu.warning.cpt_no_u2"))
 
     gamma = None
     if profile is not None:
@@ -171,9 +172,10 @@ def process_cpt(
 
     invalid = np.isnan(Ic)
     if invalid.any():
-        warnings.append(f"{int(invalid.sum())} point(s) with q_t <= sigma_v0 or sigma'_v0 <= 0 skipped")
+        warnings.append(format_warning("insitu.warning.cpt_points_skipped", count=int(invalid.sum())))
     if not converged.all():
-        warnings.append(f"Q_tn iteration did not converge at {int((~converged).sum())} point(s)")
+        warnings.append(format_warning("insitu.warning.cpt_not_converged",
+                                       count=int((~converged).sum())))
 
     return CPTProcessed(
         sounding_id=sounding.id, depth=depth, qc=qc, fs=fs, u2=u2, qt=qt, gamma=gamma,

@@ -16,6 +16,7 @@ import numpy as np
 import pandas as pd
 
 from geotek.core.constants import PA
+from geotek.core.warning_codes import format_warning
 from geotek.core.models.investigations import Borehole
 from geotek.core.models.profile import SoilProfile
 
@@ -117,12 +118,12 @@ def process_borehole(
 
     warnings = []
     if refusal.any():
-        warnings.append(
-            f"{int(refusal.sum())} record(s) at refusal: N is a lower bound at depth(s) "
-            f"{depth[refusal].tolist()} m"
-        )
+        warnings.append(format_warning(
+            "insitu.warning.spt_refusal", count=int(refusal.sum()),
+            depths=", ".join(f"{float(z):g}" for z in depth[refusal]),
+        ))
     if np.any(sigma_eff > 200.0):
-        warnings.append("sigma'_v0 > 200 kPa: Liao & Whitman C_N is outside its recommended range")
+        warnings.append(format_warning("insitu.warning.spt_cn_out_of_range"))
 
     return SPTProcessed(
         borehole_id=borehole.id, depth=depth, n_field=n_field, refusal=refusal,
