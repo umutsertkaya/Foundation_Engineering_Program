@@ -2,6 +2,8 @@ import { NOT_HANDLED, type MockHandler } from "../../shared/api/mock/dispatcher"
 import { isMockSessionOpen } from "../../shared/api/mock/core";
 import { getMockStore, notFound, validationError } from "../../shared/api/mock/store";
 
+import type { LiquefactionResultDTO } from "../../shared/api/types";
+
 const PREFIX = "/m/liquefaction";
 let jobSeq = 0;
 
@@ -44,7 +46,31 @@ const handle: MockHandler = (method, path, body) => {
   if (bad.length > 0) return validationError("Invalid liquefaction settings", { fields: bad });
 
   jobSeq += 1;
-  return { status: 202, data: { job_id: `mock-liq-${jobSeq}` } };
+  const job_id = `mock-liq-${jobSeq}`;
+  // Synthetic placeholder values (not a real calculation) so the job API shape can be exercised.
+  const depth = [1, 2, 3];
+  const per_sounding: LiquefactionResultDTO["per_sounding"] = {};
+  for (const cpt of store.cpts) {
+    per_sounding[cpt.id] = {
+      depth,
+      CSR: [0.2, 0.2, 0.2],
+      CRR: [0.4, 0.15, 0.3],
+      FS: [2, 0.75, 1.5],
+      status: ["safe", "liquefiable", "safe"],
+      warnings: ["mock_result_not_a_calculation"],
+    };
+  }
+  store.jobs.set(job_id, {
+    job_id,
+    kind: "liquefaction",
+    structure_id: null,
+    startedAt: Date.now(),
+    polls: 0,
+    cancelled: false,
+    result: { per_sounding, errors: {} },
+    stepKeys: ["job.step.processing", "job.step.liquefaction"],
+  });
+  return { status: 202, data: { job_id } };
 };
 
 export const mock = { prefix: PREFIX, handle };

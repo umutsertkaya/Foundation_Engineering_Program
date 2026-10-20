@@ -12,6 +12,8 @@ import { isMockSessionOpen, resetCoreMock } from "../../../shared/api/mock/core"
 import "../../../app/i18n";
 import { theme } from "../../../app/theme";
 import * as core from "../../../shared/api/core";
+import { getMockStore } from "../../../shared/api/mock/store";
+import type { JobState, LiquefactionResultDTO } from "../../../shared/api/types";
 import * as api from "../api";
 import { AnalysisPage } from "../pages/AnalysisPage";
 import Root from "../Root";
@@ -22,10 +24,10 @@ function Loc() {
   return <div data-testid="loc">{useLocation().pathname}</div>;
 }
 
-function renderPage() {
+function renderPage(entry = "/m/liquefaction") {
   return render(
     <MantineProvider theme={theme}>
-      <MemoryRouter initialEntries={["/m/liquefaction"]}>
+      <MemoryRouter initialEntries={[entry]}>
         <Loc />
         <Routes>
           <Route path="/m/liquefaction/*" element={<Root />} />
@@ -114,9 +116,31 @@ describe("liquefaction analysis page (mock)", () => {
     const sent = spy.mock.calls[0][0];
     expect(sent).toMatchObject({ method: "bi2014", amax_g: 0.25, mw: 7.2, target_fs: 1.2, c_fc: 0.5, ic_cutoff: 2.6, default_fc: null, gwt_seismic: null });
     expect(typeof sent.profile_id).toBe("string");
-    expect(screen.getByText(tr["liquefaction.results.pending"])).toBeInTheDocument();
+    expect(await screen.findByText(tr["liquefaction.results.min_fs"], {}, { timeout: 4000 })).toBeInTheDocument();
+    expect(screen.getByText("0.75")).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: tr["liquefaction.results.back"] }));
     await waitFor(() => expect(screen.getByTestId("loc").textContent).toBe("/m/liquefaction"));
+  });
+
+  it("results without a job id show the no-job state", async () => {
+    renderPage("/m/liquefaction/results");
+    expect(await screen.findByText(tr["liquefaction.results.no_job"])).toBeInTheDocument();
+  });
+
+  it("results for an unknown job say the result is unavailable", async () => {
+    renderPage("/m/liquefaction/results?job=expired-1");
+    expect(await screen.findByText(tr["liquefaction.results.unavailable"])).toBeInTheDocument();
+  });
+
+  it("a cancelled job shows no result", async () => {
+    const res = await mockRequest("POST", "/m/liquefaction/run", {
+      profile_id: null, method: "bi2014", amax_g: 0.3, mw: 7, target_fs: 1.2, c_fc: 0.5, ic_cutoff: 2.6,
+    });
+    const id = (res.data as { job_id: string }).job_id;
+    await mockRequest("DELETE", `/jobs/${id}`);
+    renderPage(`/m/liquefaction/results?job=${id}`);
+    expect(await screen.findByText(tr["liquefaction.results.cancelled"])).toBeInTheDocument();
+    expect(screen.queryByText(tr["liquefaction.results.min_fs"])).toBeNull();
   });
 
   it("shows the soil-module message for 409 no_soil_source", async () => {
@@ -195,6 +219,57 @@ describe("liquefaction mock rules", () => {
     const res = await mockRequest("POST", "/m/liquefaction/run", { ...valid, profile_id: null });
     expect(res.status).toBe(202);
     expect((res.data as { job_id: string }).job_id).toMatch(/^mock-liq-\d+$/);
+  });
+
+  async function startJob(): Promise<string> {
+    const res = await mockRequest("POST", "/m/liquefaction/run", { ...valid, profile_id: null });
+    return (res.data as { job_id: string }).job_id;
+  }
+
+  const poll = async (id: string) => (await mockRequest("GET", `/jobs/${id}`)).data as JobState;
+
+  it("job runs queued -> running -> done with the liquefaction result and no wall side effects", async () => {
+    const id = await startJob();
+    const seen: string[] = [];
+    let state = await poll(id);
+    for (let i = 0; i < 8 && state.status !== "done"; i += 1) {
+      seen.push(state.status);
+      state = await poll(id);
+    }
+    expect(seen[0]).toBe("queued");
+    expect(seen).toContain("running");
+    expect(state.status).toBe("done");
+    expect(state.kind).toBe("liquefaction");
+    const result = state.result as LiquefactionResultDTO;
+    expect(Object.keys(result.per_sounding).length).toBeGreaterThan(0);
+    expect(result.errors).toEqual({});
+  });
+
+  it("cancelled job reports cancelled without a result", async () => {
+    const id = await startJob();
+    await mockRequest("DELETE", `/jobs/${id}`);
+    const state = await poll(id);
+    expect(state.status).toBe("cancelled");
+    expect(state.result).toBeNull();
+  });
+
+  it("failed job reports the error and no result", async () => {
+    const id = await startJob();
+    getMockStore().jobs.get(id)!.error = {
+      code: "engine_error",
+      message: "boom",
+      details: {},
+      missing_factors: [],
+    };
+    let state = await poll(id);
+    for (let i = 0; i < 8 && state.status !== "failed"; i += 1) state = await poll(id);
+    expect(state.status).toBe("failed");
+    expect(state.result).toBeNull();
+    expect(state.error?.code).toBe("engine_error");
+  });
+
+  it("unknown job id is 404", async () => {
+    expect((await mockRequest("GET", "/jobs/nope")).status).toBe(404);
   });
 
   it("409 no_project_open without a session, as the core mock", async () => {

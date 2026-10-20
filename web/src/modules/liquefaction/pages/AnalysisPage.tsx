@@ -155,8 +155,8 @@ export function AnalysisPage() {
       ic_cutoff: num(ic),
     };
     try {
-      await run_liquefaction(settings);
-      navigate("/m/liquefaction/results");
+      const ref = await run_liquefaction(settings);
+      navigate(`/m/liquefaction/results?job=${encodeURIComponent(ref.job_id)}`);
     } catch (err) {
       setRunError(err);
       setSubmitting(false);

@@ -15,6 +15,7 @@ import type {
   StructureCreate,
   StructureSoilModel,
   StructureSummary,
+  WallResultDTO,
 } from "../types";
 import { validateGwt, validateStructureSoil } from "../../soil/layerOps";
 import { mockProfileHash } from "./hash";
@@ -70,6 +71,8 @@ function buildProjectSummary(): ProjectSummary {
     structures: store.structures.map(toStructureSummary),
   };
 }
+
+const WALL_STEP_KEYS: [string, string] = ["job.step.earth_pressure", "job.step.stability_checks"];
 
 function pollJobState(jobId: string): { status: number; data: JobState | ApiErrorDTO } {
   const store = getMockStore();
@@ -128,7 +131,7 @@ function pollJobState(jobId: string): { status: number; data: JobState | ApiErro
         kind: job.kind,
         status: "running",
         progress: 0.45,
-        message_key: "job.step.earth_pressure",
+        message_key: (job.stepKeys ?? WALL_STEP_KEYS)[0],
         result: null,
         error: null,
       },
@@ -143,21 +146,36 @@ function pollJobState(jobId: string): { status: number; data: JobState | ApiErro
         kind: job.kind,
         status: "running",
         progress: 0.8,
-        message_key: "job.step.stability_checks",
+        message_key: (job.stepKeys ?? WALL_STEP_KEYS)[1],
         result: null,
         error: null,
       },
     };
   }
 
-  // Done: update structure geometry if wall_size, and mark result_hash
-  const target = store.structures.find((s) => s.id === job.structure_id);
+  if (job.error) {
+    return {
+      status: 200,
+      data: {
+        job_id: job.job_id,
+        kind: job.kind,
+        status: "failed",
+        progress: 0.8,
+        message_key: null,
+        result: null,
+        error: job.error,
+      },
+    };
+  }
+
+  // Done: update structure geometry if wall_size, and mark result_hash (wall jobs only)
+  const target = job.structure_id ? store.structures.find((s) => s.id === job.structure_id) : undefined;
   if (target && (target.kind ?? "retaining_wall") === "retaining_wall") {
     const wall = target as RetainingWallStructure;
     if (job.kind === "wall_size") {
       wall.geometry = { ...MOCK_CANTILEVER_5M };
     }
-    wall.result_hash = job.result.result_hash;
+    wall.result_hash = (job.result as WallResultDTO).result_hash;
   }
 
   return {

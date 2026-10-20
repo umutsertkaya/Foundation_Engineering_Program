@@ -33,6 +33,16 @@
   "liquefaction.error.no_soil_source": "Projede aktif zemin profili yok. Zemin modülünde bir profil oluşturun veya etkinleştirin, sonra yeniden çalıştırın.",
   "liquefaction.run": "Analizi çalıştır",
   "liquefaction.results.title": "Sonuçlar",
-  "liquefaction.results.pending": "Sonuçlar, analiz motoru bağlandığında burada gösterilecek.",
-  "liquefaction.results.back": "Analize dön"
+  "liquefaction.results.back": "Analize dön",
+  "liquefaction.results.no_job": "Gösterilecek bir analiz yok. Önce analizi çalıştırın.",
+  "liquefaction.results.unavailable": "Bu analizin sonucuna erişilemiyor (süresi dolmuş veya sunucu yeniden başlamış olabilir). Analizi yeniden çalıştırın.",
+  "liquefaction.results.failed": "Analiz başarısız oldu.",
+  "liquefaction.results.cancelled": "Analiz iptal edildi; sonuç yok.",
+  "liquefaction.results.running": "Analiz çalışıyor…",
+  "liquefaction.results.cancel": "İptal et",
+  "liquefaction.results.empty": "Analiz sonuç üretmedi.",
+  "liquefaction.results.sounding": "Sondaj",
+  "liquefaction.results.min_fs": "En küçük GS",
+  "liquefaction.results.liquefiable_count": "Sıvılaşan nokta sayısı",
+  "liquefaction.results.errors_title": "Sondaj hataları"
 }

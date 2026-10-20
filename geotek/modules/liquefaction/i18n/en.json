@@ -33,6 +33,16 @@
   "liquefaction.error.no_soil_source": "The project has no active soil profile. Create or activate a profile in the soil module, then run again.",
   "liquefaction.run": "Run analysis",
   "liquefaction.results.title": "Results",
-  "liquefaction.results.pending": "Results will be shown here once the analysis engine is connected.",
-  "liquefaction.results.back": "Back to analysis"
+  "liquefaction.results.back": "Back to analysis",
+  "liquefaction.results.no_job": "No analysis to show. Run the analysis first.",
+  "liquefaction.results.unavailable": "The result of this analysis is not available (it may have expired or the server restarted). Run the analysis again.",
+  "liquefaction.results.failed": "The analysis failed.",
+  "liquefaction.results.cancelled": "The analysis was cancelled; there is no result.",
+  "liquefaction.results.running": "Analysis running…",
+  "liquefaction.results.cancel": "Cancel",
+  "liquefaction.results.empty": "The analysis produced no result.",
+  "liquefaction.results.sounding": "Sounding",
+  "liquefaction.results.min_fs": "Minimum FS",
+  "liquefaction.results.liquefiable_count": "Liquefiable points",
+  "liquefaction.results.errors_title": "Sounding errors"
 }

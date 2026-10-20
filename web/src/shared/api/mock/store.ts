@@ -5,13 +5,13 @@ import type {
   Borehole,
   CPTSounding,
   JobKind,
+  JobState,
   Language,
   ProfileSummary,
   ProjectMeta,
   SiteSeismic,
   SoilProfile,
   Structure,
-  WallResultDTO,
 } from "../types";
 import { mockProfileHash } from "./hash";
 import {
@@ -26,11 +26,16 @@ import {
 export interface MockJobInternal {
   job_id: string;
   kind: JobKind;
-  structure_id: string;
+  /** Wall jobs only; other job kinds have no structure. */
+  structure_id: string | null;
   startedAt: number;
   polls: number;
   cancelled: boolean;
-  result: WallResultDTO;
+  result: NonNullable<JobState["result"]>;
+  /** When set the job ends `failed` with this error instead of `done`. */
+  error?: ApiErrorDTO;
+  /** Progress message keys for the two running steps; wall keys when omitted. */
+  stepKeys?: [string, string];
 }
 
 export interface MockStore {
