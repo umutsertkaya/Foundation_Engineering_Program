@@ -21,23 +21,23 @@ export interface MissingFactorsFormProps {
 
 export function MissingFactorsForm({ missingFactors, onSubmit }: MissingFactorsFormProps) {
   const { t } = useTranslation();
-  const [values, setValues] = useState<Record<string, number>>(() => {
-    const initial: Record<string, number> = {};
-    for (const mf of missingFactors) {
-      initial[mf.path] = 1.0;
-    }
-    return initial;
-  });
+  // Fields start empty: a missing code factor is never pre-filled with an assumed value.
+  const [values, setValues] = useState<Record<string, number>>({});
   const [submitted, setSubmitted] = useState(false);
+  const complete = missingFactors.every((mf) => Number.isFinite(values[mf.path]));
 
   const handleValueChange = (path: string, val: string | number) => {
     const numeric = typeof val === "number" ? val : Number.parseFloat(val);
-    if (Number.isFinite(numeric)) {
-      setValues((prev) => ({ ...prev, [path]: numeric }));
-    }
+    setValues((prev) => {
+      const next = { ...prev };
+      if (Number.isFinite(numeric)) next[path] = numeric;
+      else delete next[path];
+      return next;
+    });
   };
 
   const handleSave = () => {
+    if (!complete) return;
     setSubmitted(true);
     onSubmit?.(values);
   };
@@ -85,7 +85,8 @@ export function MissingFactorsForm({ missingFactors, onSubmit }: MissingFactorsF
                   size="xs"
                   label={mf.path}
                   aria-label={mf.path}
-                  value={values[mf.path] ?? 1.0}
+                  data-testid="missing-factor-input"
+                  value={values[mf.path] ?? ""}
                   min={0.01}
                   max={10.0}
                   step={0.05}
@@ -105,7 +106,7 @@ export function MissingFactorsForm({ missingFactors, onSubmit }: MissingFactorsF
           ) : (
             <span />
           )}
-          <Button size="xs" color="amber" onClick={handleSave}>
+          <Button size="xs" color="amber" onClick={handleSave} disabled={!complete}>
             {t("ui.missing.save")}
           </Button>
         </Group>

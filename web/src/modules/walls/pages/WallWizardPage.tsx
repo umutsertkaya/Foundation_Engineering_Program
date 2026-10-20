@@ -182,7 +182,7 @@ export function WallWizardPage() {
           setGravityGeo({ ...wall.geometry });
         }
       }
-      setSurcharge(wall.inputs?.surcharge ?? 10.0);
+      setSurcharge(wall.inputs?.surcharge ?? 0);
       setSds(wall.inputs?.sds ?? null);
       setRFactor(wall.inputs?.r ?? null);
       setIncludeGlobal(wall.inputs?.include_global_stability ?? true);

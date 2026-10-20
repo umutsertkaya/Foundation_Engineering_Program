@@ -439,7 +439,7 @@
   "insitu.warning.cpt_points_skipped": "q_t ≤ σv0, σ′v0 ≤ 0 veya f_s ≤ 0 olan (I_c tanımsız) {count} CPT noktası atlandı.",
   "insitu.warning.cpt_gamma_nearest": "{count} CPT noktasında (q_t ≤ 0, derinlikler {depths} m) birim hacim ağırlık tahmin edilemedi; gerilmeler için en yakın tahmin edilen değer kullanıldı.",
   "insitu.warning.cpt_gamma_floor": "{count} CPT noktasında Robertson & Cabal (2010) birim hacim ağırlığı {gamma_min} kN/m³ altına düştü; alt sınır {gamma_min} kN/m³ (proje varsayımı) kullanıldı.",
-  "layering.warning.gamma_floor": "{top}-{bottom} m tabakası: bazı noktalarda CPT birim hacim ağırlık tahmini 12 kN/m³ alt sınırının altına düştü (proje varsayımı); alt sınır kullanıldı.",
+  "layering.warning.gamma_floor": "{top}-{bottom} m tabakası: bazı noktalarda CPT birim hacim ağırlık tahmini {gamma_min} kN/m³ alt sınırının altına düştü (proje varsayımı); alt sınır kullanıldı.",
   "correlation.warning.gamma_floor": "Tahmin {gamma_min} kN/m³ altında; alt sınır (proje varsayımı) kullanıldı.",
   "insitu.warning.cpt_predrill_excluded": "Ön delgi derinliği {predrill} m'den sığ {count} CPT okuması işlemeye alınmadı.",
   "insitu.warning.cpt_not_converged": "Q_tn yinelemesi {count} noktada yakınsamadı.",

@@ -120,12 +120,29 @@ describe("walls wizard: seismic inputs, design codes, save errors and stored res
     renderWizard();
     fireEvent.click(await step(tr["web.wizard.step.run"]));
     fireEvent.click(await screen.findByRole("button", { name: tr["ui.wall.check"] }));
-    fireEvent.click(await screen.findByRole("button", { name: tr["ui.missing.save"] }));
+    const save = await screen.findByRole("button", { name: tr["ui.missing.save"] });
+    // No factor is pre-filled: saving stays disabled until the user enters every value.
+    expect(save).toBeDisabled();
+    for (const input of screen.getAllByTestId("missing-factor-input")) {
+      expect((input as HTMLInputElement).value).toBe("");
+      fireEvent.change(input, { target: { value: "1" } });
+    }
+    fireEvent.click(save);
     await screen.findAllByTestId("check-card", undefined, { timeout: JOB_TIMEOUT });
     expect(screen.queryByRole("button", { name: tr["ui.missing.save"] })).toBeNull();
     expect(Object.keys(storedWall().settings?.factor_overrides ?? {})).toContain("TBDY-seismic.material.tan_phi");
     expect(storedWall().settings?.design_code).toBe("tbdy2018");
   }, 30000);
+
+  it("shows the backend default surcharge (0 kPa) for a stored wall without one", async () => {
+    const wall = storedWall();
+    const { surcharge: _drop, ...rest } = wall.inputs ?? {};
+    wall.inputs = rest as typeof wall.inputs;
+    renderWizard();
+    fireEvent.click(await step(tr["web.wizard.step.loads"]));
+    const field = await screen.findByRole("textbox", { name: tr["ui.wall.surcharge"] });
+    expect((field as HTMLInputElement).value).toBe("0");
+  });
 
   it("shows the stored result when the wizard is reopened, marked stale when the summary is stale", async () => {
     const first = renderWizard();

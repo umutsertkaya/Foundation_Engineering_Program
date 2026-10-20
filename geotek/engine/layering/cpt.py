@@ -12,7 +12,11 @@ import numpy as np
 
 from geotek.core.models.profile import LayeringSettings
 from geotek.engine.classification.robertson import is_sand_like, zone_from_ic
-from geotek.engine.correlations.physical import rc2010_below_floor, unit_weight_robertson_cabal
+from geotek.engine.correlations.physical import (
+    GAMMA_MIN_RC2010,
+    rc2010_below_floor,
+    unit_weight_robertson_cabal,
+)
 from geotek.engine.insitu.cpt import CPTProcessed
 from geotek.engine.layering.common import (
     Layer, Proposal, Segment, edges, format_warning, interval_warning, mean, merge_thin, proposal,
@@ -140,7 +144,7 @@ def cpt_layers(processed: CPTProcessed, settings: LayeringSettings) -> Proposal:
         good = np.isfinite(q) & (q > 0) & np.isfinite(f) & (f >= 0)
         estimates = np.asarray(unit_weight_robertson_cabal(q[good], f[good]))
         if rc2010_below_floor(q[good], f[good]).any():
-            interval_warning(warnings, "gamma_floor", top, end)
+            interval_warning(warnings, "gamma_floor", top, end, gamma_min=GAMMA_MIN_RC2010)
         valid_gamma = np.isfinite(estimates) & (estimates > 0)
         gamma = mean(estimates[valid_gamma])
         if not good.all() or not valid_gamma.all() or gamma is None:

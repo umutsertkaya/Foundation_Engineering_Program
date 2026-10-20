@@ -439,7 +439,7 @@
   "insitu.warning.cpt_points_skipped": "{count} CPT point(s) with q_t ≤ σv0, σ′v0 ≤ 0 or f_s ≤ 0 were skipped (I_c undefined).",
   "insitu.warning.cpt_gamma_nearest": "Unit weight could not be estimated at {count} CPT point(s) (q_t ≤ 0, depths {depths} m); the nearest estimated value was used for the stresses.",
   "insitu.warning.cpt_gamma_floor": "The Robertson & Cabal (2010) unit weight fell below {gamma_min} kN/m³ at {count} CPT point(s); the lower bound {gamma_min} kN/m³ (project assumption) was used.",
-  "layering.warning.gamma_floor": "Layer {top}-{bottom} m: the CPT unit weight estimate fell below the 12 kN/m³ lower bound (project assumption) at some points; the bound was used.",
+  "layering.warning.gamma_floor": "Layer {top}-{bottom} m: the CPT unit weight estimate fell below the {gamma_min} kN/m³ lower bound (project assumption) at some points; the bound was used.",
   "correlation.warning.gamma_floor": "The estimate is below {gamma_min} kN/m³; the lower bound (project assumption) was used.",
   "insitu.warning.cpt_predrill_excluded": "{count} CPT reading(s) shallower than the predrill depth {predrill} m were excluded from processing.",
   "insitu.warning.cpt_not_converged": "The Q_tn iteration did not converge at {count} point(s).",
