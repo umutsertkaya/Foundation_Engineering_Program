@@ -591,5 +591,5 @@ export const MOCK_DESIGN_CODES: DesignCodeSummary[] = [
   { id: "asd", name: "ASD (Klasik Güvenlik Sayıları)", approach: "global_fs", approaches: ["default"] },
   { id: "tbdy2018", name: "TBDY 2018 Bölüm 16", approach: "partial_factors", approaches: ["default"] },
   { id: "ec7", name: "Eurocode 7 (EN 1997-1)", approach: "partial_factors", approaches: ["DA1-C1", "DA1-C2", "DA2", "DA3"] },
-  { id: "lrfd", name: "AASHTO LRFD", approach: "lrfd", approaches: ["Strength-I", "Extreme-I"] },
+  { id: "aashto_lrfd", name: "AASHTO LRFD", approach: "lrfd", approaches: ["Strength-I", "Extreme-I"] },
 ];

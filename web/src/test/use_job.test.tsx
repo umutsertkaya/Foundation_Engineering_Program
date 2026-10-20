@@ -1,6 +1,6 @@
 import { act, renderHook } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import type { JobRef } from "../shared/api/types";
+import type { JobRef, JobState } from "../shared/api/types";
 
 vi.mock("../shared/api/client", async (importOriginal) => {
   const real = await importOriginal<typeof import("../shared/api/client")>();
@@ -71,7 +71,7 @@ describe("useJob races", () => {
     vi.useFakeTimers();
     vi.mocked(get_job).mockImplementation(async (id: string) => ({
       job_id: id, kind: "wall_size", status: id === "A" ? "running" : "done", progress: 0.5,
-      message_key: null, result: id === "A" ? null : { id }, error: null,
+      message_key: null, result: id === "A" ? null : ({ id } as unknown as JobState["result"]), error: null,
     }));
     const { result } = renderHook(() => useJob<{ id: string }>());
     await act(async () => { await result.current.start(async () => ({ job_id: "A" })); });

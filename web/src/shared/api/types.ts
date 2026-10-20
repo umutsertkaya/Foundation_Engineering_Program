@@ -527,6 +527,8 @@ export interface RetainingWallStructure {
   analysis_level?: "basic" | "advanced";
   approach?: string | null;
   result_hash?: string | null;
+  /** Last stored calculation payload (out of date when the structure summary is stale). */
+  result?: WallResultDTO | null;
 }
 
 export interface SheetPileStructure {
