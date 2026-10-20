@@ -66,6 +66,16 @@ def _demand_and_capacity(method, test_type, depth, sv, se, resistance, crr75, mw
     return rd, csr, msf, ks, crr, fs, max_depth
 
 
+MSF_AS_HIGH_MW_WARNING = "liquefaction.warning.msf_andrus_stokoe_high_magnitude"
+
+
+def _msf_warning(method: str, mw: float, msf_variant: str) -> list[str]:
+    """Youd 2001 recommends Idriss MSF for M > 7.5; Andrus-Stokoe is lower there (more conservative)."""
+    if method == "youd2001" and msf_variant == "andrus_stokoe" and mw > 7.5:
+        return [MSF_AS_HIGH_MW_WARNING]
+    return []
+
+
 def _depth_warning(depth) -> list[str]:
     if np.any(depth > SIMPLIFIED_DEPTH_WARNING):
         return [f"Points below {SIMPLIFIED_DEPTH_WARNING:g} m: simplified procedure is less reliable"]
@@ -130,6 +140,7 @@ def analyze_spt(
     if processed.refusal.any():
         warnings.append("Refusal blow counts are lower bounds; their FS is conservative")
     warnings += _depth_warning(depth)
+    warnings += _msf_warning(method, mw, msf_variant)
     return LiquefactionResult(
         method=method, test_type="SPT", source_id=processed.borehole_id, amax_g=amax_g, mw=mw,
         gwt_depth=gwt, target_fs=target_fs, depth=depth, sigma_v=sv, sigma_v_eff=se, rd=rd,
@@ -200,6 +211,7 @@ def analyze_cpt(
         max_depth=max_depth, clay_like=r["clay_like"], dense=r["dense"], exclude=exclude,
     )
     warnings += _depth_warning(depth)
+    warnings += _msf_warning(method, mw, msf_variant)
     return LiquefactionResult(
         method=method, test_type="CPT", source_id=processed.sounding_id, amax_g=amax_g, mw=mw,
         gwt_depth=gwt, target_fs=target_fs, depth=depth, sigma_v=sv, sigma_v_eff=se, rd=rd,

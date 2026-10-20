@@ -105,3 +105,20 @@ def test_exclude_mask(two_layer_profile):
     mask[p.depth == 5.0] = True
     r = analyze_cpt(p, two_layer_profile, amax_g=0.35, mw=7.0, exclude=mask)
     assert r.status[p.depth == 5.0][0] == "excluded_by_user"
+
+
+@pytest.mark.parametrize("mw,variant,expected", [
+    (8.0, "andrus_stokoe", True), (7.5, "andrus_stokoe", False),
+    (8.0, "idriss", False), (7.0, "andrus_stokoe", False),
+])
+def test_msf_andrus_stokoe_high_magnitude_warning(spt_processed, two_layer_profile, mw, variant, expected):
+    from geotek.engine.liquefaction.analysis import MSF_AS_HIGH_MW_WARNING
+
+    r = analyze_spt(spt_processed, two_layer_profile, method="youd2001", amax_g=0.4, mw=mw,
+                    fc=[5, 5, 20, 5], msf_variant=variant)
+    assert (MSF_AS_HIGH_MW_WARNING in r.warnings) is expected
+    if expected:
+        # Andrus-Stokoe is lower (more conservative) than Idriss above M 7.5
+        idriss = analyze_spt(spt_processed, two_layer_profile, method="youd2001", amax_g=0.4, mw=mw,
+                             fc=[5, 5, 20, 5], msf_variant="idriss")
+        assert np.all(r.msf <= idriss.msf)

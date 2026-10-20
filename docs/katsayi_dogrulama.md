@@ -42,7 +42,9 @@ Ulusal Ek değerleri farklı olabilir.
 
 AASHTO metninin kendisine erişilemedi. FHWA NHI-10-024 (GEC-11, AASHTO 2007'den aktarım, **secondary**) ile yük katsayıları
 DC 1.25/0.90, EH 1.50/0.90, EV 1.35/1.00, ES 1.50/0.75, LS 1.75, EQ 1.00 ve toptan göçme 0.75/0.65 eşleşti;
-Extreme Event I eksantrisite sınırı 0.40 B **unverified** (AASHTO 11.6.5'te sınır γEQ'ya bağlı; madde metniyle ve tablo numarasıyla, 11.5.6-1 / 11.5.7-1, doğrulanmadan eşleşti sayılmaz). Taşıma 0.55 ve pasif 0.50 önceki eyalet DOT özetlerine dayanır (secondary).
+Extreme Event I eksantrisite sınırı 0.40 B **unverified** (AASHTO 11.6.5'te sınır γEQ'ya bağlı; madde metniyle ve tablo numarasıyla, 11.5.6-1 / 11.5.7-1, doğrulanmadan eşleşti sayılmaz). Taşıma 0.55 ve pasif 0.50 önceki eyalet DOT özetlerine dayanır; araştırma raporunda doğrulanamadığı için **unverified** (2026-10-20, değer değişmedi).
+
+Açık madde: `EH at-rest 1.35` YAML'da `load_factors` içinde yok (kaynakta da doğrulanmadı); değer eklenmedi. GEC-11 tabloları MSE (mekanik stabilize zemin) duvarlarına özgüdür, serbest duvar katsayıları için doğrudan kanıt sayılmaz.
 Kayma (0.80/0.90), palplanş pasif (0.75), Extreme direnç katsayıları, strength eksantrisite sınırları ve LS extreme_I 0.50
 **unverified**.
 
@@ -52,5 +54,5 @@ Kayma (0.80/0.90), palplanş pasif (0.75), Extreme direnç katsayıları, streng
 ## ASD
 
 FHWA NHI-06-089 (Vol. II, Aralık 2006) ile karşılaştırıldı (2026-10-20): statik kayma 1.5, eksantrisite B/6 (zemin) ve B/4 (kaya),
-taşıma 3.0 (önerilen), toptan göçme 1.5 **secondary**; devrilme 2.0 eksantrisite kriterinden türetilmiş yaklaşık değerdir.
+taşıma 3.0 (önerilen), toptan göçme 1.5 **secondary**; devrilme 2.0 eksantrisite kriterinden türetilmiş yaklaşık değerdir ve zemin içindir (kaya için yaklaşık 1.5; YAML tek değer tutar).
 Sismik değerler ve palplanş pasif katsayısı **unverified**. Ayrıntı: `docs/research/katsayi_kaynak_arastirmasi_2026-10-20.md`.

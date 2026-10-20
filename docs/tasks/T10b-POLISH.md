@@ -20,3 +20,8 @@ Kapsam yalnız aşağıdaki maddeler; farklı motordan inceleme (Antigravity/Cod
 - Test boşlukları: kaynak profil değişince, `design_overrides` değişince, profil silinince stale; sheet pile stale; Türkçe karakterli/boş proje adıyla dosya adı; belgedeki sayısal değer/yuvarlama (M_max).
 
 Kabul: ilgili pytest + Vitest, typecheck, `gen_code_map --check` 0; STATUS'ta kısa kanıt.
+
+## Farklı motor incelemesi artıkları (2026-10-20, Antigravity/Codex)
+- T8a: sayısal değer/yuvarlama (M_max), stale-409 ve NaN için API düzeyinde testler hâlâ eksik (yukarıdaki test boşlukları listesi).
+- T1: TR "GS"/"FS" terim birliği; boş FS verisinde referans çizgisi çizilmemeli (`DepthChart.tsx`).
+- T4: EH at-rest 1.35 YAML'a eklenmedi (açık madde, `docs/katsayi_dogrulama.md`); ASD kaya devrilme 1.5 ayrı alan olarak yok.

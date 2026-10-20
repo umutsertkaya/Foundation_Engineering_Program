@@ -849,3 +849,14 @@ def test_governing_check_ids_match_failing_checks_for_narrow_wall():
     assert not result.passed and ids
     assert result.governing_check_ids == ids == result.governing.split(", ")
     assert not result.minimum_width_governs
+
+
+def test_aashto_wall_makes_ls_extreme_assumption_visible():
+    from geotek.services.structures import LS_EXTREME_ASSUMPTION
+
+    result = check_structure(_project(advanced=True, code="aashto_lrfd"), "wall")
+    assert any(f.path == "load.LS.extreme_I" for f in result.factors_used)
+    assert any(a.code == "wall.ls_extreme_i" and "0.50" in a.text for a in result.assumptions)
+    assert LS_EXTREME_ASSUMPTION in result.warnings
+    other = check_structure(_project(advanced=True, code="asd"), "wall")
+    assert LS_EXTREME_ASSUMPTION not in other.warnings
