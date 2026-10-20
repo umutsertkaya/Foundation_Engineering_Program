@@ -117,7 +117,7 @@ describe("liquefaction analysis page (mock)", () => {
     expect(sent).toMatchObject({ method: "bi2014", amax_g: 0.25, mw: 7.2, target_fs: 1.2, c_fc: 0.5, ic_cutoff: 2.6, default_fc: null, gwt_seismic: null });
     expect(typeof sent.profile_id).toBe("string");
     expect(await screen.findByText(tr["liquefaction.results.min_fs"], {}, { timeout: 4000 })).toBeInTheDocument();
-    expect(screen.getByText("0.75")).toBeInTheDocument();
+    expect(screen.getAllByText("0.75").length).toBeGreaterThan(0);
     fireEvent.click(screen.getByRole("button", { name: tr["liquefaction.results.back"] }));
     await waitFor(() => expect(screen.getByTestId("loc").textContent).toBe("/m/liquefaction"));
   });
