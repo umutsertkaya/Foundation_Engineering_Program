@@ -60,6 +60,7 @@
   "liquefaction.results.detail_table": "Detailed sounding results",
   "liquefaction.results.warnings_scope": "Warnings apply to the whole sounding; no depth-specific mapping is provided.",
   "liquefaction.results.no_chart_data": "No data to plot.",
+  "liquefaction.warning.msf_andrus_stokoe_high_magnitude": "Youd 2001 recommends the Idriss MSF for M > 7.5; the selected Andrus-Stokoe MSF is lower there, so the result is more conservative.",
   "liquefaction.results.mock_note": "These results are sample (mock) data, not an actual calculation.",
   "liquefaction.results.status.liquefiable": "Liquefiable",
   "liquefaction.results.status.marginal": "Marginal",
