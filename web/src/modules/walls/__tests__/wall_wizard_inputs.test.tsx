@@ -150,9 +150,10 @@ describe("walls wizard: seismic inputs, design codes, save errors and stored res
 
   it("names the soil source profile (or a deleted one) in the soil step, never by its id", async () => {
     const profile = getMockStore().profiles.find((p) => p.id === "prof-mock-1")!;
+    expect(profile.name).toBeTruthy();
     const first = renderWizard();
     fireEvent.click(await step(tr["web.wizard.step.soil"]));
-    await waitFor(() => expect(screen.getByTestId("soil-source-name")).toHaveTextContent(profile.name));
+    await waitFor(() => expect(screen.getByTestId("soil-source-name")).toHaveTextContent(profile.name ?? ""));
     expect(document.body.textContent).not.toContain("prof-mock-1");
     first.unmount();
 
