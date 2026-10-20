@@ -188,6 +188,10 @@ class SheetPileStructure(BaseModel):
     support: Literal["cantilever", "anchored"] = "cantilever"
     retained_height: float = Field(gt=0.5, le=12, description="Dredge line depth z [m]")
     anchor_depth: float | None = Field(None, ge=0)
+    depth_increase: float | None = Field(None, ge=0)
+    anchor_spacing: float | None = Field(None, gt=0, description="[m]")
+    anchor_inclination: float | None = Field(None, ge=0, lt=90, description="[deg from horizontal]")
+    front_water_depth: float | None = Field(None, ge=0, description="Depth from top [m]")
     soil: StructureSoilModel
     surcharge: float = Field(0.0, ge=0)
     sds: float | None = Field(None, gt=0, lt=3)
@@ -201,6 +205,8 @@ class SheetPileStructure(BaseModel):
 
     @model_validator(mode="after")
     def _check(self) -> SheetPileStructure:
+        if self.support != "anchored" and (self.anchor_spacing is not None or self.anchor_inclination is not None):
+            raise ValueError("anchor_spacing and anchor_inclination require anchored support")
         if self.support == "anchored" and self.anchor_depth is None:
             raise ValueError("Anchored wall needs anchor_depth")
         if self.anchor_depth is not None and self.anchor_depth >= self.retained_height:

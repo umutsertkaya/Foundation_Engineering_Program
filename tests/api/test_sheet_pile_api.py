@@ -12,6 +12,31 @@ from .job_helpers import poll_job, sheet_project, submit, wall_project
 PATH = "/api/m/sheet_pile/structures/sheet/design"
 
 
+def test_sheet_pile_optional_inputs_create_update_read_and_stale(shell):
+    shell.app.state.session.open_project(sheet_project())
+    values = {"depth_increase": 0.3, "anchor_spacing": 2.0,
+              "anchor_inclination": 15.0, "front_water_depth": 8.0}
+    created = shell.post("/api/structures", json={
+        "kind": "sheet_pile", "name": "Optional inputs", "retained_height": 4,
+        "support": "anchored", "anchor_depth": 1,
+        "soil": sheet_project().structure("sheet").soil.model_dump(mode="json"), **values,
+    })
+    assert created.status_code == 200, created.text
+    pile = created.json()
+    for key, value in values.items():
+        assert pile[key] == value
+    id = pile["id"]
+    state = poll_job(shell, submit(shell, f"/api/m/sheet_pile/structures/{id}/design"))
+    assert state["status"] == "done", state
+    stored = shell.get(f"/api/structures/{id}").json()
+    stored["anchor_spacing"] = 3.0
+    updated = shell.put(f"/api/structures/{id}", json=stored)
+    assert updated.status_code == 200, updated.text
+    assert shell.get(f"/api/structures/{id}").json()["anchor_spacing"] == 3.0
+    summary = next(item for item in shell.get("/api/structures").json() if item["id"] == id)
+    assert summary["stale"] is True
+
+
 def test_sheet_pile_requires_open_project_and_matching_resource(shell):
     response = shell.post(PATH)
     assert response.status_code == 409 and response.json()["code"] == "no_project_open"

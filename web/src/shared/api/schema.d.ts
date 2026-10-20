@@ -2705,6 +2705,23 @@ export interface components {
             support?: ("cantilever" | "anchored") | null;
             /** Anchor Depth */
             anchor_depth?: number | null;
+            /** Depth Increase */
+            depth_increase?: number | null;
+            /**
+             * Anchor Spacing
+             * @description [m]
+             */
+            anchor_spacing?: number | null;
+            /**
+             * Anchor Inclination
+             * @description [deg from horizontal]
+             */
+            anchor_inclination?: number | null;
+            /**
+             * Front Water Depth
+             * @description Depth from top [m]
+             */
+            front_water_depth?: number | null;
             /** Surcharge */
             surcharge?: number | null;
             /** Sds */
@@ -2792,6 +2809,23 @@ export interface components {
             retained_height: number;
             /** Anchor Depth */
             anchor_depth?: number | null;
+            /** Depth Increase */
+            depth_increase?: number | null;
+            /**
+             * Anchor Spacing
+             * @description [m]
+             */
+            anchor_spacing?: number | null;
+            /**
+             * Anchor Inclination
+             * @description [deg from horizontal]
+             */
+            anchor_inclination?: number | null;
+            /**
+             * Front Water Depth
+             * @description Depth from top [m]
+             */
+            front_water_depth?: number | null;
             soil: components["schemas"]["StructureSoilModel"];
             /**
              * Surcharge

@@ -483,6 +483,10 @@ export interface SheetPileCreate {
   retained_height: number;
   support?: "cantilever" | "anchored" | null;
   anchor_depth?: number | null;
+  depth_increase?: number | null;
+  anchor_spacing?: number | null;
+  anchor_inclination?: number | null;
+  front_water_depth?: number | null;
   surcharge?: number | null;
   sds?: number | null;
   design_code?: string | null;
@@ -517,6 +521,10 @@ export interface SheetPileStructure {
   support?: "cantilever" | "anchored";
   retained_height: number;
   anchor_depth?: number | null;
+  depth_increase?: number | null;
+  anchor_spacing?: number | null;
+  anchor_inclination?: number | null;
+  front_water_depth?: number | null;
   soil: StructureSoilModel;
   surcharge?: number;
   sds?: number | null;

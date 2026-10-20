@@ -74,6 +74,8 @@ def sheet_pile_result(id: str, result) -> dto.SheetPileResultDTO:
             source="geotek.services.structures.design_sheet_pile_structure / SheetPileDesign",
         )]
         warnings = list(dict.fromkeys(w for case in result.cases.values() for w in case.warnings))
+        assumptions.extend(dto.AssumptionDTO.model_validate(item)
+                           for item in getattr(result, "assumptions", []))
     else:
         raw = result.result
         assumptions = [dto.AssumptionDTO.model_validate(item) for item in result.assumptions]

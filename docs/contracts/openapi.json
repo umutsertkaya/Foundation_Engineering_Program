@@ -12189,6 +12189,58 @@
             ],
             "title": "Anchor Depth"
           },
+          "depth_increase": {
+            "anyOf": [
+              {
+                "type": "number",
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Depth Increase"
+          },
+          "anchor_spacing": {
+            "anyOf": [
+              {
+                "type": "number",
+                "exclusiveMinimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Anchor Spacing",
+            "description": "[m]"
+          },
+          "anchor_inclination": {
+            "anyOf": [
+              {
+                "type": "number",
+                "exclusiveMaximum": 90.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Anchor Inclination",
+            "description": "[deg from horizontal]"
+          },
+          "front_water_depth": {
+            "anyOf": [
+              {
+                "type": "number",
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Front Water Depth",
+            "description": "Depth from top [m]"
+          },
           "surcharge": {
             "anyOf": [
               {
@@ -12534,6 +12586,58 @@
               }
             ],
             "title": "Anchor Depth"
+          },
+          "depth_increase": {
+            "anyOf": [
+              {
+                "type": "number",
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Depth Increase"
+          },
+          "anchor_spacing": {
+            "anyOf": [
+              {
+                "type": "number",
+                "exclusiveMinimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Anchor Spacing",
+            "description": "[m]"
+          },
+          "anchor_inclination": {
+            "anyOf": [
+              {
+                "type": "number",
+                "exclusiveMaximum": 90.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Anchor Inclination",
+            "description": "[deg from horizontal]"
+          },
+          "front_water_depth": {
+            "anyOf": [
+              {
+                "type": "number",
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Front Water Depth",
+            "description": "Depth from top [m]"
           },
           "soil": {
             "$ref": "#/components/schemas/StructureSoilModel"

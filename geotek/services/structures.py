@@ -19,6 +19,7 @@ import numpy as np
 from geotek.config.codes import FactorLog
 from geotek.core.errors import GeoTekError, MissingFactorsError
 from geotek.core.models.project import Project
+from geotek.core.models.profile import GroundwaterCondition
 from geotek.core.models.structures import RetainingWallStructure, SheetPileStructure
 from geotek.core.models.walls import Backfill, WallLoads, WallSettings
 from geotek.engine.earth_pressure.coefficients import TBDY_R, mononobe_okabe_kpe, rankine_kp, tbdy_seismic_coefficients
@@ -119,11 +120,13 @@ def required_factors(project: Project, structure_id: str) -> list[MissingFactor]
         # Water may load the embedded part even when it is below the dredge line.
         base, sds, gwt_case = structure.soil.profile.bottom, structure.sds, "design"
     missing = {}
+    soil = (_sheet_soil(structure, structure.soil) if isinstance(structure, SheetPileStructure)
+            else structure.soil)
     for seismic in ([False, True] if sds is not None else [False]):
         case = "seismic" if seismic else gwt_case
         for factor in required_layered_inputs(
             settings, approach=structure.approach, seismic=seismic,
-            water=_water(structure.soil, base, case),
+            water=_water(soil, base, case),
             include_equ=isinstance(structure, RetainingWallStructure),
             include_global=(isinstance(structure, RetainingWallStructure)
                             and structure.inputs.include_global_stability),
@@ -487,6 +490,32 @@ def check_structure(project: Project, structure_id: str, progress: ProgressFn | 
     return result
 
 
+@dataclass
+class StructureSheetPileDesign(SheetPileDesign):
+    """Service envelope with explicit structure input assumptions."""
+
+    assumptions: list[Assumption] = field(default_factory=list)
+
+
+def _sheet_soil(structure, soil):
+    """Apply the front water override to an independent structure soil copy."""
+    if structure.front_water_depth is None:
+        return soil
+    return soil.model_copy(update={
+        "gwt_front": GroundwaterCondition(depth_insitu=structure.front_water_depth),
+    })
+
+
+def _sheet_assumptions(structure):
+    if structure.front_water_depth is None:
+        return []
+    return [Assumption(
+        text=f"Ön YASS üstten {structure.front_water_depth:g} m olarak geçersiz kılındı; "
+             "tasarım ve deprem durumlarında aynı seviye kullanılır",
+        source="SheetPileStructure.front_water_depth; mühendis girdisi",
+    )]
+
+
 def _sheet_case(structure, design_soil, *, seismic, passive_factor, active_factor=1.0,
                 surcharge_factor=1.0, water_factor=1.0, seismic_factor=1.0):
     """Existing Blum/free-earth solver with independent active/passive structure profiles.
@@ -495,7 +524,7 @@ def _sheet_case(structure, design_soil, *, seismic, passive_factor, active_facto
     shared with sheet_pile.py. No global monkeypatch or shared state is used.
     """
     H = structure.retained_height
-    soil = soil_at_case(design_soil, "seismic" if seismic else "design")
+    soil = soil_at_case(_sheet_soil(structure, design_soil), "seismic" if seismic else "design")
     retained, front = soil.retained_profile(), soil.front_profile()
     bottom = soil.profile.bottom
     active = lateral_pressure(retained, bottom, surcharge=structure.surcharge, layerwise=True)
@@ -546,6 +575,8 @@ def _sheet_case(structure, design_soil, *, seismic, passive_factor, active_facto
         increase = 0.0
     if toe is None:
         raise GeoTekError("No sheet-pile embedment equilibrium within the structure profile; deepen the profile")
+    if structure.depth_increase is not None:
+        increase = structure.depth_increase
     force = float(np.interp(toe, z, F))
     if anchor is not None and force <= 0:
         raise GeoTekError("Computed anchor force is not tensile")
@@ -586,6 +617,12 @@ def design_sheet_pile_structure(project: Project, structure_id: str, progress: P
             Assumption(text="Konsolda Blum gömülmesi %20 artırılır; ankrajlıda serbest zemin desteği",
                        source="Mevcut sheet_pile.py; USS Steel Sheet Piling Design Manual / USACE EM 1110-2-2504"),
         ]
+        assumptions.extend(_sheet_assumptions(structure))
+        if structure.depth_increase is not None:
+            assumptions[2] = Assumption(
+                text=f"Gömülme artışı: {structure.depth_increase:g}; D = D0 * (1 + artış)",
+                source="SheetPileStructure.depth_increase; mevcut sheet_pile.py",
+            )
         if seismic:
             assumptions.append(Assumption(text="r=1; M-O artımı H boyunca düzgün (bileşke H/2); "
                                                 "katman başına pasif M-O/Rankine oranı en çok 1; drenajsız deprem durdurulur; "
@@ -596,7 +633,7 @@ def design_sheet_pile_structure(project: Project, structure_id: str, progress: P
     for seismic in ([False, True] if structure.sds is not None else [False]):
         if seismic:
             reporter.emit(0.5, "job.step.seismic_checks")
-        case_soil = soil_at_case(structure.soil, "seismic" if seismic else "design")
+        case_soil = soil_at_case(_sheet_soil(structure, structure.soil), "seismic" if seismic else "design")
         for case in layered_limit_state_cases(
             settings, seismic=seismic, approach=structure.approach,
             water=_water(case_soil, case_soil.profile.bottom, "design"),
@@ -612,6 +649,7 @@ def design_sheet_pile_structure(project: Project, structure_id: str, progress: P
     gd, gm = max(results, key=lambda k: results[k].D), max(results, key=lambda k: results[k].M_max)
     anchors = [r.anchor_force for r in results.values() if r.anchor_force is not None]
     reporter.emit(1.0, "job.step.sizing")
-    return SheetPileDesign(cases=results, D_required=results[gd].D, M_design=results[gm].M_max,
+    return StructureSheetPileDesign(cases=results, D_required=results[gd].D, M_design=results[gm].M_max,
                            anchor_force_design=max(anchors) if anchors else None,
-                           governing_embedment=gd, governing_moment=gm, factors_used=used)
+                           governing_embedment=gd, governing_moment=gm, factors_used=used,
+                           assumptions=_sheet_assumptions(structure))
