@@ -107,7 +107,7 @@ export function HomePage() {
             return (
               <Group key={section.id} justify="space-between" wrap="nowrap">
                 <Checkbox
-                  label={section.name}
+                  label={section.name || t(`report.section.${section.kind}`)}
                   checked={selected.has(section.id)}
                   disabled={!usable || busy}
                   onChange={(event) => toggle(section.id, event.currentTarget.checked)}

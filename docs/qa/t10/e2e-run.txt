@@ -1,0 +1,70 @@
+PASS  health  
+PASS  i18n tr  1369 keys
+PASS  i18n en  1369 keys
+PASS  new project  {"file":"t10-acceptance-6.gtk","name":"T10 Acceptance","number":"T10","engineer":"QA","modified":"2026-10-20T19:15:42.47
+PASS  modules listed  
+PASS  import CPT (TR csv ; ,)  {"id":"CPT1","x":null,"y":null,"elevation":null,"gwt_depth":null,"area_ratio":0.8,"predrill_depth":0.0,"depth":[0.1,0.15,0.2,0.25,0.3,0.35,0.4,0.45,0.
+PASS  import SPT  {"id":"BH1","x":null,"y":null,"elevation":null,"gwt_depth":null,"energy_ratio":60.0,"borehole_diameter_mm":100.0,"sampler":"standard","spt":[{"depth":
+PASS  investigations list  
+PASS  CPT processed without gwt -> 422 (gwt required)  {"code":"validation","message":"Groundwater depth is required when no soil profile is given","detail
+PASS  set CPT gwt_depth  
+PASS  set BH gwt_depth  
+PASS  CPT processed  {"depth":[0.1,0.15,0.2,0.25,0.3,0.35,0.4,0.45,0.5,0.55,0.6,0.65,0.7,0.75,0.8,0.85,0.9,0.95,1.0,1.05,
+PASS  SBTn CPT1  {"points":[{"Fr":1.4246645756124912,"Qtn":299.31968817163107,"depth":0.1,"Ic":1.6955392804142577,"zo
+PASS  SBTn reference  
+PASS  USCS single sample  {"depth":null,"symbol":"CL","complete":true,"notes":["Organic soils (OL/OH) not checked"],"FC":60.0,"gravel":null,"LL":40.0,"PL":null,"PI":20.0,"D10":null,"D30"
+PASS  USCS borehole  {"items":[]}
+PASS  USCS invalid input -> 422  422
+PASS  CPT layering proposal  {"source_id":"CPT1","settings":{"method":"cpt_ic","smoothing_window":0.5,"min_thickness":0.5,"merge_ic_tol":0.15,"n_change_ratio":0.5},"layers":[{"top
+PASS  profile from proposal  {"id":"b767aeaca46c43688b54d3b684fde94c","name":"CPT profile","source_ids":["CPT1"],"origin":"cpt","layering":{"method":"cpt_ic","smoothing_window":0.5,"min_thickness":0.5,"merge_ic_tol":0.15,"n_chang
+NOTE  profile b767aeaca46c43688b54d3b684fde94c: 3 layers; first {'id': '08fa4901c8f846309d4e2cbc74697646', 'top': 0.0, 'bottom': 5.975, 'description': '', 'uscs': None, 'sbtn_zone': 6, 'behaviour': 'drained', 'gamma': 17.919418366190715, 'gamma_sat': 17.919418366190715, 'permeability': None, 'params': {}, 'design': {'phi_eff': None, 'c_eff': 0.0, 'su': None, 'E': None, 'delta_base': None}, 'select
+PASS  suggest-all parameters  {"id":"b767aeaca46c43688b54d3b684fde94c","name":"CPT profile","source_ids":["CPT1"],"origin":"cpt","layering":{"method":"cpt_ic","smoothing_window":0.5,"min_thickness":0.5,"merge_ic_tol":0.15,"n_chang
+PASS  select phi_eff layer 0.0-5.975  {"parameter":"phi_eff","candidates":[{"value":38.2688167921677,"unit":"deg","method_id":"KM1990_phi_CPT","reference":"Kulhawy & Mayne (1990); Mayne (2007) NCHRP
+PASS  select c_eff layer 0.0-5.975  {"parameter":"c_eff","candidates":[],"suggested":{"value":0.0,"unit":"kPa","method_id":"FHWA_GEC5_c_eff","reference":"FHWA GEC-5: granüler zeminde c' = 0","sour
+PASS  approve layer 0.0-5.975  {"id":"08fa4901c8f846309d4e2cbc74697646","top":0.0,"bottom":5.975,"description":"","uscs":null,"sbtn_zone":6,"behaviour":"drained","gamma":17.919418366190715,"g
+PASS  select phi_eff layer 5.975-9.075  {"parameter":"phi_eff","candidates":[{"value":28.248066062532075,"unit":"deg","method_id":"KM1990_phi_CPT","reference":"Kulhawy & Mayne (1990); Mayne (2007) NCH
+PASS  select c_eff layer 5.975-9.075  {"parameter":"c_eff","candidates":[],"suggested":null,"mode":"manual","method_id":null,"statistic":null,"k_sd":null,"manual_value":0.0,"selected":{"value":0.0,"
+PASS  approve layer 5.975-9.075  {"id":"9c154520e657435ba72eb70c1818cc80","top":5.975,"bottom":9.075,"description":"","uscs":null,"sbtn_zone":3,"behaviour":"undrained","gamma":16.90364720421507
+PASS  select phi_eff layer 9.075-15.0  {"parameter":"phi_eff","candidates":[{"value":44.38211532822613,"unit":"deg","method_id":"KM1990_phi_CPT","reference":"Kulhawy & Mayne (1990); Mayne (2007) NCHR
+PASS  select c_eff layer 9.075-15.0  {"parameter":"c_eff","candidates":[],"suggested":{"value":0.0,"unit":"kPa","method_id":"FHWA_GEC5_c_eff","reference":"FHWA GEC-5: granüler zeminde c' = 0","sour
+PASS  approve layer 9.075-15.0  {"id":"5965b270e27149e18ba169c6f049f269","top":9.075,"bottom":15.0,"description":"","uscs":null,"sbtn_zone":6,"behaviour":"drained","gamma":20.11239257172385,"g
+PASS  profile design values approved  [38.2688167921677, 28.248066062532075, 44.38211532822613]
+PASS  set active profile  
+PASS  missing s_u -> job failed with clear error  {'code': 'engine_error', 'message': 'Layer 9c154520e657435ba72eb70c1818cc80: design s_u not set', 'details': {}, 'missing_factors': []}
+NOTE  missing-input message (raw): Layer 9c154520e657435ba72eb70c1818cc80: design s_u not set
+PASS  select su  
+PASS  approve su  
+PASS  create wall  {"kind":"retaining_wall","id":"daa44230-450f-4bda-8b47-231f3aea610c","name":"Duvar","wall_type":"cantilever","height":4.0,"embedment":null,"backfill_slope":0.0,
+PASS  create sheet pile  {"kind":"sheet_pile","id":"5cb68479-382c-4cca-843a-e79ab65f9ad2","name":"Palplans","support":"cantilever","retained_height":4.0,"anchor_depth":null,"depth_incre
+PASS  wall required-factors  []
+PASS  wall size job  {'job_id': '26544763-7f17-4a49-bf2f-9a2a795203eb', 'kind': 'wall_size', 'status': 'done', 'progress': 1.0, 'message_key': 'job.step.done', 'result': {'structure_id': 'daa44230-450f-4bda-8b47-231f3aea610c', 'geometry': {'stem_height': 3.6, 'stem_top': 0.3, 'stem_bottom': 0.35000000000000003, 'toe': 0
+PASS  wall check job  {'job_id': 'fb401cf9-25a2-4fff-9fc8-91acc2c9b1ca', 'kind': 'wall_check', 'status': 'done', 'progress': 1.0, 'message_key': 'job.step.done', 'result': {'structure_id': 'daa44230-450f-4bda-8b47-231f3aea610c', 'geometry': {'stem_height': 3.6, 'stem_top': 0.3, 'stem_bottom': 0.35000000000000003, 'toe': 
+PASS  wall has result  ['structure_id', 'geometry', 'passed', 'governing', 'governing_check_ids', 'minimum_width_governs', 'checks', 'forces', 'pressures', 'slip_circles', '
+PASS  sheet pile design job  {'job_id': 'f76b5b71-428e-452b-961f-159944fb5b61', 'kind': 'sheet_pile', 'status': 'done', 'progress': 1.0, 'message_key': 'job.step.done', 'result': {'structure_id': '5cb68479-382c-4cca-843a-e79ab65f9ad2', 'support': 'cantilever', 'anchor_force_per_anchor': None, 'anchor_spacing_used': None, 'ancho
+PASS  sheet pile has result  
+PASS  liquefaction job  {'job_id': 'e1513b51-6cf3-492f-b596-69808061a253', 'kind': 'liquefaction', 'status': 'done', 'progress': 1.0, 'message_key': 'job.step.done', 'result': {'per_sounding': {'BH1': {'depth': [1.5, 3.0, 4.5, 6.0, 7.5, 9.0, 10.5, 12.0, 13.5], 'CSR': [0.2587628623268102, 0.2552876085642718, 0.3073571455045
+NOTE  liq result keys: ['per_sounding', 'errors']
+NOTE  sections: project=ready, soil:b767aeaca46c43688b54d3b684fde94c=ready, structure:daa44230-450f-4bda-8b47-231f3aea610c=ready, structure:5cb68479-382c-4cca-843a-e79ab65f9ad2=ready, classification=ready, liquefaction=ready
+PASS  report docx tr  200 39890B attachment; filename="T10_Acceptance_report.docx"
+PASS  docx tr valid zip+opens  
+PASS  report docx en  200 39871B attachment; filename="T10_Acceptance_report.docx"
+PASS  docx en valid zip+opens  
+PASS  cancel job (DELETE)  200 final=cancelled
+PASS  cancel unknown job -> 404  
+PASS  wall height 0 -> 422  
+PASS  pile negative height -> 422  
+PASS  liq invalid amax -> 422  
+PASS  CPT bad csv -> 4xx  
+PASS  save  
+PASS  close  
+PASS  reopen  {"open":true,"file":"t10-acceptance-6.gtk","dirty":false}
+PASS  wall result survives reopen  
+PASS  not stale after reopen  [{'id': 'daa44230-450f-4bda-8b47-231f3aea610c', 'name': 'Duvar', 'kind': 'retaining_wall', 'wall_type': 'cantilever', 'stale': False, 'has_result': True}, {'id': '5cb68479-382c-4cca-843a-e79ab65f9ad2', 'name': 'Palplans', 'kind': 'sheet_pile', 'wall_type': None, 'stale': False, 'has_result': True}]
+NOTE  after profile edit stale flags: [('Duvar', True), ('Palplans', True)]
+NOTE  report of (maybe) stale wall -> 409 {"code":"stale_result","message":"stale_result: structure:daa44230-450f-4bda-8b47-231f3aea610c","details":{"sections":["structure:daa44230-450f-4bda-8b47-231f3aea610c"]},"missing_factors":[]}
+PASS  resync soil  {"kind":"retaining_wall","id":"daa44230-450f-4bda-8b47-231f3aea610c","name":"Duvar","wall_type":"cantilever","height":4.0,"embedment":0.6,"backfill_slope":0.0,"
+NOTE  after resync: [('Duvar', True, True), ('Palplans', True, True)]
+PASS  rerun wall check after resync  None
+PASS  wall no longer stale after rerun  
+
+FAILURES: none
