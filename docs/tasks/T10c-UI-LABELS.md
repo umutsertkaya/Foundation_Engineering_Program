@@ -19,5 +19,10 @@ Kaynak: [T10 kabul raporu](../qa/T10-kabul.md). Hesap formülü/katsayı değiş
    kalınlık göster/belirt. Sınıflandırma kuralı değişmez; yalnız özetleme/görüntüleme.
 6. **"Belirleyici kontrol" satırı geçen duvarda "-" yazar** (`governing` boş; yalnız başarısızlıkta dolar).
    Rapor etiketini "Başarısız kontroller" yap veya en yüksek kullanım oranlı kontrolü yaz.
+7. **Kararsız test: `test_walls_api` five_metre_wall… (save→400) kök neden bulunacak.** T10 `check full`
+   koşusunda (2026-10-20, ~8,5 dk, yanında uvicorn/Playwright çalışıyordu) bir kez hata verdi; tek başına
+   yeniden koşunca geçti. Olası nedenler: testler arası paylaşılan durum/dosya kilidi, zamanlama, eşzamanlı
+   süreç. Önce tam koşuda tekrarla (`-p no:randomly` ve sıralı/paralel karşılaştır), sonra kök nedeni düzelt;
+   testi atlama/devre dışı bırakma yok.
 
 Kabul: ilgili pytest + Vitest, typecheck, `gen_code_map --check` 0; STATUS'ta kısa kanıt.
