@@ -1,6 +1,31 @@
+import os
+import shutil
+from pathlib import Path
+
 import pytest
 
 from geotek.core.models import GroundwaterCondition, SoilLayer, SoilProfile
+
+
+@pytest.hookimpl(tryfirst=True)
+def pytest_configure(config):
+    """Give every pytest process its own ``--basetemp`` below the configured one.
+
+    pytest deletes the basetemp directory when a run starts, so two runs in the same checkout
+    (e.g. a quick test while a full run is in progress) wiped each other's ``tmp_path`` and
+    produced intermittent ``save -> 400`` failures.
+    """
+    base = config.option.basetemp
+    if base is not None:
+        Path(base).mkdir(parents=True, exist_ok=True)  # pytest creates only the last path part
+        config.option.basetemp = Path(base) / f"run-{os.getpid()}"
+
+
+def pytest_sessionfinish(session, exitstatus):
+    """Remove this process's temp directory after a passing run; keep it to debug failures."""
+    base = session.config.option.basetemp
+    if base is not None and Path(base).name == f"run-{os.getpid()}" and int(exitstatus) == 0:
+        shutil.rmtree(base, ignore_errors=True)
 
 
 @pytest.fixture

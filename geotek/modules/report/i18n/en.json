@@ -50,6 +50,7 @@
   "report.wall.geometry": "Geometry",
   "report.wall.verdict": "Result",
   "report.wall.governing": "Governing check",
+  "report.wall.governing_utilisation": "Governing check (highest utilisation)",
   "report.wall.checks": "Checks",
   "report.check.case": "Case",
   "report.check.name": "Check",

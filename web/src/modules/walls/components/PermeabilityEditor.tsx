@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Card, Group, Stack, Table, Text, TextInput } from "@mantine/core";
 import { useTranslation } from "react-i18next";
 import type { SoilLayer, StructureSoilModel } from "../../../shared/api/types";
+import { layerLabel } from "../../../shared/soil/format";
 import { formatPermeability, layerPermeability, parsePermeability, withPermeability } from "../settings";
 
 export interface PermeabilityEditorProps {
@@ -40,8 +41,8 @@ function PermeabilityRow({ layer, origin, onCommit }: RowProps) {
 
   return (
     <Table.Tr data-testid="permeability-row" data-layer-id={layer.id}>
-      <Table.Td ff="monospace" fw={600}>
-        {layer.id}
+      <Table.Td fw={600}>
+        {layer.uscs ?? layer.description ?? "—"}
       </Table.Td>
       <Table.Td>
         <Text size="xs" c="dimmed">
@@ -57,7 +58,7 @@ function PermeabilityRow({ layer, origin, onCommit }: RowProps) {
           w={130}
           inputMode="decimal"
           placeholder="1e-5"
-          aria-label={t("walls.perm.input_label", { id: layer.id })}
+          aria-label={t("walls.perm.input_label", { id: layerLabel(layer) })}
           value={text}
           error={error ? t("walls.perm.invalid_cleared") : undefined}
           onChange={(e) => {

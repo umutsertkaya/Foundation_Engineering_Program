@@ -46,7 +46,9 @@ def error_from_exception(exc: Exception) -> dto.ApiError:
     if isinstance(exc, (ValidationError, ValueError)):
         return dto.ApiError(code="validation", message=str(exc))
     if isinstance(exc, GeoTekError):
-        return dto.ApiError(code="engine_error", message=str(exc))
+        details = ({"message_code": exc.message_code, "params": exc.message_params or {}}
+                   if exc.message_code else {})
+        return dto.ApiError(code="engine_error", message=str(exc), details=details)
     return dto.ApiError(code="engine_error", message="An internal calculation error occurred.")
 
 

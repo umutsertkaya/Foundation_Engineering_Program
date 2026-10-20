@@ -129,9 +129,25 @@ describe("summariseZones", () => {
       { ...base, depth: 4, zone: null },
     ]);
     expect(rows).toEqual([
-      { zone: 3, count: 1, top: 2, bottom: 2 },
-      { zone: 5, count: 2, top: 1, bottom: 3 },
+      { zone: 3, count: 1, top: 2, bottom: 3 },
+      { zone: 5, count: 2, top: 1, bottom: 4 },
     ]);
+  });
+});
+
+describe("summariseZones thickness", () => {
+  it("gives a zone of one sample the interval to the next sample, and the last one a sample spacing", () => {
+    const base = { Fr: 1, Qtn: 1, Ic: 1, zone_name_en: null, zone_name_tr: null };
+    const rows = summariseZones([
+      { ...base, depth: 1.0, zone: 5 },
+      { ...base, depth: 1.4, zone: 3 },
+      { ...base, depth: 1.8, zone: 5 },
+      { ...base, depth: 2.2, zone: 4 },
+    ]);
+    expect(rows.every((r) => r.top !== null && r.bottom !== null && r.bottom > r.top)).toBe(true);
+    expect(rows.find((r) => r.zone === 3)).toMatchObject({ top: 1.4, bottom: 1.8 });
+    expect(rows.find((r) => r.zone === 4)).toMatchObject({ top: 2.2 });
+    expect(rows.find((r) => r.zone === 4)!.bottom).toBeCloseTo(2.6);
   });
 });
 

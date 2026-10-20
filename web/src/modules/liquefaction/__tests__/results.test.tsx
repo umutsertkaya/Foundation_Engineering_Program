@@ -8,6 +8,7 @@ import "../../../app/i18n";
 import { theme } from "../../../app/theme";
 import * as client from "../../../shared/api/client";
 import type { LiquefactionResultDTO } from "../../../shared/api/types";
+import * as moduleApi from "../api";
 import { DepthChart } from "../components/DepthChart";
 import { ResultsPage } from "../pages/ResultsPage";
 
@@ -37,6 +38,14 @@ describe("DepthChart", () => {
     expect(screen.getByText(label("no_chart_data"))).toBeInTheDocument();
     expect(container.innerHTML).not.toMatch(/NaN|Infinity/);
     expect(container.querySelectorAll("circle")).toHaveLength(0);
+  });
+
+  it("draws no reference line when there is no finite data", () => {
+    const { container } = render(<DepthChart {...chartProps} depth={[1, 2]} reference={{ value: 1, label: label("fs_reference") }}
+      series={[{ label: label("fs"), values: [null, null], color }]} />);
+    expect(screen.getByText(label("no_chart_data"))).toBeInTheDocument();
+    expect(screen.queryByText(label("fs_reference"))).not.toBeInTheDocument();
+    expect(container.querySelector('path[stroke-dasharray="3 4"]')).not.toBeInTheDocument();
   });
 
   it("breaks lines at null values and null depths, retaining isolated points", () => {
@@ -78,6 +87,56 @@ function renderResults(data = result) {
     </MantineProvider>,
   );
 }
+
+function renderStored(entry: string) {
+  return render(
+    <MantineProvider theme={theme}>
+      <MemoryRouter initialEntries={[entry]}>
+        <ResultsPage />
+      </MemoryRouter>
+    </MantineProvider>,
+  );
+}
+
+describe("stored liquefaction result (no job in the URL)", () => {
+  it("loads the result saved in the project and flags it when outdated", async () => {
+    vi.spyOn(moduleApi, "get_liquefaction_result").mockResolvedValue({
+      profile_id: "P1", settings: { method: "bi2014", amax_g: 0.3, mw: 7.5, target_fs: 1.1, c_fc: 0, ic_cutoff: 2.6 },
+      result, stale: true,
+    });
+    renderStored("/m/liquefaction/results");
+    await screen.findByRole("img", { name: label("chart_fs") });
+    expect(screen.getByTestId("liq-stale")).toHaveTextContent(label("stale"));
+  });
+
+  it("shows no stale notice for a current result", async () => {
+    vi.spyOn(moduleApi, "get_liquefaction_result").mockResolvedValue({
+      profile_id: "P1", settings: { method: "bi2014", amax_g: 0.3, mw: 7.5, target_fs: 1.1, c_fc: 0, ic_cutoff: 2.6 },
+      result, stale: false,
+    });
+    renderStored("/m/liquefaction/results");
+    await screen.findByRole("img", { name: label("chart_fs") });
+    expect(screen.queryByTestId("liq-stale")).not.toBeInTheDocument();
+  });
+
+  it("keeps the empty state when the project has no saved result", async () => {
+    vi.spyOn(moduleApi, "get_liquefaction_result").mockRejectedValue(
+      new client.ApiError(404, { code: "not_found", message: "none", details: {}, missing_factors: [] }));
+    renderStored("/m/liquefaction/results");
+    expect(await screen.findByText(label("no_job"))).toBeInTheDocument();
+  });
+
+  it("falls back to the saved result when the job is gone", async () => {
+    vi.spyOn(client, "get_job").mockRejectedValue(
+      new client.ApiError(404, { code: "not_found", message: "gone", details: {}, missing_factors: [] }));
+    vi.spyOn(moduleApi, "get_liquefaction_result").mockResolvedValue({
+      profile_id: "P1", settings: { method: "bi2014", amax_g: 0.3, mw: 7.5, target_fs: 1.1, c_fc: 0, ic_cutoff: 2.6 },
+      result, stale: false,
+    });
+    renderStored("/m/liquefaction/results?job=old");
+    await screen.findByRole("img", { name: label("chart_fs") });
+  });
+});
 
 describe("liquefaction result details", () => {
   it("preserves the summary, displays DTO rows and two labelled charts, and selects soundings", async () => {

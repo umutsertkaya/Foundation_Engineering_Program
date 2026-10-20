@@ -2,6 +2,7 @@ import { Alert, Button, Group, Text } from "@mantine/core";
 import { IconAlertCircle } from "@tabler/icons-react";
 import { useTranslation } from "react-i18next";
 import { ApiError } from "../api/client";
+import { errorMessage } from "../api/errorMessage";
 
 interface ErrorAlertProps {
   error: unknown;
@@ -13,7 +14,7 @@ export function ErrorAlert({ error, onRetry }: ErrorAlertProps) {
 
   const code = error instanceof ApiError ? error.code : "engine_error";
   const translated = t(`error.${code}`);
-  const detailMsg = error instanceof Error ? error.message : String(error);
+  const detailMsg = errorMessage(error, t);
 
   return (
     <Alert

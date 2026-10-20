@@ -36,7 +36,7 @@ def test_real_routes_equal_the_committed_openapi_and_point_to_handlers() -> None
     expected = {(method.upper(), path) for path, operations in contract["paths"].items()
                 for method in operations if method in g.HTTP_VERBS}
     routes = g.scan_routes()
-    assert len(expected) == 72
+    assert len(expected) == 73
     assert {(method, path) for method, path, _, _ in routes} == expected
     assert len(routes) == len(expected)
     for _, _, where, handler in routes:
@@ -161,7 +161,7 @@ request("GET", "/prefix-not-a-match");
     ("Palplanş oluşturma ekranını değiştir", ["web/src/modules/sheet_pile/pages/SheetPileCreatePage.tsx"]),
     ("Zemin parametrelerini onaylama servisi", ["geotek/services/parameters.py", "geotek/modules/soil/api.py"]),
     ("Duvar boyut önerisi hesap akışı", ["geotek/services/structures.py", "geotek/modules/walls/api.py"]),
-    ("Sıvılaşma sonucu ve iş iptali", ["web/src/modules/liquefaction/pages/ResultsPage.tsx", "geotek/api/jobs.py"]),
+    ("Sıvılaşma sonucu ve iş iptali", ["web/src/modules/liquefaction/pages/ResultsPage.tsx", "geotek/api/jobs.py", "geotek/modules/liquefaction/api.py"]),
     ("sheet pile create page", ["web/src/modules/sheet_pile/pages/SheetPileCreatePage.tsx"]),
 ])
 def test_goal_navigation_has_real_ranges_reasons_and_no_source_dump(goal: str, expected: list[str]) -> None:

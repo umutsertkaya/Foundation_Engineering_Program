@@ -1,11 +1,12 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import { Alert, Button, Group, Progress, Select, Stack, Table, Text, Title } from "@mantine/core";
 import { useTranslation } from "react-i18next";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { ApiError, cancel_job, get_job } from "../../../shared/api/client";
-import type { JobState, LiquefactionResultDTO } from "../../../shared/api/types";
+import type { JobState, LiquefactionResultDTO, StoredLiquefactionDTO } from "../../../shared/api/types";
 import { EmptyState } from "../../../shared/components/EmptyState";
 import { ErrorAlert } from "../../../shared/components/ErrorAlert";
+import { get_liquefaction_result } from "../api";
 import { SoundingDetail } from "../components/SoundingDetail";
 
 const POLL_MS = 300;
@@ -25,7 +26,7 @@ export function ResultsPage() {
   const [state, setState] = useState<JobState | null>(null);
   const [gone, setGone] = useState(false);
   const [error, setError] = useState<unknown>(null);
-  const [selectedSounding, setSelectedSounding] = useState<string | null>(null);
+  const [stored, setStored] = useState<StoredLiquefactionDTO | "none" | null>(null);
   const seq = useRef(0);
 
   useEffect(() => {
@@ -54,6 +55,22 @@ export function ResultsPage() {
     };
   }, [jobId]);
 
+  const needStored = !jobId || gone;
+  useEffect(() => {
+    if (!needStored) return;
+    let live = true;
+    setStored(null);
+    get_liquefaction_result().then(
+      (r) => { if (live) setStored(r); },
+      (err) => {
+        if (!live) return;
+        if (err instanceof ApiError && err.status === 404) setStored("none");
+        else setError(err);
+      },
+    );
+    return () => { live = false; };
+  }, [needStored]);
+
   const cancel = useCallback(async () => {
     if (!jobId) return;
     try {
@@ -69,12 +86,12 @@ export function ResultsPage() {
     </Button>
   );
 
-  if (!jobId) {
-    return <EmptyState title={t("liquefaction.results.title")} description={t("liquefaction.results.no_job")} action={back} />;
-  }
-  if (gone) {
+  if (needStored && error == null) {
+    if (stored === null) return <Text size="sm">{t("web.common.loading")}</Text>;
+    if (stored !== "none") return <ResultBody result={stored.result} stale={stored.stale} back={back} />;
     return (
-      <EmptyState title={t("liquefaction.results.title")} description={t("liquefaction.results.unavailable")} action={back} />
+      <EmptyState title={t("liquefaction.results.title")}
+        description={t(jobId ? "liquefaction.results.unavailable" : "liquefaction.results.no_job")} action={back} />
     );
   }
   if (error != null) {
@@ -114,7 +131,12 @@ export function ResultsPage() {
     );
   }
 
-  const result = state.result as LiquefactionResultDTO | null;
+  return <ResultBody result={state.result as LiquefactionResultDTO | null} back={back} />;
+}
+
+function ResultBody({ result, stale, back }: { result: LiquefactionResultDTO | null; stale?: boolean; back: ReactNode }) {
+  const { t } = useTranslation();
+  const [selectedSounding, setSelectedSounding] = useState<string | null>(null);
   const ids = result ? Object.keys(result.per_sounding) : [];
   const errors = result ? Object.entries(result.errors) : [];
   const activeSounding = selectedSounding && ids.includes(selectedSounding) ? selectedSounding : ids[0];
@@ -125,6 +147,7 @@ export function ResultsPage() {
   return (
     <Stack gap="md" maw={880}>
       <Title order={2}>{t("liquefaction.results.title")}</Title>
+      {stale && <Alert color="yellow" variant="light" data-testid="liq-stale">{t("liquefaction.results.stale")}</Alert>}
       {ids.some((id) => result.per_sounding[id].warnings.includes("mock_result_not_a_calculation")) && (
         <Alert color="yellow">{t("liquefaction.results.mock_note")}</Alert>
       )}

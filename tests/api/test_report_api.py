@@ -125,3 +125,58 @@ def test_classification_without_data_is_no_result(shell, open_project):
     open_project.investigations.boreholes[0].lab.clear()
     refused = shell.post(f"{BASE}/docx", json={"sections": ["classification"]})
     assert refused.status_code == 409 and refused.json()["code"] == "no_result"
+
+
+def test_document_carries_stored_numeric_values(shell, open_project):
+    text = _text(shell.post(f"{BASE}/docx", json={"sections": ["structure:wall", "structure:sheet"]}))
+    pile = open_project.structure("sheet").result
+    assert f"{pile['M_max']:.1f}" in text and f"{pile['D']:.2f}" in text
+    check = open_project.structure("wall").result["checks"][0]
+    assert f"{check['value']:.3f}" in text
+
+
+def test_stale_sheet_pile_is_refused(shell, open_project):
+    open_project.structure("sheet").retained_height += 1
+    status = {s["id"]: s["status"] for s in shell.get(f"{BASE}/sections").json()}
+    assert status["structure:sheet"] == "stale"
+    refused = shell.post(f"{BASE}/docx", json={"sections": ["structure:sheet"]})
+    assert refused.status_code == 409 and refused.json()["code"] == "stale_result"
+    assert refused.json()["details"]["sections"] == ["structure:sheet"]
+
+
+def test_non_finite_structure_input_is_stale_not_a_server_error(shell, open_project):
+    open_project.structure("wall").inputs.surcharge = float("nan")
+    sections = shell.get(f"{BASE}/sections")
+    assert sections.status_code == 200
+    assert {s["id"]: s["status"] for s in sections.json()}["structure:wall"] == "stale"
+    refused = shell.post(f"{BASE}/docx", json={"sections": ["structure:wall"]})
+    assert refused.status_code == 409 and refused.json()["code"] == "stale_result"
+    assert shell.post(f"{BASE}/docx", json={}).status_code == 200  # default selection skips it
+
+
+def test_non_finite_investigation_value_is_stale_not_a_server_error(shell, open_project):
+    open_project.investigations.cpts[0].qc[0] = float("nan")
+    sections = shell.get(f"{BASE}/sections")
+    assert sections.status_code == 200
+    assert {s["id"]: s["status"] for s in sections.json()}["liquefaction"] == "stale"
+    refused = shell.post(f"{BASE}/docx", json={"sections": ["liquefaction"]})
+    assert refused.status_code == 409 and refused.json()["code"] == "stale_result"
+
+
+@pytest.mark.parametrize("name, stem", [("Çözüm Şişli", "z_m_i_li"), ("", "report"), ("  ", "report")])
+def test_file_name_is_ascii_for_turkish_or_empty_project_names(shell, open_project, name, stem):
+    open_project.meta.name = name
+    response = shell.post(f"{BASE}/docx", json={"sections": ["project"]})
+    assert response.status_code == 200
+    disposition = response.headers["content-disposition"]
+    assert disposition.isascii() and disposition.endswith(f'{stem}_report.docx"')
+
+
+def test_untranslated_warning_codes_are_localised_in_the_document(shell, open_project):
+    open_project.meta.language = "tr"
+    sections = ["structure:sheet", "liquefaction"]
+    tr_text = _text(shell.post(f"{BASE}/docx", json={"sections": sections}))
+    assert "liquefaction.warning." not in tr_text and "sheet_pile.warning." not in tr_text
+    assert "Tension zone" not in tr_text and "Default FC" not in tr_text
+    assert "Laboratuvar FC değeri olmayan" in tr_text
+    assert "Default FC = 5.0%" in _text(shell.post(f"{BASE}/docx", json={"sections": ["liquefaction"], "language": "en"}))

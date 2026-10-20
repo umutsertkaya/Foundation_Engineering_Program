@@ -2,7 +2,7 @@ import { NOT_HANDLED, type MockHandler } from "../../shared/api/mock/dispatcher"
 import { isMockSessionOpen } from "../../shared/api/mock/core";
 import { getMockStore, notFound, validationError } from "../../shared/api/mock/store";
 
-import type { LiquefactionResultDTO } from "../../shared/api/types";
+import type { LiquefactionResultDTO, LiquefactionSettingsDTO, StoredLiquefactionDTO } from "../../shared/api/types";
 
 const PREFIX = "/m/liquefaction";
 let jobSeq = 0;
@@ -12,6 +12,16 @@ function isNum(v: unknown): v is number {
 }
 
 const handle: MockHandler = (method, path, body) => {
+  if (method.toUpperCase() === "GET" && path.split("?")[0] === `${PREFIX}/result`) {
+    if (!isMockSessionOpen()) {
+      return {
+        status: 409,
+        data: { code: "no_project_open", message: "No project is open.", details: {}, missing_factors: [] },
+      };
+    }
+    const stored = getMockStore().liquefactionResult as StoredLiquefactionDTO | null;
+    return stored ? { status: 200, data: stored } : notFound("Stored liquefaction result");
+  }
   if (method.toUpperCase() !== "POST" || path.split("?")[0] !== `${PREFIX}/run`) return NOT_HANDLED;
 
   // Same error as the core mock when no project is open.
@@ -60,6 +70,12 @@ const handle: MockHandler = (method, path, body) => {
       warnings: ["mock_result_not_a_calculation"],
     };
   }
+  store.liquefactionResult = {
+    profile_id: (s.profile_id as string | null | undefined) ?? store.active_profile_id ?? "",
+    settings: s as unknown as LiquefactionSettingsDTO,
+    result: { per_sounding, errors: {} },
+    stale: false,
+  } satisfies StoredLiquefactionDTO;
   store.jobs.set(job_id, {
     job_id,
     kind: "liquefaction",

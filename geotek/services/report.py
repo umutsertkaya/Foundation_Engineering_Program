@@ -15,6 +15,7 @@ from typing import Any, Literal
 from geotek.core.errors import GeoTekError
 from geotek.core.models.profile import SoilProfile
 from geotek.core.models.project import Project
+from geotek.core.warning_codes import parse_warning
 from geotek.i18n import t
 from geotek.services import module1
 from geotek.services.structures import calculation_fingerprint
@@ -62,20 +63,7 @@ def _structure_status(project: Project, structure) -> SectionStatus:
 
 
 def _liquefaction_status(project: Project) -> SectionStatus:
-    section = project.modules.get(LIQUEFACTION_SECTION)
-    data = section.data if section is not None else {}
-    if not data.get("result") or data.get("profile_id") is None:
-        return "no_result"
-    # The run either followed the active profile or an explicit one; the stored hash matches
-    # exactly one of the two cases.
-    for use_active in (True, False):
-        try:
-            current = module1.liquefaction_input_hash(project, data["profile_id"], use_active)
-        except (KeyError, ValueError):
-            continue
-        if current == data.get("input_hash"):
-            return "ready"
-    return "stale"
+    return module1.liquefaction_result_state(project)
 
 
 def list_sections(project: Project) -> list[SectionInfo]:
@@ -113,6 +101,22 @@ class _Writer:
 
     def tr(self, key: str, **kwargs) -> str:
         return t(key, self.lang, **kwargs)
+
+    def coded(self, key: str, params: dict, fallback: Any = None) -> str:
+        """Translate ``key`` with ``params``; an unknown key falls back to ``fallback`` or the key."""
+        try:
+            text = self.tr(key, **params)
+        except (KeyError, IndexError, ValueError):
+            text = key
+        return text if text != key else str(fallback if fallback is not None else key)
+
+    def message(self, message: str) -> str:
+        """Localise a ``code[: key=value ...]`` warning string; free text passes through unchanged."""
+        try:
+            code, params = parse_warning(message)
+        except ValueError:
+            return message
+        return self.coded(code, params, message)
 
     def heading(self, text: str, level: int = 1) -> None:
         self.doc.add_heading(text, level=level)
@@ -180,6 +184,16 @@ def _soil_section(w: _Writer, profile: SoilProfile) -> None:
     )
 
 
+def _run_bottom(depth, start: int, stop: int) -> float:
+    """Bottom of the samples ``start..stop-1``: each sample stands for the interval to the next one
+    (the last sample for one spacing), so single-sample runs do not print as ``x–x``."""
+    if stop < len(depth):
+        return float(depth[stop])
+    if stop >= 2:
+        return float(depth[stop - 1] + (depth[stop - 1] - depth[stop - 2]))
+    return float(depth[stop - 1])
+
+
 def _classification_section(w: _Writer, project: Project) -> None:
     """SBTn zones per CPT and USCS per lab record, derived from the current investigations."""
     from geotek.engine.classification import robertson, uscs
@@ -201,7 +215,7 @@ def _classification_section(w: _Writer, project: Project) -> None:
                 if i == len(zones) or zones[i] != zones[start]:
                     zone = zones[start]
                     rows.append([
-                        _fmt(data.depth[start]), _fmt(data.depth[i - 1]),
+                        _fmt(data.depth[start]), _fmt(_run_bottom(data.depth, start, i)),
                         str(zone) if zone else DASH,
                         robertson.ZONE_NAMES[zone][lang] if zone else DASH,
                         _fmt(float(sum(data.Ic[start:i]) / (i - start)), 2),
@@ -242,10 +256,25 @@ def _evidence(w: _Writer, result: dict) -> None:
         w.table([w.tr("report.factor.path"), w.tr("report.col.value"),
                  w.tr("report.factor.source"), w.tr("report.factor.status")],
                 [[f["path"], _fmt(f["value"], 3), f["source"], f["status"]] for f in factors])
-    warnings = result.get("warnings") or []
+    items = result.get("warning_items") or []
+    warnings = ([w.coded(f"sheet_pile.warning.{i['code']}", i.get("params") or {}, i.get("params", {}).get("text"))
+                 for i in items] if items else [w.message(m) for m in result.get("warnings") or []])
     if warnings:
         w.heading(w.tr("report.warnings"), 3)
-        w.bullets(list(warnings))
+        w.bullets(warnings)
+
+
+def _governing_line(w: _Writer, result: dict) -> str:
+    """Failing checks when there are any; otherwise the check with the highest utilisation."""
+    if result.get("governing"):
+        return f"{w.tr('report.wall.governing')}: {result['governing']}"
+    rated = [c for c in result.get("checks") or [] if c.get("utilisation") is not None
+             and math.isfinite(c["utilisation"])]
+    if not rated:
+        return f"{w.tr('report.wall.governing')}: {DASH}"
+    top = max(rated, key=lambda c: c["utilisation"])
+    return (f"{w.tr('report.wall.governing_utilisation')}: {top['case']}:{top['name']} "
+            f"({_fmt(top['utilisation'], 2)})")
 
 
 def _wall_section(w: _Writer, structure, result: dict) -> None:
@@ -267,7 +296,7 @@ def _wall_section(w: _Writer, structure, result: dict) -> None:
             [[k, _fmt(v, 3)] for k, v in geometry.items() if k != "kind"])
     w.paragraph(f"{w.tr('report.wall.verdict')}: {(w.passfail(bool(result.get('passed'))) if result.get('passed') is not None else DASH)}",
                 bold=True)
-    w.paragraph(f"{w.tr('report.wall.governing')}: {result.get('governing') or DASH}")
+    w.paragraph(_governing_line(w, result))
     w.heading(w.tr("report.wall.checks"), 3)
     w.table(
         [w.tr("report.check.case"), w.tr("report.check.name"), w.tr("report.check.value"),
@@ -324,7 +353,7 @@ def _liquefaction_section(w: _Writer, data: dict) -> None:
         ])
     w.table([w.tr("report.liq.sounding"), w.tr("report.liq.min_fs"), w.tr("report.liq.min_fs_depth"),
              w.tr("report.liq.n_liquefiable"), w.tr("report.liq.n_marginal")], rows)
-    notes = [f"{sid}: {msg}" for sid, series in (data["result"].get("per_sounding") or {}).items()
+    notes = [f"{sid}: {w.message(msg)}" for sid, series in (data["result"].get("per_sounding") or {}).items()
              for msg in series.get("warnings") or []]
     if notes:
         w.heading(w.tr("report.warnings"), 3)

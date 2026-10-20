@@ -1,7 +1,7 @@
 import { useTranslation } from "react-i18next";
 import type { GroundwaterCondition, SoilLayer } from "../api/types";
 import { niceTicks, spreadLabels, tickDecimals } from "./axis";
-import { fmt, strengthText, truncate } from "./format";
+import { fmt, layerLabel, strengthText, truncate } from "./format";
 import { GWT_CASES, GWT_STYLE, GwtMarker } from "./GwtMarker";
 import { SoilPatternDefs, useSoilScheme, useSvgId } from "./SoilPatternDefs";
 import { soilFamily, soilPatternUrl, soilStyle } from "./soilStyle";
@@ -112,7 +112,7 @@ export function SoilColumn({
         const fam = soilFamily(layer);
         const y0 = zy(layer.top);
         const h = Math.max(1, zy(layer.bottom) - y0);
-        const title = `${layer.id} · ${layer.uscs ?? t(st.labelKey)} · ${fmt(layer.top, 2)}–${fmt(layer.bottom, 2)} m${
+        const title = `${layerLabel(layer)} · ${layer.uscs ?? t(st.labelKey)}${
           layer.description ? ` · ${layer.description}` : ""
         } · ${strengthText(layer)}`;
         const index = layers.indexOf(layer);
@@ -193,7 +193,7 @@ export function SoilColumn({
         const my = mids[i];
         const selected = layer.id === selectedId;
         const index = layers.indexOf(layer);
-        const head = `${layer.id}${layer.uscs ? ` · ${layer.uscs}` : ` · ${t(st.labelKey)}`}`;
+        const head = layer.uscs ? layerLabel(layer) : `${layerLabel(layer)} · ${t(st.labelKey)}`;
         return (
           <g
             key={`lbl-${layer.id}-${i}`}

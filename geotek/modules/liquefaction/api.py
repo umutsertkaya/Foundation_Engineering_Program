@@ -11,7 +11,7 @@ from geotek.api.calculation_results import liquefaction_result
 from geotek.api.jobs import RunnerDep
 from geotek.api.session import api_error
 from geotek.core.models.project import ModuleSection
-from geotek.modules.liquefaction.schemas import LiquefactionSettingsDTO
+from geotek.modules.liquefaction.schemas import LiquefactionSettingsDTO, StoredLiquefactionDTO
 from geotek.services import module1
 
 
@@ -82,5 +82,21 @@ def router() -> APIRouter:
                     session.dirty = True
 
             return runner.submit("liquefaction", work, complete=complete)
+
+    @api.get("/result", response_model=StoredLiquefactionDTO, operation_id="get_liquefaction_result")
+    def get_liquefaction_result(session: SessionDep) -> StoredLiquefactionDTO:
+        """Result saved in the open project; 404 ``not_found`` when no run has completed."""
+        with session.lock:
+            project = session.require_project()
+            state = module1.liquefaction_result_state(project)
+            if state == "no_result":
+                api_error(404, "not_found", "No stored liquefaction result.")
+            data = project.modules["liquefaction"].data
+            return StoredLiquefactionDTO(
+                profile_id=data["profile_id"],
+                settings=LiquefactionSettingsDTO.model_validate({**data["settings"], "profile_id": data["profile_id"]}),
+                result=dto.LiquefactionResultDTO.model_validate(data["result"]),
+                stale=state == "stale",
+            )
 
     return api

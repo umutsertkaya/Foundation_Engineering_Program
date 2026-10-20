@@ -1142,6 +1142,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/m/liquefaction/result": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Liquefaction Result
+         * @description Result saved in the open project; 404 ``not_found`` when no run has completed.
+         */
+        get: operations["get_liquefaction_result"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/m/walls/wall-types": {
         parameters: {
             query?: never;
@@ -3028,6 +3048,18 @@ export interface components {
             status: ("liquefiable" | "marginal" | "safe" | "above_gwt" | "clay_like" | "non_liquefiable_dense" | "excluded_by_user" | "beyond_method_depth" | "invalid")[];
             /** Warnings */
             warnings: string[];
+        };
+        /**
+         * StoredLiquefactionDTO
+         * @description The liquefaction result saved in the project, with the settings it was computed with.
+         */
+        StoredLiquefactionDTO: {
+            /** Profile Id */
+            profile_id: string;
+            settings: components["schemas"]["LiquefactionSettingsDTO"];
+            result: components["schemas"]["LiquefactionResultDTO"];
+            /** Stale */
+            stale: boolean;
         };
         /** StructureSoilModel */
         StructureSoilModel: {
@@ -9470,6 +9502,98 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["JobRef"];
+                };
+            };
+            /** @description Invalid operation or input file */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Resource not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Conflicting or stale structure state */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Validation error or missing_factors */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Engine or server error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Contract stub; not implemented */
+            501: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Other client error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Other server error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    get_liquefaction_result: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StoredLiquefactionDTO"];
                 };
             };
             /** @description Invalid operation or input file */

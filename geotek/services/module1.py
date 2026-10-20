@@ -16,6 +16,7 @@ import numpy as np
 from geotek.core.models.investigations import Borehole
 from geotek.core.models.profile import SoilProfile
 from geotek.core.models.project import Project
+from geotek.core.warning_codes import format_warning
 from geotek.engine.insitu.cpt import CPTProcessed, process_cpt
 from geotek.engine.insitu.spt import SPTProcessed, process_borehole
 from geotek.engine.liquefaction import LiquefactionResult, analyze_cpt, analyze_spt
@@ -76,7 +77,8 @@ def spt_fc_pi(borehole: Borehole, default_fc: float | None):
                 f"Borehole {borehole.id}: no lab FC at depth(s) {missing} m; enter a default FC"
             )
         fc[np.isnan(fc)] = default_fc
-        notes.append(f"Default FC = {default_fc:g}% used at depth(s) {missing} m")
+        notes.append(format_warning("liquefaction.warning.default_fc", fc=float(default_fc),
+                                    depths=", ".join(f"{d:g}" for d in missing)))
     return fc, np.array(pi), notes
 
 
@@ -120,6 +122,24 @@ def liquefaction_input_hash(project: Project, profile_id: str, use_active: bool)
             "investigations": project.investigations.model_dump(mode="json"),
             "active_profile_id": active.id if active is not None else None}
     return hashlib.sha256(json.dumps(data, sort_keys=True, allow_nan=False).encode()).hexdigest()
+
+
+def liquefaction_result_state(project: Project) -> Literal["no_result", "ready", "stale"]:
+    """State of the liquefaction result stored in the project against its current inputs."""
+    section = project.modules.get("liquefaction")
+    data = section.data if section is not None else {}
+    if not data.get("result") or data.get("profile_id") is None:
+        return "no_result"
+    # The run either followed the active profile or an explicit one; the stored hash matches
+    # exactly one of the two cases.
+    for use_active in (True, False):
+        try:
+            current = liquefaction_input_hash(project, data["profile_id"], use_active)
+        except (KeyError, ValueError):
+            continue
+        if current == data.get("input_hash"):
+            return "ready"
+    return "stale"
 
 
 def run_liquefaction(

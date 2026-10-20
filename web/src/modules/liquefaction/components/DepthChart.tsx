@@ -52,7 +52,7 @@ export function DepthChart({ depth, series, ariaLabel, xLabel, yLabel, reference
           ))}
           <text x={296} y={386} textAnchor="middle">{xLabel}</text>
           <text transform="translate(18 190) rotate(-90)" textAnchor="middle">{yLabel}</text>
-          {reference && (
+          {reference && points.length > 0 && (
             <g>
               <path d={`M${x(reference.value)} 44 V334`} stroke="var(--mantine-color-dimmed)" strokeDasharray="3 4" />
               <text x={x(reference.value)} y={29} textAnchor="middle">{reference.label}</text>

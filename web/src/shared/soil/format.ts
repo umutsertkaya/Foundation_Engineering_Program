@@ -4,6 +4,12 @@ export function fmt(v: number | null | undefined, digits = 1): string {
   return typeof v === "number" && Number.isFinite(v) ? v.toFixed(digits) : "—";
 }
 
+/** Human label of a layer: its depth range (m) and USCS symbol; layer ids are internal and may be UUIDs. */
+export function layerLabel(layer: Pick<SoilLayer, "top" | "bottom" | "uscs">): string {
+  const range = `${fmt(layer.top, 2)}–${fmt(layer.bottom, 2)} m`;
+  return layer.uscs ? `${range} · ${layer.uscs}` : range;
+}
+
 /** Compact strength summary for labels: φ' for drained, s_u for undrained layers. */
 export function strengthText(layer: SoilLayer): string {
   const d = layer.design ?? {};
