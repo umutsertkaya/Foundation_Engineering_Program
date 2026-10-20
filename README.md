@@ -10,7 +10,7 @@ Beş modül: zemin, sıvılaşma, istinat duvarı, palplanş ve rapor. Arayüz y
 - **İş dağıtımı:** [şef protokolü](docs/WORKFLOW.md).
 - **Claude Code Projects:** [mevcut yerel projeyi bağlama](docs/CLAUDE_PROJECTS.md),
   [Projects alanına yapıştırılacak talimat](docs/PROJECT_INSTRUCTIONS.md).
-- **Neler değişti / test kanıtı:** [2026-10-19 düzenleme raporu](docs/audit/2026-10-19-sadelestirme.md).
+- **Son kontrol / test kanıtı:** [2026-10-20 sistem kontrolü](docs/qa/sistem-kontrolu.md); kabul raporları `docs/qa/`.
 
 Zemin, sınıflandırma, duvar, palplanş, sıvılaşma ve docx rapor web akışları uygulanmıştır; gerçek API
 uçtan uca ve görsel kontrol raporları `docs/qa/` altındadır. Tek exe teslimi ve insan onay kapıları beklemektedir.

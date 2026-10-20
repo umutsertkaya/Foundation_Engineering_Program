@@ -1,114 +1,56 @@
 # GeoTek — güncel durum ve tek iş sırası
 
-Yönetim/harita denetimi: 2026-10-20 (İstanbul). Son ürün commit'i `76d2b4d`; yönerge tabanı `ec89486` (`main`).
-Bu sayfa **tek güncel durum kaynağıdır**. Eski faz listeleri tarihsel kayıttır.
-Test kanıtları: [denetim raporu](audit/2026-10-19-sadelestirme.md).
+Son güncelleme: 2026-10-20 (sistem kontrolü ve temizlik). Bu sayfa **tek güncel durum kaynağıdır**;
+ayrıntılı geçmiş Git günlüğünde ve birleşmiş PR'lardadır. Son kontrol raporu: [sistem kontrolü](qa/sistem-kontrolu.md).
 
 ## Aktif iş
 
 Compact veya devir öncesi yalnız bu üç satır güncellenir (kural: [WORKFLOW](WORKFLOW.md#bağlam-ve-compact-kuralı)).
 
-- Biten: 2026-10-20 orkestrasyon kurulumu: ai-orchestrator 2.1.0 bağlı, Codex (gpt-6-luna) ve Antigravity (gemini-3.8-flash) bağlantı testi OK, codemap --check temiz (820c084).
-- Sıradaki: proje eksiklerinin tespiti ve sıfırdan plan; işler bağımsız kartlara bölünecek.
-- Kararlar (2026-10-20, şef): rapor önce docx, PDF sonra; sınıflandırma Robertson SBTn + USCS; geotek/ui paketleme sonrası kaldırılır; eski 11 worktree ve birleşmiş eski dallar silinir. Plan: Projects ortak klasörü plan/2026-10-20-yeni-plan.md. Açık karar: yok.
-- T8a biten (2026-10-20, claude/project-thread-da5oef, PR bekliyor): `geotek/services/report.py` + modül `report` (`GET /api/m/report/sections`, `POST /api/m/report/docx`); duvar, palplanş, sıvılaşma, zemin profili, proje bilgisi; eski/sonuçsuz bölüm 409 ile reddedilir. Hesap formülü değişmedi. Testler: `tests/api/test_report_api.py` 10 geçti; tüm paket 1720 geçti (2026-10-20). Grafik/PDF ve web sayfası (T8b) yok; sınıflandırma bölümü (SBTn bölgeleri + USCS) eklendi. Uygulama Claude ile yapıldı (ai-orchestrator bağlanamadı), Antigravity incelemesi yapılmadı.
-- T8b biten (2026-10-20, claude/project-thread-dbnnye, PR #4): rapor web sayfası `web/src/modules/report/pages/HomePage.tsx` (bölüm seç, docx oluştur ve indir; 409/422 ret nedeni bölüm adlarıyla gösterilir). `request_blob` (shared/api/http.ts) eklendi; eski `pages/ReportPage.tsx` ve `web.report.*` anahtarları kaldırıldı. Codex gpt-6-luna medium incelemesi: 2 bulgu, 1 gerçek (indirme URL'si hemen iptal ediliyordu, 10 sn gecikmeyle düzeltildi), 1 yanlış (`report.title` anahtarı mevcut). Testler (2026-10-20): pytest tüm paket 1740 geçti, 1 atlandı; web `tsc` temiz, Vitest 272 geçti, `npm run build` yeşil. Uygulama Claude ile yapıldı.
-- T3c biten (2026-10-20): Bishop ve palplanş (USS/USACE) literatür/elle doğrulama testleri `tests/verification/test_bishop_*.py`, `test_sheet_pile_*.py` (12 test geçti; motor formülü değişmedi).
-- T3c kanıt: Opus bağımsız incelemesi; Michalowski (2002) N=0.181 (β=45°), φ=0 daire ve palplanş sayıları motordan bağımsız yeniden üretildi.
-- T3c açık: tutmayan test yok; tolerans gerekçeleri test docstring'lerinde.
-- T7a biten (2026-10-20): zemin sinifl. API (SBTn referans/CPT noktalari, USCS) main'e birlesti; tests/api 616 gecti, -k classif/contract/soil 408 gecti, gen_code_map --check temiz.
-- T7a kanit: kod + test + inceleme tamam; web sinif. sayfasi hala yer tutucu (sonraki kart).
-- T7a acik: web typecheck calistirilmadi (T7b'de kosuldu, temiz).
-- T7b biten (2026-10-20): sinif. sayfasi (`web/src/modules/soil/pages/ClassificationPage.tsx`): CPT Robertson SBTn grafigi (log-log SVG, Ic konturlari, bolge 1 siniri), bolge ozeti, USCS tablosu, plastisite grafigi (A/U cizgisi negatif kisimlari kirpilir), tek ornek siniflandirma formu, simge tablosu; TR/EN anahtarlari `soil.cls.*`.
-- T7b kanit: typecheck temiz, web Vitest 269/269 (classification.test.tsx 11), `npm run build` basarili, ilgili pytest (i18n, manifest, contract) 141 gecti, gen_code_map --check 0. Gercek API/gorsel kabul Q1'de; Codex gpt-6-luna incelemesi yapilamadi (ai-orchestrator bulutta baglanmadi).
-- T7b acik: OL/OH/Pt motorda yok (sayfada belirtildi); mock siniflandirma demo verisidir.
-
-- T9 biten (2026-10-20, dal feat/t9-pile-fix): palplanş web düzeltmeleri B1-B9, B11, Y1, Y3, Y5, Y7; B6 çevrilebilir uyarı/varsayım kodu sözleşmesi (warning_items, assumption code/params, anchor_force_per_anchor); modele depth_increase, anchor_spacing, anchor_inclination, front_water_depth (varsayılanda sonuçlar aynı; formül/katsayı yok). Test: pytest 1775 geçti 1 atlandı; web 289/289, typecheck, build, gen_code_map --check 0. Salt okuma Opus incelemesi: motor değişmedi, varsayılanlar aynı.
-- T9 açık: (a) eski palplanş yapılar yeni alanlar parmak izini değiştirdiği için bir kez 'stale' görünür; kabul edildi (2026-10-20); (b) 'Tension zone to X m' uyarısı artık gerçek derinliği yazar (yalnız mesaj değeri, hesap aynı; pytest 1776 geçti, 1 atlandı); (c) Y2/Y4 Dalga 3 sonrası, karar bekliyor: [T9b-PILE-SOIL](tasks/T9b-PILE-SOIL.md); (d) gerçek API ile görsel/uçtan uca kabul Q1'de.
-- Biten: 2026-10-20 T1 (dal feat/t1-liq-charts): sıvılaşma sonuç tablosu + FS ve CSR/CRR derinlik SVG grafikleri, yeni hesap yok; liquefaction Vitest 31/31, typecheck, codemap --check temiz. Gerçek API/görsel kabul yapılmadı.
-- T3b (2026-10-20, test/T3b-bearing-earthpressure): taşıma gücü (Meyerhof/Hansen/Vesic, Bowles Tablo 4-4 + bağımsız el hesabı) ve yanal basınç (Rankine/Coulomb/Mononobe-Okabe/Seed-Whitman/log-spiral) literatür testleri eklendi: 46 geçti, 0 xfail/başarısız; kaynak kod değişmedi.
-- T3b kapsam dışı/açık: Terzaghi için motor fonksiyonu yok (test edilmedi); pürüzlü duvar log-spiral Kp (~6.5) kaynağı doğrulanamadığı için kullanılmadı. Literatür farkı yok; LS extreme_I 0.50 proje varsayımı olarak kalır.
-- T3b inceleme: Codex gpt-6-astra yazdı, Antigravity gemini-4-argon salt okuma inceledi (0 bulgu); CODE_MAP yenilendi, --check 0.
+- Biten: 2026-10-20 sistem kontrolü ve temizlik (hedef adım 1): ~50 bulgu, motor/API/rapor/web düzeltmeleri, PySide6 `geotek/ui` + `geotek/plotting` kaldırıldı, eski arşiv/kartlar silindi. Kanıt: [qa/sistem-kontrolu.md](qa/sistem-kontrolu.md).
+- Sıradaki: hedef adım 2 (modüler yapı ve yeni modül eklenebilirliği), ardından adım 3 [K1](tasks/K1.md) exe üretimi.
+- Açık karar: CPT birim hacim ağırlığı alt sınırı (R&C 2010, 12 kN/m³) ve `predrill_depth` dışlama Umut onayı bekliyor (sistem kontrolü raporu §Açık).
 
 ## Koddan doğrulanan durum
 
 | Alan | Şu an |
 |---|---|
-| Çekirdek | Başlangıç, kütüphane, proje/oturum, modül keşfi, işler, katsayılar ve birleşik i18n API mevcut. |
-| Veri | `.gtk` şeması 1.3; eski sürüm göçleri, yapı zemin kopyası ve stale/hash kontrolleri mevcut. |
-| Zemin | CPT/SPT işleme, otomatik katmanlama, parametre aday/seçim/onay API'si ve web akışı mevcut. Sınıflandırma web sayfası (SBTn grafiği, USCS tablosu) mevcut; gerçek API/görsel kabul Q1'de. |
-| Duvar | Katmanlı motor, yapı API'si, öner/kontrol, iş takibi/iptal, analiz seçenekleri, sonuç kartları ve SVG kesit mevcut. |
-| Sıvılaşma | Motor/API ve web job takibi, iptal/hata/erişilemiyor, sonuç özeti mevcut (`fdd80b1`). Grafik/tablo ayrıntısı ve gerçek API/görsel kabul Q1'de. |
-| Palplanş | Motor/API ve oluşturma, tasarım job takibi, sonuç paneli ile mock create/job mevcut (`998e937`). Bağımsız inceleme ve gerçek API/görsel kabul bekliyor. |
-| Rapor/paket | Web raporu yer tutucu. `geotek.app` başlatıcısı ve doğrulanmış tek exe henüz yok. |
+| Çekirdek | Başlangıç, kütüphane, proje/oturum, modül keşfi, işler, katsayılar ve birleşik i18n API. |
+| Veri | `.gtk` şeması 1.3; eski sürüm göçleri, yapı zemin kopyası, stale/hash kontrolleri. NaN/Infinity içeren dosya reddedilir. |
+| Zemin | CPT/SPT işleme, otomatik katmanlama, parametre aday/seçim/onay, sınıflandırma (SBTn + USCS) web akışı. |
+| Duvar | Katmanlı motor, öner/kontrol, iş takibi/iptal, analiz seçenekleri, sonuç kartları, SVG kesit. |
+| Sıvılaşma | Motor/API, iş takibi, kayıtlı sonuç, GS ve CSR/CRR grafikleri, ayrıntı tablosu. |
+| Palplanş | Motor/API, oluşturma, tasarım işi, sonuç paneli, çevrilebilir uyarı/varsayım kodları. |
+| Rapor | docx (`POST /api/m/report/docx`); PDF ve grafik yok. |
+| Paket | `geotek.app` başlatıcısı ve tek exe henüz yok ([K1](tasks/K1.md)). Arayüz yalnız web; PySide6 yolu kaldırıldı. |
 
-Kanıt: zemin birleşmeleri `d3723db`, `b79add8`; duvar `e78d1e3`, `f136542`.
-Eski devam metinlerindeki “A1/E2/E3/F3/F4 başlamadı” ve “i18n API 501” ifadeleri artık geçersiz.
+Kabul kanıtı: gerçek API uçtan uca [T10-kabul](qa/T10-kabul.md) (61 adım), görsel [T11-gorsel](qa/T11-gorsel.md) (128 ekran).
 
 ## İş sırası
 
-F5-LIQ ilk iki teslimi `fdd80b1` ile tamam (2026-10-20: job takibi/iptal/hata/erişilemiyor + genel mock job deposu;
-typecheck, liquefaction Vitest 24/24, ilgili pytest 71 geçti). Kalan: tablo/grafik ayrıntısı, gerçek API smoke ve görsel QA → Q1.
-F5-PILE tamam (2026-10-20: yapı oluşturma/girdi, tasarım job'u, sonuç paneli, mock sheet_pile create/job; typecheck, sheet_pile+boundaries Vitest 21/21, walls+liquefaction Vitest geçti). Salt okuma incelemesi yapılmadı.
-Şimdi seçilecek görev: **[Q1](tasks/Q1.md)**.
-Kalan paketler küçük teslimlere ayrılır; hepsini aynı oturumda planlama.
-
-| Sıra | Kart | Kapsam / bağımlılık |
+| Sıra | Kart | Kapsam |
 |---|---|---|
-| Tamamlanan teslim | [F5-LIQ](tasks/F5-LIQ.md) | Job/sonuç ilk teslimleri tamam; yeniden başlatma. Kalan kabul Q1'de. |
-| Tamamlanan teslim | [F5-PILE](tasks/F5-PILE.md) | Oluşturma/job/sonuç ilk teslimi tamam; inceleme ve kabul Q1'de. |
-| Sıradaki | [Q1](tasks/Q1.md) | Gerçek API ile uçtan uca + görsel kontrol, kalan sınıflandırma/rapor kapsamını kesinleştir. |
-| 4 | [K1](tasks/K1.md) | Onaydan sonra yerel başlatıcı, paketleme ve kullanım belgesi. |
+| 1 | Hedef adım 2 | Modüler yapı doğrulaması: `tools/new_module.py`, [MODULE_GUIDE](MODULE_GUIDE.md), exe sonrası modül ekleme. |
+| 2 | [K1](tasks/K1.md) | Yerel başlatıcı + exe (hedef adım 3). |
+| Açık | [T9b](tasks/T9b-PILE-SOIL.md) | Palplanş zemin Y2/Y4, mühendislik kararı bekliyor. |
+| Açık | [T10b](tasks/T10b-POLISH.md) | Sıvılaşma/rapor cilası, duvar varsayımlarının TR/EN kodları. |
+| Açık | [T12](tasks/T12-MATERIAL-FACTORS.md) | Kullanılmayan katsayılar (malzeme γ, kaya eksantrisitesi), S4. |
 
-Öncelik kullanıcı tarafından değiştirilebilir. Paralel çalışmada en çok iki bağımsız yazıcı;
-bu sırada ilk tercih tek aktif görevdir. Ortak dosya ihtiyacı varsa şef önce sözleşmeyi netleştirir.
+Paralel çalışmada en çok iki bağımsız yazıcı. Ortak dosya ihtiyacı varsa şef önce sözleşmeyi netleştirir.
 
 ## Onaylar ve mühendislik sınırları
 
 - Tarihsel kayıtta P1, E4/kapı 2 ve yapı Y1/Y2 onaylı. Bunları yeniden açma.
-- F1/zemin ilk görsel kapısı 3 için onay kaydı hâlâ açık; daha yeni F3/F4 ekranları onay kanıtı sayılmaz.
-  Uygulama çalışmasına devam edilebilir; kullanıcıya sunulacak Q1 tesliminde bu açık onayı göster.
-- F3/F4 ilk çalışan sürüm için eski kapı 4 korunur; açık kullanıcı kabul kaydı bulunmadığından
-  onaylandı sayılmaz. Kodun main'e birleşmesi insan kabulünün yerine geçmez.
-- Paketleme öncesi kullanıcı onayı korunur. Kart hazırlanması/teknik inceleme için yeni onay gerekmez.
+- Görsel kapı 3 (F1/zemin) ve kapı 4 (F3/F4) için açık insan kabul kaydı yok; T11 görsel kontrolü Claude
+  incelemesidir. Umut'un 2026-10-20 hedef planı (kontrol → modülerlik → exe) bu kapıların yerine geçti
+  (koordinatör kaydı); kodun main'e birleşmesi insan kabulünün yerine geçmez.
+- Paketleme öncesi kullanıcı onayı: Umut'un hedef planının 3. adımı exe üretimini istiyor.
 - Su altı deprem, ±kv zarfı, uplift moment ve YASS taşıma gücü kararları için
   [E4 formül kaydı](contracts/E4_FORMULAS.md) ve [araştırma](research/submerged_seismic_thrust.md).
 - `delta_base` önerisi gerçek `phi_cv` alanı bulunmadığından `phi_cv_assumed_equal_phi_eff` uyarısı taşır.
+- LS extreme_I 0.50 proje varsayımıdır; duvar sonucunda görünür varsayım + uyarı (`wall.ls_extreme_i`).
 - Yönetmelik kaynak doğrulama açıkları: [katsayı doğrulama listesi](katsayi_dogrulama.md).
   Eski notta okunamadığı belirtilen KDYY belgelerinin doğrulandığını varsayma.
-
-## Son doğrulama (2026-10-19)
-
-- Mevcut Python paketi: **1523 geçti, 1 atlandı** (Windows symlink kullanılamıyor).
-- Yeni proje komutu testleri: **20/20 geçti** (ayrı hedefli koşu).
-- Web: **245/245 geçti**; typecheck ve production build başarılı.
-- Yeni `check quick`: başka bir klasörden **4/4 adım geçti**; 93 Python ve 14 web sınır testi dahil.
-- İlk sınırsız web koşusunda 1 zaman aşımı vardı; `maxWorkers: 2` ile tam paket geçti.
-- React `act` uyarıları, Starlette deprecation ve 822 kB web chunk uyarısı devam ediyor.
-  Uyarılar saklanmadı; log/ayrıntı denetim raporunda. Bu uyarılar yeni özellik görevinden ayrı ele alınır.
-
-Görsel QA ve gerçek API uçtan uca kontrolü bu düzenlemenin teslim koşulu değildir; Q1'de yapılacak.
-
-## Çalışma alanları
-
-2026-10-19 denetiminde `git branch --no-merged` boştu; eski görev dalları main'e birleşmiş durumda.
-`git worktree list` hâlâ `Documents/geotek-wt/` altında 11 çalışma alanı gösteriyor.
-Bu alanların yerel değişiklikleri kontrol edilmedi; silinmedi. Yeni işe eski brief'le devam etme.
-Her oturumda `tools/project.py status` ile canlı Git durumunu gör; tarihsel yolu zorunlu kabul etme.
-
-## Sonraki oturuma devir
-
-Claude Code Projects aktarımı: [CLAUDE_PROJECTS.md](CLAUDE_PROJECTS.md).
-Koordinatör talimatı: [PROJECT_INSTRUCTIONS.md](PROJECT_INSTRUCTIONS.md).
-Model için kod bulma sırası: `code_map_target` → gerekli simgenin `code_map_read` kesiti;
-büyük CODE_MAP belgesi varsayılan bağlam değildir. `geotek-codemap` Codex ve Antigravity MCP ayarlarına
-eklendi (2026-10-20). ai-orchestrator ve geotek-codemap depo .mcp.json ve .claude/settings.json ile kayıtlı ve onaylı; Codex ve Antigravity'de geotek-codemap etkin (2026-10-20, 820c084). Projects talimat alanına yükleme henüz yapılmadı.
-Kanıt: [2026-10-20 araç denetimi](audit/2026-10-20-projects-codemap.md).
-`http://127.0.0.1:8766` görünümü insan incelemesine yardımcıdır; ürün geliştirme
-konusu ayrı çalışıyor olabilir. Bu denetim ürünün Q1 işlerini tamamlandı olarak işaretlemez.
-
-Yalnız bu sayfayı güncelle: biten görev + kanıtı, sıradaki tek kart, açık karar ve test sonucu.
-Aktif dosya sahipliği/süren MCP çağrısı varsa buraya kısa kayıt ekle; yoksa yeni tablo açma.
 
 ## T3a-FIX etki notu (2026-10-20)
 
@@ -116,20 +58,7 @@ Aktif dosya sahipliği/süren MCP çağrısı varsa buraya kısa kayıt ekle; yo
 Etki (σv=100, σ'v=60 kPa, bağımsız denklem hesabı; FS = CRR·MSF·Kσ/CSR olduğundan FS, CRR7.5 ile aynı oranda değişir):
 kum (qc 10000) CRR 0.276→0.276 (0%); siltli kum (4000/60) 0.154→0.157 (+2%); kil (800) değişmez; Ic≈2.56 ara bölge (900/5) 0.084→0.087 (+3%); düşük-F siltli kum (2000/5, F<0.5) 0.071→0.085 (+18%, kısayol kalktığı için Kc 1→1.62). Etki yalnız Ic>1.64 ara/siltli CPT katmanlarında; temiz kum değişmez.
 Test 2026-10-20: tam pytest 1688 geçti/1 atlandı; discrepancy 16 geçti; gen_code_map --check 0. Andrus-Stokoe üssü (madde 5) doğrulanmadı, kod değişmedi.
-Not (T3a-FIX inceleme): Kc'deki F<0.5 kısayolu R&W 1998'de vardı, Youd 2001 Eq.19'da yok; çevre PDF metni doğrulanmadı, koordinatör kararıyla silinmiş kalır. Ic tanımsız (net qc<=0, fs<=0, σ'v<=0) noktalar NaN -> INVALID + uyarı; fs=0 artık "clay_like" değil INVALID. Ic>2.6 noktalar mevcut sözleşmeyle CLAY_LIKE (FS atanmaz). σ'v>Pa için n=0.7 ara dalı ızgara taramasında ulaşılamadı (yalnız n=0.5/1).
-
-## Bekleyen işlerin kapatılması (2026-10-20)
-
-- T1 (feat/t1-liq-charts) ve T3b (test/T3b-bearing-earthpressure) main'e birleştirildi; T3b test dosyalarındaki BOM kaldırıldı (kod haritası testini bozuyordu). Bulut testi: pytest 1802 geçti, 3 atlandı, 1 ortam hatası (PySide6 yok, `test_dynamic_i18n_keys_exist`); web Vitest 298 geçti, tsc temiz; gen_code_map --check 0.
-- T4 belgeleri (`katsayi_dogrulama.md`, `research/katsayi_kaynak_arastirmasi_2026-10-20.md`) main'de.
-- T3a-FIX açıkları **doğrulanamadı** (2026-10-20): Youd 2001 tam metni bulut ağından alınamadı (memphis.edu/cgs.ca erişilemez). (a) F<0.5 kısayolu Youd 2001 Eq.19'da var mı: kaynak görülmeden karar verilmedi, kod değişmedi (kaldırılmış hâli +2…+18% CRR, yalnız Ic>1.64). (b) Andrus-Stokoe üssü: kod (M/7.5)^-3.3, Tablo 3 ile tutuyor; -2.56 Idriss'in (Eq.24) üssüdür, çıkarım artefaktı olasılığı yüksek, basılı metinden doğrulanmadı. Cihazdan PDF ile kontrol gerekir.
-- Bağımsız incelemeler (2026-10-20, cihaz oturumu, salt okuma): T1+T4 ve T8a Antigravity gemini-4-argon medium; T6 ve T5 (PR #10) Codex gpt-6-luna medium (T6/T5: bulgu yok). T8a düzeltildi (formül yok): min FS'te NaN elenir, `passed=None` DASH yazılır, None zone/profil/yöntem güvenli, USCS çift hesap kaldırıldı. Açık, düzeltilmedi: T8a raporda sayısal değer/stale-409/NaN testleri eksik; sıvılaşma bölümü adı boş; T1 TR 'GS'/'FS' terim tutarsızlığı; T1 boş FS verisinde referans çizgisi çiziliyor.
-  T4 belge bulguları (katsayı kararı, dokunulmadı): taşıma 0.55 / pasif 0.50 'secondary' sayılıyor ama araştırma raporunda 'unverified'; EH at-rest 1.35 özette unverified listesinde yok; GEC-11 tabloları MSE duvar içindir; devrilme 2.0 yalnız zemin için (kaya ~1.5); FORMÜL SORUSU: LS extreme_I=0.50 varsayılanı (AASHTO Extreme Event I için proje-özel) 'sessiz varsayım' ilkesine uyuyor mu. Youd F<0.5 ve Andrus-Stokoe üssü PDF gelene kadar bekliyor.
-- Claude (Opus) salt okuma incelemeleri (2026-10-20, T1/T4/T8a): farklı motordan (Antigravity) inceleme **hâlâ açık**; ai-orchestrator cihaz ayarında izinlenirse yeniden koşulmalı. Düzeltilenler: EN `liquefaction.method.youd2001` metni, DepthChart React anahtarları, rapor USCS tablo başlıkları (`report.cls.borehole/depth/status`), raporda sıvılaşma uyarıları, T4 araştırma notunda LS extreme_I kararı.
-- İncelemeden kalan açıklar (düzeltilmedi): T1: TR "GS" ile "FS" terim tutarsızlığı, SoundingDetail motor uyarıları İngilizce (anahtar sözleşmesi gerekir), FS x ekseni üst sınırı, marginal/hedef GS çizgisi, sayı biçimi (`Intl.NumberFormat`), özet tablo caption'ı, EN/errors/marginal testleri. T8a: rapor ayarlarında `gwt_seismic`/`default_fc` None iken "-" yazıyor (profil değeri kullanılıyor), `c_fc`/`ic_cutoff` yok; sınıflandırma bölümü rapor anında yeniden hesaplanıyor (hash yok); geometri anahtarları ham ve birimsiz; `calculation_fingerprint` NaN/bilinmeyen kodda 500 verebilir; no_result+stale birlikteyken yalnız no_result döner; stale/override/silinen profil test boşlukları. T4: `asd.yaml`/`aashto_lrfd.yaml` doğrulama durumları belgeyle çelişiyor, `asd.yaml` kaynağı NHI-06-088 (Cilt I) yerine -089 olmalı, AASHTO 11.6.5 eksantrisite ve tablo numarası (11.5.6-1/11.5.7-1) metinle doğrulanmalı, devrilme 2.0 kaya için 1.5 değil. Hesap formülüne dokunulmadı.
-- Youd 2001 kontrolü yapıldı (2026-10-20, aşağıdaki "Youd 2001 makale kontrolü" notu).
-- T4 metaveri düzeltmesi (2026-10-20): `asd.yaml` kaynağı NHI-06-089; ASD ve AASHTO `factor_sources` durumları katsayi_dogrulama.md ile hizalandı (katsayı değeri değişmedi); AASHTO 11.6.5 eksantrisite 0.40B ve tablo numarası unverified. T1/T8a artıkları: [T10b-POLISH](tasks/T10b-POLISH.md); `_structure_status` NaN koruması eklendi.
-- T6 biten (2026-10-20, claude/project-thread-q7m1fh): web paketi bölündü; her modül manifest'i `lazy(() => import("./Root"))` kullanır, `vite.config.ts`'e `vendor-react/mantine/icons` parçaları eklendi. Build öncesi tek `index` parçası 918,36 kB (gzip 272,25) ve >500 kB uyarısı; sonrası en büyük parça 291,97 kB (vendor-mantine, gzip 89,83), ana `index` 239,56 kB (gzip 70,78), modül Root parçaları 2,8–72,8 kB, uyarı yok. Davranış değişmedi. Testler (2026-10-20): `tsc --noEmit` temiz, Vitest 298 geçti, `npm run build` yeşil. ai-orchestrator bağlanamadığı için Codex kullanılmadı; uygulama Claude ile, inceleme build çıktısıyla yapıldı.
+Not (T3a-FIX inceleme): Kc'deki F<0.5 kısayolu R&W 1998'de vardı, Youd 2001 Eq.19'da yok; çevre PDF metni doğrulanmadı, koordinatör kararıyla silinmiş kalır. Ic tanımsız (net qc<=0, fs<=0, σ'v<=0) noktalar NaN -> INVALID + uyarı; fs=0 artık "clay_like" değil INVALID (2026-10-20 sistem kontrolüyle BI2014 yolunda da: `normalise_iterative` fs<=0 noktayı I_c tanımsız sayar). Ic>2.6 noktalar mevcut sözleşmeyle CLAY_LIKE (FS atanmaz). σ'v>Pa için n=0.7 ara dalı ızgara taramasında ulaşılamadı (yalnız n=0.5/1).
 
 ## Youd 2001 makale kontrolü (2026-10-20, salt okuma, kod değişmedi)
 Kaynak: Umut'un cihazındaki tam metin md dönüşümü (`docs/research/Youd.et.al.LiquefactionEvaluation.2001.ASCE.md`; telifli, git dışı, `.gitignore`). Denklemler dönüşümde çoğunlukla okunamıyor (Eq. 23/25/26 yok, Eq. 19 bozuk).
@@ -137,9 +66,18 @@ Kaynak: Umut'un cihazındaki tam metin md dönüşümü (`docs/research/Youd.et.
 - MSF: makale tek üs önermez, aralık verir (md 498-500): M<7.5 için alt sınır Idriss (Tablo 3 sütun 3, Eq. 23), üst sınır Andrus-Stokoe (sütun 7, Eq. 26); M>7.5 için Idriss kullanılmalı (Eq. 25). Üslerin sayısal değerleri (−2.56 / −3.3) md'de okunamadı, PDF'ten doğrulanabilir. Kod: varsayılan `idriss`, `andrus_stokoe` (M/7.5)^-3.3; NCEER'in bilinen formülleriyle uyumlu.
 - Koordinatör kararı: M>7.5'te `andrus_stokoe` engellenmez (Idriss'ten düşük, tutucu); seçilirse `liquefaction.warning.msf_andrus_stokoe_high_magnitude` uyarısı (TR/EN, testli) çıkar. Formül değişmedi.
 
-Farklı motor incelemesi artıkları (2026-10-20): `aashto_lrfd.yaml` taşıma 0.55 ve pasif 0.50 durumu `unverified` (değer değişmedi); `katsayi_dogrulama.md`'ye EH at-rest 1.35 açık maddesi, GEC-11 MSE notu ve devrilme zemin/kaya notu eklendi. LS extreme_I 0.50 artık duvar sonucunda görünür varsayım + uyarı (`wall.ls_extreme_i`; rapora varsayım/uyarı bölümünden akar), testli. Kalan T8a/T1 maddeleri `docs/tasks/T10b-POLISH.md`'de. Test: `tests/unit/test_structures_service.py` 94 geçti; tam paket bu oturumda çalıştırılamadı (bulutta bağımlılıklar kısmen kurulu).
-- T10/Q1 kabul (2026-10-20, dal fix/t10-report-section-labels): gerçek API uçtan uca 61 adım PASS; pytest 1841 geçti, 1 hata tek başına geçti (tekrarlanamadı); web 299 geçti, build yeşil. Rapor: [T10-kabul](qa/T10-kabul.md); açık bulgular: [T10c](tasks/T10c-UI-LABELS.md). Görsel kapı 3 / F3-F4 kapı 4 insan onayı hâlâ açık.
-- T10c + T10b biten (2026-10-20, dal claude/project-thread-328dzw): (1) katman etiketleri UUID yerine "üst–alt m · USCS" (`layerLabel`); (2) motor katman hataları `LayerDesignError` → `ApiError.details.message_code/params`, web `error.detail.*` TR/EN; (3) sıvılaşma uyarıları `format_warning` kodlarına çevrildi (web, docx ve eski PySide ekranı çevirir), sheet pile `warning_items` docx'te çevrilir; (4) `GET /api/m/liquefaction/result` + sonuç sayfası kayıtlı sonucu yükler, eskiyse uyarır; (5) SBTn bölge özeti (web ve docx) sıfır kalınlıklı satır üretmez; (6) geçen duvarda "Belirleyici kontrol" yerine en yüksek kullanım oranı; (7) T10b: TR "GS" terimi, boş veride referans çizgisi yok, T8a sayısal/stale/NaN/dosya adı testleri. Formül/katsayı değişmedi.
-- Kararsız test kök nedeni (kanıtlı): `--basetemp=.pytest_tmp` sabit olduğundan aynı depoda ikinci bir pytest başlayınca dizin silinip çalışan koşunun `tmp_path`'i kayboluyordu → `save_project` OSError → 400 (aynı satır/aynı hata yeniden üretildi). Çözüm: `tests/conftest.py` her süreç için `.pytest_tmp/run-<pid>` kullanır (geçen koşuda silinir). Aynı koşulda yeniden denendi: geçti.
-- T10c/T10b test (2026-10-20, bulut): pytest 1846 geçti, 3 başarısız→ikisi (code_map rota sayısı 72→73, gezinme beklentisi) düzeltildi ve geçti; 1 ortam hatası (PySide6 yok, test_dynamic_i18n_keys_exist); web tsc temiz, Vitest 308 geçti, build yeşil; gen_code_map --check 0. Farklı motor incelemesi (Antigravity) ai-orchestrator bağlanamadığı için yapılmadı; bağımsız salt okuma Claude alt ajan incelemesi yapıldı, 2 bulgu düzeltildi (eski PySide uyarı metni, yuvarlanmamış derinlik).
-- T10c açık: `GET /result` ayarında `profile_id` somut döner (aktifi izleme bilgisi saklanmıyor); iş kaybolunca gösterilen kayıtlı sonuç o işin sonucu olmayabilir; LayerEditor aria-label'ları kararlı kimlik için `layer.id` kullanır; birleşik `no_result`+`stale` 409 (T10b) yapılmadı.
+## Son doğrulama
+
+TEST_RESULTS_PLACEHOLDER
+
+Her kayıt tarih, kapsam ve gerçek sonuç taşır; eski sayı güncel başarı diye kullanılmaz.
+
+## Çalışma alanları ve devir
+
+- Ortak kaynak GitHub `main`; cihaz klasörü ve bulut kapsayıcıları çalışma kopyasıdır ([CLOUD_MODE](CLOUD_MODE.md)).
+- Cihazdaki eski `Documents/geotek-wt/` worktree'lerinin silinmesi kararlaştırıldı; uygulandığı bu oturumdan doğrulanamadı.
+- Claude Code Projects: [CLAUDE_PROJECTS.md](CLAUDE_PROJECTS.md), talimat [PROJECT_INSTRUCTIONS.md](PROJECT_INSTRUCTIONS.md).
+- Kod bulma: `code_map_target` → `code_map_read`; büyük CODE_MAP belgesi varsayılan bağlam değildir.
+  Araç kurulum kanıtı: [2026-10-20 araç denetimi](audit/2026-10-20-projects-codemap.md).
+
+Yalnız bu sayfayı güncelle: biten görev + kanıtı, sıradaki kart, açık karar ve test sonucu.

@@ -24,7 +24,9 @@ from geotek.core.models.profile import SoilProfile
 from geotek.core.warning_codes import format_warning
 from geotek.engine.classification.robertson import sbtn_zone, soil_behaviour_index
 from geotek.engine.correlations.physical import (
+    GAMMA_MIN_RC2010,
     fines_content_from_ic,
+    rc2010_below_floor,
     unit_weight_robertson_cabal,
 )
 
@@ -139,10 +141,19 @@ def process_cpt(
     CPT itself (Robertson & Cabal 2010) and ``gwt_depth`` (or the sounding's own GWT) is used.
     """
     a = sounding.arrays()
+    warnings: list[str] = []
+    # Readings inside the predrilled (cased/augered) depth do not measure the soil: drop them.
+    kept = a["depth"] >= sounding.predrill_depth
+    if not kept.any():
+        raise ValueError(f"CPT {sounding.id!r} has no readings below the predrill depth "
+                         f"({sounding.predrill_depth:g} m)")
+    if not kept.all():
+        a = {name: values[kept] for name, values in a.items()}
+        warnings.append(format_warning("insitu.warning.cpt_predrill_excluded", count=int((~kept).sum()),
+                                       predrill=float(sounding.predrill_depth)))
     depth, qc, fs = a["depth"], a["qc"], a["fs"]
     u2 = a.get("u2")
     qt = corrected_tip_resistance(qc, u2, sounding.area_ratio)
-    warnings: list[str] = []
     if u2 is None:
         warnings.append(format_warning("insitu.warning.cpt_no_u2"))
 
@@ -158,6 +169,10 @@ def process_cpt(
         if gwt is None:
             raise ValueError("Groundwater depth is required when no soil profile is given")
         gamma = unit_weight_robertson_cabal(qt, fs)
+        floored = rc2010_below_floor(qt, fs)
+        if floored.any():
+            warnings.append(format_warning("insitu.warning.cpt_gamma_floor", count=int(floored.sum()),
+                                           gamma_min=GAMMA_MIN_RC2010))
         missing = ~np.isfinite(gamma)
         if missing.all():
             raise ValueError(f"CPT {sounding.id!r}: unit weight cannot be estimated (q_t <= 0 throughout)")

@@ -56,3 +56,12 @@ Kayma (0.80/0.90), palplanş pasif (0.75), Extreme direnç katsayıları, streng
 FHWA NHI-06-089 (Vol. II, Aralık 2006) ile karşılaştırıldı (2026-10-20): statik kayma 1.5, eksantrisite B/6 (zemin) ve B/4 (kaya),
 taşıma 3.0 (önerilen), toptan göçme 1.5 **secondary**; devrilme 2.0 eksantrisite kriterinden türetilmiş yaklaşık değerdir ve zemin içindir (kaya için yaklaşık 1.5; YAML tek değer tutar).
 Sismik değerler ve palplanş pasif katsayısı **unverified**. Ayrıntı: `docs/research/katsayi_kaynak_arastirmasi_2026-10-20.md`.
+
+## Korelasyon proje varsayımları
+
+- **Robertson & Cabal (2010) CPT birim hacim ağırlığı alt sınırı: 12 kN/m³** (Umut onayı, 2026-10-20).
+  Bu bir kaynak değeri değil, **proje varsayımıdır**: regresyonun alt sınırı yoktur ve çok düşük q_t'de fiziksel
+  olmayan (negatif dahil) γ verir. Üst sınır uygulanmaz. Sınır uygulandığında görünür uyarı çıkar
+  (`insitu.warning.cpt_gamma_floor`, `layering.warning.gamma_floor`, `correlation.warning.gamma_floor`).
+  Kod: `geotek/engine/correlations/physical.py` `GAMMA_MIN_RC2010`; el hesabı testi
+  `tests/unit/test_system_check_engine.py::test_rc2010_unit_weight_lower_bound_hand_calc`.

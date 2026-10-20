@@ -107,7 +107,7 @@ def layer_points(
         if sounding.id not in ids:
             continue
         indices = [i for i, depth in enumerate(sounding.depth)
-                   if layer.top <= depth < layer.bottom]
+                   if layer.top <= depth < layer.bottom and depth >= sounding.predrill_depth]
         if not indices:
             continue
         cropped = {name: [getattr(sounding, name)[i] for i in indices]
