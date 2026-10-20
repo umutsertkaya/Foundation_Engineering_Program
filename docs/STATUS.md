@@ -8,8 +8,8 @@ Test kanıtları: [denetim raporu](audit/2026-10-19-sadelestirme.md).
 
 Compact veya devir öncesi yalnız bu üç satır güncellenir (kural: [WORKFLOW](WORKFLOW.md#bağlam-ve-compact-kuralı)).
 
-- Biten: 2026-10-20 orkestrasyon düzeltmesi: ai-orchestrator 2.1.0, codemap Codex/Antigravity kaydı, yönergeler yenilendi.
-- Sıradaki: cihaz oturumunda canlı doğrulama (`orchestrator_status`, `.mcp.json` + `.claude/settings.json`, worktree prune), ardından sıfırdan plan.
+- Biten: 2026-10-20 orkestrasyon kurulumu: ai-orchestrator 2.1.0 bağlı, Codex (gpt-6-luna) ve Antigravity (gemini-3.8-flash) bağlantı testi OK, codemap --check temiz (820c084).
+- Sıradaki: proje eksiklerinin tespiti ve sıfırdan plan; işler bağımsız kartlara bölünecek.
 - Açık karar: yok.
 
 ## Koddan doğrulanan durum
@@ -84,8 +84,7 @@ Claude Code Projects aktarımı: [CLAUDE_PROJECTS.md](CLAUDE_PROJECTS.md).
 Koordinatör talimatı: [PROJECT_INSTRUCTIONS.md](PROJECT_INSTRUCTIONS.md).
 Model için kod bulma sırası: `code_map_target` → gerekli simgenin `code_map_read` kesiti;
 büyük CODE_MAP belgesi varsayılan bağlam değildir. `geotek-codemap` Codex ve Antigravity MCP ayarlarına
-eklendi (2026-10-20). Depo `.mcp.json`'a `ai-orchestrator` eklenmesi ve `.claude/settings.json` ön onayı
-uzak araçlarla yazılamadı; cihaz oturumunda yapılacak. Projects talimat alanına yükleme henüz yapılmadı.
+eklendi (2026-10-20). ai-orchestrator ve geotek-codemap depo .mcp.json ve .claude/settings.json ile kayıtlı ve onaylı; Codex ve Antigravity'de geotek-codemap etkin (2026-10-20, 820c084). Projects talimat alanına yükleme henüz yapılmadı.
 Kanıt: [2026-10-20 araç denetimi](audit/2026-10-20-projects-codemap.md).
 `http://127.0.0.1:8766` görünümü insan incelemesine yardımcıdır; ürün geliştirme
 konusu ayrı çalışıyor olabilir. Bu denetim ürünün Q1 işlerini tamamlandı olarak işaretlemez.
