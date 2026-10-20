@@ -18,6 +18,17 @@ export default defineConfig({
   build: {
     outDir: "dist",
     emptyOutDir: true,
+    rollupOptions: {
+      output: {
+        manualChunks(id: string) {
+          if (!id.includes("node_modules")) return undefined;
+          if (id.includes("@mantine")) return "vendor-mantine";
+          if (id.includes("@tabler")) return "vendor-icons";
+          if (/node_modules\/(react|react-dom|react-router|react-router-dom|scheduler|@remix-run)\//.test(id)) return "vendor-react";
+          return undefined;
+        },
+      },
+    },
   },
   test: {
     globals: true,
