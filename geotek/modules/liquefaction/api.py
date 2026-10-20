@@ -2,9 +2,6 @@
 
 from __future__ import annotations
 
-import hashlib
-import json
-
 from fastapi import APIRouter
 
 from geotek.api import schemas as dto
@@ -19,16 +16,11 @@ from geotek.services import module1
 
 
 def _inputs(project, profile_id, use_active):
-    """Hash just the service's mutable project inputs, including profile selection."""
-    active = project.active_profile() if use_active else None
-    data = {"profile": project.profile(profile_id).model_dump(mode="json"),
-            "investigations": project.investigations.model_dump(mode="json"),
-            "active_profile_id": active.id if active is not None else None}
+    """Hash the service's mutable project inputs; non-finite numbers are a validation error."""
     try:
-        encoded = json.dumps(data, sort_keys=True, allow_nan=False).encode()
+        return module1.liquefaction_input_hash(project, profile_id, use_active)
     except ValueError:
         api_error(422, "validation", "Liquefaction inputs must contain finite numbers.")
-    return hashlib.sha256(encoded).hexdigest()
 
 
 def router() -> APIRouter:
