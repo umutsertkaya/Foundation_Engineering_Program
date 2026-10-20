@@ -78,3 +78,25 @@ def test_clay_branch_ic_eq17():
     expected = np.sqrt((3.47 - np.log10(q))**2 + (1.22 + np.log10(ff))**2)
     assert float(n) == 1.0
     assert float(ic) == pytest.approx(expected, rel=1e-12)
+
+
+def test_intermediate_exponent_hand_calculation():
+    """Youd et al. (2001), Eqs. (12)-(19), n = 0.7 near the clay cutoff.
+
+    qc = 900, fs = 5, sigma_v = 100, sigma'_v = 60 kPa gives F = 0.625%.
+    Ic(n=1) = 2.5556456207188187 and Ic(n=0.5) = 2.6604371356197674,
+    selecting n = 0.7. Eq. (15) then gives Q = 11.393814066248634;
+    Eq. (12) still uses gross qc: qc1N = 12.818040824529712.
+    """
+    args = (900.0, 5.0, 100.0, 60.0)
+    ic, n, f = youd.robertson_wride_ic(*args)
+    assert float(n) == 0.7
+    assert float(f) == pytest.approx(0.625, rel=1e-12)
+    assert float(ic) == pytest.approx(2.61843046640364, rel=1e-12)
+
+    result = youd.cpt_resistance(*args)
+    assert float(result["kc"]) == pytest.approx(3.4414904413807754, rel=1e-12)
+    assert float(result["resistance"]) == pytest.approx(44.11316497484756, rel=1e-12)
+    assert float(result["crr75"]) == pytest.approx(0.08674626642404802, rel=1e-12)
+    assert result["clay_like"]
+    assert not result["dense"]

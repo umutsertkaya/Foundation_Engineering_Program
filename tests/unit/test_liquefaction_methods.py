@@ -62,7 +62,8 @@ def test_youd_crr_cpt_and_kc():
     assert youd.crr75_cpt([40, 100]) == pytest.approx([0.08332, 0.173])
     assert np.isnan(youd.crr75_cpt(160))
     assert youd.kc_factor([1.5, 2.0]) == pytest.approx([1.0, 1.3], abs=1e-3)
-    assert youd.kc_factor([2.0], F=[0.3]) == pytest.approx([1.0])
+    # Youd et al. (2001), Eq. (19b), at Ic = 2: Kc = 1.3 regardless of F.
+    assert youd.kc_factor([2.0], F=[0.3]) == pytest.approx([1.3], rel=1e-12)
 
 
 def test_youd_cpt_resistance_clean_sand():

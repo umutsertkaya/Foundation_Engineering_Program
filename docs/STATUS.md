@@ -91,3 +91,10 @@ konusu ayrı çalışıyor olabilir. Bu denetim ürünün Q1 işlerini tamamland
 
 Yalnız bu sayfayı güncelle: biten görev + kanıtı, sıradaki tek kart, açık karar ve test sonucu.
 Aktif dosya sahipliği/süren MCP çağrısı varsa buraya kısa kayıt ekle; yoksa yeni tablo açma.
+
+## T3a-FIX etki notu (2026-10-20)
+
+`youd2001.py` CPT yolu Youd 2001 metnine hizalandı: Q'da net qc, ara üs 0.7 (eski 0.75), Kc yalnız Ic'ye bağlı (F<0.5 kısayolu kaldırıldı). qc1N brüt qc ile kalır. SPT değişmedi.
+Etki (σv=100, σ'v=60 kPa, bağımsız denklem hesabı; FS = CRR·MSF·Kσ/CSR olduğundan FS, CRR7.5 ile aynı oranda değişir):
+kum (qc 10000) CRR 0.276→0.276 (0%); siltli kum (4000/60) 0.154→0.157 (+2%); kil (800) değişmez; Ic≈2.56 ara bölge (900/5) 0.084→0.087 (+3%); düşük-F siltli kum (2000/5, F<0.5) 0.071→0.085 (+18%, kısayol kalktığı için Kc 1→1.62). Etki yalnız Ic>1.64 ara/siltli CPT katmanlarında; temiz kum değişmez.
+Test 2026-10-20: tam pytest 1688 geçti/1 atlandı; discrepancy 16 geçti; gen_code_map --check 0. Andrus-Stokoe üssü (madde 5) doğrulanmadı, kod değişmedi.
