@@ -56,6 +56,7 @@ graph LR
   geotek_engine_walls["geotek.engine.walls"]
   geotek_i18n["geotek.i18n"]
   geotek_io["geotek.io"]
+  geotek_launcher["geotek.launcher"]
   geotek_library["geotek.library"]
   geotek_modules["geotek.modules"]
   geotek_modules_liquefaction["geotek.modules.liquefaction"]
@@ -124,6 +125,7 @@ graph LR
   geotek_engine_walls -->|1| geotek_services
   geotek_io -->|3| geotek_core
   geotek_io -->|2| geotek_core_models
+  geotek_launcher -->|1| geotek_api
   geotek_library -->|1| geotek_core
   geotek_library -->|1| geotek_core_models
   geotek_library -->|1| geotek_io
@@ -186,6 +188,7 @@ graph LR
 | `geotek.engine.walls` | 5 | `geotek.config`, `geotek.core`, `geotek.core.models`, `geotek.engine.bearing`, `geotek.engine.earth_pressure`, `geotek.engine.sheet_pile`, `geotek.engine.stability`, `geotek.services` |
 | `geotek.i18n` | 1 | — |
 | `geotek.io` | 3 | `geotek.core`, `geotek.core.models` |
+| `geotek.launcher` | 1 | `geotek.api` |
 | `geotek.library` | 3 | `geotek.core`, `geotek.core.models`, `geotek.io` |
 | `geotek.modules` | 2 | — |
 | `geotek.modules.liquefaction` | 3 | `geotek.api`, `geotek.core`, `geotek.core.models`, `geotek.services` |
@@ -292,7 +295,7 @@ Test sütunu: o dosyayı doğrudan import eden `tests/` dosyaları (yoksa `—`)
 | Dosya | Satır | Bağımlı olduğu | Kullanan | Test |
 |---|---:|---|---|---|
 | `api/__init__.py` | 1 | — | `api.app`, `api.calculation_jobs`, `api.calculation_results`, `api.common`, `api.jobs`, `api.library_routes` +5 | `api/test_codes_api.py`, `api/test_contract.py`, `api/test_jobs_api.py` +6 |
-| `api/app.py` | 503 | `api`, `api.common`, `api.jobs`, `api.library_routes`, `api.registry`, `api.schemas`, `api.session`, `config.codes`, `core.errors`, `core.models.project`, `core.models.structures`, `i18n`, `io.project_io`, `library`, `services.structures`, `services.walls_advanced` | — | `api/conftest.py`, `api/test_contract.py`, `api/test_jobs_api.py` +3 |
+| `api/app.py` | 503 | `api`, `api.common`, `api.jobs`, `api.library_routes`, `api.registry`, `api.schemas`, `api.session`, `config.codes`, `core.errors`, `core.models.project`, `core.models.structures`, `i18n`, `io.project_io`, `library`, `services.structures`, `services.walls_advanced` | `launcher` | `api/conftest.py`, `api/test_contract.py`, `api/test_jobs_api.py` +3 |
 | `api/calculation_jobs.py` | 96 | `api`, `api.calculation_results`, `api.jobs`, `api.schemas`, `api.session`, `core.errors`, `services`, `services.structures` | `modules.liquefaction.api`, `modules.report.api`, `modules.sheet_pile.api`, `modules.walls.api` | — |
 | `api/calculation_results.py` | 158 | `api`, `api.schemas`, `core.warning_codes`, `engine.limit_state`, `services.structures` | `api.calculation_jobs`, `modules.liquefaction.api` | `api/test_sheet_pile_api.py`, `unit/test_structures_service.py` |
 | `api/common.py` | 47 | `api`, `api.schemas` | `api.app`, `api.library_routes`, `modules.liquefaction.api`, `modules.report.api`, `modules.sheet_pile.api`, `modules.soil.api` +1 | — |
@@ -449,6 +452,12 @@ Test sütunu: o dosyayı doğrudan import eden `tests/` dosyaları (yoksa `—`)
 | `io/__init__.py` | 1 | — | `modules.soil.service` | `unit/test_library_hardening.py` |
 | `io/project_io.py` | 113 | `core.errors`, `core.models.project` | `api.app`, `api.session`, `library.service` | `api/test_codes_api.py`, `api/test_project_api.py`, `api/test_soil_api.py` +11 |
 | `io/tabular.py` | 169 | `core.errors`, `core.models.investigations`, `core.units` | `modules.soil.service` | `unit/test_io.py`, `unit/test_layering_cpt.py`, `unit/test_layering_spt.py` |
+
+#### `geotek.launcher`
+
+| Dosya | Satır | Bağımlı olduğu | Kullanan | Test |
+|---|---:|---|---|---|
+| `launcher.py` | 96 | `api.app` | — | `unit/test_launcher.py` |
 
 #### `geotek.library`
 

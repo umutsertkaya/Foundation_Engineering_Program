@@ -22,7 +22,7 @@ Compact veya devir öncesi yalnız bu üç satır güncellenir (kural: [WORKFLOW
 | Sıvılaşma | Motor/API, iş takibi, kayıtlı sonuç, GS ve CSR/CRR grafikleri, ayrıntı tablosu. |
 | Palplanş | Motor/API, oluşturma, tasarım işi, sonuç paneli, çevrilebilir uyarı/varsayım kodları. |
 | Rapor | docx (`POST /api/m/report/docx`); PDF ve grafik yok. |
-| Paket | `geotek.app` başlatıcısı ve tek exe henüz yok ([K1](tasks/K1.md)). Arayüz yalnız web; PySide6 yolu kaldırıldı. |
+| Paket | `geotek/launcher.py` (API + `web/dist`, tarayıcıyı açar), `tools/build_exe.ps1` ve `.github/workflows/build-exe.yml` (windows-latest, PyInstaller, artifact `GeoTek-windows-exe`). Arayüz yalnız web; PySide6 yolu kaldırıldı. |
 
 Kabul kanıtı: gerçek API uçtan uca [T10-kabul](qa/T10-kabul.md) (61 adım), görsel [T11-gorsel](qa/T11-gorsel.md) (128 ekran).
 
@@ -87,3 +87,4 @@ Her kayıt tarih, kapsam ve gerçek sonuç taşır; eski sayı güncel başarı 
   Araç kurulum kanıtı: [2026-10-20 araç denetimi](audit/2026-10-20-projects-codemap.md).
 
 Yalnız bu sayfayı güncelle: biten görev + kanıtı, sıradaki kart, açık karar ve test sonucu.
+- 2026-10-20 (hedef adım 3): yerel başlatıcı + exe derleme hattı eklendi. Test: `tests/unit` 1031 geçti + `test_launcher.py`; Linux'ta PyInstaller denemesi: exe `/api/health`, `/api/modules` ve arayüzü sundu. Windows exe'si GitHub Actions'ta derlenir (çalıştırma kontrolü yapılmadı, istenmedi).

@@ -34,6 +34,8 @@ Mevcut `.venv` ve `web/node_modules` ile iki terminal:
 npm.cmd --prefix web run dev -- --host 127.0.0.1 --port 5173
 ```
 
+Tek exe: `.\tools\build_exe.ps1` → `dist\GeoTek.exe` (ya da GitHub Actions `build-exe` artifact).
+
 Tarayıcı: `http://127.0.0.1:5173`. Yalnız arayüz demosu için `npm.cmd --prefix web run dev:mock`;
 mock, gerçek mühendislik hesabı yapmaz.
 
