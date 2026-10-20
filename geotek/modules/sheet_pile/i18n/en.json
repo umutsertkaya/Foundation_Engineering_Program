@@ -64,7 +64,7 @@
   "sheet_pile.detail.stale_title": "Soil source changed",
   "sheet_pile.detail.stale_desc": "The source profile changed after the copy; results may be out of date.",
   "sheet_pile.detail.resync": "Re-sync with source",
-  "sheet_pile.detail.soil_from_profile": "Soil copied from profile “{id}” (source preserved).",
+  "sheet_pile.detail.soil_from_profile": "Soil copied from profile “{name}” (source preserved).",
   "sheet_pile.detail.soil_manual": "Soil entered manually for this wall.",
   "sheet_pile.detail.missing_value": "Missing",
   "sheet_pile.detail.unsaved": "Unsaved changes; save before running.",

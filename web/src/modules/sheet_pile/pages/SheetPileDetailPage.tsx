@@ -13,6 +13,7 @@ import {
 import type { SheetPileStructure, StructureSummary } from "../../../shared/api/types";
 import { EmptyState } from "../../../shared/components/EmptyState";
 import { ErrorAlert } from "../../../shared/components/ErrorAlert";
+import { useProfileName } from "../../../shared/hooks/useProfileName";
 import { design_sheet_pile } from "../api";
 import { InputsForm } from "../components/InputsForm";
 import { JobPanel } from "../components/JobPanel";
@@ -37,6 +38,11 @@ export function SheetPileDetailPage() {
   const [error, setError] = useState<unknown>(null);
   const [actionError, setActionError] = useState<unknown>(null);
   const [busy, setBusy] = useState(false);
+  /** The ?job= id is unknown to the server (e.g. after a restart): fall back to the stored result. */
+  const [jobGone, setJobGone] = useState(false);
+  const sourceName = useProfileName(structure?.soil.source_profile_id);
+
+  useEffect(() => setJobGone(false), [jobId]);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -70,6 +76,17 @@ export function SheetPileDetailPage() {
   useEffect(() => {
     void load();
   }, [load]);
+
+  /** The finished job stored its result: re-read the structure so a later save (PUT) keeps that result. */
+  const onJobDone = useCallback(async () => {
+    if (!sid) return;
+    try {
+      const [fresh] = await Promise.all([get_structure(sid), refreshSummary()]);
+      setStructure(fresh as SheetPileStructure);
+    } catch {
+      // Badges and the stored copy keep their last value when the refresh fails.
+    }
+  }, [sid, refreshSummary]);
 
   const missing = useMemo(() => {
     if (!structure || !inputs) return [];
@@ -197,7 +214,7 @@ export function SheetPileDetailPage() {
       <Title order={5}>{t("sheet_pile.create.section_soil")}</Title>
       <Text size="sm" data-testid="soil-source">
         {source
-          ? t("sheet_pile.detail.soil_from_profile", { id: source })
+          ? t("sheet_pile.detail.soil_from_profile", { name: sourceName ?? "" })
           : t("sheet_pile.detail.soil_manual")}
       </Text>
       <Table withTableBorder>
@@ -258,11 +275,11 @@ export function SheetPileDetailPage() {
         <Stack gap="xs">
           <Title order={5}>{t("sheet_pile.result.title")}</Title>
           <div style={summary?.stale ? { opacity: 0.5 } : undefined}>
-            <JobPanel jobId={jobId} onDone={() => void refreshSummary()} structure={structure} />
+            <JobPanel jobId={jobId} onDone={() => void onJobDone()} onGone={() => setJobGone(true)} structure={structure} />
           </div>
         </Stack>
       )}
-      {!jobId && structure.result && (
+      {(!jobId || jobGone) && structure.result && (
         <Stack gap="xs">
           <Title order={5}>{t("sheet_pile.result.saved")}</Title>
           <div style={summary?.stale ? { opacity: 0.5 } : undefined}>

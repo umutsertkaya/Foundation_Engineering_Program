@@ -588,7 +588,7 @@
   "web.wizard.result_section_title": "Önerilen kesit ve zemin",
   "web.wizard.resync": "Proje profilinden yeniden kopyala",
   "web.wizard.resync_title": "Profili yeniden kopyala",
-  "web.wizard.resync_confirm": "Yapının profil kopyası, {id} proje profilinin güncel hâliyle değiştirilecek. Arka dolgu ve yapı su seviyeleri korunur.",
+  "web.wizard.resync_confirm": "Yapının profil kopyası, {name} proje profilinin güncel hâliyle değiştirilecek. Arka dolgu ve yapı su seviyeleri korunur.",
   "web.wizard.resync_unsaved": "Kaydedilmemiş zemin değişiklikleriniz kaybolacak.",
   "web.wizard.resynced": "Profil, proje profilinden yeniden kopyalandı.",
   "web.wizard.run_blocked_soil": "Zemin adımında hatalı ve kaydedilmemiş değişiklikler var; hesap başlatılmadı.",
@@ -714,5 +714,6 @@
   "layering.warning.log_missing": "Sondajın logu yok; tabakalama laboratuvar USCS ve N değerlerine göre yapıldı.",
   "layering.warning.similar_merged": "Aynı zemin davranışına sahip komşu tabakalar birleştirildi.",
   "parameters.warning.phi_cv_assumed_equal_phi_eff": "Kritik hal içsel sürtünme açısı (φ'cv) modellenmemiştir; yerine φ' = {phi_eff}° kullanılmıştır. φ' pik değer ise bu kabul güvensiz taraftadır.",
-  "parameters.warning.value_not_computable": "{method_id} yöntemi bu girdiler için hesaplanamıyor."
+  "parameters.warning.value_not_computable": "{method_id} yöntemi bu girdiler için hesaplanamıyor.",
+  "web.common.deleted_profile": "silinmiş profil"
 }

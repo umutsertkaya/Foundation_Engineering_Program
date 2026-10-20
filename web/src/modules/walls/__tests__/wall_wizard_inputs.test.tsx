@@ -148,6 +148,21 @@ describe("walls wizard: seismic inputs, design codes, save errors and stored res
     expect(storedWall().result_hash).toBe(runHash);
   }, 30000);
 
+  it("names the soil source profile (or a deleted one) in the soil step, never by its id", async () => {
+    const profile = getMockStore().profiles.find((p) => p.id === "prof-mock-1")!;
+    const first = renderWizard();
+    fireEvent.click(await step(tr["web.wizard.step.soil"]));
+    await waitFor(() => expect(screen.getByTestId("soil-source-name")).toHaveTextContent(profile.name));
+    expect(document.body.textContent).not.toContain("prof-mock-1");
+    first.unmount();
+
+    storedWall().soil.source_profile_id = "0123456789abcdef0123456789abcdef";
+    renderWizard();
+    fireEvent.click(await step(tr["web.wizard.step.soil"]));
+    await waitFor(() => expect(screen.getByTestId("soil-source-name")).toHaveTextContent(tr["web.common.deleted_profile"]));
+    expect(document.body.textContent).not.toContain("0123456789abcdef");
+  });
+
   it("does not write the previous result back when saving after a finished run", async () => {
     storedWall().result_hash = "before-the-run";
     renderWizard();

@@ -588,7 +588,7 @@
   "web.wizard.result_section_title": "Proposed section and soil",
   "web.wizard.resync": "Re-copy from project profile",
   "web.wizard.resync_title": "Re-copy profile",
-  "web.wizard.resync_confirm": "The structure's profile copy will be replaced by the current state of project profile {id}. The retained fill and the structure water levels are kept.",
+  "web.wizard.resync_confirm": "The structure's profile copy will be replaced by the current state of project profile {name}. The retained fill and the structure water levels are kept.",
   "web.wizard.resync_unsaved": "Your unsaved soil changes will be lost.",
   "web.wizard.resynced": "Profile re-copied from the project profile.",
   "web.wizard.run_blocked_soil": "The soil step has unsaved changes with errors; the calculation was not started.",
@@ -714,5 +714,6 @@
   "layering.warning.log_missing": "The borehole has no log; layering used laboratory USCS and N values instead.",
   "layering.warning.similar_merged": "Adjacent layers of the same soil behaviour were merged.",
   "parameters.warning.phi_cv_assumed_equal_phi_eff": "phi'cv is not modelled; phi' = {phi_eff} deg is used in its place, which is unconservative for a peak value.",
-  "parameters.warning.value_not_computable": "Value is not computable for method {method_id} with these inputs."
+  "parameters.warning.value_not_computable": "Value is not computable for method {method_id} with these inputs.",
+  "web.common.deleted_profile": "deleted profile"
 }

@@ -35,6 +35,7 @@ import type {
   WallType,
 } from "../api/types";
 import { StructureSoilSection } from "./StructureSoilSection";
+import { useProfileName } from "../hooks/useProfileName";
 import type { Undoable } from "../hooks/useUndoable";
 import { GwtOverrideEditor } from "../soil/GwtEditor";
 import { IssueList, LayerEditor } from "../soil/LayerEditor";
@@ -91,6 +92,7 @@ export function StructureSoilStep({
   const fill = useMemo(() => soil?.retained_fill ?? [], [soil]);
   const profileLayers = useMemo(() => soil?.profile.layers ?? [], [soil]);
   const allLayers = useMemo(() => [...fill, ...profileLayers], [fill, profileLayers]);
+  const sourceName = useProfileName(soil?.source_profile_id);
 
   if (!soil) return null;
 
@@ -156,8 +158,8 @@ export function StructureSoilStep({
               <Text size="sm" fw={600}>
                 {sourceId ? t("web.wizard.soil_source_profile") : t("web.wizard.soil_no_source")}
                 {sourceId && (
-                  <Text span ff="monospace" ml={6}>
-                    {sourceId}
+                  <Text span ml={6} data-testid="soil-source-name">
+                    {sourceName}
                   </Text>
                 )}
               </Text>
@@ -411,7 +413,7 @@ export function StructureSoilStep({
 
       <Modal opened={confirmResync} onClose={() => setConfirmResync(false)} title={t("web.wizard.resync_title")} size="md">
         <Stack gap="sm">
-          <Text size="sm">{t("web.wizard.resync_confirm", { id: sourceId ?? "" })}</Text>
+          <Text size="sm">{t("web.wizard.resync_confirm", { name: sourceName ?? "" })}</Text>
           {draft.dirty && (
             <Alert color="orange" variant="light" p="xs">
               <Text size="xs">{t("web.wizard.resync_unsaved")}</Text>
