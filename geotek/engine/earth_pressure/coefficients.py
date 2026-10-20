@@ -21,11 +21,32 @@ from __future__ import annotations
 
 import math
 
-from geotek.core.errors import GeoTekError
+from typing import Literal
+
+from geotek.core.errors import GeoTekError, SlopeError
+
+SurchargeBasis = Literal["horizontal", "inclined"]
 
 
 def _rad(*angles):
     return [math.radians(a) for a in angles]
+
+
+def surcharge_per_horizontal(q: float, beta: float, basis: SurchargeBasis = "horizontal") -> float:
+    """Vertical surcharge per unit *horizontal* projected area [kPa].
+
+    ``horizontal`` (default): ``q`` is already per horizontal projection. ``inclined``: ``q`` is
+    a vertical load per unit area of the inclined ground surface, so the load on a horizontal
+    length is ``q / cos(beta)``. With this value the Rankine/Coulomb coefficient K of the soil
+    gives the surcharge thrust ``K q_h H`` (checked against ``trial_wedge``; Das, Principles of
+    Foundation Engineering, Ch. 7, inclined-surface surcharge ``K q H cos(a) / cos(a - beta)``
+    for a face inclined by ``a`` from vertical).
+    """
+    if basis == "horizontal" or beta == 0:
+        return q
+    if basis != "inclined":
+        raise GeoTekError(f"Unknown surcharge basis {basis!r}")
+    return q / math.cos(math.radians(beta))
 
 
 def rankine_ka(phi: float, beta: float = 0.0) -> float:
@@ -91,9 +112,11 @@ def mononobe_okabe_kae(phi: float, delta: float = 0.0, theta: float = 0.0, beta:
     """
     psi_deg = seismic_angle(kh, kv)
     if phi - beta - psi_deg < 0:
-        raise GeoTekError(
+        raise SlopeError(
+            "mo_no_solution",
             f"M-O has no solution: phi - beta - psi = {phi - beta - psi_deg:.2f} deg < 0; "
-            "use the trial wedge (generalised limit equilibrium)"
+            "use the trial wedge (generalised limit equilibrium)",
+            slope=beta, phi=phi, psi=psi_deg,
         )
     p, d, t, b, s = _rad(phi, delta, theta, beta, psi_deg)
     product = max(0.0, math.sin(p + d) * math.sin(p - b - s))

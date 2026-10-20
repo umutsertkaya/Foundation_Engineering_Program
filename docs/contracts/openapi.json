@@ -12392,6 +12392,20 @@
             "title": "Front Water Depth",
             "description": "Depth from top [m]"
           },
+          "backfill_slope": {
+            "anyOf": [
+              {
+                "type": "number",
+                "exclusiveMaximum": 45.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Backfill Slope",
+            "description": "Retained ground slope beta [deg]"
+          },
           "surcharge": {
             "anyOf": [
               {
@@ -12403,6 +12417,21 @@
               }
             ],
             "title": "Surcharge"
+          },
+          "surcharge_basis": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "horizontal",
+                  "inclined"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Surcharge Basis"
           },
           "sds": {
             "anyOf": [
@@ -12833,11 +12862,29 @@
           "soil": {
             "$ref": "#/components/schemas/StructureSoilModel"
           },
+          "backfill_slope": {
+            "type": "number",
+            "exclusiveMaximum": 45.0,
+            "minimum": 0.0,
+            "title": "Backfill Slope",
+            "description": "Retained ground slope beta [deg]; front side stays horizontal",
+            "default": 0.0
+          },
           "surcharge": {
             "type": "number",
             "minimum": 0.0,
             "title": "Surcharge",
             "default": 0.0
+          },
+          "surcharge_basis": {
+            "type": "string",
+            "enum": [
+              "horizontal",
+              "inclined"
+            ],
+            "title": "Surcharge Basis",
+            "description": "horizontal: the surcharge is a vertical load per horizontal projected area; inclined: per area of the inclined ground surface (q / cos(beta) per horizontal area)",
+            "default": "horizontal"
           },
           "sds": {
             "anyOf": [
@@ -13944,6 +13991,16 @@
             "title": "Surcharge",
             "description": "Uniform surcharge on the retained side [kPa]",
             "default": 0.0
+          },
+          "surcharge_basis": {
+            "type": "string",
+            "enum": [
+              "horizontal",
+              "inclined"
+            ],
+            "title": "Surcharge Basis",
+            "description": "horizontal: the surcharge is a vertical load per horizontal projected area; inclined: per area of the inclined ground surface (q / cos(beta) per horizontal area)",
+            "default": "horizontal"
           },
           "surcharge_resists": {
             "type": "boolean",

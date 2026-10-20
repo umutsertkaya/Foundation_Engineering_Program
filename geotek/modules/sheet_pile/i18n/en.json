@@ -153,5 +153,8 @@
   "sheet_pile.result.approach": "Approach",
   "sheet_pile.result.analysis_level": "Analysis level",
   "sheet_pile.result.depth_increase": "Embedment increase",
-  "sheet_pile.result.front_water_depth": "Front water override"
+  "sheet_pile.result.front_water_depth": "Front water override",
+  "sheet_pile.warning.sheet_pile.slope_cohesion_ignored": "Layer {layer}: c′ ignored on sloping backfill (Rankine solution, conservative)",
+  "sheet_pile.assumption.sheet_pile.backfill_slope": "Sloping backfill β = {beta}°: Rankine slope coefficient (resultant parallel to the surface), front side horizontal; c′ ignored on sloping ground; seismic M-O (δ = β) stops when β > φ′ − ψ",
+  "sheet_pile.assumption.sheet_pile.surcharge_inclined": "Surcharge given per inclined surface area; q / cos β on the horizontal projection (q = {q} kPa, β = {beta}°)"
 }

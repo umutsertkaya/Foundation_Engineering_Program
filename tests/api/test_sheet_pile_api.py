@@ -19,6 +19,7 @@ PATH = "/api/m/sheet_pile/structures/sheet/design"
     ("Layer L1: c' ignored by the coulomb solution", "cohesion_ignored", {"layer": "L1", "method": "coulomb"}),
     ("Katman L1: TBDY Denk. 16.24b (β > φ' − ψ) uygulandı.", "steep_seismic", {"layer": "L1"}),
     ("Layer L1: Coulomb passive with delta > phi/2 is unconservative", "passive_coulomb", {"layer": "L1"}),
+    ("Layer L1: c' ignored for sloping backfill (Rankine)", "slope_cohesion_ignored", {"layer": "L1"}),
     ("Anchor load: 258.8 kN per anchor (spacing 2.5 m, inclination 15 deg)", "anchor_load",
      {"load": 258.8, "spacing": 2.5, "inclination": 15.0}),
 ])
@@ -202,6 +203,30 @@ def test_sheet_pile_engine_failure_is_a_failed_job(shell):
     assert failed["status"] == "failed" and failed["error"]["code"] == "engine_error"
     assert failed["result"] is None and project.structure("sheet").result is None
     assert not shell.app.state.session.dirty
+
+
+def test_sheet_pile_slope_inputs_flow_through_the_api(shell):
+    project = sheet_project()
+    shell.app.state.session.open_project(project)
+    pile = project.structure("sheet").model_dump()
+    pile.update(backfill_slope=8.0, surcharge=10.0, surcharge_basis="inclined")
+    assert shell.put("/api/structures/sheet", json=pile).status_code == 200
+    state = poll_job(shell, submit(shell, PATH))
+    assert state["status"] == "done", state
+    codes = {a["code"] for a in state["result"]["assumptions"]}
+    assert {"sheet_pile.backfill_slope", "sheet_pile.surcharge_inclined"} <= codes
+
+
+def test_sheet_pile_mononobe_okabe_no_solution_is_a_translatable_failure(shell):
+    project = sheet_project()
+    shell.app.state.session.open_project(project)
+    pile = project.structure("sheet").model_dump()
+    pile.update(backfill_slope=25.0, sds=1.0)
+    assert shell.put("/api/structures/sheet", json=pile).status_code == 200
+    failed = poll_job(shell, submit(shell, PATH))
+    assert failed["status"] == "failed" and failed["error"]["code"] == "engine_error"
+    assert failed["error"]["details"]["message_code"] == "mo_no_solution"
+    assert failed["error"]["details"]["params"]["slope"] == 25.0
 
 
 def test_sheet_pile_rejects_invalid_structure_input(shell):

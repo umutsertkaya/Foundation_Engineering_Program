@@ -251,7 +251,9 @@ class SheetPileCreate(DTO):
     anchor_spacing: float | None = Field(None, gt=0, description="[m]")
     anchor_inclination: float | None = Field(None, ge=0, lt=90, description="[deg from horizontal]")
     front_water_depth: float | None = Field(None, ge=0, description="Depth from top [m]")
+    backfill_slope: float | None = Field(None, ge=0, lt=45, description="Retained ground slope beta [deg]")
     surcharge: float | None = Field(None, ge=0)
+    surcharge_basis: Literal["horizontal", "inclined"] | None = None
     sds: float | None = Field(None, gt=0, lt=3)
     design_code: str | None = None
     approach: str | None = None

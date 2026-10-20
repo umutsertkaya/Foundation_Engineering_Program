@@ -369,8 +369,9 @@ def test_hash_stable_excludes_result_hash_and_is_canonical():
     structure = project.structure("wall")
     result = check_structure(project, "wall")
     assert len(result.result_hash) == 64
-    payload = {"structure": structure.model_dump(mode="json", exclude={"name", "result_hash", "result"}),
-               "design_code": "asd", "design_overrides": {}}
+    dumped = structure.model_dump(mode="json", exclude={"name", "result_hash", "result"})
+    del dumped["inputs"]["surcharge_basis"]  # default-valued later additions keep legacy hashes
+    payload = {"structure": dumped, "design_code": "asd", "design_overrides": {}}
     expected = hashlib.sha256(json.dumps(payload, sort_keys=True, ensure_ascii=False,
                                          separators=(",", ":"), allow_nan=False).encode("utf-8")).hexdigest()
     assert result.result_hash == expected

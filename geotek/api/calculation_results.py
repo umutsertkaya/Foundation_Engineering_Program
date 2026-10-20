@@ -79,6 +79,8 @@ def _sheet_warning(text: str) -> dto.MessageDTO:
          "sheet_pile.cohesion_ignored", ("layer", "method"), (str, str)),
         (r"Katman (.+): TBDY Denk. 16\.24b \(β > φ' − ψ\) uygulandı\.",
          "sheet_pile.steep_seismic", ("layer",), (str,)),
+        (r"Layer (.+): c' ignored for sloping backfill \(Rankine\)",
+         "sheet_pile.slope_cohesion_ignored", ("layer",), (str,)),
         (r"Layer (.+): Coulomb passive with delta > phi/2 is unconservative",
          "sheet_pile.passive_coulomb", ("layer",), (str,)),
         (r"Anchor load: ([-+\d.eE]+) kN per anchor \(spacing ([-+\d.eE]+) m, inclination ([-+\d.eE]+) deg\)",

@@ -70,6 +70,8 @@ class NetPressure:
     """Factored total pressure in front (effective / passive_factor + water) [kPa]."""
     net: np.ndarray
     """active - passive, positive pushing the wall toward the excavation."""
+    warnings: list[str] = field(default_factory=list)
+    """Sloping-backfill diagnostics (c' dropped); other pressure diagnostics are not carried."""
 
 
 def net_pressure(
@@ -90,6 +92,7 @@ def net_pressure(
     water_factor: float = 1.0,
     seismic_increment: float = 0.0,
     passive_seismic_ratio: float = 1.0,
+    backfill_slope: float = 0.0,
 ) -> NetPressure:
     """Net pressure diagram. ``active_factor``, ``surcharge_factor`` and ``water_factor`` are
     load factors on the soil, surcharge and water parts of the driving pressure (partial
@@ -97,7 +100,12 @@ def net_pressure(
 
     Seismic (simplified): ``seismic_increment`` [kPa] is a uniform dynamic pressure added
     behind the wall over the retained height H (resultant at H/2, TBDY 16.12.2.8);
-    ``passive_seismic_ratio`` (K_PE / K_P <= 1) scales the passive effective pressure."""
+    ``passive_seismic_ratio`` (K_PE / K_P <= 1) scales the passive effective pressure.
+
+    ``backfill_slope`` [deg] is the retained ground slope beta (active side only; the front
+    ground stays horizontal). Rankine uses the slope coefficient with the resultant parallel to
+    the surface; c' is dropped on sloping ground with a warning. ``surcharge`` is per horizontal
+    projection (see ``surcharge_per_horizontal``)."""
     if H <= 0:
         raise GeoTekError("Retained height H must be positive")
     if passive_factor < 1.0:
@@ -106,10 +114,11 @@ def net_pressure(
     if bottom <= H:
         raise GeoTekError("The soil profile must extend below the dredge line")
     act = lateral_pressure(profile, bottom, state="active", method=active_method, delta=active_delta,
-                           surcharge=surcharge, drainage=drainage, min_efp=min_efp)
+                           surcharge=surcharge, drainage=drainage, min_efp=min_efp,
+                           beta=backfill_slope, slope_cohesion="ignore")
     act0 = act if surcharge == 0 else lateral_pressure(
         profile, bottom, state="active", method=active_method, delta=active_delta,
-        drainage=drainage, min_efp=min_efp)
+        drainage=drainage, min_efp=min_efp, beta=backfill_slope, slope_cohesion="ignore")
     pas = lateral_pressure(profile, bottom - H, state="passive", method=passive_method,
                            delta=passive_delta, drainage=drainage, top=H)
     # Fine grid plus every breakpoint twice (left and right limits) so jumps are exact
@@ -138,7 +147,8 @@ def net_pressure(
         u_front = GAMMA_W * np.maximum(0.0, z - fw)
     active = a_eff + water_factor * u_back
     passive = p_eff / passive_factor + u_front
-    return NetPressure(z=z, active=active, passive=passive, net=active - passive)
+    return NetPressure(z=z, active=active, passive=passive, net=active - passive,
+                       warnings=[w for w in act.warnings if "sloping backfill" in w])
 
 
 def _cumulative(z, y):
@@ -227,7 +237,7 @@ def cantilever_sheet_pile(
                           "deepen the profile or check parameters")
     d0 = toe - H
     d = d0 * (1 + depth_increase)
-    warnings = []
+    warnings = list(np_.warnings)
     if H + d > profile.bottom:
         warnings.append("Design embedment extends below the soil profile")
     R = float(np.interp(toe, z, F))
@@ -269,7 +279,7 @@ def anchored_sheet_pile(
     if T <= 0:
         raise GeoTekError("Computed anchor force is not tensile; the wall may not need an anchor")
     d = d0 * (1 + depth_increase)
-    warnings = []
+    warnings = list(np_.warnings)
     if H + d > profile.bottom:
         warnings.append("Design embedment extends below the soil profile")
     zz, p, shear, moment, m_max, z_m = _internal_forces(z, net, toe, anchor_depth, T)
