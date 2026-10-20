@@ -446,15 +446,9 @@ function handleCoreRoutes(
         const currentPile = current as SheetPileStructure & { mock_result_snapshot?: string };
         // The mock-only result baseline is not part of the API structure type. Keep it
         // when a client PUT omits it so changed inputs remain detectable as stale.
-        // Like the real API, a PUT never drops the stored result (result_hash).
+        // Like the real API, the PUT body replaces the structure, result fields included.
         if (savedPile.mock_result_snapshot === undefined) {
           savedPile.mock_result_snapshot = currentPile.mock_result_snapshot;
-        }
-        if (savedPile.result_hash == null) {
-          savedPile.result_hash = currentPile.result_hash;
-        }
-        if (savedPile.result == null) {
-          savedPile.result = currentPile.result;
         }
       }
       store.structures[index] = saved;
