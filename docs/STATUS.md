@@ -14,6 +14,9 @@ Compact veya devir öncesi yalnız bu üç satır güncellenir (kural: [WORKFLOW
 - T3c biten (2026-10-20): Bishop ve palplanş (USS/USACE) literatür/elle doğrulama testleri `tests/verification/test_bishop_*.py`, `test_sheet_pile_*.py` (12 test geçti; motor formülü değişmedi).
 - T3c kanıt: Opus bağımsız incelemesi; Michalowski (2002) N=0.181 (β=45°), φ=0 daire ve palplanş sayıları motordan bağımsız yeniden üretildi.
 - T3c açık: tutmayan test yok; tolerans gerekçeleri test docstring'lerinde.
+- T7a biten (2026-10-20): zemin sinifl. API (SBTn referans/CPT noktalari, USCS) main'e birlesti; tests/api 616 gecti, -k classif/contract/soil 408 gecti, gen_code_map --check temiz.
+- T7a kanit: kod + test + inceleme tamam; web sinif. sayfasi hala yer tutucu (sonraki kart).
+- T7a acik: web typecheck calistirilmadi.
 
 ## Koddan doğrulanan durum
 
