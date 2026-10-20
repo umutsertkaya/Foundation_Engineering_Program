@@ -466,5 +466,8 @@
   "layering.warning.similar_merged": "Aynı zemin davranışına sahip komşu tabakalar birleştirildi.",
   "parameters.warning.phi_cv_assumed_equal_phi_eff": "Kritik hal içsel sürtünme açısı (φ'cv) modellenmemiştir; yerine φ' = {phi_eff}° kullanılmıştır. φ' pik değer ise bu kabul güvensiz taraftadır.",
   "parameters.warning.value_not_computable": "{method_id} yöntemi bu girdiler için hesaplanamıyor.",
-  "web.common.deleted_profile": "silinmiş profil"
+  "web.common.deleted_profile": "silinmiş profil",
+  "error.detail.slope_exceeds_phi": "Arka zemin eğimi β = {slope}°, tasarım içsel sürtünme açısı φ′ = {phi}° değerini aşıyor; aktif basınç çözümü yok.",
+  "error.detail.mo_no_solution": "Mononobe-Okabe çözümü yok: β = {slope}° > φ′ − ψ = {phi}° − {psi}°. Eğimi veya deprem katsayısını azaltın.",
+  "error.detail.slope_undrained_unsupported": "{top}–{bottom} m katmanı: drenajsız (toplam gerilme) zeminde eğimli arka zemin desteklenmiyor."
 }

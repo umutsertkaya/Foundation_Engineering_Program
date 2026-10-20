@@ -32,6 +32,7 @@ from geotek.core.models.walls import (
 )
 from geotek.engine.earth_pressure.coefficients import (
     TBDY_R,
+    surcharge_per_horizontal,
     mononobe_okabe_kae,
     mononobe_okabe_kpe,
     rankine_ka,
@@ -75,6 +76,8 @@ class BasicWallInput(BaseModel):
     foundation_su: float | None = Field(None, gt=0)
     foundation_gamma: float = Field(gt=10, lt=25)
     surcharge: float = Field(0.0, ge=0)
+    surcharge_basis: Literal["horizontal", "inclined"] = "horizontal"
+    """``inclined``: surcharge per inclined ground area, converted to q / cos(beta) per horizontal."""
     embedment: float | None = Field(None, ge=0)
     sds: float | None = Field(None, gt=0, lt=3, description="TBDY S_DS; None = no seismic case")
     r: float | None = Field(None, gt=0, le=2)
@@ -207,10 +210,11 @@ def size_wall(inp: BasicWallInput, *, max_width_ratio: float = 1.2) -> BasicWall
     D = inp.embedment if inp.embedment is not None else max(0.6, _ceil(H / 10))
     r = inp.r if inp.r is not None else TBDY_R["gravity_80sds_mm"]
     kh = kv = None
-    loads = WallLoads(surcharge=inp.surcharge)
+    q = surcharge_per_horizontal(inp.surcharge, inp.backfill_slope, inp.surcharge_basis)
+    loads = WallLoads(surcharge=q)
     if inp.sds is not None:
         kh, kv = tbdy_seismic_coefficients(inp.sds, r)
-        loads = WallLoads(surcharge=inp.surcharge, kh=kh, kv=kv, seismic_increment_height=0.5)
+        loads = WallLoads(surcharge=q, kh=kh, kv=kv, seismic_increment_height=0.5)
     settings = WallSettings(design_code="asd", bearing_method="vesic", factor_overrides=inp.factor_overrides)
     backfill = Backfill(gamma=inp.backfill_gamma, phi=inp.backfill_phi, slope=inp.backfill_slope)
     foundation = _foundation(inp, D)
@@ -289,10 +293,11 @@ def check_wall(inp: BasicWallInput, geometry: CantileverGeometry | GravityGeomet
     D = geometry.embedment
     r = inp.r if inp.r is not None else TBDY_R["gravity_80sds_mm"]
     kh = kv = None
-    loads = WallLoads(surcharge=inp.surcharge)
+    q = surcharge_per_horizontal(inp.surcharge, inp.backfill_slope, inp.surcharge_basis)
+    loads = WallLoads(surcharge=q)
     if inp.sds is not None:
         kh, kv = tbdy_seismic_coefficients(inp.sds, r)
-        loads = WallLoads(surcharge=inp.surcharge, kh=kh, kv=kv, seismic_increment_height=0.5)
+        loads = WallLoads(surcharge=q, kh=kh, kv=kv, seismic_increment_height=0.5)
     settings = WallSettings(design_code="asd", bearing_method="vesic", factor_overrides=inp.factor_overrides)
     backfill = Backfill(gamma=inp.backfill_gamma, phi=inp.backfill_phi, slope=inp.backfill_slope)
     foundation = _foundation(inp, D)
@@ -340,12 +345,18 @@ class BasicSheetPileInput(BaseModel):
     c: float = Field(0.0, ge=0)
     su: float | None = Field(None, gt=0)
     gwt_depth: float = Field(100.0, ge=0, description="Below the retained ground surface [m]")
+    backfill_slope: float = Field(0.0, ge=0, lt=45, description="Retained ground slope beta [deg]")
     surcharge: float = Field(0.0, ge=0)
+    surcharge_basis: Literal["horizontal", "inclined"] = "horizontal"
     sds: float | None = Field(None, gt=0, lt=3)
     allowable_stress_mpa: float | None = Field(None, gt=0)
 
     @model_validator(mode="after")
     def _check(self) -> BasicSheetPileInput:
+        if self.backfill_slope > 0 and self.drainage == "undrained":
+            raise ValueError("Sloping backfill is not supported for undrained (total stress) soil")
+        if self.backfill_slope > 0 and self.phi is not None and self.backfill_slope > self.phi:
+            raise ValueError("Backfill slope cannot exceed phi")
         if self.support == "anchored" and self.anchor_depth is None:
             raise ValueError("Anchored wall needs anchor_depth")
         if self.drainage == "drained" and self.phi is None:
@@ -375,8 +386,21 @@ def design_sheet_pile_basic(inp: BasicSheetPileInput) -> BasicSheetPileResult:
         Assumption(text="Rankine aktif/pasif, duvar sürtünmesi ihmal", source=SRC_CONSERVATIVE),
         Assumption(text=f"Pasif basınçlar {PASSIVE_FS_BASIC} ile bölündü", source=SRC_SHEET_PASSIVE),
     ]
-    kw: dict = dict(surcharge=inp.surcharge, passive_factor=PASSIVE_FS_BASIC, drainage=inp.drainage,
-                    allowable_stress_mpa=inp.allowable_stress_mpa)
+    beta = inp.backfill_slope
+    kw: dict = dict(surcharge=surcharge_per_horizontal(inp.surcharge, beta, inp.surcharge_basis),
+                    passive_factor=PASSIVE_FS_BASIC, drainage=inp.drainage,
+                    allowable_stress_mpa=inp.allowable_stress_mpa, backfill_slope=beta)
+    if beta:
+        assumptions.append(Assumption(
+            text=f"Eğimli arka zemin β={beta:g}°: Rankine eğimli dolgu katsayısı, bileşke zemin yüzeyine paralel; "
+                 "kazı (pasif) tarafı yatay; c′ eğimli zeminde yok sayılır",
+            source="Rankine (1857); Das, Principles of Foundation Engineering Ch. 7",
+            code="sheet_pile.backfill_slope", params={"beta": beta}))
+    if inp.surcharge and inp.surcharge_basis == "inclined" and beta:
+        assumptions.append(Assumption(
+            text=f"Sürşarj eğimli yüzey alanına göre; yatay izdüşümde q/cosβ = {kw['surcharge']:.2f} kPa",
+            source="Das, Principles of Foundation Engineering Ch. 7; trial_wedge doğrulaması",
+            code="sheet_pile.surcharge_inclined", params={"q": inp.surcharge, "beta": beta}))
     warnings: list[str] = []
     kh = None
     if inp.sds is not None:
@@ -385,7 +409,11 @@ def design_sheet_pile_basic(inp: BasicSheetPileInput) -> BasicSheetPileResult:
         else:
             kh, kv = tbdy_seismic_coefficients(inp.sds, TBDY_R["anchored_or_rigid"])
             g_eff = inp.gamma if inp.gwt_depth >= H else inp.gamma_sat - GAMMA_W if inp.gamma_sat else inp.gamma
-            dK = mononobe_okabe_kae(inp.phi, kh=kh, kv=kv) * (1 - kv) - rankine_ka(inp.phi)
+            if beta:  # Rankine-slope baseline = Coulomb with delta = beta; horizontal component K cos(beta)
+                dK = ((1 - kv) * mononobe_okabe_kae(inp.phi, delta=beta, beta=beta, kh=kh, kv=kv)
+                      - rankine_ka(inp.phi, beta)) * math.cos(math.radians(beta))
+            else:
+                dK = mononobe_okabe_kae(inp.phi, kh=kh, kv=kv) * (1 - kv) - rankine_ka(inp.phi)
             kw["seismic_increment"] = 0.5 * g_eff * H**2 * dK / H  # uniform over H, resultant at H/2
             kw["passive_seismic_ratio"] = min(1.0, mononobe_okabe_kpe(inp.phi, kh=kh, kv=kv) * (1 - kv)
                                               / rankine_kp(inp.phi))

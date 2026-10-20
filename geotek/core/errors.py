@@ -54,6 +54,21 @@ class LayerDesignError(GeoTekError):
         super().__init__(f"Layer {layer.top:g}–{layer.bottom:g} m: {self._TEXT[issue]}")
 
 
+class SlopeError(GeoTekError):
+    """Sloping backfill is outside what a closed-form earth pressure solution supports.
+
+    ``issue`` is one of ``slope_exceeds_phi`` (beta > phi'), ``mo_no_solution`` (Mononobe-Okabe
+    has no solution because beta > phi' - psi) or ``slope_undrained_unsupported``. The message
+    parameters are rounded angles in degrees (``slope``, ``phi``, ``psi``) or a layer's depth
+    range (``top``, ``bottom``).
+    """
+
+    def __init__(self, issue: str, text: str, **params: float):
+        self.message_code = issue
+        self.message_params = {k: round(float(v), 3) for k, v in params.items()}
+        super().__init__(text)
+
+
 class Cancelled(GeoTekError):
     """Raised by a progress callback to cancel an analysis without changing inputs."""
 

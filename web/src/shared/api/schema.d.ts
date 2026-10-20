@@ -2760,8 +2760,15 @@ export interface components {
              * @description Depth from top [m]
              */
             front_water_depth?: number | null;
+            /**
+             * Backfill Slope
+             * @description Retained ground slope beta [deg]
+             */
+            backfill_slope?: number | null;
             /** Surcharge */
             surcharge?: number | null;
+            /** Surcharge Basis */
+            surcharge_basis?: ("horizontal" | "inclined") | null;
             /** Sds */
             sds?: number | null;
             /** Design Code */
@@ -2874,10 +2881,23 @@ export interface components {
             front_water_depth?: number | null;
             soil: components["schemas"]["StructureSoilModel"];
             /**
+             * Backfill Slope
+             * @description Retained ground slope beta [deg]; front side stays horizontal
+             * @default 0
+             */
+            backfill_slope: number;
+            /**
              * Surcharge
              * @default 0
              */
             surcharge: number;
+            /**
+             * Surcharge Basis
+             * @description horizontal: the surcharge is a vertical load per horizontal projected area; inclined: per area of the inclined ground surface (q / cos(beta) per horizontal area)
+             * @default horizontal
+             * @enum {string}
+             */
+            surcharge_basis: "horizontal" | "inclined";
             /** Sds */
             sds?: number | null;
             /**
@@ -3209,6 +3229,13 @@ export interface components {
              * @default 0
              */
             surcharge: number;
+            /**
+             * Surcharge Basis
+             * @description horizontal: the surcharge is a vertical load per horizontal projected area; inclined: per area of the inclined ground surface (q / cos(beta) per horizontal area)
+             * @default horizontal
+             * @enum {string}
+             */
+            surcharge_basis: "horizontal" | "inclined";
             /**
              * Surcharge Resists
              * @default false

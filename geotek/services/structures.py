@@ -23,7 +23,9 @@ from geotek.core.models.project import Project
 from geotek.core.models.profile import GroundwaterCondition
 from geotek.core.models.structures import RetainingWallStructure, SheetPileStructure
 from geotek.core.models.walls import Backfill, WallLoads, WallSettings
-from geotek.engine.earth_pressure.coefficients import TBDY_R, mononobe_okabe_kpe, rankine_kp, tbdy_seismic_coefficients
+from geotek.engine.earth_pressure.coefficients import (
+    TBDY_R, mononobe_okabe_kpe, rankine_kp, surcharge_per_horizontal, tbdy_seismic_coefficients,
+)
 from geotek.engine.earth_pressure.distribution import PressureDistribution, lateral_pressure
 from geotek.engine.limit_state import (
     LimitStateCase, SheetPileDesign, _design_structure_soil, layered_design_code, layered_limit_state_cases,
@@ -91,9 +93,17 @@ def _settings(project, structure):
 
 
 def _fingerprint(project, structure, code_id):
+    dumped = structure.model_dump(mode="json", exclude={"name", "result_hash", "result"})
+    # Inputs added later are left out at their defaults, so earlier results keep their fingerprint.
+    sheet = dumped["kind"] == "sheet_pile"
+    holder = dumped if sheet else dumped["inputs"]
+    if holder["surcharge_basis"] == "horizontal":
+        del holder["surcharge_basis"]
+    if sheet and dumped["backfill_slope"] == 0:
+        del dumped["backfill_slope"]
     payload = {
         # The display name is not a calculation input; renaming must not stale the result.
-        "structure": structure.model_dump(mode="json", exclude={"name", "result_hash", "result"}),
+        "structure": dumped,
         "design_code": code_id,
         "design_overrides": {p: v.model_dump(mode="json")
                              for p, v in project.design_overrides.get(code_id, {}).items()},
@@ -150,7 +160,8 @@ def _loads(structure):
         kh, kv = tbdy_seismic_coefficients(inp.sds, inp.r if inp.r is not None else TBDY_R["gravity_80sds_mm"])
         if structure.settings.kv_sign == "down":
             kv = -abs(kv)
-    loads = WallLoads(surcharge=inp.surcharge, kh=kh or 0.0, kv=kv or 0.0, seismic_increment_height=0.5,
+    q = surcharge_per_horizontal(inp.surcharge, structure.backfill_slope, inp.surcharge_basis)
+    loads = WallLoads(surcharge=q, kh=kh or 0.0, kv=kv or 0.0, seismic_increment_height=0.5,
                       water_kh=0.4 * inp.sds if inp.sds is not None else None,
                       surcharge_resists=inp.surcharge_resists if structure.analysis_level == "advanced" else False)
     return loads, kh, kv
@@ -225,6 +236,13 @@ def _assumptions(structure, settings, D):
             source="Kullanıcı girdisi"))
     out.append(Assumption(text="Ön ayak üzerindeki doğal zemin ağırlığı " +
                                ("dahil" if settings.include_toe_soil else "ihmal edildi"), source="WallSettings"))
+    if structure.inputs.surcharge and structure.inputs.surcharge_basis == "inclined" and structure.backfill_slope:
+        out.append(Assumption(
+            text=f"Sürşarj eğimli yüzey alanına göre verildi; yatay izdüşümde q/cosβ = "
+                 f"{structure.inputs.surcharge / math.cos(math.radians(structure.backfill_slope)):.2f} kPa",
+            source="Das, Principles of Foundation Engineering Ch. 7; trial_wedge doğrulaması",
+            code="wall.surcharge_inclined",
+            params={"q": structure.inputs.surcharge, "beta": structure.backfill_slope}))
     out.append(Assumption(text="Sürşarjın topuk üzerindeki düşey yükü " +
                                ("dengeleyici sayıldı" if structure.analysis_level == "advanced" and
                                 structure.inputs.surcharge_resists else "dengeleyici sayılmadı"), source="WallDesignInputs"))
@@ -557,6 +575,20 @@ def _approach_assumption(code, approach, code_key):
 
 def _sheet_assumptions(structure):
     out = []
+    beta = structure.backfill_slope
+    if beta:
+        out.append(Assumption(
+            text=f"Eğimli arka zemin β={beta:g}°: Rankine eğimli dolgu katsayısı, bileşke zemin yüzeyine paralel; "
+                 "kazı (pasif) tarafı yatay; Rankine'de c′ eğimli zeminde yok sayılır; deprem M-O (δ=β), "
+                 "β > φ′−ψ ise durdurulur",
+            source="Rankine (1857); Mononobe-Okabe; Das, Principles of Foundation Engineering Ch. 7",
+            code="sheet_pile.backfill_slope", params={"beta": beta}))
+    if structure.surcharge and structure.surcharge_basis == "inclined" and beta:
+        out.append(Assumption(
+            text=f"Sürşarj eğimli yüzey alanına göre; yatay izdüşümde q/cosβ = "
+                 f"{structure.surcharge / math.cos(math.radians(beta)):.2f} kPa",
+            source="Das, Principles of Foundation Engineering Ch. 7; trial_wedge doğrulaması",
+            code="sheet_pile.surcharge_inclined", params={"q": structure.surcharge, "beta": beta}))
     if structure.depth_increase is not None:
         out.append(Assumption(
             text=f"Gömülme artışı: {structure.depth_increase:g}; D = D0 * (1 + artış)",
@@ -584,8 +616,11 @@ def _sheet_case(structure, design_soil, *, seismic, passive_factor, active_facto
     soil = soil_at_case(_sheet_soil(structure, design_soil), "seismic" if seismic else "design")
     retained, front = soil.retained_profile(), soil.front_profile()
     bottom = soil.profile.bottom
-    active = lateral_pressure(retained, bottom, surcharge=structure.surcharge, layerwise=True)
-    zero = lateral_pressure(retained, bottom, layerwise=True)
+    beta = structure.backfill_slope
+    q = surcharge_per_horizontal(structure.surcharge, beta, structure.surcharge_basis)
+    slope = dict(beta=beta, slope_cohesion="ignore")  # Rankine-slope active side; front stays horizontal
+    active = lateral_pressure(retained, bottom, surcharge=q, layerwise=True, **slope)
+    zero = lateral_pressure(retained, bottom, layerwise=True, **slope)
     passive = lateral_pressure(front, bottom - H, top=H, state="passive", layerwise=True)
     front_water = front_water_distribution(soil, H, bottom)
     breaks = np.unique(np.concatenate([active.z, zero.z, passive.z + H, front_water.z, [H]]))
@@ -604,9 +639,11 @@ def _sheet_case(structure, design_soil, *, seismic, passive_factor, active_facto
     kh = None
     if seismic:
         kh, kv = tbdy_seismic_coefficients(structure.sds, TBDY_R["anchored_or_rigid"])
-        ae = lateral_pressure(retained, H, surcharge=structure.surcharge, method="coulomb",
+        # Coulomb with delta = beta equals the Rankine-slope coefficient at kh = kv = 0, so the
+        # increment below is purely dynamic; M-O stops with a coded error when beta > phi' - psi.
+        ae = lateral_pressure(retained, H, surcharge=q, method="coulomb", delta=beta, beta=beta,
                                kh=kh, kv=kv, layerwise=True)
-        ast = lateral_pressure(retained, H, surcharge=structure.surcharge, layerwise=True)
+        ast = lateral_pressure(retained, H, surcharge=q, layerwise=True, **slope)
         increment = (ae.component("effective")[0] - ast.component("effective")[0]) / H
         # Same H/2 uniform-increment convention as the existing basic sheet-pile service.
         net += seismic_factor * np.where((z < H) | ((z == H) & left), increment, 0.0)

@@ -24,7 +24,7 @@ from typing import Literal
 import numpy as np
 
 from geotek.core.constants import GAMMA_W
-from geotek.core.errors import GeoTekError, LayerDesignError
+from geotek.core.errors import GeoTekError, LayerDesignError, SlopeError
 from geotek.core.models.profile import SoilLayer, SoilProfile
 from geotek.engine.earth_pressure.coefficients import (
     coulomb_ka, coulomb_kp, mononobe_okabe_kae, rankine_ka, rankine_kp, seismic_angle, tbdy_kae_steep,
@@ -70,7 +70,7 @@ def resultant(z, p) -> tuple[float, float]:
 
 
 def _layer_coefficients(layer: SoilLayer, state, method, delta, beta, drainage, warnings,
-                        *, theta=0.0, kh=0.0, kv=0.0, steep_seismic=False):
+                        *, theta=0.0, kh=0.0, kv=0.0, steep_seismic=False, slope_cohesion="error"):
     """(K_horizontal, K_for_cohesion, c) for a layer segment."""
     dp = layer.design
     if drainage == "undrained":
@@ -78,17 +78,31 @@ def _layer_coefficients(layer: SoilLayer, state, method, delta, beta, drainage, 
             raise LayerDesignError(layer, "su_missing")
         if kh or kv:
             raise LayerDesignError(layer, "seismic_undrained_unsupported")
+        if beta and state == "active":
+            raise SlopeError(
+                "slope_undrained_unsupported",
+                f"Layer {layer.top:g}–{layer.bottom:g} m: sloping backfill is not supported for undrained "
+                "(total stress) layers",
+                top=layer.top, bottom=layer.bottom)
         return 1.0, 1.0, dp.su
     if dp.phi_eff is None:
         raise LayerDesignError(layer, "phi_missing")
     phi, c = dp.phi_eff, dp.c_eff
+    if state == "active" and beta > phi:
+        raise SlopeError(
+            "slope_exceeds_phi",
+            f"Layer {layer.top:g}–{layer.bottom:g} m: backfill slope {beta:g}° exceeds φ′ = {phi:g}°",
+            slope=beta, phi=phi)
     if state == "at_rest":
         if beta:
             raise GeoTekError("At-rest coefficient implemented for horizontal backfill only")
         return 1.0 - math.sin(math.radians(phi)), 1.0, 0.0
     if method == "rankine":
         if c and beta:
-            raise GeoTekError("Cohesion with sloping backfill is not supported (Rankine)")
+            if slope_cohesion != "ignore":
+                raise GeoTekError("Cohesion with sloping backfill is not supported (Rankine)")
+            warnings.append(f"Layer {layer.id}: c' ignored for sloping backfill (Rankine)")
+            c = 0.0
         k = rankine_ka(phi, beta) if state == "active" else rankine_kp(phi, beta)
         return k * math.cos(math.radians(beta)), k, c
     if c:
@@ -151,6 +165,7 @@ def lateral_pressure(
     total_stress_surcharge: float = 0.0,
     submerged_kh: dict[str, float] | None = None,
     steep_seismic: bool = False,
+    slope_cohesion: Literal["error", "ignore"] = "error",
 ) -> PressureDistribution:
     """Pressure on a vertical plane from depth ``top`` to ``top + height`` of the profile.
 
@@ -167,6 +182,8 @@ def lateral_pressure(
     ``submerged_kh`` optionally supplies equivalent M-O kh by layer below GWT:
     psi=atan(kh_equivalent/(1-kv)); face lean ``theta`` is unchanged.
     ``steep_seismic`` permits TBDY 16.24b retaining delta beyond the M-O slope limit.
+    ``slope_cohesion="ignore"`` lets a Rankine layer with c' > 0 and sloping backfill drop c'
+    (conservative, with a warning) instead of raising.
     """
     if height <= 0 or top < 0:
         raise GeoTekError("Height must be positive")
@@ -195,7 +212,7 @@ def lateral_pressure(
                     coeff = _layer_coefficients(
                         layer, state, method, layer_delta, beta, mode, warnings,
                         theta=theta, kh=submerged_kh[layer.id] if wet else kh, kv=kv,
-                        steep_seismic=steep_seismic)
+                        steep_seismic=steep_seismic, slope_cohesion=slope_cohesion)
                 except (GeoTekError, ValueError, ArithmeticError) as exc:
                     if wet and mode == "drained":
                         raise GeoTekError(
@@ -208,7 +225,8 @@ def lateral_pressure(
                 seg_nodes += [len(coeffs) - 1] * 2
         else:
             coeffs.append(_layer_coefficients(layer, state, method, layer_delta, beta, mode, warnings,
-                                              theta=theta, kh=kh, kv=kv, steep_seismic=steep_seismic))
+                                              theta=theta, kh=kh, kv=kv, steep_seismic=steep_seismic,
+                                              slope_cohesion=slope_cohesion))
             modes.append(mode)
             pts = [a, b] + ([gwt] if a < gwt < b else [])
             z_nodes += sorted(pts)

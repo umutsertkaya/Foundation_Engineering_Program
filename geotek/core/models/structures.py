@@ -126,8 +126,15 @@ class StructureSoilModel(BaseModel):
         )
 
 
+SurchargeBasis = Literal["horizontal", "inclined"]
+SURCHARGE_BASIS_DESCRIPTION = (
+    "horizontal: the surcharge is a vertical load per horizontal projected area; "
+    "inclined: per area of the inclined ground surface (q / cos(beta) per horizontal area)")
+
+
 class WallDesignInputs(BaseModel):
     surcharge: float = Field(0.0, ge=0, description="Uniform surcharge on the retained side [kPa]")
+    surcharge_basis: SurchargeBasis = Field("horizontal", description=SURCHARGE_BASIS_DESCRIPTION)
     surcharge_resists: bool = False
     sds: float | None = Field(None, gt=0, lt=3, description="TBDY S_DS; None = no seismic case")
     r: float | None = Field(None, gt=0, le=2, description="TBDY Table 16.7 r; None = by wall type")
@@ -193,7 +200,9 @@ class SheetPileStructure(BaseModel):
     anchor_inclination: float | None = Field(None, ge=0, lt=90, description="[deg from horizontal]")
     front_water_depth: float | None = Field(None, ge=0, description="Depth from top [m]")
     soil: StructureSoilModel
+    backfill_slope: float = Field(0.0, ge=0, lt=45, description="Retained ground slope beta [deg]; front side stays horizontal")
     surcharge: float = Field(0.0, ge=0)
+    surcharge_basis: SurchargeBasis = Field("horizontal", description=SURCHARGE_BASIS_DESCRIPTION)
     sds: float | None = Field(None, gt=0, lt=3)
     design_code: str = "asd"
     approach: str | None = None
