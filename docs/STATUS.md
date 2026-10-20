@@ -9,7 +9,7 @@ Compact veya devir öncesi yalnız bu üç satır güncellenir (kural: [WORKFLOW
 
 - Biten: 2026-10-20 sistem kontrolü ve temizlik (hedef adım 1): ~50 bulgu, motor/API/rapor/web düzeltmeleri, PySide6 `geotek/ui` + `geotek/plotting` kaldırıldı, eski arşiv/kartlar silindi. Kanıt: [qa/sistem-kontrolu.md](qa/sistem-kontrolu.md).
 - Sıradaki: hedef adım 2 (modüler yapı ve yeni modül eklenebilirliği), ardından adım 3 [K1](tasks/K1.md) exe üretimi.
-- Açık karar: CPT birim hacim ağırlığı alt sınırı (R&C 2010, 12 kN/m³) ve `predrill_depth` dışlama Umut onayı bekliyor (sistem kontrolü raporu §Açık).
+- Açık karar: profilsiz CPT'de q_t ≤ 0 noktası için en yakın γ varsayımı koordinatör kararı bekliyor. CPT γ alt sınırı (R&C 2010, 12 kN/m³) ve `predrill_depth` dışlama 2026-10-20 Umut onayıyla uygulandı.
 
 ## Koddan doğrulanan durum
 
@@ -68,7 +68,9 @@ Kaynak: Umut'un cihazındaki tam metin md dönüşümü (`docs/research/Youd.et.
 
 ## Son doğrulama
 
-TEST_RESULTS_PLACEHOLDER
+- 2026-10-20, sistem kontrolü dalı (Linux bulut): tam pytest 1868 geçti / 2 atlandı; `tsc --noEmit` temiz;
+  Vitest 37 dosya / 337 test geçti; `npm run build` başarılı; `gen_code_map.py --check` 0.
+  Windows `tools/project.py check full` bu ortamda çalıştırılamadı.
 
 Her kayıt tarih, kapsam ve gerçek sonuç taşır; eski sayı güncel başarı diye kullanılmaz.
 
