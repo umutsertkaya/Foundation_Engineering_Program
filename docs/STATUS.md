@@ -10,7 +10,7 @@ Compact veya devir öncesi yalnız bu üç satır güncellenir (kural: [WORKFLOW
 
 - Biten: 2026-10-20 orkestrasyon kurulumu: ai-orchestrator 2.1.0 bağlı, Codex (gpt-6-luna) ve Antigravity (gemini-3.8-flash) bağlantı testi OK, codemap --check temiz (820c084).
 - Sıradaki: proje eksiklerinin tespiti ve sıfırdan plan; işler bağımsız kartlara bölünecek.
-- Açık karar: yok.
+- Kararlar (2026-10-20, şef): rapor önce docx, PDF sonra; sınıflandırma Robertson SBTn + USCS; geotek/ui paketleme sonrası kaldırılır; eski 11 worktree ve birleşmiş eski dallar silinir. Plan: Projects ortak klasörü plan/2026-10-20-yeni-plan.md. Açık karar: yok.
 
 ## Koddan doğrulanan durum
 
