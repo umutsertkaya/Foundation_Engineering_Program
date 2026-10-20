@@ -9,11 +9,15 @@ Başlangıç: `CLAUDE.md` → `STATUS.md` → **bir görev kartı**. Tüm planı
 |---|---|---|
 | Koordinatör | Claude Projects ana konuşması | Kullanıcı hedefini izler; her bağımsız görev için ayrı konu (thread) açar. |
 | Konu şefi | Projects konusu + cihazdaki Claude Code oturumu (Remote Control) | Tek kartı yürütür; yerel MCP'yi (`ai-orchestrator`, `geotek-codemap`) yalnız cihazdaki oturum çağırabilir. |
-| Alt ajan | `ai-orchestrator` üzerinden Codex / Antigravity; Claude Code `Agent` aracıyla Claude | Brief'teki tek teslimi yapar veya salt okuma inceler. |
+| Alt ajan | Codex / Antigravity: cihazdaki Claude Code oturumundan `ai-orchestrator` ile. Claude: Projects konusunun kendi içinde `Agent` aracıyla | Brief'teki tek teslimi yapar veya salt okuma inceler. |
 
 Her bağımsız görev ayrı konudur. Aynı klasörde aynı anda tek yazıcı çalışır; paralel yazıcı
 konuları `Documents/geotek-wt/<kart>` altında ayrı Git worktree kullanır.
-Claude modelleri `ai-orchestrator` üzerinden çağrılmaz (sunucu reddeder); Claude Code `Agent` aracı kullanılır.
+**Claude alt ajan kuralı (Umut, 2026-10-20):** Claude modelleriyle yapılacak işler (uygulama, inceleme, araştırma)
+cihazdaki Claude Code oturumunda değil, ilgili Projects konusunun içinde `Agent` aracıyla çalıştırılır.
+Cihazdaki oturum yalnız Codex/Antigravity çağrıları (`ai-orchestrator`) ve cihaz zorunlu işler (Windows paketleme,
+gerçek ekran, yerel worktree) içindir. Claude modelleri `ai-orchestrator` üzerinden çağrılmaz (sunucu reddeder).
+Kural yeni başlayan konulara uygulanır; çalışan bir görevin yarısında yöntem değiştirilmez.
 
 ## Kipler
 
