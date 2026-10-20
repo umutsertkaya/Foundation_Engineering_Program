@@ -527,13 +527,15 @@ def test_sheet_pile_optional_inputs_invalidate_fingerprint(field, value):
 def test_sheet_pile_front_override_limit_states_require_water_and_match_soil(seismic):
     from geotek.api.calculation_results import sheet_pile_result
 
-    project = _sheet_project(advanced=True, code="ec7")
+    # EC7 has no seismic combination; AASHTO provides Extreme Event I.
+    code = "aashto_lrfd" if seismic else "ec7"
+    project = _sheet_project(advanced=True, code=code)
     pile = project.structure("sheet")
     pile.sds = 0.3 if seismic else None
     pile.front_water_depth = 8.0
     missing = required_factors(project, "sheet")
     assert any("WA" in item.path for item in missing)
-    project.design_overrides["ec7"] = {
+    project.design_overrides[code] = {
         item.path: FactorOverride(value=1.0, note="Test water factor") for item in missing
     }
     original = project.model_dump_json()
