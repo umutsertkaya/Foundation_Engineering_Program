@@ -2,7 +2,8 @@ import { screen, within } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import trCatalog from "../../../../../geotek/i18n/tr.json";
 import wallsTr from "../../../../../geotek/modules/walls/i18n/tr.json";
-import { WallCheckCards, formatQuantity } from "../components/WallCheckCards";
+import i18n from "../../../app/i18n";
+import { WallCheckCards, formatCheckValue, formatQuantity } from "../components/WallCheckCards";
 import { WallResultView } from "../components/WallResultView";
 import { check, GRAVITY, renderThemed, result } from "./helpers";
 
@@ -108,9 +109,14 @@ describe("WallCheckCards", () => {
   });
 
   it("formats undefined and small quantities", () => {
-    expect(formatQuantity(null)).toBe("∞");
+    expect(formatQuantity(null)).toBe("—");
     expect(formatQuantity(0.1667)).toBe("0.167");
     expect(formatQuantity(1.456)).toBe("1.46");
+    // null = non-finite: unlimited only for a passed >= check (+inf); NaN fails, <= passes only with -inf.
+    expect(formatCheckValue({ value: null, comparison: ">=", passed: true })).toBe("∞");
+    expect(formatCheckValue({ value: null, comparison: ">=", passed: false })).toBe("—");
+    expect(formatCheckValue({ value: null, comparison: "<=", passed: true })).toBe("—");
+    expect(formatCheckValue({ value: 2.5, comparison: ">=", passed: true })).toBe("2.50");
   });
 });
 
@@ -136,6 +142,21 @@ describe("WallResultView", () => {
     expect(screen.getByTitle("TBDY-seismic.resistance.overturning")).toBeInTheDocument();
     expect(screen.getByTestId("result-warnings")).toHaveTextContent("±kv zarfı");
     expect(screen.getByTestId("wall-section")).toBeInTheDocument();
+  });
+
+  it("renders coded warnings through their i18n key and passes free text through unchanged", () => {
+    i18n.addResource(i18n.language, "translation", "wall.warning.test_override", "Katsayı uygulanmadı: {path}");
+    const free = "Serbest metin: uyarı = değer";
+    renderThemed(<WallResultView result={result({
+      checks: CHECKS,
+      warnings: ['wall.warning.test_override: path="DA1-C2.material.gamma"', free, "wall.warning.unknown_code: x=1"],
+    })} />);
+    const box = screen.getByTestId("result-warnings");
+    expect(box).toHaveTextContent("Katsayı uygulanmadı: DA1-C2.material.gamma");
+    expect(box).not.toHaveTextContent("wall.warning.test_override");
+    expect(box).toHaveTextContent(free);
+    // A code without a catalog key stays readable as the raw string.
+    expect(box).toHaveTextContent("wall.warning.unknown_code: x=1");
   });
 
   it("draws the section from the result geometry only (no soil), deriving type and height from it", () => {

@@ -167,5 +167,10 @@
   "walls.run.passive_unconfirmed": "Passive resistance is on and the reduction {value} is not confirmed in this session. The calculation notes record it as an “engineering choice”; confirm it in the Loads/seismic step.",
   "walls.result.stale_inputs": "The inputs changed after this result; the result shown is out of date. Recalculate.",
   "walls.result.stale_job": "The last calculation did not complete (failed, cancelled or still running); the result shown belongs to an earlier run.",
-  "walls.result.section_geometry_only": "The section shows the result geometry only; the result does not carry the soil layers or the backfill slope used in the calculation."
+  "walls.result.section_geometry_only": "The section shows the result geometry only; the result does not carry the soil layers or the backfill slope used in the calculation.",
+  "walls.loads.sds_hint": "Empty = no seismic case",
+  "walls.loads.r_hint": "Empty = by wall type (TBDY Table 16.7)",
+  "walls.loads.sds_range": "S_DS must be greater than 0 and less than 3.",
+  "walls.loads.r_range": "r must be greater than 0 and at most 2.",
+  "walls.run.seismic_invalid": "A seismic input is out of range; correct or clear it in the Loads/seismic step."
 }

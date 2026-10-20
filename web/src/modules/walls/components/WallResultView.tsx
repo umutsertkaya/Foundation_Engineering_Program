@@ -5,6 +5,7 @@ import type { CantileverGeometry, GravityGeometry, WallResultDTO, WallType } fro
 import { factorPathLabel } from "../labels";
 import { WallCheckCards } from "./WallCheckCards";
 import { WallCrossSection } from "./WallCrossSection";
+import { useWarningText } from "../../../shared/hooks/useWarningText";
 
 export interface WallResultViewProps {
   result: WallResultDTO;
@@ -32,6 +33,7 @@ export function StaleNotice({ reason }: { reason: "inputs" | "job" }) {
 /** Results screen: verdict, warnings, to-scale section, per-check utilisation cards, factors and assumptions. */
 export function WallResultView({ result, stale = false, staleReason = "inputs" }: WallResultViewProps) {
   const { t } = useTranslation();
+  const warningText = useWarningText();
   const basis = resultSectionBasis(result.geometry);
   return (
     <Stack gap="sm" data-stale={stale || undefined}>
@@ -55,7 +57,7 @@ export function WallResultView({ result, stale = false, staleReason = "inputs" }
           <Stack gap={2}>
             {result.warnings.map((w, i) => (
               <Text key={i} size="xs">
-                {w}
+                {warningText(w)}
               </Text>
             ))}
           </Stack>

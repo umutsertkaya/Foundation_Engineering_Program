@@ -64,7 +64,7 @@
   "sheet_pile.detail.stale_title": "Zemin kaynağı değişti",
   "sheet_pile.detail.stale_desc": "Kaynak profil kopyalandıktan sonra değişti; sonuç bayat olabilir.",
   "sheet_pile.detail.resync": "Kaynak profille eşitle",
-  "sheet_pile.detail.soil_from_profile": "Zemin, “{id}” profilinden kopyalandı (kaynak korunuyor).",
+  "sheet_pile.detail.soil_from_profile": "Zemin, “{name}” profilinden kopyalandı (kaynak korunuyor).",
   "sheet_pile.detail.soil_manual": "Zemin bu perde için elle girildi.",
   "sheet_pile.detail.missing_value": "Eksik",
   "sheet_pile.detail.unsaved": "Kaydedilmemiş değişiklikler var; hesap için önce kaydedin.",

@@ -1,6 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import { get_project } from "../shared/api/client";
+import { onMutation } from "../shared/api/http";
 import {
   close_project,
   create_library_project,
@@ -22,8 +23,8 @@ interface ProjectSessionContextValue {
   loading: boolean;
   error: unknown;
   refresh(options?: RefreshOptions): Promise<void>;
-  /** GET /session only: cheap way to update the dirty badge. Rejects on failure. */
-  refreshSession(): Promise<void>;
+  /** GET /session only: cheap way to update the dirty badge; resolves with the fresh session. Rejects on failure. */
+  refreshSession(): Promise<SessionInfo>;
   /** Fire-and-forget refreshSession() for modules after an edit; failures are ignored. */
   markDirty(): void;
   save(): Promise<void>;
@@ -66,6 +67,7 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
     const sessionId = ++sessionSeq.current;
     const nextSession = await get_session();
     if (sessionId === sessionSeq.current) setSession(nextSession);
+    return nextSession;
   }, []);
 
   const markDirty = useCallback(() => {
@@ -75,6 +77,9 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     void refresh().catch(() => undefined);
   }, [refresh]);
+
+  // Any successful write may have changed the project: keep the shell's dirty flag in step.
+  useEffect(() => onMutation(() => markDirty()), [markDirty]);
 
   const save = useCallback(async () => {
     const fullId = ++fullSeq.current;

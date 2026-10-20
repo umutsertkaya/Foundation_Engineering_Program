@@ -8,7 +8,7 @@ import i18n, { loadLanguageCatalog } from "../app/i18n";
 import { theme } from "../app/theme";
 import { setMockMode, update_project_meta } from "../shared/api/client";
 import { close_project, get_session, list_library } from "../shared/api/core";
-import { resetCoreMock } from "../shared/api/mock";
+import { mockRequest, resetCoreMock } from "../shared/api/mock";
 
 function LocationProbe() {
   return <output data-testid="location">{useLocation().pathname}</output>;
@@ -61,6 +61,17 @@ describe("start page", () => {
     fireEvent.click(within(await screen.findByRole("dialog")).getByRole("button", { name: i18n.t("start.continue") }));
     await waitFor(() => expect(screen.getByTestId("location")).toHaveTextContent("/launcher"));
     expect((await get_session()).file).toBe("caglayan-sev.gtk");
+  });
+
+  it("re-reads the session before opening another project (changes the shell did not see still ask)", async () => {
+    renderApp("/start");
+    await screen.findByTestId("row-actions-caglayan-sev.gtk");
+    // Bypasses the http layer, like a calculation job that stored its result in the background.
+    await mockRequest("PATCH", "/project/meta", { name: "Changed by a job" });
+    await openRowAction("caglayan-sev.gtk", "Çağlayan Şev", "start.action.open");
+    const dialog = await screen.findByRole("dialog");
+    expect(within(dialog).getByText(i18n.t("start.open_unsaved_confirm"))).toBeInTheDocument();
+    expect((await get_session()).file).toBe("ornek-proje.gtk");
   });
 
   it("creates a project when Enter is pressed in the name field", async () => {

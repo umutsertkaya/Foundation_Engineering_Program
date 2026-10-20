@@ -15,6 +15,32 @@ export function isMockMode(): boolean {
   return import.meta.env.VITE_API_MOCK === "1";
 }
 
+type MutationListener = (method: string, path: string) => void;
+
+const mutationListeners = new Set<MutationListener>();
+
+/**
+ * Subscribe to every successful non-GET request (the project may have changed); returns the unsubscribe.
+ * Listener failures never affect the request.
+ */
+export function onMutation(listener: MutationListener): () => void {
+  mutationListeners.add(listener);
+  return () => {
+    mutationListeners.delete(listener);
+  };
+}
+
+function notifyMutation(method: string, path: string): void {
+  if (method.toUpperCase() === "GET") return;
+  for (const listener of [...mutationListeners]) {
+    try {
+      listener(method, path);
+    } catch {
+      // A listener must not turn a successful request into a failure.
+    }
+  }
+}
+
 export class ApiError extends Error implements ApiErrorDTO {
   readonly status: number;
   readonly code: string;
@@ -77,6 +103,7 @@ export async function request<T>(method: string, path: string, body?: unknown): 
     if (status >= 400) {
       throw parseApiError(status, data);
     }
+    notifyMutation(method, path);
     return data as T;
   }
 
@@ -113,6 +140,7 @@ export async function request<T>(method: string, path: string, body?: unknown): 
     throw parseApiError(response.status, parsed);
   }
 
+  notifyMutation(method, path);
   return parsed as T;
 }
 
@@ -134,6 +162,7 @@ export async function request_blob(method: string, path: string, body?: unknown)
     if (status >= 400) {
       throw parseApiError(status, data);
     }
+    notifyMutation(method, path);
     return { blob: new Blob([String(data)]), filename: null };
   }
 
@@ -166,6 +195,7 @@ export async function request_blob(method: string, path: string, body?: unknown)
     }
     throw parseApiError(response.status, parsed);
   }
+  notifyMutation(method, path);
   return {
     blob: await response.blob(),
     filename: filenameFromDisposition(response.headers.get("Content-Disposition")),

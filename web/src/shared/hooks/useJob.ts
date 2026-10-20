@@ -23,6 +23,10 @@ export function useJob<TResult = JobState["result"]>(): UseJobReturn<TResult> {
   const [error, setError] = useState<ApiError | null>(null);
 
   const jobIdRef = useRef<string | null>(null);
+  /** Job being polled and not yet finished; a newer start cancels it on the server. */
+  const liveJobRef = useRef<string | null>(null);
+  /** Bumped by every start/cancel/reset: an older start that resolves late must not take over. */
+  const startSeqRef = useRef<number>(0);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const mountedRef = useRef<boolean>(true);
 
@@ -62,9 +66,11 @@ export function useJob<TResult = JobState["result"]>(): UseJobReturn<TResult> {
           state.status === "cancelled"
         ) {
           clearTimer();
+          liveJobRef.current = null;
           return;
         }
 
+        clearTimer();
         timerRef.current = setTimeout(() => {
           void pollOnce(jobId);
         }, POLL_INTERVAL_MS);
@@ -73,6 +79,7 @@ export function useJob<TResult = JobState["result"]>(): UseJobReturn<TResult> {
           return;
         }
         clearTimer();
+        liveJobRef.current = null;
         const apiErr =
           err instanceof ApiError
             ? err
@@ -86,8 +93,15 @@ export function useJob<TResult = JobState["result"]>(): UseJobReturn<TResult> {
 
   const start = useCallback(
     async (starter: () => Promise<JobRef>) => {
+      const seq = ++startSeqRef.current;
       clearTimer();
+      const superseded = liveJobRef.current;
+      liveJobRef.current = null;
       jobIdRef.current = null;
+      if (superseded) {
+        // Best effort: the replaced job must not finish later and overwrite the newer result.
+        void cancel_job(superseded).catch(() => undefined);
+      }
       setError(null);
       setResult(null);
       setProgress(0);
@@ -99,12 +113,19 @@ export function useJob<TResult = JobState["result"]>(): UseJobReturn<TResult> {
         if (!mountedRef.current) {
           return;
         }
+        if (seq !== startSeqRef.current) {
+          // Cancelled, reset or replaced while the job was being started: stop it on the server too.
+          void cancel_job(ref.job_id).catch(() => undefined);
+          return;
+        }
         jobIdRef.current = ref.job_id;
+        liveJobRef.current = ref.job_id;
+        clearTimer();
         timerRef.current = setTimeout(() => {
           void pollOnce(ref.job_id);
         }, POLL_INTERVAL_MS);
       } catch (err) {
-        if (!mountedRef.current) {
+        if (!mountedRef.current || seq !== startSeqRef.current) {
           return;
         }
         const apiErr =
@@ -120,9 +141,11 @@ export function useJob<TResult = JobState["result"]>(): UseJobReturn<TResult> {
   );
 
   const cancel = useCallback(async () => {
+    startSeqRef.current += 1;
     clearTimer();
     const activeJobId = jobIdRef.current;
     jobIdRef.current = null;
+    liveJobRef.current = null;
     if (!activeJobId) {
       setStatus("cancelled");
       return;
@@ -144,8 +167,10 @@ export function useJob<TResult = JobState["result"]>(): UseJobReturn<TResult> {
   }, [clearTimer]);
 
   const reset = useCallback(() => {
+    startSeqRef.current += 1;
     clearTimer();
     jobIdRef.current = null;
+    liveJobRef.current = null;
     setStatus("idle");
     setProgress(0);
     setMessageKey(null);
