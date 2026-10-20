@@ -1,4 +1,4 @@
-﻿"""Bearing factors and independent worked calculations (SI: m, kN, kPa).
+"""Bearing factors and independent worked calculations (SI: m, kN, kPa).
 
 Table reference: Bowles, Foundation Analysis and Design, 5th ed., Table 4-4.
 The following two-decimal rows are supplied in the task brief, not transcribed
