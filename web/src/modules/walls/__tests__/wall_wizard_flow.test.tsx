@@ -91,7 +91,7 @@ describe("walls wizard: options, jobs and results (mock API)", () => {
     renderWizard();
     fireEvent.click(await step(tr["web.wizard.step.soil"]));
     const editor = await screen.findByTestId("permeability-editor");
-    const input = within(editor).getByLabelText(tr["walls.perm.input_label"].replace("{id}", "F1"));
+    const input = within(editor).getByLabelText(tr["walls.perm.input_label"].replace("{id}", "0.00–2.50 m · GW"));
     fireEvent.change(input, { target: { value: "2e-6" } });
     fireEvent.blur(input);
     expect(input).toHaveValue("2e-6");

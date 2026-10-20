@@ -22,7 +22,9 @@ function Harness({ initial, onChange }: { initial: StructureSoilModel; onChange?
   );
 }
 
-const input = (id: string) => screen.getByLabelText(tr["walls.perm.input_label"].replace("{id}", id));
+// The input is labelled by the layer's depth range; layer ids are internal.
+const RANGE: Record<string, string> = { F1: "0.00–2.00 m · SW", F2: "2.00–4.00 m · SW", L1: "0.00–6.00 m · SW", L2: "6.00–12.00 m · SW" };
+const input = (id: string) => screen.getByLabelText(tr["walls.perm.input_label"].replace("{id}", RANGE[id]));
 
 describe("PermeabilityEditor", () => {
   const soil = soilModel({

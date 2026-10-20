@@ -228,7 +228,7 @@ export function ParametersPage() {
                       }}
                     >
                       <Text size="sm" fw={selected ? 700 : 500}>
-                        {layer.id}: {t("soil.params.layer_range", { top: layer.top, bottom: layer.bottom })}
+                        {t("soil.params.layer_range", { top: layer.top, bottom: layer.bottom })}
                       </Text>
                       <Text size="xs" c="dimmed" lineClamp={2}>
                         {layer.uscs ?? ""} {layer.description ?? ""}

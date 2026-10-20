@@ -1,4 +1,5 @@
 import { useState, type ReactNode } from "react";
+import { layerLabel } from "./format";
 import {
   ActionIcon,
   Badge,
@@ -148,7 +149,7 @@ function SplitAction({
       <Popover.Dropdown onClick={(e) => e.stopPropagation()}>
         <Stack gap={6} w={200}>
           <Text size="xs" fw={600}>
-            {t("web.soil.split.title", { id: layer.id })}
+            {t("web.soil.split.title", { id: layerLabel(layer) })}
           </Text>
           <NumberInput
             size="xs"

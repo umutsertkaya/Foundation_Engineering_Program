@@ -9,7 +9,7 @@ import type {
   WallType,
 } from "../api/types";
 import { niceTicks, spreadLabels, tickDecimals } from "../soil/axis";
-import { fmt, strengthText, truncate } from "../soil/format";
+import { fmt, layerLabel, strengthText, truncate } from "../soil/format";
 import { GWT_STYLE, GwtMarker } from "../soil/GwtMarker";
 import { SoilPatternDefs, useSoilScheme, useSvgId } from "../soil/SoilPatternDefs";
 import { soilFamily, soilPatternUrl, soilStyle } from "../soil/soilStyle";
@@ -309,10 +309,10 @@ export function StructureSoilSection({
 
   const headOf = (s: ZoneSlice) => {
     const st = soilStyle(s.layer, scheme);
-    return `${s.layer_id} · ${s.layer.uscs ?? t(st.labelKey)}`;
+    return `${layerLabel(s.layer)}${s.layer.uscs ? "" : ` · ${t(st.labelKey)}`}`;
   };
   const tooltipOf = (s: ZoneSlice) =>
-    `${s.layer_id} (${t(s.origin === "fill" ? "web.section.origin.fill" : "web.section.origin.profile")}) · ${
+    `${layerLabel(s.layer)} (${t(s.origin === "fill" ? "web.section.origin.fill" : "web.section.origin.profile")}) · ${
       s.layer.uscs ?? t(soilStyle(s.layer, scheme).labelKey)
     } · z ${fmt(s.top, 2)}–${fmt(s.bottom, 2)} m · ${strengthText(s.layer)}${
       s.layer.description ? ` · ${s.layer.description}` : ""
