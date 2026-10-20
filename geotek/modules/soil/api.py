@@ -1,4 +1,4 @@
-"""Soil routes mounted at /api/m/soil: investigations, layering, profiles and parameters."""
+"""Soil routes at /api/m/soil: investigations, classification, profiles and parameters."""
 
 from __future__ import annotations
 
@@ -6,31 +6,71 @@ from dataclasses import asdict
 from datetime import datetime, timezone
 from typing import Annotated, get_args
 
+import numpy as np
 from fastapi import APIRouter, Depends, Request, Response
 
 from geotek.api import schemas as dto
 from geotek.api.common import ERROR_RESPONSES, multipart_body
 from geotek.api.session import Session, api_error, get_session
-from geotek.core.models.investigations import Borehole, BoreholeLayer, CPTSounding
+from geotek.core.models.investigations import Borehole, BoreholeLayer, CPTSounding, LabRecord
 from geotek.core.models.parameters import DesignKey, ParameterSelection
 from geotek.core.models.profile import LayeringSettings, SoilLayer, SoilProfile
+from geotek.engine.classification import robertson, uscs
+from geotek.engine.classification.uscs_names import USCS_NAMES
 from geotek.modules.soil import service
 from geotek.modules.soil.schemas import (
+    AxisRangeDTO,
+    BoreholeUSCSDTO,
     CPTProcessedDTO,
+    CPTSBTNDTO,
     InvestigationsDTO,
     LayerMerge,
     LayerSplit,
     ParameterApproval,
+    PlasticityPointDTO,
     ProfileCreate,
     ProfileSummary,
     SelectionUpdate,
+    SBTNContourDTO,
+    SBTNCoordinateDTO,
+    SBTNPointDTO,
+    SBTNReferenceDTO,
+    SBTNZoneDTO,
     SPTProcessedDTO,
+    USCSClassifyRequest,
+    USCSItemDTO,
+    USCSReferenceDTO,
+    USCSSymbolDTO,
 )
 from geotek.services import parameters
 from geotek.services.layering import propose_layers
 from geotek.services.module1 import process_investigations
 
 SessionDep = Annotated[Session, Depends(get_session)]
+
+
+def _uscs_item(record: LabRecord | USCSClassifyRequest, result: uscs.USCSResult) -> USCSItemDTO:
+    """Enrich an engine result with echoed inputs and static names."""
+    name = USCS_NAMES.get(result.symbol)
+    cu = cc = None
+    if all(value is not None for value in (record.D10, record.D30, record.D60)):
+        # NumPy preserves non-finite result sentinels for ResultNumber normalization.
+        with np.errstate(divide="ignore", invalid="ignore", over="ignore", under="ignore"):
+            cu = np.divide(record.D60, record.D10)
+            cc = np.divide(np.square(record.D30), np.multiply(record.D10, record.D60))
+    lab = isinstance(record, LabRecord)
+    return USCSItemDTO(
+        depth=record.depth if lab else None,
+        symbol=result.symbol, complete=result.complete, notes=result.notes,
+        FC=record.FC if lab else record.fines, gravel=record.gravel,
+        LL=record.LL, PL=record.PL if lab else None, PI=record.PI,
+        D10=record.D10, D30=record.D30, D60=record.D60, Cu=cu, Cc=cc,
+        plastic_class=uscs.fines_type(record.LL, record.PI)
+        if record.LL is not None and record.PI is not None else None,
+        group_name_en=name.group_name_en if name else None,
+        group_name_tr=name.group_name_tr if name else None,
+        description=name.description if name else None,
+    )
 
 
 def _investigation(session: Session, kind: str, identifier: str, payload=None):
@@ -211,6 +251,90 @@ def router() -> APIRouter:
             # The classifier uses zone 0 as its invalid-sample sentinel.
             data["zone"] = [int(zone) if 1 <= zone <= 9 else None for zone in processed.zone]
             return CPTProcessedDTO.model_validate(data)
+
+    @api.get(
+        "/classification/sbtn/reference", response_model=SBTNReferenceDTO,
+        operation_id="get_sbtn_reference",
+    )
+    def get_sbtn_reference() -> SBTNReferenceDTO:
+        """Return SBTn chart data; zones 8/9 are disabled by default and omitted.
+
+        Ic limits describe zones 2-7 before the zone-1 override, which has no Ic
+        interval. Contours use the lower-Qtn inverse branch, clipped to the chart
+        axes. The full zone-1 boundary is sampled even below the Qtn axis minimum.
+        """
+        fr_range = AxisRangeDTO(min=0.1, max=10.0)
+        qtn_range = AxisRangeDTO(min=1.0, max=1000.0)
+        fr_grid = np.geomspace(fr_range.min, fr_range.max, 201)
+        bounds = (None, *robertson.IC_BOUNDS, None)
+        zones = [SBTNZoneDTO(zone=1, name_en=robertson.ZONE_NAMES[1]["en"],
+                             name_tr=robertson.ZONE_NAMES[1]["tr"], ic_min=None, ic_max=None)]
+        for zone in range(2, 8):
+            zones.append(SBTNZoneDTO(
+                zone=zone, name_en=robertson.ZONE_NAMES[zone]["en"],
+                name_tr=robertson.ZONE_NAMES[zone]["tr"],
+                ic_min=bounds[7 - zone], ic_max=bounds[8 - zone],
+            ))
+        contours = []
+        for ic in robertson.IC_BOUNDS:
+            qtn = robertson.qtn_from_ic(ic, fr_grid)
+            contours.append(SBTNContourDTO(Ic=ic, points=[
+                SBTNCoordinateDTO(Fr=fr, Qtn=q) for fr, q in zip(fr_grid, qtn)
+                if np.isfinite(q) and qtn_range.min <= q <= qtn_range.max
+            ]))
+        return SBTNReferenceDTO(
+            zones=zones, ic_bounds=list(robertson.IC_BOUNDS), ic_contours=contours,
+            zone_1_boundary=[SBTNCoordinateDTO(Fr=fr, Qtn=q) for fr, q in
+                             zip(fr_grid, robertson.zone_1_boundary(fr_grid))],
+            fr_range=fr_range, qtn_range=qtn_range,
+        )
+
+    @api.get("/cpts/{id}/sbtn", response_model=CPTSBTNDTO, operation_id="get_cpt_sbtn")
+    def get_cpt_sbtn(id: str, session: SessionDep) -> CPTSBTNDTO:
+        """Use the processed-CPT path, including its profile, warnings and errors."""
+        processed = get_processed_cpt(id, session)
+        return CPTSBTNDTO(points=[
+            SBTNPointDTO(
+                depth=depth, Fr=fr, Qtn=qtn, Ic=ic, zone=zone,
+                zone_name_en=robertson.ZONE_NAMES[zone]["en"] if zone else None,
+                zone_name_tr=robertson.ZONE_NAMES[zone]["tr"] if zone else None,
+            ) for depth, fr, qtn, ic, zone in zip(
+                processed.depth, processed.Fr, processed.Qtn, processed.Ic, processed.zone,
+            )
+        ], warnings=processed.warnings)
+
+    @api.get(
+        "/boreholes/{id}/uscs", response_model=BoreholeUSCSDTO,
+        operation_id="get_borehole_uscs",
+    )
+    def get_borehole_uscs(id: str, session: SessionDep) -> BoreholeUSCSDTO:
+        """Classify every lab record, preserving engine incompleteness and notes."""
+        with session.lock:
+            project = session.require_project()
+            borehole = service.find(project.investigations.boreholes, id)
+            return BoreholeUSCSDTO(items=[
+                _uscs_item(record, uscs.classify_lab_record(record)) for record in borehole.lab
+            ])
+
+    @api.post(
+        "/classification/uscs", response_model=USCSItemDTO, operation_id="classify_uscs",
+    )
+    def classify_uscs(payload: USCSClassifyRequest) -> USCSItemDTO:
+        """Classify stateless inputs; unavailable depth and PL are returned as null."""
+        return _uscs_item(payload, uscs.classify(**payload.model_dump()))
+
+    @api.get(
+        "/classification/uscs/reference", response_model=USCSReferenceDTO,
+        operation_id="get_uscs_reference",
+    )
+    def get_uscs_reference() -> USCSReferenceDTO:
+        """Sample LL=0..100%; preserve negative A/U-line values from the engine."""
+        return USCSReferenceDTO(
+            a_line=[PlasticityPointDTO(LL=ll, PI=uscs.a_line(ll)) for ll in range(101)],
+            u_line=[PlasticityPointDTO(LL=ll, PI=uscs.u_line(ll)) for ll in range(101)],
+            symbols=[USCSSymbolDTO(symbol=symbol, **asdict(name))
+                     for symbol, name in USCS_NAMES.items()],
+        )
 
     @api.get(
         "/boreholes/{id}/processed", response_model=SPTProcessedDTO,
