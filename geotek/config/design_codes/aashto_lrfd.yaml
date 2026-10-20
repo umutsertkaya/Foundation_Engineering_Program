@@ -14,8 +14,8 @@ factor_sources:
   load.EV: {source: "AASHTO LRFD Tablo 3.4.1-2 (eyalet DOT kılavuzlarında aynı)", status: secondary}
   load.EH_active: {source: "AASHTO LRFD Tablo 3.4.1-2 (eyalet DOT kılavuzlarında aynı)", status: secondary}
   resistance: {source: "AASHTO LRFD Tablo 11.5.7-1 — doğrulanmadı", status: unverified}
-  resistance.strength.bearing: {source: "AASHTO LRFD Tablo 11.5.7-1 (MoDOT, WisDOT kılavuzları)", status: secondary}
-  resistance.strength.passive_resistance: {source: "AASHTO LRFD (WisDOT Tablo 14.4-2)", status: secondary}
+  resistance.strength.bearing: {source: "AASHTO LRFD Tablo 11.5.7-1 (MoDOT, WisDOT kılavuzları); araştırma raporunda doğrulanmadı", status: unverified}
+  resistance.strength.passive_resistance: {source: "AASHTO LRFD (WisDOT Tablo 14.4-2); araştırma raporunda doğrulanmadı", status: unverified}
   load.ES: {source: "FHWA NHI-10-024 (GEC-11, AASHTO 2007 aktarımı), secondary", status: secondary}
   load.LS.strength_I: {source: "FHWA NHI-10-024 (GEC-11), secondary", status: secondary}
   load.LS.extreme_I: {source: "Proje varsayımı: γEQ proje özel; 0.50 tablo değeri değil (karar 2026-10-20)", status: unverified}

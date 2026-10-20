@@ -154,6 +154,11 @@ def _loads(structure):
     return loads, kh, kv
 
 
+LS_EXTREME_ASSUMPTION = ("Extreme Event I trafik/yaya yükü (LS) katsayısı 0.50 kabul edildi: bu bir AASHTO tablo "
+                         "değeri değil, projeye özel γEQ varsayımıdır; projenin gerçek değeriyle değiştirilmelidir")
+LS_EXTREME_SOURCE = "Proje varsayımı (karar 2026-10-20); aashto_lrfd.yaml load.LS.extreme_I, unverified"
+
+
 def _assumptions(structure, settings, D):
     gwt_case = structure.inputs.gwt_case
     out = [
@@ -422,13 +427,17 @@ def _finish(project, structure, geometry, settings, loads, kh, kv, evaluated, it
         source = next((p for p in project.soil_profiles if p.id == structure.soil.source_profile_id), None)
         if structure.soil.is_stale(source):
             warnings.append("Yapıya kopyalanan zemin profili kaynak profile göre bayat; yapı kopyasıyla hesaplandı")
+    assumptions = _assumptions(structure, settings, geometry.embedment)
+    if "load.LS.extreme_I" in used:
+        assumptions.append(Assumption(text=LS_EXTREME_ASSUMPTION, source=LS_EXTREME_SOURCE, code="wall.ls_extreme_i"))
+        warnings.append(LS_EXTREME_ASSUMPTION)
     fails = _failures(analyses, glob)
     if iterations and fails:
         warnings.insert(0, f"B=1.2H'ye kadar uygun genişlik bulunamadı; sağlanamayan: {governing}")
     return StructureWallResult(
         geometry=geometry, passed=not fails, analyses=analyses, global_stability=glob,
         governing=governing, governing_check_ids=fails if governing_ids is None else governing_ids,
-        minimum_width_governs=min_width, assumptions=_assumptions(structure, settings, geometry.embedment),
+        minimum_width_governs=min_width, assumptions=assumptions,
         factors_used=list(used.values()), kh=kh, kv=kv, iterations=iterations, warnings=warnings,
         slip_results=slips, pressures=pressures, result_hash=_fingerprint(project, structure, code.id),
     )
