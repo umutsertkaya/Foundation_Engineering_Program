@@ -43,7 +43,7 @@ class LayerDesignError(GeoTekError):
 
     def __init__(self, layer, issue: str):
         self.message_code = f"layer_{issue}"
-        self.message_params = {"top": float(layer.top), "bottom": float(layer.bottom)}
+        self.message_params = {"top": round(float(layer.top), 3), "bottom": round(float(layer.bottom), 3)}
         super().__init__(f"Layer {layer.top:g}–{layer.bottom:g} m: {self._TEXT[issue]}")
 
 

@@ -5,11 +5,22 @@ from __future__ import annotations
 from PySide6.QtWidgets import QComboBox, QHBoxLayout, QPlainTextEdit, QVBoxLayout, QWidget
 
 from geotek.engine.liquefaction import lpi_category
+from geotek.core.warning_codes import parse_warning
 from geotek.i18n import t
 from geotek.plotting.figures import plot_liquefaction
 from geotek.services.module1 import LiquefactionSettings, process_investigations, run_liquefaction
 from geotek.ui.pages.base import FormColumn, Page, split_layout
 from geotek.ui.widgets import Banner, Card, FormGrid, NumberField, OptionalNumber, PlotCanvas, button, label
+
+
+def _warning_text(message: str) -> str:
+    """Localise a ``code[: key=value ...]`` engine warning; free text is shown unchanged."""
+    try:
+        code, params = parse_warning(message)
+        text = t(code, **params)
+    except (ValueError, KeyError, IndexError):
+        return message
+    return message if text == code else text
 
 
 class LiquefactionPage(Page):
@@ -111,5 +122,5 @@ class LiquefactionPage(Page):
             lines.append(t("ui.liq.liq_range", top=f"{a:g}", bottom=f"{b:g}"))
         lines += [f"{t('status.' + k)}: {v}" for k, v in s["status_counts"].items()]
         if result.warnings:
-            lines += ["", t("ui.warnings") + ":"] + [f"• {w}" for w in result.warnings]
+            lines += ["", t("ui.warnings") + ":"] + [f"• {_warning_text(w)}" for w in result.warnings]
         self.summary.setPlainText("\n".join(lines))
