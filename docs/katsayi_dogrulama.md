@@ -65,3 +65,10 @@ Sismik değerler ve palplanş pasif katsayısı **unverified**. Ayrıntı: `docs
   (`insitu.warning.cpt_gamma_floor`, `layering.warning.gamma_floor`, `correlation.warning.gamma_floor`).
   Kod: `geotek/engine/correlations/physical.py` `GAMMA_MIN_RC2010`; el hesabı testi
   `tests/unit/test_system_check_engine.py::test_rc2010_unit_weight_lower_bound_hand_calc`.
+- **Profilsiz CPT'de q_t ≤ 0 noktası için en yakın γ** (koordinatör kararı, 2026-10-20). R&C γ bu noktada
+  tanımsızdır; yalnız düşey gerilme integrali için en yakın geçerli noktanın (alt sınırlı) γ'sı kullanılır.
+  Noktanın kendisi geçersiz kalır (Qtn, I_c, FS yok). Görünür uyarı `insitu.warning.cpt_gamma_nearest`
+  (adet, derinlikler). Kod: `geotek/engine/insitu/cpt.py`; test
+  `tests/unit/test_system_check_engine.py::test_cpt_without_profile_zero_qc_does_not_void_deeper_stresses`.
+- **`predrill_depth` üstündeki okumalar dışlanır** (Umut onayı, 2026-10-20): `depth < predrill_depth` işlenmez,
+  uyarı `insitu.warning.cpt_predrill_excluded`; hiç okuma kalmazsa açık hata.

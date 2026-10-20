@@ -37,6 +37,15 @@ def test_cpt_without_profile_zero_qc_does_not_void_deeper_stresses():
     assert p.gamma[1] == pytest.approx(p.gamma[0])
     codes = dict(parse_warning(w) for w in p.warnings)
     assert codes["insitu.warning.cpt_gamma_nearest"] == {"count": 1, "depths": "1"}
+    # The q_t <= 0 point itself stays invalid: γ is borrowed only for the stress integration.
+    assert np.isnan(p.Qtn[1]) and np.isnan(p.Ic[1])
+    assert np.isfinite(p.Ic[[0, 2, 3]]).all()
+
+
+def test_cpt_nearest_unit_weight_respects_the_lower_bound():
+    s = CPTSounding(id="c", gwt_depth=5.0, depth=[1.0, 1.5], qc=[100.0, 0.0], fs=[0.1, 0.1])
+    p = process_cpt(s)
+    assert p.gamma.tolist() == [12.0, 12.0]
     assert np.isfinite(p.Ic[2:]).all()
 
 

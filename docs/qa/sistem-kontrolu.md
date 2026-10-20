@@ -15,7 +15,7 @@ Her satır için test var (`tests/unit/test_system_check_engine.py`, `tests/api/
 | Önem | Hata | Düzeltme |
 |---|---|---|
 | Y | fs = 0 CPT noktasında Fr = 0 → I_c = ∞ → BI2014 "clay_like" (sıvılaşmada güvensiz taraf) | `normalise_iterative` fs ≤ 0 noktayı I_c tanımsız sayar → `invalid` + uyarı |
-| O | Profilsiz CPT'de q_t ≤ 0 noktanın γ'sı NaN; kümülatif σv tüm sondajda uyarısız NaN | En yakın geçerli γ + görünür uyarı `cpt_gamma_nearest` (karar: §3) |
+| O | Profilsiz CPT'de q_t ≤ 0 noktanın γ'sı NaN; kümülatif σv tüm sondajda uyarısız NaN | Gerilme integralinde en yakın geçerli (alt sınırlı) γ + görünür uyarı `cpt_gamma_nearest`; nokta geçersiz kalır (koordinatör kararı) |
 | O | `CPTSounding` NaN/∞ kabul ediyordu; kullanıcı FC'si NaN olabiliyordu | Sonlu olmayan değer reddedilir |
 | O | Vesic drenajsız: m·H ≥ A'·c·N_c iken i_c ≤ 0 → negatif q_ult; c = 0'da sıfıra bölme | `BearingFailureError` (Hansen ile aynı davranış) |
 | O | Yukarıdaki ret duvar boyutlandırmasını tümden durduruyordu (2. inceleme buldu) | `size_structure` bu hatayı o genişliğin başarısızlığı sayar, daha geniş tabana geçer |
@@ -86,14 +86,14 @@ Ayrıntı: [katsayı doğrulama](../katsayi_dogrulama.md) "Korelasyon proje vars
 
 **Sonuç değiştiren diğer düzeltmeler (katsayı değil, hata düzeltmesi):** fs = 0 noktası artık `invalid`
 (eskiden clay_like); I_c tanımsız noktada kullanıcı FC'siyle FS artık NaN; profilsiz CPT'de q_t ≤ 0 noktası
-en yakın γ'yı alır (eskiden tüm sondaj NaN). Sonuncusu yeni bir varsayım olduğu için koordinatör kararına
-sunuldu; karar gelene kadar görünür uyarıyla korunuyor.
+yalnız gerilme integrali için en yakın γ'yı alır, kendisi geçersiz kalır (eskiden tüm sondaj NaN). Bu yeni
+varsayım ve diğer üç düzeltme koordinatör kararıyla onaylandı (2026-10-20); proje varsayımı olarak
+[katsayı doğrulama](../katsayi_dogrulama.md) listesinde.
 
 ## 3. Açık bulgular (düzeltilmedi)
 
 | Konu | Neden açık | Yer |
 |---|---|---|
-| Profilsiz CPT q_t ≤ 0 → en yakın γ varsayımı | Koordinatör kararı bekliyor | `geotek/engine/insitu/cpt.py` |
 | Malzeme γ katsayısı, kaya eksantrisitesi, okunmayan YAML anahtarları | Katsayı/yöntem değişikliği (S4) | [T12](../tasks/T12-MATERIAL-FACTORS.md) |
 | Duvar varsayım/uyarı metinleri yalnız Türkçe; raporda bazı ham kontrol adları | Geniş i18n işi | [T10b](../tasks/T10b-POLISH.md) |
 | CSV içe aktarmada eksik u2 = 0 kabul edilir | Davranış değişikliği; CPT içe aktarma sözleşmesi | `geotek/io/tabular.py` |
@@ -125,7 +125,7 @@ CLAUDE_PROJECTS, PROJECT_INSTRUCTIONS, WORKFLOW, K1, T10b, T10-kabul; kırık ba
 
 | Kontrol | Sonuç |
 |---|---|
-| `pytest` (tam) | 1868 geçti, 2 atlandı (büyük/küçük harf duyarsız dosya sistemi testleri) |
+| `pytest` (tam) | 1869 geçti, 2 atlandı (büyük/küçük harf duyarsız dosya sistemi testleri) |
 | `tsc --noEmit` | temiz |
 | Vitest | 37 dosya, 337 test geçti |
 | `npm run build` | başarılı |
