@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Alert, Button, Group, Progress, Stack, Text } from "@mantine/core";
 import { useTranslation } from "react-i18next";
 import { ApiError, cancel_job, get_job } from "../../../shared/api/client";
-import type { JobState, SheetPileResultDTO } from "../../../shared/api/types";
+import type { JobState, SheetPileResultDTO, SheetPileStructure } from "../../../shared/api/types";
 import { ErrorAlert } from "../../../shared/components/ErrorAlert";
 import { ResultPanel } from "./ResultPanel";
 
@@ -13,10 +13,11 @@ interface Props {
   jobId: string;
   /** Called once when a job finishes `done`, so the page can refresh stale/result badges. */
   onDone?: () => void;
+  structure?: SheetPileStructure;
 }
 
 /** Polls one design job and renders progress / cancel / failure / the completed result. */
-export function JobPanel({ jobId, onDone }: Props) {
+export function JobPanel({ jobId, onDone, structure }: Props) {
   const { t } = useTranslation();
   const [state, setState] = useState<JobState | null>(null);
   const [gone, setGone] = useState(false);
@@ -91,5 +92,5 @@ export function JobPanel({ jobId, onDone }: Props) {
   }
   const result = state.result as SheetPileResultDTO | null;
   if (!result) return <Alert color="gray">{t("sheet_pile.job.empty")}</Alert>;
-  return <ResultPanel result={result} />;
+  return <ResultPanel result={result} structure={structure} />;
 }

@@ -24,6 +24,13 @@ export interface PileInputs {
   surcharge: Num;
   sds: Num;
   allowable_stress_mpa: Num;
+  design_code: string;
+  approach: string | null;
+  analysis_level: "basic" | "advanced";
+  depth_increase: Num;
+  anchor_spacing: Num;
+  anchor_inclination: Num;
+  front_water_depth: Num;
 }
 
 export interface SoilSource {
@@ -43,6 +50,13 @@ export const DEFAULT_INPUTS: PileInputs = {
   surcharge: "",
   sds: "",
   allowable_stress_mpa: "",
+  design_code: "asd",
+  approach: null,
+  analysis_level: "basic",
+  depth_increase: "",
+  anchor_spacing: 1,
+  anchor_inclination: 0,
+  front_water_depth: "",
 };
 
 export const DEFAULT_SOIL: SoilSource = {
@@ -66,6 +80,10 @@ export function missingInputs(inp: PileInputs, soil: SoilSource | null): string[
   if (has(inp.surcharge) && inp.surcharge < 0) out.push("range:surcharge");
   if (has(inp.sds) && !(inp.sds > 0 && inp.sds < 3)) out.push("range:sds");
   if (has(inp.allowable_stress_mpa) && inp.allowable_stress_mpa <= 0) out.push("range:allowable_stress_mpa");
+  if (has(inp.depth_increase) && inp.depth_increase < 0) out.push("range:depth_increase");
+  if (inp.support === "anchored" && has(inp.anchor_spacing) && inp.anchor_spacing <= 0) out.push("range:anchor_spacing");
+  if (inp.support === "anchored" && has(inp.anchor_inclination) && !(inp.anchor_inclination >= 0 && inp.anchor_inclination < 90)) out.push("range:anchor_inclination");
+  if (has(inp.front_water_depth) && inp.front_water_depth < 0) out.push("range:front_water_depth");
   if (soil) {
     if (soil.mode === "profile") {
       if (!soil.profile_id) out.push("profile");
@@ -135,6 +153,13 @@ export function toCreatePayload(inp: PileInputs, soil: SoilSource): SheetPileCre
     surcharge: orNull(inp.surcharge),
     sds: orNull(inp.sds),
     allowable_stress_mpa: orNull(inp.allowable_stress_mpa),
+    design_code: inp.design_code,
+    approach: inp.approach,
+    analysis_level: inp.analysis_level,
+    depth_increase: has(inp.depth_increase) ? inp.depth_increase : null,
+    anchor_spacing: inp.support === "anchored" ? orNull(inp.anchor_spacing) : null,
+    anchor_inclination: inp.support === "anchored" ? orNull(inp.anchor_inclination) : null,
+    front_water_depth: orNull(inp.front_water_depth),
   };
   if (soil.mode === "profile") payload.profile_id = soil.profile_id;
   else payload.soil = manualSoil(soil, inp.name.trim());
@@ -150,6 +175,13 @@ export function fromStructure(s: SheetPileStructure): PileInputs {
     surcharge: s.surcharge ?? 0,
     sds: s.sds ?? "",
     allowable_stress_mpa: s.allowable_stress_mpa ?? "",
+    design_code: s.design_code ?? "asd",
+    approach: s.approach ?? null,
+    analysis_level: s.analysis_level ?? "basic",
+    depth_increase: s.depth_increase ?? "",
+    anchor_spacing: s.anchor_spacing ?? 1,
+    anchor_inclination: s.anchor_inclination ?? 0,
+    front_water_depth: s.front_water_depth ?? "",
   };
 }
 
@@ -164,5 +196,12 @@ export function applyInputs(s: SheetPileStructure, inp: PileInputs): SheetPileSt
     surcharge: has(inp.surcharge) ? inp.surcharge : 0,
     sds: orNull(inp.sds),
     allowable_stress_mpa: orNull(inp.allowable_stress_mpa),
+    design_code: inp.design_code,
+    approach: inp.approach,
+    analysis_level: inp.analysis_level,
+    depth_increase: has(inp.depth_increase) ? inp.depth_increase : null,
+    anchor_spacing: inp.support === "anchored" ? orNull(inp.anchor_spacing) : null,
+    anchor_inclination: inp.support === "anchored" ? orNull(inp.anchor_inclination) : null,
+    front_water_depth: orNull(inp.front_water_depth),
   };
 }

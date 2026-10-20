@@ -1,4 +1,4 @@
-﻿import { MantineProvider } from "@mantine/core";
+import { MantineProvider } from "@mantine/core";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { MemoryRouter, Route, Routes, useLocation } from "react-router-dom";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
@@ -274,5 +274,38 @@ describe("sheet_pile shell (mock)", () => {
     expect(created.kind).toBe("sheet_pile");
     expect(created.name).toBe("Yeni");
     expect(created.soil.source_profile_id).toBeNull();
+  });
+
+  it("shows advanced inputs collapsed, hides anchors for cantilever and sends changed design values", async () => {
+    renderAt("/m/sheet_pile/new");
+    expect(screen.queryByLabelText("Ankraj aralığı (m)")).not.toBeInTheDocument();
+    fireEvent.click(screen.getByText("Gelişmiş girdiler"));
+    expect(screen.queryByLabelText("Ankraj aralığı (m)")).not.toBeInTheDocument();
+    const frontWater = await screen.findByLabelText("Ön su derinliği (m)");
+    fireEvent.change(await screen.findByLabelText("Gömülme artışı"), { target: { value: "0.35" } });
+    fireEvent.change(frontWater, { target: { value: "2.5" } });
+    fireEvent.change(await screen.findByLabelText("Ad"), { target: { value: "Advanced" } });
+    fireEvent.change(screen.getByLabelText(/Tutulan yükseklik/), { target: { value: "4" } });
+    fireEvent.click(screen.getByText("Elle gir"));
+    fireEvent.change(screen.getByLabelText(/Yeraltı suyu/), { target: { value: "2" } });
+    fireEvent.change(screen.getByLabelText("Alt (m) 1"), { target: { value: "12" } });
+    fireEvent.change(screen.getByLabelText("γ (kN/m³) 1"), { target: { value: "18" } });
+    fireEvent.change(screen.getByLabelText("φ' (°) 1"), { target: { value: "30" } });
+    fireEvent.click(screen.getByRole("button", { name: "Oluştur" }));
+    await waitFor(() => expect(screen.getByTestId("loc").textContent).toMatch(/pile-mock/));
+    const created = getMockStore().structures.at(-1) as unknown as { depth_increase: number; front_water_depth: number; anchor_spacing: unknown; design_code: string };
+    expect(created).toMatchObject({ depth_increase: 0.35, front_water_depth: 2.5, anchor_spacing: null, design_code: "asd" });
+  });
+
+  it("renders the stored design basis with effective embedment increase", async () => {
+    seedSheetPile("sp-basis", "Perde Esas");
+    const structure = getMockStore().structures.find((x) => x.id === "sp-basis") as unknown as { design_code: string; approach: null; analysis_level: "basic"; depth_increase: null; front_water_depth: null };
+    Object.assign(structure, { design_code: "asd", approach: null, analysis_level: "basic", depth_increase: null, front_water_depth: null });
+    renderAt("/m/sheet_pile/s/sp-basis");
+    fireEvent.click(await screen.findByRole("button", { name: "Tasarımı çalıştır" }));
+    expect(await screen.findByTestId("sheet-pile-result", {}, { timeout: 5000 })).toBeInTheDocument();
+    expect(screen.getByTestId("design-basis")).toHaveTextContent("Tasarım esası");
+    expect(screen.getByTestId("design-basis")).toHaveTextContent("Servis varsayılanı");
+    expect(screen.getByTestId("design-basis")).toHaveTextContent("20,0%");
   });
 });

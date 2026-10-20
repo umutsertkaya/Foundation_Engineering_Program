@@ -25,7 +25,7 @@ function Stat({ label, value, unit }: { label: string; value: number | null; uni
   );
 }
 
-export function ResultPanel({ result }: { result: SheetPileResultDTO }) {
+export function ResultPanel({ result, structure }: { result: SheetPileResultDTO; structure?: { design_code?: string; approach?: string | null; analysis_level?: "basic" | "advanced"; depth_increase?: number | null; support?: "cantilever" | "anchored"; front_water_depth?: number | null } }) {
   const { t } = useTranslation();
   const isMock = result.warnings.includes(MOCK_WARNING);
   const warnings = result.warning_items
@@ -59,6 +59,15 @@ export function ResultPanel({ result }: { result: SheetPileResultDTO }) {
           {t("sheet_pile.result.mock_note")}
         </Alert>
       )}
+
+      {structure && <Card withBorder padding="xs" radius="sm" data-testid="design-basis">
+        <Text fw={600} size="sm">{t("sheet_pile.result.design_basis")}</Text>
+        <Text size="xs">{t("sheet_pile.result.design_code")}: {structure.design_code ?? "—"}</Text>
+        <Text size="xs">{t("sheet_pile.result.approach")}: {structure.approach || t("sheet_pile.inputs.service_default")}</Text>
+        <Text size="xs">{t("sheet_pile.result.analysis_level")}: {structure.analysis_level ?? "—"}</Text>
+        <Text size="xs">{t("sheet_pile.result.depth_increase")}: {fmt((structure.depth_increase ?? (structure.support === "anchored" ? 0 : 0.2)) * 100, 1)}%</Text>
+        {structure.front_water_depth != null && <Text size="xs">{t("sheet_pile.result.front_water_depth")}: {fmt(structure.front_water_depth)} m</Text>}
+      </Card>}
 
       <Text fw={600} size="sm">
         {t("sheet_pile.result.embedment")}

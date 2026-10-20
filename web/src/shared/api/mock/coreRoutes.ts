@@ -395,6 +395,10 @@ function handleCoreRoutes(
         support: payload.support ?? "cantilever",
         retained_height: payload.retained_height,
         anchor_depth: payload.anchor_depth ?? null,
+        depth_increase: payload.depth_increase ?? null,
+        anchor_spacing: payload.support === "anchored" ? payload.anchor_spacing ?? 1 : null,
+        anchor_inclination: payload.support === "anchored" ? payload.anchor_inclination ?? 0 : null,
+        front_water_depth: payload.front_water_depth ?? null,
         soil: payload.soil ?? {
           source_profile_id: sourceProfile!.id,
           source_hash: mockProfileHash(sourceProfile!),

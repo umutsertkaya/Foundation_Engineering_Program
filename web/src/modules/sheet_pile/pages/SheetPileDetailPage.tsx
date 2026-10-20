@@ -255,7 +255,7 @@ export function SheetPileDetailPage() {
         <Stack gap="xs">
           <Title order={5}>{t("sheet_pile.result.title")}</Title>
           <div style={summary?.stale ? { opacity: 0.5 } : undefined}>
-            <JobPanel jobId={jobId} onDone={() => void refreshSummary()} />
+            <JobPanel jobId={jobId} onDone={() => void refreshSummary()} structure={structure} />
           </div>
         </Stack>
       )}
@@ -263,7 +263,7 @@ export function SheetPileDetailPage() {
         <Stack gap="xs">
           <Title order={5}>{t("sheet_pile.result.saved")}</Title>
           <div style={summary?.stale ? { opacity: 0.5 } : undefined}>
-            <ResultPanel result={structure.result} />
+            <ResultPanel result={structure.result} structure={structure} />
           </div>
         </Stack>
       )}
