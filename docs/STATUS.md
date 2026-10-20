@@ -25,6 +25,10 @@ Compact veya devir öncesi yalnız bu üç satır güncellenir (kural: [WORKFLOW
 
 - T9 biten (2026-10-20, dal feat/t9-pile-fix): palplanş web düzeltmeleri B1-B9, B11, Y1, Y3, Y5, Y7; B6 çevrilebilir uyarı/varsayım kodu sözleşmesi (warning_items, assumption code/params, anchor_force_per_anchor); modele depth_increase, anchor_spacing, anchor_inclination, front_water_depth (varsayılanda sonuçlar aynı; formül/katsayı yok). Test: pytest 1775 geçti 1 atlandı; web 289/289, typecheck, build, gen_code_map --check 0. Salt okuma Opus incelemesi: motor değişmedi, varsayılanlar aynı.
 - T9 açık: (a) eski palplanş yapılar yeni alanlar parmak izini değiştirdiği için bir kez 'stale' görünür; kabul edildi (2026-10-20); (b) 'Tension zone to X m' uyarısı artık gerçek derinliği yazar (yalnız mesaj değeri, hesap aynı; pytest 1776 geçti, 1 atlandı); (c) Y2/Y4 Dalga 3 sonrası, karar bekliyor: [T9b-PILE-SOIL](tasks/T9b-PILE-SOIL.md); (d) gerçek API ile görsel/uçtan uca kabul Q1'de.
+- Biten: 2026-10-20 T1 (dal feat/t1-liq-charts): sıvılaşma sonuç tablosu + FS ve CSR/CRR derinlik SVG grafikleri, yeni hesap yok; liquefaction Vitest 31/31, typecheck, codemap --check temiz. Gerçek API/görsel kabul yapılmadı.
+- T3b (2026-10-20, test/T3b-bearing-earthpressure): taşıma gücü (Meyerhof/Hansen/Vesic, Bowles Tablo 4-4 + bağımsız el hesabı) ve yanal basınç (Rankine/Coulomb/Mononobe-Okabe/Seed-Whitman/log-spiral) literatür testleri eklendi: 46 geçti, 0 xfail/başarısız; kaynak kod değişmedi.
+- T3b kapsam dışı/açık: Terzaghi için motor fonksiyonu yok (test edilmedi); pürüzlü duvar log-spiral Kp (~6.5) kaynağı doğrulanamadığı için kullanılmadı. Literatür farkı yok; LS extreme_I 0.50 proje varsayımı olarak kalır.
+- T3b inceleme: Codex gpt-6-astra yazdı, Antigravity gemini-4-argon salt okuma inceledi (0 bulgu); CODE_MAP yenilendi, --check 0.
 
 ## Koddan doğrulanan durum
 
@@ -113,3 +117,10 @@ Etki (σv=100, σ'v=60 kPa, bağımsız denklem hesabı; FS = CRR·MSF·Kσ/CSR 
 kum (qc 10000) CRR 0.276→0.276 (0%); siltli kum (4000/60) 0.154→0.157 (+2%); kil (800) değişmez; Ic≈2.56 ara bölge (900/5) 0.084→0.087 (+3%); düşük-F siltli kum (2000/5, F<0.5) 0.071→0.085 (+18%, kısayol kalktığı için Kc 1→1.62). Etki yalnız Ic>1.64 ara/siltli CPT katmanlarında; temiz kum değişmez.
 Test 2026-10-20: tam pytest 1688 geçti/1 atlandı; discrepancy 16 geçti; gen_code_map --check 0. Andrus-Stokoe üssü (madde 5) doğrulanmadı, kod değişmedi.
 Not (T3a-FIX inceleme): Kc'deki F<0.5 kısayolu R&W 1998'de vardı, Youd 2001 Eq.19'da yok; çevre PDF metni doğrulanmadı, koordinatör kararıyla silinmiş kalır. Ic tanımsız (net qc<=0, fs<=0, σ'v<=0) noktalar NaN -> INVALID + uyarı; fs=0 artık "clay_like" değil INVALID. Ic>2.6 noktalar mevcut sözleşmeyle CLAY_LIKE (FS atanmaz). σ'v>Pa için n=0.7 ara dalı ızgara taramasında ulaşılamadı (yalnız n=0.5/1).
+
+## Bekleyen işlerin kapatılması (2026-10-20)
+
+- T1 (feat/t1-liq-charts) ve T3b (test/T3b-bearing-earthpressure) main'e birleştirildi; T3b test dosyalarındaki BOM kaldırıldı (kod haritası testini bozuyordu). Bulut testi: pytest 1802 geçti, 3 atlandı, 1 ortam hatası (PySide6 yok, `test_dynamic_i18n_keys_exist`); web Vitest 298 geçti, tsc temiz; gen_code_map --check 0.
+- T4 belgeleri (`katsayi_dogrulama.md`, `research/katsayi_kaynak_arastirmasi_2026-10-20.md`) main'de.
+- T3a-FIX açıkları **doğrulanamadı** (2026-10-20): Youd 2001 tam metni bulut ağından alınamadı (memphis.edu/cgs.ca erişilemez). (a) F<0.5 kısayolu Youd 2001 Eq.19'da var mı: kaynak görülmeden karar verilmedi, kod değişmedi (kaldırılmış hâli +2…+18% CRR, yalnız Ic>1.64). (b) Andrus-Stokoe üssü: kod (M/7.5)^-3.3, Tablo 3 ile tutuyor; -2.56 Idriss'in (Eq.24) üssüdür, çıkarım artefaktı olasılığı yüksek, basılı metinden doğrulanmadı. Cihazdan PDF ile kontrol gerekir.
+- Bağımsız incelemeler (T1, T4 Antigravity; T8a Antigravity; T8b Codex luna) ai-orchestrator bağlanamadığı için çalıştırılamadı (cihaz oturumu gerekir).
