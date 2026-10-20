@@ -17,6 +17,7 @@ def pytest_configure(config):
     """
     base = config.option.basetemp
     if base is not None:
+        Path(base).mkdir(parents=True, exist_ok=True)  # pytest creates only the last path part
         config.option.basetemp = Path(base) / f"run-{os.getpid()}"
 
 

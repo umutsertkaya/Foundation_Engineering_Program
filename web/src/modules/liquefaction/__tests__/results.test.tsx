@@ -40,6 +40,14 @@ describe("DepthChart", () => {
     expect(container.querySelectorAll("circle")).toHaveLength(0);
   });
 
+  it("draws no reference line when there is no finite data", () => {
+    const { container } = render(<DepthChart {...chartProps} depth={[1, 2]} reference={{ value: 1, label: label("fs_reference") }}
+      series={[{ label: label("fs"), values: [null, null], color }]} />);
+    expect(screen.getByText(label("no_chart_data"))).toBeInTheDocument();
+    expect(screen.queryByText(label("fs_reference"))).not.toBeInTheDocument();
+    expect(container.querySelector('path[stroke-dasharray="3 4"]')).not.toBeInTheDocument();
+  });
+
   it("breaks lines at null values and null depths, retaining isolated points", () => {
     const { container } = render(<DepthChart {...chartProps} depth={[1, 2, 3, 4, null, 6]}
       series={[{ label: label("fs"), values: [0.8, 1.1, null, 1.3, 1.4, 1.5], color }]} />);
