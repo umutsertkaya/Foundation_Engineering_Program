@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { Badge, Card, Group, SimpleGrid, Stack, Text, Title } from "@mantine/core";
+import { Badge, Button, Card, Group, SimpleGrid, Stack, Text, Title } from "@mantine/core";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { list_structures } from "../../../shared/api/client";
@@ -40,12 +40,17 @@ export function SheetPileListPage() {
 
   return (
     <Stack gap="md">
-      <div>
-        <Title order={3}>{t("sheet_pile.nav.list")}</Title>
-        <Text size="sm" c="dimmed">
-          {t("sheet_pile.list.subtitle")}
-        </Text>
-      </div>
+      <Group justify="space-between" align="flex-start">
+        <div>
+          <Title order={3}>{t("sheet_pile.nav.list")}</Title>
+          <Text size="sm" c="dimmed">
+            {t("sheet_pile.list.subtitle")}
+          </Text>
+        </div>
+        <Button size="xs" onClick={() => navigate("/m/sheet_pile/new")}>
+          {t("sheet_pile.list.new")}
+        </Button>
+      </Group>
 
       {error != null && <ErrorAlert error={error} onRetry={() => void load()} />}
 

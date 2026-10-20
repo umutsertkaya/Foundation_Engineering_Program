@@ -11,6 +11,6 @@ export const manifest: WebModuleManifest = {
   order: 40,
   Root,
   nav: [
-    { path: "", labelKey: "sheet_pile.nav.list", end: true, matchPrefixes: ["s/"] },
+    { path: "", labelKey: "sheet_pile.nav.list", end: true, matchPrefixes: ["s/", "new"] },
   ],
 };

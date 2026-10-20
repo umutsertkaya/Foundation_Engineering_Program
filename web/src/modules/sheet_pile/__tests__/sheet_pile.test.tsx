@@ -29,10 +29,21 @@ function renderAt(path: string) {
   );
 }
 
-function seedSheetPile(id: string, name: string) {
+function seedSheetPile(id: string, name: string, support: "cantilever" | "anchored" = "cantilever") {
   const store = getMockStore();
-  const base = structuredClone(store.structures[0]) as unknown as Record<string, unknown>;
-  store.structures.push({ ...base, id, name, kind: "sheet_pile" } as unknown as Structure);
+  const profile = structuredClone(store.profiles[0]);
+  profile.layers = [{ id: "L1", top: 0, bottom: 12, gamma: 18, design: { phi_eff: 30, c_eff: 0 } }];
+  store.structures.push({
+    kind: "sheet_pile",
+    id,
+    name,
+    support,
+    retained_height: 4,
+    anchor_depth: support === "anchored" ? 1 : null,
+    surcharge: 0,
+    allowable_stress_mpa: 160,
+    soil: { source_profile_id: store.profiles[0].id, source_hash: "h", profile },
+  } as unknown as Structure);
 }
 
 describe("sheet_pile shell (mock)", () => {
@@ -74,11 +85,12 @@ describe("sheet_pile shell (mock)", () => {
     expect(await screen.findByText("Palplanş perdesi bulunamadı")).toBeInTheDocument();
   });
 
-  it("mock design: 501 for an existing sheet pile, 404 for an unknown id, unhandled otherwise", async () => {
+  it("mock design: 202 job for an existing sheet pile, 404 for an unknown id, unhandled otherwise", async () => {
     seedSheetPile("sp-1", "Perde A");
     const ok = await mockRequest("POST", "/m/sheet_pile/structures/sp-1/design");
-    expect(ok.status).toBe(501);
-    expect((ok.data as { code: string }).code).toBe("not_implemented");
+    expect(ok.status).toBe(202);
+    const job = await mockRequest("GET", `/jobs/${(ok.data as { job_id: string }).job_id}`);
+    expect((job.data as { kind: string }).kind).toBe("sheet_pile");
     const missing = await mockRequest("POST", "/m/sheet_pile/structures/nope/design");
     expect(missing.status).toBe(404);
     const other = await mockRequest("GET", "/m/sheet_pile/whatever");
@@ -95,6 +107,76 @@ describe("sheet_pile shell (mock)", () => {
   });
 
   it("nav list item stays active under s/", () => {
-    expect(manifest.nav[0].matchPrefixes).toEqual(["s/"]);
+    expect(manifest.nav[0].matchPrefixes).toEqual(["s/", "new"]);
+  });
+
+  it("detail shows inputs, source profile and runs the mock job to a result with units", async () => {
+    seedSheetPile("sp-2", "Perde B", "anchored");
+    renderAt("/m/sheet_pile/s/sp-2");
+    expect(await screen.findByRole("heading", { name: "Perde B" })).toBeInTheDocument();
+    expect(screen.getByTestId("soil-source").textContent).toContain(getMockStore().profiles[0].id);
+    fireEvent.click(screen.getByRole("button", { name: "Tasarımı çalıştır" }));
+    expect(await screen.findByTestId("job-progress")).toBeInTheDocument();
+    expect(await screen.findByTestId("sheet-pile-result", {}, { timeout: 5000 })).toBeInTheDocument();
+    expect(screen.getByText("MOCK")).toBeInTheDocument();
+    expect(screen.getByText("kNm/m")).toBeInTheDocument();
+    expect(screen.getAllByText("kN/m").length).toBeGreaterThan(0);
+    expect(screen.getByText("Ankraj kuvveti")).toBeInTheDocument();
+    expect(screen.getByText("cm³/m")).toBeInTheDocument();
+    // source profile untouched
+    const st = getMockStore().structures.find((x) => x.id === "sp-2") as unknown as { soil: { source_profile_id: string } };
+    expect(st.soil.source_profile_id).toBe(getMockStore().profiles[0].id);
+  });
+
+  it("cancel stops the job; an unknown job is shown as unavailable", async () => {
+    seedSheetPile("sp-3", "Perde C");
+    renderAt("/m/sheet_pile/s/sp-3");
+    fireEvent.click(await screen.findByRole("button", { name: "Tasarımı çalıştır" }));
+    await screen.findByTestId("job-progress");
+    fireEvent.click(await screen.findByRole("button", { name: "İptal et" }));
+    expect(await screen.findByText("Hesap iptal edildi.")).toBeInTheDocument();
+  });
+
+  it("unknown job id shows unavailable", async () => {
+    seedSheetPile("sp-4", "Perde D");
+    renderAt("/m/sheet_pile/s/sp-4?job=nope");
+    expect(await screen.findByText(/artık mevcut değil/)).toBeInTheDocument();
+  });
+
+  it("detail blocks the run and lists the missing design phi", async () => {
+    seedSheetPile("sp-5", "Perde E");
+    const st = getMockStore().structures.find((x) => x.id === "sp-5") as unknown as {
+      soil: { profile: { layers: { design?: unknown }[] } };
+    };
+    st.soil.profile.layers[0].design = {};
+    renderAt("/m/sheet_pile/s/sp-5");
+    expect(await screen.findByTestId("missing-inputs")).toHaveTextContent("tasarım φ' değeri eksik");
+    expect(screen.getByRole("button", { name: "Tasarımı çalıştır" })).toBeDisabled();
+  });
+
+  it("create form lists missing inputs explicitly and posts nothing", async () => {
+    renderAt("/m/sheet_pile/new");
+    fireEvent.click(await screen.findByRole("button", { name: "Oluştur" }));
+    const list = await screen.findByTestId("missing-inputs");
+    expect(list).toHaveTextContent("Ad girilmedi.");
+    expect(list).toHaveTextContent("Tutulan yükseklik girilmedi.");
+    expect(list).toHaveTextContent("Kaynak profil seçilmedi.");
+  });
+
+  it("create (manual soil) sends a manual soil without a source profile and opens the detail", async () => {
+    renderAt("/m/sheet_pile/new");
+    fireEvent.change(await screen.findByLabelText("Ad"), { target: { value: "Yeni" } });
+    fireEvent.change(screen.getByLabelText(/Tutulan yükseklik/), { target: { value: "4" } });
+    fireEvent.click(screen.getByText("Elle gir"));
+    fireEvent.change(screen.getByLabelText(/Yeraltı suyu/), { target: { value: "2" } });
+    fireEvent.change(screen.getByLabelText("Alt (m) 1"), { target: { value: "12" } });
+    fireEvent.change(screen.getByLabelText("γ (kN/m³) 1"), { target: { value: "18" } });
+    fireEvent.change(screen.getByLabelText("φ' (°) 1"), { target: { value: "30" } });
+    fireEvent.click(screen.getByRole("button", { name: "Oluştur" }));
+    await waitFor(() => expect(screen.getByTestId("loc").textContent).toMatch(/^\/m\/sheet_pile\/s\/pile-mock-\d+$/));
+    const created = getMockStore().structures.at(-1) as unknown as { kind: string; name: string; soil: { source_profile_id: unknown } };
+    expect(created.kind).toBe("sheet_pile");
+    expect(created.name).toBe("Yeni");
+    expect(created.soil.source_profile_id).toBeNull();
   });
 });

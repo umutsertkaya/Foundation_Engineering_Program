@@ -23,7 +23,8 @@ Eski devam metinlerindeki “A1/E2/E3/F3/F4 başlamadı” ve “i18n API 501”
 
 F5-LIQ ilk iki teslimi `fdd80b1` ile tamam (2026-10-20: job takibi/iptal/hata/erişilemiyor + genel mock job deposu;
 typecheck, liquefaction Vitest 24/24, ilgili pytest 71 geçti). Kalan: tablo/grafik ayrıntısı, gerçek API smoke ve görsel QA → Q1.
-Şimdi seçilecek görev: **[F5-PILE](tasks/F5-PILE.md)**.
+F5-PILE tamam (2026-10-20: yapı oluşturma/girdi, tasarım job'u, sonuç paneli, mock sheet_pile create/job; typecheck, sheet_pile+boundaries Vitest 21/21, walls+liquefaction Vitest geçti). Salt okuma incelemesi yapılmadı.
+Şimdi seçilecek görev: **[Q1](tasks/Q1.md)**.
 Kalan paketler küçük teslimlere ayrılır; hepsini aynı oturumda planlama.
 
 | Sıra | Kart | Kapsam / bağımlılık |

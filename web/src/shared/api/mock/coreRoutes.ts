@@ -371,6 +371,34 @@ function handleCoreRoutes(
       store.structures.push(created);
       return { status: 200, data: structuredClone(created) };
     }
+
+    if (payload.kind === "sheet_pile") {
+      const created: SheetPileStructure = {
+        kind: "sheet_pile",
+        id: `pile-mock-${store.structures.length + 1}`,
+        name: payload.name,
+        support: payload.support ?? "cantilever",
+        retained_height: payload.retained_height,
+        anchor_depth: payload.anchor_depth ?? null,
+        soil: payload.soil ?? {
+          source_profile_id: sourceProfile!.id,
+          source_hash: mockProfileHash(sourceProfile!),
+          profile: structuredClone(sourceProfile!),
+          retained_fill: [],
+          gwt_retained: null,
+          gwt_front: null,
+        },
+        surcharge: payload.surcharge ?? 0,
+        sds: payload.sds ?? null,
+        design_code: payload.design_code ?? "asd",
+        approach: payload.approach ?? null,
+        allowable_stress_mpa: payload.allowable_stress_mpa ?? null,
+        analysis_level: payload.analysis_level ?? "basic",
+        result_hash: null,
+      };
+      store.structures.push(created);
+      return { status: 200, data: structuredClone(created) };
+    }
   }
 
   // GET / PUT / DELETE /structures/{id}
