@@ -71,3 +71,19 @@ def test_vesic_undrained_refuses_horizontal_load_beyond_adhesion():
 def test_partial_factor_override_with_short_path_is_a_clean_error():
     with pytest.raises(GeoTekError, match="no factor"):
         resolve_code("ec7", {"EQU": FactorOverride(value=1.2)})
+
+
+def test_material_gamma_override_is_reported_as_not_applied():
+    """EC7 ``material.gamma`` is accepted by the code table but unused by the engine (T12 card)."""
+    from geotek.services.structures import check_structure
+    from tests.api.job_helpers import wall_project
+
+    project = wall_project(geometry=True, advanced=True, code="ec7", sds=None)
+    wall = project.structure("wall")
+    wall.approach = "DA1"
+    baseline = check_structure(project, "wall")
+    wall.settings.factor_overrides["DA1-C2.material.gamma"] = FactorOverride(value=1.2)
+    result = check_structure(project, "wall")
+    assert 'wall.warning.override_not_applied: path="DA1-C2.material.gamma"' in result.warnings
+    assert [c.value for a in result.analyses.values() for c in a.checks.values()] == \
+        [c.value for a in baseline.analyses.values() for c in a.checks.values()]

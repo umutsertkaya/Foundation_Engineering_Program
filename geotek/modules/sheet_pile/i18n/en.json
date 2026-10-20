@@ -108,6 +108,7 @@
   "sheet_pile.detail.result_stale_title": "Result may be out of date",
   "sheet_pile.result.saved": "Saved result",
   "sheet_pile.result.series_points_shown": "Showing {shown} of {total} points",
+  "sheet_pile.warning.override_not_applied": "Factor override {path} is accepted but not applied yet: the engine does not use material factors on unit weight.",
   "sheet_pile.warning.generic": "{text}",
   "sheet_pile.warning.sheet_pile.embedment_below_profile": "Design embedment extends below the soil profile",
   "sheet_pile.warning.sheet_pile.tension_crack": "Tension zone to {depth} m set to zero (tension crack)",

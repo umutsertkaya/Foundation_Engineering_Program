@@ -448,6 +448,7 @@
   "start.export.overwrite": "Overwrite",
   "settings.revert": "Revert",
   "shell.menu_toggle": "Toggle navigation menu",
+  "wall.warning.override_not_applied": "Factor override {path} is accepted but not applied yet: the engine does not use material factors on unit weight.",
   "insitu.warning.spt_refusal": "{count} SPT record(s) at refusal; N is a lower bound at depth(s) {depths} m.",
   "insitu.warning.spt_cn_out_of_range": "σ′v0 > 200 kPa: the Liao & Whitman C_N is outside its recommended range.",
   "insitu.warning.cpt_no_u2": "No u2 data: q_t is taken equal to q_c.",

@@ -108,6 +108,7 @@
   "sheet_pile.detail.result_stale_title": "Sonuç eski olabilir",
   "sheet_pile.result.saved": "Kaydedilmiş sonuç",
   "sheet_pile.result.series_points_shown": "{total} noktanın {shown} tanesi gösteriliyor",
+  "sheet_pile.warning.override_not_applied": "{path} katsayı değişikliği kaydedildi ancak henüz uygulanmıyor: motor birim hacim ağırlığına malzeme katsayısı uygulamıyor.",
   "sheet_pile.warning.generic": "{text}",
   "sheet_pile.warning.sheet_pile.embedment_below_profile": "Tasarım gömülmesi zemin profilinin altına uzanıyor",
   "sheet_pile.warning.sheet_pile.tension_crack": "{depth} m derinliğe kadar çekme bölgesi sıfırlandı (çekme çatlağı)",

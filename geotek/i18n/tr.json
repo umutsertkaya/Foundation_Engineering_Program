@@ -448,6 +448,7 @@
   "start.export.overwrite": "Üzerine yaz",
   "settings.revert": "Geri al",
   "shell.menu_toggle": "Gezinme menüsünü aç veya kapat",
+  "wall.warning.override_not_applied": "{path} katsayı değişikliği kaydedildi ancak henüz uygulanmıyor: motor birim hacim ağırlığına malzeme katsayısı uygulamıyor.",
   "insitu.warning.spt_refusal": "{count} SPT kaydı refüde; {depths} m derinlik(ler)inde N alt sınırdır.",
   "insitu.warning.spt_cn_out_of_range": "σ′v0 > 200 kPa: Liao & Whitman C_N önerilen aralığının dışında.",
   "insitu.warning.cpt_no_u2": "u2 verisi yok: q_t, q_c'ye eşit alındı.",

@@ -18,6 +18,7 @@ import numpy as np
 
 from geotek.config.codes import FactorLog
 from geotek.core.errors import GeoTekError, MissingFactorsError
+from geotek.core.warning_codes import format_warning
 from geotek.core.models.project import Project
 from geotek.core.models.profile import GroundwaterCondition
 from geotek.core.models.structures import RetainingWallStructure, SheetPileStructure
@@ -405,6 +406,7 @@ def _finish(project, structure, geometry, settings, loads, kh, kv, evaluated, it
         for factor in result.factors_used:
             used[factor.path] = factor
     warnings = sorted({w for a in analyses.values() for w in a.warnings})
+    warnings += _ignored_override_warnings(settings)
     if structure.inputs.sds is not None and loads.kv and settings.kv_sign == "envelope":
         warnings.append("Düşey deprem katsayısı ±kv zarfı uygulandı (TBDY 16.12.2.3); "
                         "yöneten işaret kontrol bazında detayda belirtilmiştir.")
@@ -525,6 +527,16 @@ def _sheet_soil(structure, soil):
     return soil.model_copy(update={
         "gwt_front": GroundwaterCondition(depth_insitu=structure.front_water_depth),
     })
+
+
+def _ignored_override_warnings(settings) -> list[str]:
+    """Overrides accepted by the code tables but never read by the engine must not look applied.
+
+    The material factor on unit weight (``<combination>.material.gamma``) is not used yet
+    (docs/tasks/T12-MATERIAL-FACTORS.md).
+    """
+    return [format_warning("wall.warning.override_not_applied", path=path)
+            for path in sorted(settings.factor_overrides) if path.endswith(".material.gamma")]
 
 
 def _approach_assumption(code, approach, code_key):
@@ -688,6 +700,7 @@ def design_sheet_pile_structure(project: Project, structure_id: str, progress: P
             )
             results[key], used[key] = result, list(case.factors_used)
     gd, gm = max(results, key=lambda k: results[k].D), max(results, key=lambda k: results[k].M_max)
+    results[gd].warnings.extend(_ignored_override_warnings(settings))
     anchors = [r.anchor_force for r in results.values() if r.anchor_force is not None]
     reporter.emit(1.0, "job.step.sizing")
     return StructureSheetPileDesign(cases=results, D_required=results[gd].D, M_design=results[gm].M_max,
