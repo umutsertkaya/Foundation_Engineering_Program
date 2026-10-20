@@ -12,7 +12,7 @@ import { ProjectProvider, useProjectSession } from "../app/ProjectProvider";
 import { theme } from "../app/theme";
 import { setMockMode, update_project_meta } from "../shared/api/client";
 import { close_project, get_session } from "../shared/api/core";
-import { resetCoreMock } from "../shared/api/mock";
+import { mockRequest, resetCoreMock } from "../shared/api/mock";
 import type { WebModuleManifest } from "../shared/moduleTypes";
 
 const fakeManifest: WebModuleManifest = {
@@ -192,7 +192,8 @@ describe("project session refresh", () => {
     const { result } = renderHook(() => useProjectSession(), { wrapper: ProjectProvider });
     await waitFor(() => expect(result.current.loading).toBe(false));
     const project = result.current.project;
-    await update_project_meta({ name: "Changed elsewhere" });
+    // Straight to the mock backend: no http request, so no automatic session refresh.
+    await mockRequest("PATCH", "/project/meta", { name: "Changed elsewhere" });
     expect(result.current.session.dirty).toBe(false);
     act(() => { result.current.markDirty(); });
     await waitFor(() => expect(result.current.session.dirty).toBe(true));
@@ -238,5 +239,23 @@ describe("project session refresh", () => {
     expect(await screen.findByText(i18n.t("shell.unsaved"))).toBeInTheDocument();
     expect(screen.getByTestId("dirty")).toHaveTextContent("true");
     expect(screen.getByRole("button", { name: i18n.t("shell.menu_toggle") })).toBeInTheDocument();
+  });
+
+  it("refreshes the dirty flag after every successful write request", async () => {
+    const { result } = renderHook(() => useProjectSession(), { wrapper: ProjectProvider });
+    await waitFor(() => expect(result.current.loading).toBe(false));
+    expect(result.current.session.dirty).toBe(false);
+    await act(async () => { await update_project_meta({ name: "Edited" }); });
+    await waitFor(() => expect(result.current.session.dirty).toBe(true));
+  });
+
+  it("re-reads the session before closing, so a change made outside the shell still asks for confirmation", async () => {
+    renderApp("/launcher");
+    const closeButton = await screen.findByRole("button", { name: i18n.t("launcher.close_project") });
+    // e.g. a finished calculation job stored its result: the shell has not seen this write.
+    await mockRequest("PATCH", "/project/meta", { name: "Changed by a job" });
+    fireEvent.click(closeButton);
+    expect(await screen.findByText(i18n.t("launcher.close_unsaved_confirm"))).toBeInTheDocument();
+    expect((await get_session()).open).toBe(true);
   });
 });

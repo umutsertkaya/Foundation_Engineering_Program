@@ -78,7 +78,7 @@ export function LauncherPage() {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const modules = useModules();
-  const { session, project, save, close, refresh } = useProjectSession();
+  const { session, project, save, close, refresh, refreshSession } = useProjectSession();
 
   const currentLang: Language = i18n.language === "en" ? "en" : "tr";
 
@@ -181,8 +181,15 @@ export function LauncherPage() {
     }
   };
 
-  const handleCloseClick = () => {
-    if (session.dirty) {
+  const handleCloseClick = async () => {
+    // A finished job or another tab may have changed the project since the last session read.
+    let dirty = session.dirty;
+    try {
+      dirty = (await refreshSession()).dirty;
+    } catch {
+      // Keep the last known flag when the session cannot be read.
+    }
+    if (dirty) {
       setConfirmCloseOpen(true);
       return;
     }
@@ -293,7 +300,7 @@ export function LauncherPage() {
                 variant="subtle"
                 color="red"
                 leftSection={<IconLogout size={16} />}
-                onClick={handleCloseClick}
+                onClick={() => void handleCloseClick()}
               >
                 {t("launcher.close_project")}
               </Button>
