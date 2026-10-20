@@ -20,6 +20,9 @@ import { MissingList } from "../components/MissingList";
 import { ResultPanel } from "../components/ResultPanel";
 import { applyInputs, fromStructure, missingInputs, missingSoilInputs, type PileInputs } from "../inputs";
 
+/** Display-only rounding; stored values keep full precision. */
+const round = (v: number, digits: number): number => Number(v.toFixed(digits));
+
 export function SheetPileDetailPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -210,17 +213,17 @@ export function SheetPileDetailPage() {
         <Table.Tbody>
           {soil.profile.layers.map((l) => (
             <Table.Tr key={l.id}>
-              <Table.Td>{l.top}</Table.Td>
-              <Table.Td>{l.bottom}</Table.Td>
-              <Table.Td>{l.gamma}</Table.Td>
+              <Table.Td>{round(l.top, 3)}</Table.Td>
+              <Table.Td>{round(l.bottom, 3)}</Table.Td>
+              <Table.Td>{round(l.gamma, 2)}</Table.Td>
               <Table.Td>
-                {l.design?.phi_eff ?? (
+                {l.design?.phi_eff != null ? round(l.design.phi_eff, 2) : (
                   <Badge color="red" variant="light">
                     {t("sheet_pile.detail.missing_value")}
                   </Badge>
                 )}
               </Table.Td>
-              <Table.Td>{l.design?.c_eff ?? 0}</Table.Td>
+              <Table.Td>{round(l.design?.c_eff ?? 0, 2)}</Table.Td>
             </Table.Tr>
           ))}
         </Table.Tbody>

@@ -147,7 +147,7 @@ export function ResultPanel({ result, structure }: { result: SheetPileResultDTO;
           <Text fw={600} size="sm">
             {t("sheet_pile.result.assumptions")}
           </Text>
-          <List size="sm">
+          <List size="sm" styles={{ itemWrapper: { maxWidth: "calc(100% - 20px)" }, itemLabel: { overflowWrap: "anywhere" } }}>
             {result.assumptions.map((a, i) => (
               <List.Item key={i}>
                 {a.code ? t(`sheet_pile.assumption.${a.code}`, { ...a.params, defaultValue: a.text }) : a.text}{" "}
@@ -161,7 +161,7 @@ export function ResultPanel({ result, structure }: { result: SheetPileResultDTO;
       )}
       {warnings.length > 0 && (
         <Alert color="yellow" variant="light" title={t("sheet_pile.result.warnings")}>
-          <List size="sm">
+          <List size="sm" styles={{ itemWrapper: { maxWidth: "calc(100% - 20px)" }, itemLabel: { overflowWrap: "anywhere" } }}>
             {warnings.map((w, i) => (
               <List.Item key={i}>{w}</List.Item>
             ))}

@@ -47,7 +47,7 @@ export function SoundingDetail({ id, sounding }: { id: string; sounding: Soundin
                 <Table.Td>{format(sounding.CSR[i])}</Table.Td>
                 <Table.Td>{format(sounding.CRR[i])}</Table.Td>
                 <Table.Td>{format(sounding.FS[i])}</Table.Td>
-                <Table.Td>{sounding.status[i] ? <Badge color={sounding.status[i] === "liquefiable" ? "red" : "blue"}>
+                <Table.Td style={{ whiteSpace: "nowrap" }}>{sounding.status[i] ? <Badge color={sounding.status[i] === "liquefiable" ? "red" : "blue"} styles={{ root: { maxWidth: "none" }, label: { overflow: "visible", textOverflow: "clip" } }}>
                   {label(`status.${sounding.status[i]}`)}
                 </Badge> : "—"}</Table.Td>
                 {i === 0 && <Table.Td rowSpan={sounding.depth.length}>{warnings}</Table.Td>}
