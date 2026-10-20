@@ -51,10 +51,14 @@ def _structure_status(project: Project, structure) -> SectionStatus:
         return "no_result"
     source = next((p for p in project.soil_profiles
                    if p.id == structure.soil.source_profile_id), None)
-    if (structure.soil.is_stale(source)
-            or structure.result_hash != calculation_fingerprint(project, structure)):
+    if structure.soil.is_stale(source):
         return "stale"
-    return "ready"
+    try:
+        current = calculation_fingerprint(project, structure)
+    except (ValueError, KeyError, TypeError):
+        # Inputs that cannot be fingerprinted (e.g. NaN) cannot match the stored result.
+        return "stale"
+    return "ready" if structure.result_hash == current else "stale"
 
 
 def _liquefaction_status(project: Project) -> SectionStatus:

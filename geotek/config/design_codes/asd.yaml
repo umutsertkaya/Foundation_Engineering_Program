@@ -1,16 +1,22 @@
-# Allowable Stress Design: global factors of safety (FHWA-NHI-06-088 / common practice).
+# Allowable Stress Design: global factors of safety (FHWA-NHI-06-089 Vol. II / common practice).
 # Values must be confirmed against the reference during Phase 0 before status becomes "verified".
 id: asd
 label:
   tr: "ASD — Global güvenlik sayısı"
   en: "ASD — Global factor of safety"
 approach: global_fs
-reference: "FHWA-NHI-06-088 (Soils and Foundations Reference Manual); NAVFAC DM-7.02"
+reference: "FHWA-NHI-06-089 (Soils and Foundations Reference Manual, Vol. II); NAVFAC DM-7.02"
 status: draft
 
 factor_sources:
-  safety: {source: "ASD — yaygın uygulama değeri (FHWA-NHI-06-088 ile karşılaştırılmadı)", status: unverified}
-  eccentricity: {source: "ASD — yaygın uygulama (statik B/6, depremde B/4); doğrulanmadı", status: unverified}
+  safety: {source: "ASD — yaygın uygulama değeri (FHWA-NHI-06-089 ile karşılaştırılmadı)", status: unverified}
+  safety.sliding.static: {source: "FHWA-NHI-06-089 Vol. II (2026-10-20 karşılaştırma, secondary)", status: secondary}
+  safety.bearing_capacity.static: {source: "FHWA-NHI-06-089 Vol. II, önerilen 3.0 (secondary)", status: secondary}
+  safety.global_stability.static: {source: "FHWA-NHI-06-089 Vol. II (secondary)", status: secondary}
+  safety.overturning.static: {source: "Eksantrisite kriterinden türetilmiş yaklaşık değer; doğrudan kaynak yok", status: unverified}
+  eccentricity: {source: "ASD — yaygın uygulama; sismik değerler doğrulanmadı", status: unverified}
+  eccentricity.soil.static: {source: "FHWA-NHI-06-089 Vol. II, B/6 (secondary)", status: secondary}
+  eccentricity.rock.static: {source: "FHWA-NHI-06-089 Vol. II, B/4 (secondary)", status: secondary}
 
 safety_factors:            # minimum required FS
   overturning:       {static: 2.0, seismic: 1.5}
@@ -27,4 +33,4 @@ verification:
   - item: "All global factors of safety and eccentricity limits"
     value: "see above"
     status: unverified
-    note: "Common practice values; FHWA-NHI-06-088 / NAVFAC DM-7.02 not yet checked"
+    note: "Common practice values; FHWA-NHI-06-089 Vol. II partly compared 2026-10-20 (static sliding, bearing, global, eccentricity: secondary); NAVFAC DM-7.02 not checked; seismic values and sheet pile passive unverified"
