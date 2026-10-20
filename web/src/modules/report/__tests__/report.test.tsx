@@ -58,4 +58,14 @@ describe("report page", () => {
     expect(screen.getAllByText("Wall 1")).toHaveLength(2);
     await waitFor(() => expect(api.list_report_sections).toHaveBeenCalledTimes(2));
   });
+
+  it("labels sections the server leaves unnamed with their translated kind", async () => {
+    vi.mocked(api.list_report_sections).mockResolvedValue([
+      { id: "classification", kind: "classification", name: "", status: "ready" },
+      { id: "liquefaction", kind: "liquefaction", name: "", status: "ready" },
+    ]);
+    renderPage();
+    expect(await screen.findByLabelText(i18n.t("report.section.classification"))).toBeChecked();
+    expect(screen.getByLabelText(i18n.t("report.section.liquefaction"))).toBeChecked();
+  });
 });
