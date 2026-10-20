@@ -862,3 +862,32 @@ def test_aashto_wall_makes_ls_extreme_assumption_visible():
     assert LS_EXTREME_ASSUMPTION in result.warnings
     other = check_structure(_project(advanced=True, code="asd"), "wall")
     assert LS_EXTREME_ASSUMPTION not in other.warnings
+
+
+def test_sizing_treats_a_bearing_failure_as_a_failed_trial_width(monkeypatch):
+    """A narrow trial whose base cannot carry the load must not abort the whole sizing job."""
+    from geotek.core.errors import BearingFailureError
+    from geotek.services import structures as service
+
+    real = service._evaluate_wall
+    tried = []
+
+    def narrow_fails(structure, geometry, *args, **kwargs):
+        tried.append(geometry.width)
+        if geometry.width < 4.0:
+            raise BearingFailureError("Horizontal load exceeds base adhesion (m H >= A' s_u N_c)")
+        return real(structure, geometry, *args, **kwargs)
+
+    project = _project(with_global=True, geometry=False)
+    project.structure("wall").settings.kv_sign = "down"
+    monkeypatch.setattr(service, "_evaluate_wall", narrow_fails)
+    result = size_structure(project, "wall")
+    assert min(tried) < 4.0
+    assert result.passed and result.geometry.width == pytest.approx(4.50)
+
+    def always_fails(*args, **kwargs):
+        raise BearingFailureError("Eccentricity too large: effective width <= 0")
+
+    monkeypatch.setattr(service, "_evaluate_wall", always_fails)
+    with pytest.raises(BearingFailureError, match="effective width"):
+        size_structure(project, "wall")

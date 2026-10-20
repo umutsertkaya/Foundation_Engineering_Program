@@ -17,7 +17,7 @@ from dataclasses import dataclass, field, replace
 import numpy as np
 
 from geotek.config.codes import FactorLog
-from geotek.core.errors import GeoTekError, MissingFactorsError
+from geotek.core.errors import BearingFailureError, GeoTekError, MissingFactorsError
 from geotek.core.warning_codes import format_warning
 from geotek.core.models.project import Project
 from geotek.core.models.profile import GroundwaterCondition
@@ -461,22 +461,29 @@ def size_structure(project: Project, structure_id: str, progress: ProgressFn | N
     reporter.emit(0.0, "job.step.sizing")
     B = max(_ceil(0.3 * H), 0.9)
     count = int(round((1.2 * H - B) / STEP)) + 1
-    best, last_fail, iterations, slot = None, [], 0, 0
+    best, last_fail, last_error, iterations, slot = None, [], None, 0, 0
     while B <= 1.2 * H + 1e-9:
         geometry = proportion_for(structure.wall_type, H, B, D)
         if geometry is not None:
             iterations += 1
-            evaluated = _evaluate_wall(structure, geometry, settings, loads, reporter,
-                                       0.95 * slot / count, 0.95 / count, sizing=True)
-            fails = _failures(evaluated[0], evaluated[1])
-            best = geometry, evaluated, fails
-            if not fails:
-                break
-            last_fail = fails
+            try:
+                evaluated = _evaluate_wall(structure, geometry, settings, loads, reporter,
+                                           0.95 * slot / count, 0.95 / count, sizing=True)
+            except BearingFailureError as exc:
+                # This width cannot carry the load at all; a wider base may.
+                last_error = exc
+            else:
+                fails = _failures(evaluated[0], evaluated[1])
+                best = geometry, evaluated, fails
+                if not fails:
+                    break
+                last_fail = fails
         slot += 1
         reporter.emit(0.95 * slot / count, "job.step.sizing")
         B = round(B + STEP, 6)
     if best is None:
+        if last_error is not None:
+            raise last_error
         raise GeoTekError("No feasible geometry for these proportions")
     geometry, evaluated, fails = best
     governing = (last_fail[0] if last_fail else "minimum width") if not fails else ", ".join(fails)

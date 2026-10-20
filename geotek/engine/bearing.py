@@ -19,7 +19,7 @@ import math
 from dataclasses import dataclass, field
 from typing import Literal
 
-from geotek.core.errors import GeoTekError
+from geotek.core.errors import BearingFailureError, GeoTekError
 
 Method = Literal["meyerhof", "hansen", "vesic"]
 
@@ -91,7 +91,7 @@ def bearing_capacity(
     b_eff = B - 2 * abs(e_B)
     l_eff = None if strip else L - 2 * abs(e_L)
     if b_eff <= 0 or (l_eff is not None and l_eff <= 0):
-        raise GeoTekError("Eccentricity too large: effective width <= 0")
+        raise BearingFailureError("Eccentricity too large: effective width <= 0")
     if not strip and l_eff < b_eff:
         b_eff, l_eff = l_eff, b_eff
     ratio = 0.0 if strip else b_eff / l_eff
@@ -127,7 +127,7 @@ def bearing_capacity(
             f["sc_prime"] = 0.2 * ratio
             if H > 0:
                 if H > area * c:
-                    raise GeoTekError("Horizontal load exceeds base adhesion (H > A' s_u)")
+                    raise BearingFailureError("Horizontal load exceeds base adhesion (H > A' s_u)")
                 f["ic_prime"] = 0.5 - 0.5 * math.sqrt(1 - H / (area * c))
             else:
                 f["ic_prime"] = 0.0
@@ -138,7 +138,7 @@ def bearing_capacity(
             f["dc"] = 1 + f["dc_prime"]
             if H > 0 and m * H >= area * c * 5.14:
                 # i_c <= 0 (or s_u = 0 under H) has no physical capacity; refuse like Hansen above.
-                raise GeoTekError("Horizontal load exceeds base adhesion (m H >= A' s_u N_c)")
+                raise BearingFailureError("Horizontal load exceeds base adhesion (m H >= A' s_u N_c)")
             f["ic"] = 1 - m * H / (area * c * 5.14) if H > 0 else 1.0
             q_ult = 5.14 * c * f["sc"] * f["dc"] * f["ic"] + q
 
