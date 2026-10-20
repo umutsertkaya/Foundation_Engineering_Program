@@ -7,6 +7,13 @@ export function MissingList({ keys }: { keys: string[] }) {
   const { t } = useTranslation();
   if (keys.length === 0) return null;
   const label = (key: string): string => {
+    const range = /^range:(.+)$/.exec(key);
+    if (range) {
+      const layer = /^layer_(\d+)_(geometry|gamma)$/.exec(range[1]);
+      return layer
+        ? t(`sheet_pile.missing.range_layer_${layer[2]}`, { n: Number(layer[1]) + 1 })
+        : t(`sheet_pile.missing.range_${range[1]}`);
+    }
     const layer = /^layer_(\d+)_(geometry|phi)$/.exec(key);
     if (layer) return t(`sheet_pile.missing.layer_${layer[2]}`, { n: Number(layer[1]) + 1 });
     const phi = /^phi:(.+)$/.exec(key);

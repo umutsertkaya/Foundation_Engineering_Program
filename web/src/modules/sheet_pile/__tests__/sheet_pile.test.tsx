@@ -250,6 +250,15 @@ describe("sheet_pile shell (mock)", () => {
     expect(list).toHaveTextContent("Kaynak profil seçilmedi.");
   });
 
+  it("blocks create when H is outside the server range", async () => {
+    renderAt("/m/sheet_pile/new");
+    fireEvent.change(await screen.findByLabelText("Ad"), { target: { value: "Too short" } });
+    fireEvent.change(screen.getByLabelText(/Tutulan yükseklik/), { target: { value: "0.3" } });
+    fireEvent.click(screen.getByRole("button", { name: "Oluştur" }));
+    expect(await screen.findByTestId("missing-inputs")).toHaveTextContent("H, 0,5 m'den büyük");
+    expect(screen.getByTestId("loc")).toHaveTextContent("/m/sheet_pile/new");
+  });
+
   it("create (manual soil) sends a manual soil without a source profile and opens the detail", async () => {
     renderAt("/m/sheet_pile/new");
     fireEvent.change(await screen.findByLabelText("Ad"), { target: { value: "Yeni" } });

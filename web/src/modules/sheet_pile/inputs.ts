@@ -60,30 +60,47 @@ export function missingInputs(inp: PileInputs, soil: SoilSource | null): string[
   const out: string[] = [];
   if (!inp.name.trim()) out.push("name");
   if (!has(inp.retained_height)) out.push("retained_height");
+  if (has(inp.retained_height) && !(inp.retained_height > 0.5 && inp.retained_height <= 12)) out.push("range:retained_height");
   if (inp.support === "anchored" && !has(inp.anchor_depth)) out.push("anchor_depth");
+  if (inp.support === "anchored" && has(inp.anchor_depth) && (!has(inp.retained_height) || inp.anchor_depth < 0 || inp.anchor_depth >= inp.retained_height)) out.push("range:anchor_depth");
+  if (has(inp.surcharge) && inp.surcharge < 0) out.push("range:surcharge");
+  if (has(inp.sds) && !(inp.sds > 0 && inp.sds < 3)) out.push("range:sds");
+  if (has(inp.allowable_stress_mpa) && inp.allowable_stress_mpa <= 0) out.push("range:allowable_stress_mpa");
   if (soil) {
     if (soil.mode === "profile") {
       if (!soil.profile_id) out.push("profile");
     } else {
       if (!has(soil.gwt)) out.push("gwt");
+      if (has(soil.gwt) && soil.gwt < 0) out.push("range:gwt");
       if (soil.layers.length === 0) out.push("layers");
       soil.layers.forEach((l, i) => {
         if (!has(l.top) || !has(l.bottom) || !has(l.gamma)) out.push(`layer_${i}_geometry`);
+        if (has(l.top) && has(l.bottom) && (l.bottom <= l.top || (i === 0 ? l.top !== 0 : !has(soil.layers[i - 1].bottom) || Math.abs(l.top - (soil.layers[i - 1].bottom as number)) > 1e-3))) out.push(`range:layer_${i}_geometry`);
+        if (has(l.gamma) && !(l.gamma > 5 && l.gamma < 30)) out.push(`range:layer_${i}_gamma`);
         if (!has(l.phi)) out.push(`layer_${i}_phi`);
       });
+      if (has(inp.retained_height) && soil.layers.length > 0) {
+        const deepest = soil.layers[soil.layers.length - 1].bottom;
+        if (has(deepest) && deepest <= inp.retained_height) out.push("range:depth");
+      }
     }
   }
   return out;
 }
 
 /** Soil gaps of a stored structure copy: missing design phi per layer, profile not below the dredge line. */
-export function missingSoilInputs(layers: SoilLayer[], height: number): string[] {
+export function missingSoilInputs(layers: SoilLayer[], height: number, gwt?: number): string[] {
   const out: string[] = [];
   layers.forEach((l) => {
     if (l.design?.phi_eff == null) out.push(`phi:${l.id}`);
   });
   const bottom = layers.length ? Math.max(...layers.map((l) => l.bottom)) : 0;
   if (bottom <= height) out.push("depth");
+  if (gwt != null && gwt < 0) out.push("range:gwt");
+  layers.forEach((l, i) => {
+    if (l.bottom <= l.top || (i === 0 ? l.top !== 0 : Math.abs(l.top - layers[i - 1].bottom) > 1e-3)) out.push(`range:layer_${i}_geometry`);
+    if (!(l.gamma > 5 && l.gamma < 30)) out.push(`range:layer_${i}_gamma`);
+  });
   return out;
 }
 

@@ -72,7 +72,7 @@ export function SheetPileDetailPage() {
     if (!structure || !inputs) return [];
     return [
       ...missingInputs(inputs, null),
-      ...missingSoilInputs(structure.soil.profile.layers, typeof inputs.retained_height === "number" ? inputs.retained_height : 0),
+      ...missingSoilInputs(structure.soil.profile.layers, typeof inputs.retained_height === "number" ? inputs.retained_height : 0, structure.soil.profile.gwt.depth_insitu),
     ];
   }, [structure, inputs]);
 
@@ -108,7 +108,7 @@ export function SheetPileDetailPage() {
   }
 
   const save = async () => {
-    if (missingInputs(inputs, null).length > 0) return;
+    if (missingInputs(inputs, null).length > 0 || missing.some((key) => key.startsWith("range:"))) return;
     setBusy(true);
     setActionError(null);
     try {
@@ -243,7 +243,7 @@ export function SheetPileDetailPage() {
       )}
 
       <Group>
-        <Button variant="default" onClick={() => void save()} disabled={!dirty || busy || missingInputs(inputs, null).length > 0}>
+        <Button variant="default" onClick={() => void save()} disabled={!dirty || busy || missingInputs(inputs, null).length > 0 || missing.some((key) => key.startsWith("range:"))}>
           {t("sheet_pile.detail.save")}
         </Button>
         <Button onClick={() => void run()} disabled={missing.length > 0 || dirty || busy}>

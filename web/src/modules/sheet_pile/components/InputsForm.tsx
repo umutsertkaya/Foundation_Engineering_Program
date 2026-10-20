@@ -13,7 +13,7 @@ const toNum = (v: number | string): Num => (typeof v === "number" ? v : "");
 export function InputsForm({ value, onChange, missing }: Props) {
   const { t } = useTranslation();
   const set = (patch: Partial<PileInputs>) => onChange({ ...value, ...patch });
-  const err = (key: string) => (missing.includes(key) ? t("sheet_pile.inputs.required") : undefined);
+  const err = (key: string) => (missing.includes(key) ? t("sheet_pile.inputs.required") : missing.includes(`range:${key}`) ? t(`sheet_pile.missing.range_${key}`) : undefined);
 
   return (
     <Stack gap="sm">
@@ -59,6 +59,7 @@ export function InputsForm({ value, onChange, missing }: Props) {
           label={t("sheet_pile.inputs.surcharge")}
           description={t("sheet_pile.inputs.surcharge_hint")}
           value={value.surcharge}
+          error={err("surcharge")}
           min={0}
           decimalScale={2}
           onChange={(v) => set({ surcharge: toNum(v) })}
@@ -67,6 +68,7 @@ export function InputsForm({ value, onChange, missing }: Props) {
           label={t("sheet_pile.inputs.sds")}
           description={t("sheet_pile.inputs.sds_hint")}
           value={value.sds}
+          error={err("sds")}
           min={0}
           decimalScale={3}
           onChange={(v) => set({ sds: toNum(v) })}
@@ -75,6 +77,7 @@ export function InputsForm({ value, onChange, missing }: Props) {
           label={t("sheet_pile.inputs.allowable_stress")}
           description={t("sheet_pile.inputs.allowable_stress_hint")}
           value={value.allowable_stress_mpa}
+          error={err("allowable_stress_mpa")}
           min={0}
           decimalScale={1}
           onChange={(v) => set({ allowable_stress_mpa: toNum(v) })}
