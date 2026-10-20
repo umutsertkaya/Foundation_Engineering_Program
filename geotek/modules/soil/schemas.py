@@ -46,6 +46,110 @@ class SPTProcessedDTO(DTO):
     warnings: list[str]
 
 
+class AxisRangeDTO(DTO):
+    min: float
+    max: float
+
+
+class SBTNCoordinateDTO(DTO):
+    """Chart coordinate: Fr in percent and dimensionless Qtn."""
+
+    Fr: ResultNumber
+    Qtn: ResultNumber
+
+
+class SBTNZoneDTO(DTO):
+    zone: int
+    name_en: str
+    name_tr: str
+    ic_min: ResultNumber
+    ic_max: ResultNumber
+
+
+class SBTNContourDTO(DTO):
+    Ic: float
+    points: list[SBTNCoordinateDTO]
+
+
+class SBTNReferenceDTO(DTO):
+    zones: list[SBTNZoneDTO]
+    ic_bounds: list[float]
+    zone_1_boundary: list[SBTNCoordinateDTO]
+    ic_contours: list[SBTNContourDTO]
+    fr_range: AxisRangeDTO
+    qtn_range: AxisRangeDTO
+
+
+class SBTNPointDTO(SBTNCoordinateDTO):
+    depth: ResultNumber
+    Ic: ResultNumber
+    zone: int | None
+    zone_name_en: str | None
+    zone_name_tr: str | None
+
+
+class CPTSBTNDTO(DTO):
+    points: list[SBTNPointDTO]
+    warnings: list[str]
+
+
+class USCSClassifyRequest(DTO):
+    """Stateless engine inputs, with the same numeric bounds as LabRecord."""
+
+    fines: float = Field(ge=0, le=100)
+    gravel: float | None = Field(None, ge=0, le=100)
+    LL: float | None = Field(None, ge=0)
+    PI: float | None = Field(None, ge=0)
+    D10: float | None = Field(None, gt=0)
+    D30: float | None = Field(None, gt=0)
+    D60: float | None = Field(None, gt=0)
+
+
+class USCSSymbolDTO(DTO):
+    symbol: str
+    group_name_en: str
+    group_name_tr: str
+    description: str
+
+
+class USCSItemDTO(DTO):
+    """Lab result; depth and PL are null for stateless classify() requests."""
+
+    depth: ResultNumber
+    symbol: str | None
+    complete: bool
+    notes: list[str]
+    FC: ResultNumber
+    gravel: ResultNumber
+    LL: ResultNumber
+    PL: ResultNumber
+    PI: ResultNumber
+    D10: ResultNumber
+    D30: ResultNumber
+    D60: ResultNumber
+    Cu: ResultNumber
+    Cc: ResultNumber
+    plastic_class: str | None
+    group_name_en: str | None
+    group_name_tr: str | None
+    description: str | None
+
+
+class BoreholeUSCSDTO(DTO):
+    items: list[USCSItemDTO]
+
+
+class PlasticityPointDTO(DTO):
+    LL: float
+    PI: ResultNumber
+
+
+class USCSReferenceDTO(DTO):
+    a_line: list[PlasticityPointDTO]
+    u_line: list[PlasticityPointDTO]
+    symbols: list[USCSSymbolDTO]
+
+
 class ProfileCreate(DTO):
     """Create from exactly one of explicit layers or an unapproved layering proposal.
 
