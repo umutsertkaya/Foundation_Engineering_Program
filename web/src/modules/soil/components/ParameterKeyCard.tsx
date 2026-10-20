@@ -87,13 +87,15 @@ function CandidateRows({ rows, selection }: { rows: { key: string; candidate: De
               </Table.Td>
               <Table.Td>{c.reliability ?? t("web.common.none")}</Table.Td>
               <Table.Td>{t(`soil.params.source.${c.source}`)}</Table.Td>
-              <Table.Td style={narrow ? undefined : { minWidth: 180 }}>
+              <Table.Td style={{ minWidth: 180 }}>
                 {!narrow && (
                   <Text size="xs" style={{ overflowWrap: "anywhere" }}>
                     {c.reference ?? t("web.common.none")}
                   </Text>
                 )}
-                <WarningList warnings={c.warnings ?? []} />
+                <div style={{ maxHeight: 160, overflowY: "auto" }}>
+                  <WarningList warnings={c.warnings ?? []} />
+                </div>
               </Table.Td>
             </Table.Tr>
           ))}
