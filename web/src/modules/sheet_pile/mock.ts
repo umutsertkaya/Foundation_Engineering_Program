@@ -21,7 +21,7 @@ function syntheticResult(s: SheetPileStructure): SheetPileResultDTO {
     total_length: H + D,
     anchor_depth: anchored ? (s.anchor_depth ?? null) : null,
     anchor_force: anchored ? 100 : null,
-    toe_force: 50,
+    toe_force: anchored ? null : 50,
     M_max: 200,
     z_M_max: H,
     z,

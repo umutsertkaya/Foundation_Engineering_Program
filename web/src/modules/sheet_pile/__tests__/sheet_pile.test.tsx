@@ -1,4 +1,4 @@
-import { MantineProvider } from "@mantine/core";
+﻿import { MantineProvider } from "@mantine/core";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { MemoryRouter, Route, Routes, useLocation } from "react-router-dom";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
@@ -126,6 +126,55 @@ describe("sheet_pile shell (mock)", () => {
     // source profile untouched
     const st = getMockStore().structures.find((x) => x.id === "sp-2") as unknown as { soil: { source_profile_id: string } };
     expect(st.soil.source_profile_id).toBe(getMockStore().profiles[0].id);
+  });
+
+  it("refreshes stale summary after saving changed inputs and keeps old result dimmed", async () => {
+    seedSheetPile("sp-stale", "Perde Stale");
+    renderAt("/m/sheet_pile/s/sp-stale");
+    fireEvent.click(await screen.findByRole("button", { name: "Tasarımı çalıştır" }));
+    await screen.findByTestId("sheet-pile-result", {}, { timeout: 5000 });
+    fireEvent.change(screen.getByLabelText(/Sürşarj/), { target: { value: "12" } });
+    fireEvent.click(screen.getByRole("button", { name: "Kaydet" }));
+    expect(await screen.findByText(/Girdiler değişti/)).toBeInTheDocument();
+    expect(screen.getByTestId("sheet-pile-result").parentElement).toHaveStyle({ opacity: "0.5" });
+  });
+
+  it("preserves form edits made while the job is running", async () => {
+    seedSheetPile("sp-edit-during-job", "Perde Edit");
+    renderAt("/m/sheet_pile/s/sp-edit-during-job");
+    fireEvent.click(await screen.findByRole("button", { name: "Tasarımı çalıştır" }));
+    const surcharge = await screen.findByLabelText(/Sürşarj/);
+    fireEvent.change(surcharge, { target: { value: "17" } });
+    await screen.findByTestId("sheet-pile-result", {}, { timeout: 5000 });
+    expect(surcharge).toHaveValue("17");
+  });
+
+  it("hides toe force for anchored results and explains the theoretical toe series", async () => {
+    seedSheetPile("sp-toe", "Perde Toe", "anchored");
+    renderAt("/m/sheet_pile/s/sp-toe");
+    fireEvent.click(await screen.findByRole("button", { name: "Tasarımı çalıştır" }));
+    await screen.findByTestId("sheet-pile-result", {}, { timeout: 5000 });
+    expect(screen.queryByText("Uç kuvveti")).not.toBeInTheDocument();
+    expect(screen.getByText(/teorik uçta/)).toBeInTheDocument();
+  });
+
+  it("does not offer source resync for a manual-soil wall when the result is stale", async () => {
+    renderAt("/m/sheet_pile/new");
+    fireEvent.change(await screen.findByLabelText("Ad"), { target: { value: "Elle" } });
+    fireEvent.change(screen.getByLabelText(/Tutulan yükseklik/), { target: { value: "4" } });
+    fireEvent.click(screen.getByText("Elle gir"));
+    fireEvent.change(screen.getByLabelText(/Yeraltı suyu/), { target: { value: "2" } });
+    fireEvent.change(screen.getByLabelText("Alt (m) 1"), { target: { value: "12" } });
+    fireEvent.change(screen.getByLabelText(/γ \(kN\/m³\) 1/), { target: { value: "18" } });
+    fireEvent.change(screen.getByLabelText(/φ' \(°\) 1/), { target: { value: "30" } });
+    fireEvent.click(screen.getByRole("button", { name: "Oluştur" }));
+    await waitFor(() => expect(screen.getByTestId("loc").textContent).toMatch(/^\/m\/sheet_pile\/s\/pile-mock-/));
+    fireEvent.click(await screen.findByRole("button", { name: "Tasarımı çalıştır" }));
+    await screen.findByTestId("sheet-pile-result", {}, { timeout: 5000 });
+    fireEvent.change(screen.getByLabelText(/Sürşarj/), { target: { value: "12" } });
+    fireEvent.click(screen.getByRole("button", { name: "Kaydet" }));
+    expect(await screen.findByText(/Girdiler değişti/)).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Kaynak profille eşitle" })).not.toBeInTheDocument();
   });
 
   it("cancel stops the job; an unknown job is shown as unavailable", async () => {

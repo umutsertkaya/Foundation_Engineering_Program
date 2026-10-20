@@ -58,6 +58,11 @@ export function SheetPileDetailPage() {
     }
   }, [sid]);
 
+  const refreshSummary = useCallback(async () => {
+    const list = await list_structures();
+    setSummary(list.find((s) => s.id === sid && s.kind === "sheet_pile") ?? null);
+  }, [sid]);
+
   useEffect(() => {
     void load();
   }, [load]);
@@ -109,6 +114,7 @@ export function SheetPileDetailPage() {
       const saved = await update_structure(structure.id, applyInputs(structure, inputs));
       setStructure(saved as SheetPileStructure);
       setInputs(fromStructure(saved as SheetPileStructure));
+      await refreshSummary();
     } catch (err) {
       setActionError(err);
     } finally {
@@ -121,7 +127,9 @@ export function SheetPileDetailPage() {
     setActionError(null);
     try {
       await resync_structure_soil(structure.id);
-      await load();
+      const updated = (await get_structure(structure.id)) as SheetPileStructure;
+      setStructure(updated);
+      await refreshSummary();
     } catch (err) {
       setActionError(err);
     } finally {
@@ -164,7 +172,12 @@ export function SheetPileDetailPage() {
       </Group>
 
       {summary?.stale && (
-        <Alert color="yellow" variant="light" title={t("sheet_pile.detail.stale_title")}>
+        <Alert color="yellow" variant="light" title={t("sheet_pile.detail.result_stale_title")}>
+          <Text size="sm">{t("sheet_pile.detail.result_stale")}</Text>
+        </Alert>
+      )}
+      {summary?.stale && source && (
+        <Alert color="blue" variant="light" title={t("sheet_pile.detail.source_stale_title")}>
           <Group justify="space-between">
             <Text size="sm">{t("sheet_pile.detail.stale_desc")}</Text>
             <Button size="xs" variant="light" onClick={() => void resync()} disabled={busy}>
@@ -229,7 +242,7 @@ export function SheetPileDetailPage() {
       )}
 
       <Group>
-        <Button variant="default" onClick={() => void save()} disabled={!dirty || busy}>
+        <Button variant="default" onClick={() => void save()} disabled={!dirty || busy || missingInputs(inputs, null).length > 0}>
           {t("sheet_pile.detail.save")}
         </Button>
         <Button onClick={() => void run()} disabled={missing.length > 0 || dirty || busy}>
@@ -240,7 +253,9 @@ export function SheetPileDetailPage() {
       {jobId && (
         <Stack gap="xs">
           <Title order={5}>{t("sheet_pile.result.title")}</Title>
-          <JobPanel jobId={jobId} onDone={() => void load()} />
+          <div style={summary?.stale ? { opacity: 0.5 } : undefined}>
+            <JobPanel jobId={jobId} onDone={() => void refreshSummary()} />
+          </div>
         </Stack>
       )}
     </Stack>

@@ -1,4 +1,4 @@
-import type {
+﻿import type {
   ActiveProfileUpdate,
   ApiErrorDTO,
   DeletionResponse,
@@ -31,9 +31,15 @@ import {
 } from "./store";
 
 function isStructureStale(s: Structure): boolean {
-  if (!s.soil.source_profile_id) return false;
-  const source = getMockStore().profiles.find((p) => p.id === s.soil.source_profile_id);
-  return !source || mockProfileHash(source) !== s.soil.source_hash;
+  const sourceStale = Boolean(s.soil.source_profile_id && (() => {
+    const source = getMockStore().profiles.find((p) => p.id === s.soil.source_profile_id);
+    return !source || mockProfileHash(source) !== s.soil.source_hash;
+  })());
+  if ((s.kind ?? "retaining_wall") === "sheet_pile") {
+    const pile = s as SheetPileStructure & { mock_result_snapshot?: string };
+    return sourceStale || Boolean(pile.result_hash && pile.mock_result_snapshot !== JSON.stringify({ ...pile, result_hash: undefined, mock_result_snapshot: undefined }));
+  }
+  return sourceStale;
 }
 
 function structureBaseDepth(s: Structure): number {
@@ -168,7 +174,7 @@ function pollJobState(jobId: string): { status: number; data: JobState | ApiErro
     };
   }
 
-  // Done: update structure geometry if wall_size, and mark result_hash (wall jobs only)
+  // Done: update geometry and record the result snapshot used by mock summaries.
   const target = job.structure_id ? store.structures.find((s) => s.id === job.structure_id) : undefined;
   if (target && (target.kind ?? "retaining_wall") === "retaining_wall") {
     const wall = target as RetainingWallStructure;
@@ -176,6 +182,13 @@ function pollJobState(jobId: string): { status: number; data: JobState | ApiErro
       wall.geometry = { ...MOCK_CANTILEVER_5M };
     }
     wall.result_hash = (job.result as WallResultDTO).result_hash;
+  } else if (target?.kind === "sheet_pile") {
+    const pile = target as SheetPileStructure & { mock_result_snapshot?: string };
+    // Re-polls of a finished job must not re-baseline the snapshot (would hide later edits).
+    if (pile.result_hash !== `mock-${job.job_id}`) {
+    pile.result_hash = `mock-${job.job_id}`;
+    pile.mock_result_snapshot = JSON.stringify({ ...pile, result_hash: undefined, mock_result_snapshot: undefined });
+    }
   }
 
   return {
@@ -418,8 +431,23 @@ function handleCoreRoutes(
     }
     if (upperMethod === "PUT") {
       const updated = body as Structure;
-      store.structures[index] = structuredClone(updated);
-      return { status: 200, data: structuredClone(updated) };
+      const saved = structuredClone(updated);
+      const current = store.structures[index];
+      if (saved.kind === "sheet_pile" && current.kind === "sheet_pile") {
+        const savedPile = saved as SheetPileStructure & { mock_result_snapshot?: string };
+        const currentPile = current as SheetPileStructure & { mock_result_snapshot?: string };
+        // The mock-only result baseline is not part of the API structure type. Keep it
+        // when a client PUT omits it so changed inputs remain detectable as stale.
+        // Like the real API, a PUT never drops the stored result (result_hash).
+        if (savedPile.mock_result_snapshot === undefined) {
+          savedPile.mock_result_snapshot = currentPile.mock_result_snapshot;
+        }
+        if (savedPile.result_hash == null) {
+          savedPile.result_hash = currentPile.result_hash;
+        }
+      }
+      store.structures[index] = saved;
+      return { status: 200, data: structuredClone(saved) };
     }
     if (upperMethod === "DELETE") {
       store.structures.splice(index, 1);

@@ -1,11 +1,14 @@
 import { Alert, Badge, Card, Group, List, SimpleGrid, Stack, Table, Text, Title } from "@mantine/core";
 import { useTranslation } from "react-i18next";
+import i18n from "../../../app/i18n";
 import type { SheetPileResultDTO } from "../../../shared/api/types";
 
 const MOCK_WARNING = "mock_result_not_a_calculation";
 
 function fmt(v: number | null | undefined, digits = 2): string {
-  return typeof v === "number" && Number.isFinite(v) ? v.toFixed(digits) : "—";
+  return typeof v === "number" && Number.isFinite(v)
+    ? new Intl.NumberFormat(i18n.language, { minimumFractionDigits: digits, maximumFractionDigits: digits }).format(v)
+    : "—";
 }
 
 function Stat({ label, value, unit }: { label: string; value: number | null; unit: string }) {
@@ -66,9 +69,9 @@ export function ResultPanel({ result }: { result: SheetPileResultDTO }) {
         {t("sheet_pile.result.forces")}
       </Text>
       <SimpleGrid cols={{ base: 2, sm: 4 }} spacing="xs">
-        <Stat label={t("sheet_pile.result.M_max")} value={result.M_max} unit="kNm/m" />
+        <Stat label={t("sheet_pile.result.M_max_abs")} value={result.M_max} unit="kNm/m" />
         <Stat label={t("sheet_pile.result.z_M_max")} value={result.z_M_max} unit="m" />
-        <Stat label={t("sheet_pile.result.toe_force")} value={result.toe_force} unit="kN/m" />
+        {result.toe_force != null && <Stat label={t("sheet_pile.result.toe_force")} value={result.toe_force} unit="kN/m" />}
         <Stat label={t("sheet_pile.result.section_modulus")} value={result.section_modulus_cm3} unit="cm³/m" />
       </SimpleGrid>
       {result.section_modulus_cm3 == null && (
@@ -90,6 +93,8 @@ export function ResultPanel({ result }: { result: SheetPileResultDTO }) {
       )}
 
       {rows.length > 0 && (
+        <>
+        <Text size="xs" c="dimmed">{t("sheet_pile.result.series_toe_note")}</Text>
         <Table withTableBorder striped data-testid="result-series">
           <Table.Thead>
             <Table.Tr>
@@ -110,6 +115,7 @@ export function ResultPanel({ result }: { result: SheetPileResultDTO }) {
             ))}
           </Table.Tbody>
         </Table>
+        </>
       )}
 
       {result.assumptions.length > 0 && (

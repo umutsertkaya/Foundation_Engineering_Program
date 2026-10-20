@@ -91,4 +91,11 @@
   "sheet_pile.result.col_moment": "Moment (kNm/m)",
   "sheet_pile.result.assumptions": "Assumptions",
   "sheet_pile.result.warnings": "Warnings"
+,
+  "sheet_pile.detail.result_stale": "Inputs changed; the displayed result may be out of date.",
+  "sheet_pile.detail.source_stale_title": "Source soil profile is out of date",
+  "sheet_pile.result.M_max_abs": "M_max (absolute value)",
+  "sheet_pile.result.series_toe_note": "The series ends at the theoretical toe (H + D\u2080), not at the total length.",
+  "sheet_pile.job.resume_hint": "If polling stops, reload this page; the ?job= URL resumes the job status.",
+  "sheet_pile.detail.result_stale_title": "Result may be out of date"
 }

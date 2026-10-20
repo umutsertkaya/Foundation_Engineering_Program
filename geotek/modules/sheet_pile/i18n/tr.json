@@ -91,4 +91,11 @@
   "sheet_pile.result.col_moment": "Moment (kNm/m)",
   "sheet_pile.result.assumptions": "Varsayımlar",
   "sheet_pile.result.warnings": "Uyarılar"
+,
+  "sheet_pile.detail.result_stale": "Girdiler de\u011fi\u015fti; g\u00f6sterilen sonu\u00e7 eski olabilir.",
+  "sheet_pile.detail.source_stale_title": "Kaynak zemin profili g\u00fcncel de\u011fil",
+  "sheet_pile.result.M_max_abs": "M_max (mutlak de\u011fer)",
+  "sheet_pile.result.series_toe_note": "Tablo serisi toplam boyda de\u011fil, teorik u\u00e7ta (H + D\u2080) biter.",
+  "sheet_pile.job.resume_hint": "\u0130zleme kesilirse bu sayfay\u0131 yenileyin; ?job= ba\u011flant\u0131s\u0131 hesap durumunu s\u00fcrd\u00fcr\u00fcr.",
+  "sheet_pile.detail.result_stale_title": "Sonu\u00e7 eski olabilir"
 }
