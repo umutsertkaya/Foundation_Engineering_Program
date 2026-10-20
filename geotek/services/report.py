@@ -196,7 +196,7 @@ def _classification_section(w: _Writer, project: Project) -> None:
                 continue
             data = processed.cpt[cpt.id]
             rows, start = [], 0
-            zones = [int(z) if 1 <= z <= 9 else 0 for z in data.zone]
+            zones = [int(z) if z is not None and 1 <= z <= 9 else 0 for z in data.zone]
             for i in range(1, len(zones) + 1):
                 if i == len(zones) or zones[i] != zones[start]:
                     zone = zones[start]
@@ -214,8 +214,9 @@ def _classification_section(w: _Writer, project: Project) -> None:
     if labs:
         w.heading(w.tr("report.cls.uscs"), 2)
         rows = []
+        classified = {}
         for bid, record in labs:
-            result = uscs.classify_lab_record(record)
+            result = classified[id(record)] = uscs.classify_lab_record(record)
             name = USCS_NAMES.get(result.symbol)
             label = (name.group_name_tr if lang == "tr" else name.group_name_en) if name else DASH
             rows.append([bid, _fmt(record.depth), result.symbol or DASH, label, _fmt(record.FC, 1),
@@ -224,7 +225,7 @@ def _classification_section(w: _Writer, project: Project) -> None:
         w.table([w.tr("report.cls.borehole"), w.tr("report.cls.depth"), w.tr("report.soil.uscs"),
                  w.tr("report.cls.zone_name"), "FC [%]", "LL", "PI", w.tr("report.cls.status")], rows)
         notes = [f"{bid} {_fmt(r.depth)} m: {n}" for bid, r in labs
-                 for n in uscs.classify_lab_record(r).notes]
+                 for n in classified[id(r)].notes]
         if notes:
             w.heading(w.tr("report.warnings"), 3)
             w.bullets(notes)
@@ -264,7 +265,7 @@ def _wall_section(w: _Writer, structure, result: dict) -> None:
     w.heading(w.tr("report.wall.geometry"), 3)
     w.table([w.tr("report.col.item"), w.tr("report.col.value")],
             [[k, _fmt(v, 3)] for k, v in geometry.items() if k != "kind"])
-    w.paragraph(f"{w.tr('report.wall.verdict')}: {w.passfail(bool(result.get('passed')))}",
+    w.paragraph(f"{w.tr('report.wall.verdict')}: {(w.passfail(bool(result.get('passed'))) if result.get('passed') is not None else DASH)}",
                 bold=True)
     w.paragraph(f"{w.tr('report.wall.governing')}: {result.get('governing') or DASH}")
     w.heading(w.tr("report.wall.checks"), 3)
@@ -273,7 +274,7 @@ def _wall_section(w: _Writer, structure, result: dict) -> None:
          w.tr("report.check.required"), w.tr("report.check.utilisation"),
          w.tr("report.check.result")],
         [[c["case"], c["name"], f"{_fmt(c['value'], 3)}", f"{c['comparison']} {_fmt(c['required'], 3)}",
-          _fmt(c.get("utilisation"), 2), w.passfail(bool(c["passed"]))]
+          _fmt(c.get("utilisation"), 2), (w.passfail(bool(c["passed"])) if c.get("passed") is not None else DASH)]
          for c in result.get("checks") or []],
     )
     _evidence(w, result)
@@ -304,8 +305,8 @@ def _liquefaction_section(w: _Writer, data: dict) -> None:
     w.heading(w.tr("report.section.liquefaction"))
     settings = data.get("settings") or {}
     w.key_values([
-        (w.tr("report.liq.profile"), str(data.get("profile_id"))),
-        (w.tr("report.liq.method"), str(settings.get("method", DASH))),
+        (w.tr("report.liq.profile"), str(data.get("profile_id") or DASH)),
+        (w.tr("report.liq.method"), str(settings.get("method") or DASH)),
         (w.tr("report.liq.amax"), _fmt(settings.get("amax_g"), 3)),
         (w.tr("report.liq.mw"), _fmt(settings.get("mw"), 1)),
         (w.tr("report.liq.target_fs"), _fmt(settings.get("target_fs"), 2)),
@@ -314,7 +315,7 @@ def _liquefaction_section(w: _Writer, data: dict) -> None:
     ])
     rows = []
     for sounding_id, series in (data["result"].get("per_sounding") or {}).items():
-        fs = [(v, d) for v, d in zip(series["FS"], series["depth"]) if v is not None]
+        fs = [(v, d) for v, d in zip(series["FS"], series["depth"]) if v is not None and math.isfinite(v)]
         low = min(fs) if fs else None
         status = series["status"]
         rows.append([
