@@ -71,6 +71,10 @@ Kaynak: Umut'un cihazındaki tam metin md dönüşümü (`docs/research/Youd.et.
 - 2026-10-20, sistem kontrolü dalı (Linux bulut): tam pytest 1869 geçti / 2 atlandı; `tsc --noEmit` temiz;
   Vitest 37 dosya / 337 test geçti; `npm run build` başarılı; `gen_code_map.py --check` 0.
   Windows `tools/project.py check full` bu ortamda çalıştırılamadı.
+- 2026-10-20, modüler yapı kontrolü dalı (Linux bulut, kip: cloud): modül manifest'ine rapor bölümü kancası
+  (`report_entries`/`report_writer`) ve `tools/pyinstaller_modules.py` (exe için hidden-import/add-data listesi) eklendi;
+  rehber güncellendi. Tam pytest 1874 geçti / 2 atlandı; `tsc --noEmit` temiz; Vitest 37 dosya / 337 test geçti;
+  `npm run build` başarılı; `gen_code_map.py --check` 0. Formül/katsayı değişmedi. Sıradaki: exe derlemesi (adım 3).
 
 Her kayıt tarih, kapsam ve gerçek sonuç taşır; eski sayı güncel başarı diye kullanılmaz.
 

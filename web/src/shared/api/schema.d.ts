@@ -2483,7 +2483,7 @@ export interface components {
              * Kind
              * @enum {string}
              */
-            kind: "project" | "soil_profile" | "classification" | "retaining_wall" | "sheet_pile" | "liquefaction";
+            kind: "project" | "soil_profile" | "classification" | "retaining_wall" | "sheet_pile" | "liquefaction" | "module";
             /** Name */
             name: string;
             /**
