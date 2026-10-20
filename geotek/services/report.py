@@ -217,8 +217,8 @@ def _classification_section(w: _Writer, project: Project) -> None:
             rows.append([bid, _fmt(record.depth), result.symbol or DASH, label, _fmt(record.FC, 1),
                          _fmt(record.LL, 1), _fmt(record.PI, 1),
                          w.tr("report.cls.complete" if result.complete else "report.cls.incomplete")])
-        w.table([w.tr("report.liq.sounding"), w.tr("report.soil.top"), w.tr("report.soil.uscs"),
-                 w.tr("report.cls.zone_name"), "FC [%]", "LL", "PI", w.tr("report.col.value")], rows)
+        w.table([w.tr("report.cls.borehole"), w.tr("report.cls.depth"), w.tr("report.soil.uscs"),
+                 w.tr("report.cls.zone_name"), "FC [%]", "LL", "PI", w.tr("report.cls.status")], rows)
         notes = [f"{bid} {_fmt(r.depth)} m: {n}" for bid, r in labs
                  for n in uscs.classify_lab_record(r).notes]
         if notes:
@@ -319,6 +319,11 @@ def _liquefaction_section(w: _Writer, data: dict) -> None:
         ])
     w.table([w.tr("report.liq.sounding"), w.tr("report.liq.min_fs"), w.tr("report.liq.min_fs_depth"),
              w.tr("report.liq.n_liquefiable"), w.tr("report.liq.n_marginal")], rows)
+    notes = [f"{sid}: {msg}" for sid, series in (data["result"].get("per_sounding") or {}).items()
+             for msg in series.get("warnings") or []]
+    if notes:
+        w.heading(w.tr("report.warnings"), 3)
+        w.bullets(notes)
     errors = data["result"].get("errors") or {}
     if errors:
         w.heading(w.tr("report.liq.errors"), 3)

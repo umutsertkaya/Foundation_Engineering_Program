@@ -20,7 +20,7 @@
   "liquefaction.help.default_fc": "Fines content used for SPT records without a lab sample.",
   "liquefaction.help.gwt_seismic": "Overrides the seismic groundwater depth of the profile.",
   "liquefaction.method.bi2014": "Boulanger & Idriss (2014)",
-  "liquefaction.method.youd2001": "Youd vd. (2001)",
+  "liquefaction.method.youd2001": "Youd et al. (2001)",
   "liquefaction.site_note": "from project site data",
   "liquefaction.error.issues_title": "Fix these before running",
   "liquefaction.error.method_required": "Choose a method.",
