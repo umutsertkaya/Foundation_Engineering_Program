@@ -5,6 +5,8 @@ The GUI calls only these functions, so the whole workflow is testable without Qt
 
 from __future__ import annotations
 
+import hashlib
+import json
 from collections.abc import Callable
 from dataclasses import dataclass, field
 from typing import Literal
@@ -105,6 +107,19 @@ def process_investigations(project: Project) -> Module1Results:
         except Exception as exc:
             results.errors[cpt.id] = str(exc)
     return results
+
+
+def liquefaction_input_hash(project: Project, profile_id: str, use_active: bool) -> str:
+    """Hash the project inputs of a liquefaction run, including the profile selection.
+
+    ``use_active`` is True when the run followed the project's active profile. Raises
+    ``ValueError`` when the inputs contain non-finite numbers.
+    """
+    active = project.active_profile() if use_active else None
+    data = {"profile": project.profile(profile_id).model_dump(mode="json"),
+            "investigations": project.investigations.model_dump(mode="json"),
+            "active_profile_id": active.id if active is not None else None}
+    return hashlib.sha256(json.dumps(data, sort_keys=True, allow_nan=False).encode()).hexdigest()
 
 
 def run_liquefaction(

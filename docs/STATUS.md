@@ -11,6 +11,7 @@ Compact veya devir öncesi yalnız bu üç satır güncellenir (kural: [WORKFLOW
 - Biten: 2026-10-20 orkestrasyon kurulumu: ai-orchestrator 2.1.0 bağlı, Codex (gpt-6-luna) ve Antigravity (gemini-3.8-flash) bağlantı testi OK, codemap --check temiz (820c084).
 - Sıradaki: proje eksiklerinin tespiti ve sıfırdan plan; işler bağımsız kartlara bölünecek.
 - Kararlar (2026-10-20, şef): rapor önce docx, PDF sonra; sınıflandırma Robertson SBTn + USCS; geotek/ui paketleme sonrası kaldırılır; eski 11 worktree ve birleşmiş eski dallar silinir. Plan: Projects ortak klasörü plan/2026-10-20-yeni-plan.md. Açık karar: yok.
+- T8a biten (2026-10-20, claude/project-thread-da5oef, PR bekliyor): `geotek/services/report.py` + modül `report` (`GET /api/m/report/sections`, `POST /api/m/report/docx`); duvar, palplanş, sıvılaşma, zemin profili, proje bilgisi; eski/sonuçsuz bölüm 409 ile reddedilir. Hesap formülü değişmedi. Testler: `tests/api/test_report_api.py` 8 geçti. Grafik/PDF ve web sayfası (T8b) yok; sınıflandırma bölümü T7a birleşince eklenir. Uygulama Claude ile yapıldı (ai-orchestrator bağlanamadı), Antigravity incelemesi yapılmadı.
 - T3c biten (2026-10-20): Bishop ve palplanş (USS/USACE) literatür/elle doğrulama testleri `tests/verification/test_bishop_*.py`, `test_sheet_pile_*.py` (12 test geçti; motor formülü değişmedi).
 - T3c kanıt: Opus bağımsız incelemesi; Michalowski (2002) N=0.181 (β=45°), φ=0 daire ve palplanş sayıları motordan bağımsız yeniden üretildi.
 - T3c açık: tutmayan test yok; tolerans gerekçeleri test docstring'lerinde.
