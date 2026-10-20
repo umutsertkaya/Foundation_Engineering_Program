@@ -41,13 +41,13 @@ describe("module API paths in the mock", () => {
     await expect(run_liquefaction({} as never)).rejects.toMatchObject({ status: 422 });
   });
 
-  it("sheet_pile design: 501 not_implemented for a seeded sheet pile, 404 for an unknown id", async () => {
+  it("sheet_pile design: 202 job ref for a seeded sheet pile, 404 for an unknown id", async () => {
     const store = getMockStore();
     const base = structuredClone(store.structures[0]) as unknown as Record<string, unknown>;
     store.structures.push({ ...base, id: "sp-1", name: "Perde A", kind: "sheet_pile" } as unknown as Structure);
     const ok = await mockRequest("POST", "/m/sheet_pile/structures/sp-1/design");
-    expect(ok.status).toBe(501);
-    expect(ok.data).toMatchObject({ code: "not_implemented" });
+    expect(ok.status).toBe(202);
+    expect(ok.data).toMatchObject({ job_id: expect.any(String) });
     expect((await mockRequest("POST", "/m/sheet_pile/structures/nope/design")).status).toBe(404);
   });
 
