@@ -72,8 +72,8 @@ describe("core structure routes in the mock", () => {
 describe("web module manifests", () => {
   it("discovers the four modules with matching ids, order and nav keys", () => {
     const modules = discoverModules();
-    expect(modules.map(({ id }) => id)).toEqual(["soil", "liquefaction", "walls", "sheet_pile"]);
-    expect(modules.map(({ order }) => order)).toEqual([10, 20, 30, 40]);
+    expect(modules.map(({ id }) => id)).toEqual(["soil", "liquefaction", "walls", "sheet_pile", "report"]);
+    expect(modules.map(({ order }) => order)).toEqual([10, 20, 30, 40, 50]);
     for (const module of modules) {
       expect(module.titleKey).toBe(`${module.id}.title`);
       expect(module.nav.length).toBeGreaterThan(0);

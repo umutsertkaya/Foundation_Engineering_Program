@@ -123,6 +123,8 @@ REQUESTS = [
         "method": "bi2014", "amax_g": 0.3, "mw": 7.5, "target_fs": 1.1,
         "gwt_seismic": None, "default_fc": None, "c_fc": 0, "ic_cutoff": 2.6,
     }),
+    ("GET", "/api/m/report/sections", None),
+    ("POST", "/api/m/report/docx", {"sections": None, "language": None}),
     ("GET", "/api/codes", None),
     ("GET", "/api/codes/{code_id}/factors", None),
     ("GET", "/api/codes/{code_id}/required", None),
@@ -162,7 +164,7 @@ IMPLEMENTED = {
         "/api/jobs/{job_id}", "/api/m/walls/wall-types",
         "/api/m/walls/structures/{id}/required-factors", "/api/m/walls/structures/{id}/size",
         "/api/m/walls/structures/{id}/check", "/api/m/sheet_pile/structures/{id}/design",
-        "/api/m/liquefaction/run",
+        "/api/m/liquefaction/run", "/api/m/report/sections", "/api/m/report/docx",
     } or path.startswith("/api/library/{file}")
 }
 
@@ -228,7 +230,7 @@ def test_module_routes_are_tagged_with_module_id(app):
         seen.add(match.group(1))
         for method, operation in item.items():
             assert operation["tags"] == [match.group(1)], (method, path)
-    assert seen == {"soil", "liquefaction", "walls", "sheet_pile"}
+    assert seen == {"soil", "liquefaction", "walls", "sheet_pile", "report"}
 
 
 def test_route_coverage_and_error_models(app):
