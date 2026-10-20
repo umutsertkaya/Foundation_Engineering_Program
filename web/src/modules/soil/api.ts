@@ -10,7 +10,18 @@ import type {
   SoilLayer,
   SoilProfile,
 } from "../../shared/api/types";
-import type { CPTProcessedDTO, InvestigationsDTO, ProfileCreate, SPTProcessedDTO } from "./types";
+import type {
+  BoreholeUSCSDTO,
+  CPTProcessedDTO,
+  CPTSBTNDTO,
+  InvestigationsDTO,
+  ProfileCreate,
+  SBTNReferenceDTO,
+  SPTProcessedDTO,
+  USCSClassifyRequest,
+  USCSItemDTO,
+  USCSReferenceDTO,
+} from "./types";
 
 export function list_investigations(): Promise<InvestigationsDTO> {
   return request<InvestigationsDTO>("GET", "/m/soil/investigations");
@@ -74,4 +85,24 @@ export function approve_parameters(profile_id: string, layer_id: string, keys: D
 
 export function suggest_all_parameters(profile_id: string): Promise<SoilProfile> {
   return request<SoilProfile>("POST", `/m/soil/profiles/${encodeURIComponent(profile_id)}/parameters/suggest-all`);
+}
+
+export function get_sbtn_reference(): Promise<SBTNReferenceDTO> {
+  return request<SBTNReferenceDTO>("GET", "/m/soil/classification/sbtn/reference");
+}
+
+export function get_cpt_sbtn(id: string): Promise<CPTSBTNDTO> {
+  return request<CPTSBTNDTO>("GET", `/m/soil/cpts/${encodeURIComponent(id)}/sbtn`);
+}
+
+export function get_borehole_uscs(id: string): Promise<BoreholeUSCSDTO> {
+  return request<BoreholeUSCSDTO>("GET", `/m/soil/boreholes/${encodeURIComponent(id)}/uscs`);
+}
+
+export function classify_uscs(payload: USCSClassifyRequest): Promise<USCSItemDTO> {
+  return request<USCSItemDTO>("POST", "/m/soil/classification/uscs", payload);
+}
+
+export function get_uscs_reference(): Promise<USCSReferenceDTO> {
+  return request<USCSReferenceDTO>("GET", "/m/soil/classification/uscs/reference");
 }
