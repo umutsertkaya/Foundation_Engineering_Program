@@ -83,7 +83,6 @@
   "report.liq.n_marginal": "Sınırda nokta",
   "report.liq.errors": "Hesaplanamayan sondajlar",
   "report.nav.home": "Rapor",
-  "report.home.heading": "Rapor sayfası T8b ile gelecek; docx üretimi API'den kullanılabilir.",
   "report.section.classification": "Zemin sınıflandırması",
   "report.cls.sbtn": "Robertson SBTn (CPT)",
   "report.cls.uscs": "USCS (laboratuvar)",
@@ -91,5 +90,17 @@
   "report.cls.zone_name": "Ad",
   "report.cls.ic_mean": "Ortalama Ic",
   "report.cls.complete": "Tam",
-  "report.cls.incomplete": "Eksik veri"
+  "report.cls.incomplete": "Eksik veri",
+  "report.page.subtitle": "Kayıtlı sonuçlardan Word (docx) raporu üretir. Eski veya sonuçsuz bölümler rapora alınmaz.",
+  "report.page.empty_title": "Rapor bölümü yok",
+  "report.page.empty": "Raporlanacak bölüm yok. Önce bir hesap çalıştırın.",
+  "report.page.status.ready": "Güncel",
+  "report.page.status.stale": "Eski (yeniden hesaplayın)",
+  "report.page.status.no_result": "Sonuç yok",
+  "report.page.build": "Raporu oluştur ve indir",
+  "report.page.refresh": "Yenile",
+  "report.page.refused.no_result": "Sonucu olmayan bölüm var; önce hesabı çalıştırın:",
+  "report.page.refused.stale_result": "Eski sonuçlu bölüm var; hesabı yeniden çalıştırın:",
+  "report.page.refused.empty_selection": "En az bir bölüm seçin.",
+  "report.page.refused.unknown_section": "Bilinmeyen bölüm; listeyi yenileyin:"
 }
