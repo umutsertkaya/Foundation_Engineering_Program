@@ -79,5 +79,6 @@
   "liquefaction.results.status.non_liquefiable_dense": "Dense, non-liquefiable",
   "liquefaction.results.status.excluded_by_user": "Excluded by user",
   "liquefaction.results.status.beyond_method_depth": "Beyond method depth",
-  "liquefaction.results.status.invalid": "Invalid"
+  "liquefaction.results.status.invalid": "Invalid",
+  "liquefaction.results.ratio_clipped": "CSR/CRR > {max} (twice the largest CSR): drawn at the chart edge (exact value in the table)"
 }

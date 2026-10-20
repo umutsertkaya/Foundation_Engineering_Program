@@ -79,5 +79,6 @@
   "liquefaction.results.status.non_liquefiable_dense": "Sıkı, sıvılaşmaz",
   "liquefaction.results.status.excluded_by_user": "Kullanıcı tarafından hariç tutuldu",
   "liquefaction.results.status.beyond_method_depth": "Yöntem derinliği dışında",
-  "liquefaction.results.status.invalid": "Geçersiz"
+  "liquefaction.results.status.invalid": "Geçersiz",
+  "liquefaction.results.ratio_clipped": "CSR/CRR > {max} (en büyük CSR'nin iki katı): grafiğin kenarında gösterildi (tam değer tabloda)"
 }

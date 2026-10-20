@@ -167,6 +167,37 @@ describe("stored liquefaction result (no job in the URL)", () => {
   });
 });
 
+describe("finished job result", () => {
+  const settings = { method: "bi2014", amax_g: 0.3, mw: 7.5, target_fs: 1.1, c_fc: 0, ic_cutoff: 2.6 } as const;
+
+  it("flags the job result stale when the stored copy says the soil changed since the run", async () => {
+    vi.spyOn(moduleApi, "get_liquefaction_result").mockResolvedValue({ profile_id: "P1", settings, result, stale: true });
+    renderResults();
+    await screen.findByRole("img", { name: label("chart_fs") });
+    expect(await screen.findByTestId("liq-stale")).toHaveTextContent(label("stale"));
+  });
+
+  it("shows no stale notice when the stored copy is current", async () => {
+    const stored = vi.spyOn(moduleApi, "get_liquefaction_result").mockResolvedValue({ profile_id: "P1", settings, result, stale: false });
+    renderResults();
+    await screen.findByRole("img", { name: label("chart_fs") });
+    expect(stored).toHaveBeenCalled();
+    expect(screen.queryByTestId("liq-stale")).not.toBeInTheDocument();
+  });
+
+  it("caps the CSR/CRR axis at twice the largest CSR and keeps the exact value in the table", async () => {
+    vi.spyOn(moduleApi, "get_liquefaction_result").mockRejectedValue(new Error("offline"));
+    renderResults({
+      per_sounding: { "BH-9": { depth: [1, 2], CSR: [0.2, 0.3], CRR: [0.25, 45.5], FS: [1.25, 151.67], status: ["safe", "safe"], warnings: [] } },
+      errors: {},
+    });
+    const ratios = await screen.findByRole("img", { name: label("chart_csr_crr") });
+    expect(within(ratios).getByTestId("clipped-point").textContent).toBe("45.50");
+    expect(screen.getByText(tr["liquefaction.results.ratio_clipped"].replace("{max}", "1.00"))).toBeInTheDocument();
+    expect(screen.getByRole("cell", { name: "45.500" })).toBeInTheDocument();
+  });
+});
+
 describe("liquefaction result details", () => {
   it("preserves the summary, displays DTO rows and two labelled charts, and selects soundings", async () => {
     const { container } = renderResults();

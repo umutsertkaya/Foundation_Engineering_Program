@@ -27,6 +27,8 @@ export function ResultsPage() {
   const [gone, setGone] = useState(false);
   const [error, setError] = useState<unknown>(null);
   const [stored, setStored] = useState<StoredLiquefactionDTO | "none" | null>(null);
+  /** Stale flag of the project's stored result once the job is done (soil edited since the run). */
+  const [doneStale, setDoneStale] = useState(false);
   const seq = useRef(0);
 
   useEffect(() => {
@@ -70,6 +72,19 @@ export function ResultsPage() {
     );
     return () => { live = false; };
   }, [needStored]);
+
+  const jobDone = state?.status === "done";
+  useEffect(() => {
+    if (!jobDone) return;
+    let live = true;
+    setDoneStale(false);
+    // The finished job saved its result in the project; the stored copy carries the stale flag.
+    get_liquefaction_result().then(
+      (r) => { if (live) setDoneStale(r.stale); },
+      () => undefined,
+    );
+    return () => { live = false; };
+  }, [jobDone, jobId]);
 
   const cancel = useCallback(async () => {
     if (!jobId) return;
@@ -131,7 +146,7 @@ export function ResultsPage() {
     );
   }
 
-  return <ResultBody result={state.result as LiquefactionResultDTO | null} back={back} />;
+  return <ResultBody result={state.result as LiquefactionResultDTO | null} stale={doneStale} back={back} />;
 }
 
 function ResultBody({ result, stale, back }: { result: LiquefactionResultDTO | null; stale?: boolean; back: ReactNode }) {
