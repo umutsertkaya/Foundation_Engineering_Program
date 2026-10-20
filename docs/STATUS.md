@@ -16,7 +16,10 @@ Compact veya devir öncesi yalnız bu üç satır güncellenir (kural: [WORKFLOW
 - T3c açık: tutmayan test yok; tolerans gerekçeleri test docstring'lerinde.
 - T7a biten (2026-10-20): zemin sinifl. API (SBTn referans/CPT noktalari, USCS) main'e birlesti; tests/api 616 gecti, -k classif/contract/soil 408 gecti, gen_code_map --check temiz.
 - T7a kanit: kod + test + inceleme tamam; web sinif. sayfasi hala yer tutucu (sonraki kart).
-- T7a acik: web typecheck calistirilmadi.
+- T7a acik: web typecheck calistirilmadi (T7b'de kosuldu, temiz).
+- T7b biten (2026-10-20): sinif. sayfasi (`web/src/modules/soil/pages/ClassificationPage.tsx`): CPT Robertson SBTn grafigi (log-log SVG, Ic konturlari, bolge 1 siniri), bolge ozeti, USCS tablosu, plastisite grafigi (A/U cizgisi negatif kisimlari kirpilir), tek ornek siniflandirma formu, simge tablosu; TR/EN anahtarlari `soil.cls.*`.
+- T7b kanit: typecheck temiz, web Vitest 269/269 (classification.test.tsx 11), `npm run build` basarili, ilgili pytest (i18n, manifest, contract) 141 gecti, gen_code_map --check 0. Gercek API/gorsel kabul Q1'de; Codex gpt-6-luna incelemesi yapilamadi (ai-orchestrator bulutta baglanmadi).
+- T7b acik: OL/OH/Pt motorda yok (sayfada belirtildi); mock siniflandirma demo verisidir.
 
 ## Koddan doğrulanan durum
 
@@ -24,7 +27,7 @@ Compact veya devir öncesi yalnız bu üç satır güncellenir (kural: [WORKFLOW
 |---|---|
 | Çekirdek | Başlangıç, kütüphane, proje/oturum, modül keşfi, işler, katsayılar ve birleşik i18n API mevcut. |
 | Veri | `.gtk` şeması 1.3; eski sürüm göçleri, yapı zemin kopyası ve stale/hash kontrolleri mevcut. |
-| Zemin | CPT/SPT işleme, otomatik katmanlama, parametre aday/seçim/onay API'si ve web akışı mevcut. Sınıflandırma web sayfası yer tutucu. |
+| Zemin | CPT/SPT işleme, otomatik katmanlama, parametre aday/seçim/onay API'si ve web akışı mevcut. Sınıflandırma web sayfası (SBTn grafiği, USCS tablosu) mevcut; gerçek API/görsel kabul Q1'de. |
 | Duvar | Katmanlı motor, yapı API'si, öner/kontrol, iş takibi/iptal, analiz seçenekleri, sonuç kartları ve SVG kesit mevcut. |
 | Sıvılaşma | Motor/API ve web job takibi, iptal/hata/erişilemiyor, sonuç özeti mevcut (`fdd80b1`). Grafik/tablo ayrıntısı ve gerçek API/görsel kabul Q1'de. |
 | Palplanş | Motor/API ve oluşturma, tasarım job takibi, sonuç paneli ile mock create/job mevcut (`998e937`). Bağımsız inceleme ve gerçek API/görsel kabul bekliyor. |
