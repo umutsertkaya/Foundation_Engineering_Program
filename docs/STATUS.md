@@ -8,8 +8,8 @@ Test kanıtları: [denetim raporu](audit/2026-10-19-sadelestirme.md).
 
 Compact veya devir öncesi yalnız bu üç satır güncellenir (kural: [WORKFLOW](WORKFLOW.md#bağlam-ve-compact-kuralı)).
 
-- Biten: 2026-10-20 orkestrasyon kurulumu: ai-orchestrator 2.1.0 bağlı, Codex (gpt-6-luna) ve Antigravity (gemini-3.8-flash) bağlantı testi OK, codemap --check temiz (820c084).
-- Sıradaki: proje eksiklerinin tespiti ve sıfırdan plan; işler bağımsız kartlara bölünecek.
+- Biten: 2026-10-20 T1 (dal feat/t1-liq-charts): sıvılaşma sonuç tablosu + FS ve CSR/CRR derinlik SVG grafikleri, yeni hesap yok; liquefaction Vitest 31/31, typecheck, codemap --check temiz. Gerçek API/görsel kabul yapılmadı.
+- Sıradaki: T1 dalının birleştirilmesi (kullanıcı onayı) ve Q1 gerçek API + görsel kabul.
 - Açık karar: yok.
 
 ## Koddan doğrulanan durum
