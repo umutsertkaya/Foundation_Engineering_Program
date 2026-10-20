@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "geotek-codemap": {
+      "command": ".venv/Scripts/python.exe",
+      "args": ["tools/codemap_mcp.py"]
+    }
+  }
+}
