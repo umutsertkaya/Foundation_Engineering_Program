@@ -206,3 +206,23 @@ def test_liquefaction_without_soundings_is_refused(shell, two_layer_profile):
     response = shell.post("/api/m/liquefaction/run", json=LIQ)
     assert response.status_code == 422
     assert response.json()["details"]["message_code"] == "liquefaction_no_data"
+
+
+@pytest.mark.parametrize("lang, slope_label, basis, assumption", [
+    ("en", "Backfill slope", "Inclined surface", "Surcharge given per inclined surface area"),
+    ("tr", "Arka zemin eğimi", "Eğimli yüzey", "Sürşarj eğimli yüzey alanına göre verildi"),
+])
+def test_slope_and_surcharge_basis_are_reported(shell, open_project, lang, slope_label, basis, assumption):
+    open_project.meta.language = lang
+    for structure in open_project.structures:
+        if structure.kind == "sheet_pile":
+            structure.backfill_slope, structure.surcharge, structure.surcharge_basis = 10.0, 15.0, "inclined"
+        else:
+            structure.backfill_slope = 10.0
+            structure.inputs.surcharge, structure.inputs.surcharge_basis = 15.0, "inclined"
+    for path in ("/api/m/walls/structures/wall/check", "/api/m/sheet_pile/structures/sheet/design"):
+        assert poll_job(shell, submit(shell, path))["status"] == "done"
+    text = _text(shell.post(f"{BASE}/docx", json={"sections": ["structure:wall", "structure:sheet"]}))
+    assert slope_label in text and basis in text
+    assert text.count(assumption) == 2
+    assert "report.assumption" not in text and "sheet_pile.assumption" not in text

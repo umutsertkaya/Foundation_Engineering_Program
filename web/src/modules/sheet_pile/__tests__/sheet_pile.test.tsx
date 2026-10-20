@@ -172,7 +172,7 @@ describe("sheet_pile shell (mock)", () => {
     renderAt("/m/sheet_pile/s/sp-stale");
     fireEvent.click(await screen.findByRole("button", { name: "Tasarımı çalıştır" }));
     await screen.findByTestId("sheet-pile-result", {}, { timeout: 5000 });
-    fireEvent.change(screen.getByLabelText(/Sürşarj/), { target: { value: "12" } });
+    fireEvent.change(screen.getByLabelText(/^Sürşarj \(kPa\)/), { target: { value: "12" } });
     fireEvent.click(screen.getByRole("button", { name: "Kaydet" }));
     expect(await screen.findByText(/Girdiler değişti/)).toBeInTheDocument();
     expect(screen.getByTestId("sheet-pile-result").parentElement).toHaveStyle({ opacity: "0.5" });
@@ -182,7 +182,7 @@ describe("sheet_pile shell (mock)", () => {
     seedSheetPile("sp-edit-during-job", "Perde Edit");
     renderAt("/m/sheet_pile/s/sp-edit-during-job");
     fireEvent.click(await screen.findByRole("button", { name: "Tasarımı çalıştır" }));
-    const surcharge = await screen.findByLabelText(/Sürşarj/);
+    const surcharge = await screen.findByLabelText(/^Sürşarj \(kPa\)/);
     fireEvent.change(surcharge, { target: { value: "17" } });
     await screen.findByTestId("sheet-pile-result", {}, { timeout: 5000 });
     expect(surcharge).toHaveValue("17");
@@ -210,7 +210,7 @@ describe("sheet_pile shell (mock)", () => {
     await waitFor(() => expect(screen.getByTestId("loc").textContent).toMatch(/^\/m\/sheet_pile\/s\/pile-mock-/));
     fireEvent.click(await screen.findByRole("button", { name: "Tasarımı çalıştır" }));
     await screen.findByTestId("sheet-pile-result", {}, { timeout: 5000 });
-    fireEvent.change(screen.getByLabelText(/Sürşarj/), { target: { value: "12" } });
+    fireEvent.change(screen.getByLabelText(/^Sürşarj \(kPa\)/), { target: { value: "12" } });
     fireEvent.click(screen.getByRole("button", { name: "Kaydet" }));
     expect(await screen.findByText(/Girdiler değişti/)).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Kaynak profille eşitle" })).not.toBeInTheDocument();
@@ -263,7 +263,7 @@ describe("sheet_pile shell (mock)", () => {
     const runHash = stored().result_hash;
     expect(runHash).not.toBe("before-the-run");
     await waitFor(() => expect(screen.getByRole("button", { name: "Tasarımı çalıştır" })).toBeEnabled());
-    fireEvent.change(screen.getByLabelText(/Sürşarj/), { target: { value: "12" } });
+    fireEvent.change(screen.getByLabelText(/^Sürşarj \(kPa\)/), { target: { value: "12" } });
     fireEvent.click(screen.getByRole("button", { name: "Kaydet" }));
     expect(await screen.findByText(/Girdiler değişti/)).toBeInTheDocument();
     expect(stored().result_hash).toBe(runHash);

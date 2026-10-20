@@ -336,6 +336,7 @@ def _wall_section(w: _Writer, structure, result: dict) -> None:
         (w.tr("report.wall.height"), _fmt(structure.height)),
         (w.tr("report.wall.slope"), _fmt(structure.backfill_slope, 1)),
         (w.tr("report.wall.surcharge"), _fmt(inputs.surcharge)),
+        (w.tr("report.wall.surcharge_basis"), w.enum("report.surcharge_basis", inputs.surcharge_basis)),
         (w.tr("report.wall.gwt_case"), w.enum("web.soil.gwt", f"{inputs.gwt_case}_short")),
         (w.tr("report.wall.approach"), structure.approach or DASH),
         (w.tr("report.wall.kh"), _fmt(result.get("kh"), 3)),
@@ -364,7 +365,9 @@ def _sheet_pile_section(w: _Writer, structure, result: dict) -> None:
     w.heading(w.tr("report.section.sheet_pile", name=structure.name or structure.id))
     w.key_values([
         (w.tr("report.pile.support"), w.enum("sheet_pile.support", structure.support)),
+        (w.tr("report.pile.slope"), _fmt(structure.backfill_slope, 1)),
         (w.tr("report.pile.surcharge"), _fmt(structure.surcharge)),
+        (w.tr("report.pile.surcharge_basis"), w.enum("report.surcharge_basis", structure.surcharge_basis)),
         (w.tr("report.wall.approach"), structure.approach or DASH),
         (w.tr("report.pile.H"), _fmt(result.get("H"))),
         (w.tr("report.pile.D0"), _fmt(result.get("D0"))),

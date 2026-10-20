@@ -18,6 +18,13 @@ describe("sheet pile client range validation", () => {
     expect(issues(base({ allowable_stress_mpa: 0 }))).toContain("range:allowable_stress_mpa");
     expect(issues(base({ surcharge: -1 }))).toContain("range:surcharge");
   });
+  it("validates backfill slope and sends slope and surcharge basis", () => {
+    expect(issues(base({ backfill_slope: 45 }))).toContain("range:backfill_slope");
+    expect(issues(base({ backfill_slope: -1 }))).toContain("range:backfill_slope");
+    expect(issues(base({ backfill_slope: 20 }))).not.toContain("range:backfill_slope");
+    expect(toCreatePayload(base(), { ...DEFAULT_SOIL, profile_id: "p" })).toMatchObject({ backfill_slope: null, surcharge_basis: "horizontal" });
+    expect(toCreatePayload(base({ backfill_slope: 20, surcharge_basis: "inclined" }), { ...DEFAULT_SOIL, profile_id: "p" })).toMatchObject({ backfill_slope: 20, surcharge_basis: "inclined" });
+  });
   it("validates advanced ranges and preserves service-default sentinels in create payload", () => {
     expect(issues(base({ depth_increase: -0.01 }))).toContain("range:depth_increase");
     expect(issues(base({ support: "anchored", anchor_depth: 1, anchor_spacing: 0 }))).toContain("range:anchor_spacing");
