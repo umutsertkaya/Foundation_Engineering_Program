@@ -11,6 +11,9 @@ Compact veya devir öncesi yalnız bu üç satır güncellenir (kural: [WORKFLOW
 - Biten: 2026-10-20 orkestrasyon kurulumu: ai-orchestrator 2.1.0 bağlı, Codex (gpt-6-luna) ve Antigravity (gemini-3.8-flash) bağlantı testi OK, codemap --check temiz (820c084).
 - Sıradaki: proje eksiklerinin tespiti ve sıfırdan plan; işler bağımsız kartlara bölünecek.
 - Kararlar (2026-10-20, şef): rapor önce docx, PDF sonra; sınıflandırma Robertson SBTn + USCS; geotek/ui paketleme sonrası kaldırılır; eski 11 worktree ve birleşmiş eski dallar silinir. Plan: Projects ortak klasörü plan/2026-10-20-yeni-plan.md. Açık karar: yok.
+- T3b (2026-10-20, test/T3b-bearing-earthpressure): taşıma gücü (Meyerhof/Hansen/Vesic, Bowles Tablo 4-4 + bağımsız el hesabı) ve yanal basınç (Rankine/Coulomb/Mononobe-Okabe/Seed-Whitman/log-spiral) literatür testleri eklendi: 46 geçti, 0 xfail/başarısız; kaynak kod değişmedi.
+- T3b kapsam dışı/açık: Terzaghi için motor fonksiyonu yok (test edilmedi); pürüzlü duvar log-spiral Kp (~6.5) kaynağı doğrulanamadığı için kullanılmadı. Literatür farkı yok; LS extreme_I 0.50 proje varsayımı olarak kalır.
+- T3b inceleme: Codex gpt-6-astra yazdı, Antigravity gemini-4-argon salt okuma inceledi (0 bulgu); CODE_MAP yenilendi, --check 0.
 
 ## Koddan doğrulanan durum
 
