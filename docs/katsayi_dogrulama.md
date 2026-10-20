@@ -42,7 +42,7 @@ Ulusal Ek değerleri farklı olabilir.
 
 AASHTO metninin kendisine erişilemedi. FHWA NHI-10-024 (GEC-11, AASHTO 2007'den aktarım, **secondary**) ile yük katsayıları
 DC 1.25/0.90, EH 1.50/0.90, EV 1.35/1.00, ES 1.50/0.75, LS 1.75, EQ 1.00 ve toptan göçme 0.75/0.65 eşleşti;
-Extreme Event I eksantrisite sınırı 0.40 B eşleşti. Taşıma 0.55 ve pasif 0.50 önceki eyalet DOT özetlerine dayanır (secondary).
+Extreme Event I eksantrisite sınırı 0.40 B **unverified** (AASHTO 11.6.5'te sınır γEQ'ya bağlı; madde metniyle ve tablo numarasıyla, 11.5.6-1 / 11.5.7-1, doğrulanmadan eşleşti sayılmaz). Taşıma 0.55 ve pasif 0.50 önceki eyalet DOT özetlerine dayanır (secondary).
 Kayma (0.80/0.90), palplanş pasif (0.75), Extreme direnç katsayıları, strength eksantrisite sınırları ve LS extreme_I 0.50
 **unverified**.
 

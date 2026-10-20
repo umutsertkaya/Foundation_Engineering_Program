@@ -52,7 +52,8 @@ def test_factor_labels():
     assert tbdy.source_of("TBDY-seismic.material.tan_phi").status == "not_in_source"
     assert get_design_code("ec7").source_of("EQU.load.G_dst").status == "secondary"
     assert get_design_code("aashto_lrfd").source_of("load.DC.max").status == "secondary"
-    assert get_design_code("aashto_lrfd").source_of("resistance.strength.global_stability").status == "unverified"
+    assert get_design_code("aashto_lrfd").source_of("resistance.strength.global_stability").status == "secondary"
+    assert get_design_code("aashto_lrfd").source_of("eccentricity.soil.extreme").status == "unverified"
 
 
 def test_override_changes_result_and_is_labelled():
