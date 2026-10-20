@@ -1,5 +1,9 @@
 # P1 — GeoTek v2 sözleşmeleri
 
+> Tarihsel ilk tasarım kaydı. Aşağıdaki taslak/1.2/faz ifadeleri o döneme aittir.
+> Güncel durum [STATUS.md](../STATUS.md), gerçek şema ve HTTP yüzeyi kod/test/OpenAPI'dedir.
+> Geçmiş onayları yeniden açmak veya uygulanmış modül yapısını geri almak için kullanılmaz.
+
 Durum: **taslak, 1. onay kapısında**. Kod tarafındaki tanımlar bağlayıcıdır; bu belge onların anlamını,
 kurallarını ve sonraki paketlerin (E1–E4, A1, F1) uyacağı imzaları verir. Bağımsız inceleme (gpt-6.1-sol)
 bulguları işlenmiştir.

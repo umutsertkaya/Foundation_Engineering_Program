@@ -1,0 +1,32 @@
+[
+  {
+    "original": "README.md",
+    "archive": "docs/archive/2026-10-19/ROOT_README.md",
+    "sha256": "CE260CFA792FC164663A52B23A156C4D294202496695D7CD048DD8F773B77836"
+  },
+  {
+    "original": "docs/PLAN.md",
+    "archive": "docs/archive/2026-10-19/PLAN.md",
+    "sha256": "AAD92108A8C3192696B3E7A1E07505676680348B9065761523DBB067DA859FBB"
+  },
+  {
+    "original": "docs/ORKESTRA_PROMPT.md",
+    "archive": "docs/archive/2026-10-19/ORKESTRA_PROMPT.md",
+    "sha256": "A1F04313A7F5E4580C7C9334B38969313467888E0958BA39B0359F1D5B56639B"
+  },
+  {
+    "original": "docs/DEVAM_PROMPT.md",
+    "archive": "docs/archive/2026-10-19/DEVAM_PROMPT.md",
+    "sha256": "A4AB4D4C911BF2CBAE25B82CBDBF6F0F16B4FA7B98FF2C9E35F2BB963DC5A743"
+  },
+  {
+    "original": "docs/DEVAM_NOTLARI.md",
+    "archive": "docs/archive/2026-10-19/DEVAM_NOTLARI.md",
+    "sha256": "B9BACB4E8B0D721AAF79548E1C135A6C9BC4FEB6378533C0F7A30B8C0E32983B"
+  },
+  {
+    "original": "docs/plans/MODULER_YAPI.md",
+    "archive": "docs/archive/2026-10-19/plans/MODULER_YAPI.md",
+    "sha256": "F1226BB9DEDE022E1481D6F22990C549FA753215C6A85236E570E92BC6BC61B4"
+  }
+]

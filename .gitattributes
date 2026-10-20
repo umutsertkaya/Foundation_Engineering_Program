@@ -13,3 +13,6 @@
 *.gtk -text
 tests/**/data/** -text
 examples/** -text
+
+# Preserve the pre-cleanup instruction snapshots and their recorded SHA-256 bytes.
+docs/archive/2026-10-19/** -text

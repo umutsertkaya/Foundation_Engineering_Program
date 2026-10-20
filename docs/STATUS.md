@@ -1,6 +1,6 @@
 # GeoTek — güncel durum ve tek iş sırası
 
-Son denetim: 2026-10-19 (İstanbul). Kod tabanı: `main`, `f136542`.
+Yönetim/harita denetimi: 2026-10-20 (İstanbul). Son gözlenen ürün commit'i: `main`, `998e937`.
 Bu sayfa **tek güncel durum kaynağıdır**. Eski faz listeleri tarihsel kayıttır.
 Test kanıtları: [denetim raporu](audit/2026-10-19-sadelestirme.md).
 
@@ -12,8 +12,8 @@ Test kanıtları: [denetim raporu](audit/2026-10-19-sadelestirme.md).
 | Veri | `.gtk` şeması 1.3; eski sürüm göçleri, yapı zemin kopyası ve stale/hash kontrolleri mevcut. |
 | Zemin | CPT/SPT işleme, otomatik katmanlama, parametre aday/seçim/onay API'si ve web akışı mevcut. Sınıflandırma web sayfası yer tutucu. |
 | Duvar | Katmanlı motor, yapı API'si, öner/kontrol, iş takibi/iptal, analiz seçenekleri, sonuç kartları ve SVG kesit mevcut. |
-| Sıvılaşma | Motor + gerçek job API mevcut. Web formu var; `job_id` izlenmeden yer tutucu sonuca gidiliyor. |
-| Palplanş | Motor + gerçek tasarım job API mevcut. Web yalnız liste/yer tutucu ayrıntı; mock design 501. |
+| Sıvılaşma | Motor/API ve web job takibi, iptal/hata/erişilemiyor, sonuç özeti mevcut (`fdd80b1`). Grafik/tablo ayrıntısı ve gerçek API/görsel kabul Q1'de. |
+| Palplanş | Motor/API ve oluşturma, tasarım job takibi, sonuç paneli ile mock create/job mevcut (`998e937`). Bağımsız inceleme ve gerçek API/görsel kabul bekliyor. |
 | Rapor/paket | Web raporu yer tutucu. `geotek.app` başlatıcısı ve doğrulanmış tek exe henüz yok. |
 
 Kanıt: zemin birleşmeleri `d3723db`, `b79add8`; duvar `e78d1e3`, `f136542`.
@@ -29,9 +29,9 @@ Kalan paketler küçük teslimlere ayrılır; hepsini aynı oturumda planlama.
 
 | Sıra | Kart | Kapsam / bağımlılık |
 |---|---|---|
-| 1 | [F5-LIQ](tasks/F5-LIQ.md) | Sıvılaşmada job takibi, iptal, sonuç. Mevcut API'yi kullan. |
-| 2 | [F5-PILE](tasks/F5-PILE.md) | Palplanş oluşturma, tasarım job'u, sonuç; gerekirse iki ayrı teslim. |
-| 3 | [Q1](tasks/Q1.md) | Gerçek API ile uçtan uca + görsel kontrol, kalan sınıflandırma/rapor kapsamını kesinleştir. |
+| Tamamlanan teslim | [F5-LIQ](tasks/F5-LIQ.md) | Job/sonuç ilk teslimleri tamam; yeniden başlatma. Kalan kabul Q1'de. |
+| Tamamlanan teslim | [F5-PILE](tasks/F5-PILE.md) | Oluşturma/job/sonuç ilk teslimi tamam; inceleme ve kabul Q1'de. |
+| Sıradaki | [Q1](tasks/Q1.md) | Gerçek API ile uçtan uca + görsel kontrol, kalan sınıflandırma/rapor kapsamını kesinleştir. |
 | 4 | [K1](tasks/K1.md) | Onaydan sonra yerel başlatıcı, paketleme ve kullanım belgesi. |
 
 Öncelik kullanıcı tarafından değiştirilebilir. Paralel çalışmada en çok iki bağımsız yazıcı;
@@ -71,6 +71,15 @@ Bu alanların yerel değişiklikleri kontrol edilmedi; silinmedi. Yeni işe eski
 Her oturumda `tools/project.py status` ile canlı Git durumunu gör; tarihsel yolu zorunlu kabul etme.
 
 ## Sonraki oturuma devir
+
+Claude Code Projects aktarımı: [CLAUDE_PROJECTS.md](CLAUDE_PROJECTS.md).
+Koordinatör talimatı: [PROJECT_INSTRUCTIONS.md](PROJECT_INSTRUCTIONS.md).
+Model için kod bulma sırası: `code_map_target` → gerekli simgenin `code_map_read` kesiti;
+büyük CODE_MAP belgesi varsayılan bağlam değildir. Yerel MCP kaydı bir kez kullanıcı güven onayı
+bekliyor; Projects talimat alanına yükleme henüz yapılmadı. Kanıt:
+[2026-10-20 araç denetimi](audit/2026-10-20-projects-codemap.md).
+`http://127.0.0.1:8766` görünümü insan incelemesine yardımcıdır; ürün geliştirme
+konusu ayrı çalışıyor olabilir. Bu denetim ürünün Q1 işlerini tamamlandı olarak işaretlemez.
 
 Yalnız bu sayfayı güncelle: biten görev + kanıtı, sıradaki tek kart, açık karar ve test sonucu.
 Aktif dosya sahipliği/süren MCP çağrısı varsa buraya kısa kayıt ekle; yoksa yeni tablo açma.

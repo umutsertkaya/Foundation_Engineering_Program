@@ -9,6 +9,7 @@ dist/
 .hypothesis/
 .ruff_cache/
 .mypy_cache/
+.project/
 node_modules/
 web/dist/
 playwright-report/

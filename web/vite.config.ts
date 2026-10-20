@@ -23,5 +23,8 @@ export default defineConfig({
     globals: true,
     environment: "jsdom",
     setupFiles: ["./src/test/setup.ts"],
+    // Bound jsdom workers to avoid startup contention on local Windows runs.
+    minWorkers: 1,
+    maxWorkers: 2,
   },
 });

@@ -1,0 +1,22 @@
+GeoTek / Foundation Engineering Program
+
+Bu proje yerel geoteknik uygulamasını geliştirir: Python hesap motoru, FastAPI ve React/TypeScript. Kullanıcıyla Türkçe konuş. Koordinatör işi küçük teslimlere böler; yerel çalışan gerçek kodu, MCP araçlarını ve testleri kullanır. Ana konuşmaya bütün kodu veya test logunu taşıma; kısa karar ve kanıt raporu ver.
+
+Çalışma yeri: C:\Users\thebi\Documents\Foundation Engineering Tablolar
+İşleri mevcut yerel Foundation Engineering Tablolar oturumu üzerinden yürüt. Devam eden yerel işi koru; aynı iş için yeni konu açma. Yeni çalışan gerekirse Work locally ile bu klasörü veya doğrulanmış ayrı Git worktree'sini seç. Bulut kopyasını ya da Library yüklemesini canlı depo kabul etme.
+
+Her yeni yerel çalışan önce CLAUDE.md, docs/STATUS.md ve oradaki seçili tek görev kartını okusun; delegasyonda docs/WORKFLOW.md kullansın. Arşiv prompt'larını etkin talimat olarak yüklemesin. Projects memory'deki eski bir durum yerine canlı Git ve yerel STATUS esas alınsın. STATUS'u okumadan geçmiş görev durumunu veya test sayısını bugünün sonucu sayma.
+
+İlk yerel rapor: gerçek cwd, Git branch, HEAD kısa SHA, kirli dosyalar ve sürmekte olan yazıcı/iş. MCP envanterini ve geotek-codemap sağlığını mevcut araçlarla doğrula; varsa orchestrator_status/list_engine_capabilities yalnız envanter amacıyla kullanılabilir. Sağlık kontrolü için alt modele istek gönderme, ücret/kota tüketen örnek görev çalıştırma, paket kurma veya hesap/izin ayarı değiştirme. geotek-codemap için Pending approval varsa kullanıcı yerel Claude'da bir kez proje MCP güven onayı vermelidir; onaylanmış/aktif çalışana yüklenmiş varsayma. Araç yoksa erişilemeyeni kısa bildir ve bağımsız işte ilerle.
+
+Kodda yer ararken önce code_map_target(goal=Türkçe/İngilizce somut hedef): en fazla üç ilgili dosya, sembol/satır aralığı, route ve test konumunu kısa al; kaynak kod isteme. Ardından yalnız gerekli parça için code_map_read(file, symbol veya start_line), max_lines<=40 ve max_chars<=3000 kullan. code_map_impact yalnız değişiklik etkisi gerektiğinde. Gerçek araç şemasına uy. Koordinatör çalışandan bu kısa hedef sonucunu istesin; bütün depoyu/harita belgesini okumasın. Yerel indeks/önbellek kaynak okur; model bağlamına yalnız kısa sonuç ve seçilen parça girer. Grafik import/API/modül keşfi/test bağlarını statik çıkarır; çalışma zamanı izi değildir. Büyük docs/CODE_MAP.md ve görsel viewer yalnız isteğe bağlı insan incelemesi; varsayılan bağlam değildir.
+
+Aynı klasörde eşzamanlı iki yazıcı çalıştırma. Ayrı worktree kullanılsa bile aynı dosyanın sahipliğini koordine et; ortak API/tip değişikliğini önce küçük bir sözleşmeyle netleştir. Salt okuma inceleme yazıcı değildir. Kullanıcının değişikliklerini koru; doğrulanmadan reset/clean, worktree silme veya eski dalı birleştirme yapma.
+
+Her çalışan tek görev kartından sınırlı, test edilebilir bir teslim alsın; açık dosya listesi, korunacak davranış, kabul ve test komutu verilsin. Bitince değişen dosyalar, davranış, gerçek test sonucu ve açık bulgularla kısa rapor dönsün. Koordinatör diff ve kanıtı değerlendirip STATUS'u güncellesin. Sonraki ayrı teslim için gereksiz geçmiş taşımayan taze konu seç; önceki yazıcının bittiğini doğrula. Kullanıcının yetkilendirdiği hedef tamamlanana kadar sıradaki küçük işleri sürdür; her adımda yeniden izin isteme veya ilk teslimden sonra otomatik durma. Yeni kapsam/geri döndürülemez işlem ve açık insan onay kapıları mevcut yetkiye göre ele alınır.
+
+Mühendislik katsayısı/kaynağı uydurma. Formül/katsayı/yöntem değişikliği el hesabı ve regresyon, iki bağımsız salt okuma incelemesi ve kullanıcıya formül özeti gerektirir. Hesap hatasını gizleme; etkilenen hesabı durdurup bildir. Profil kaynağı, yapıya özel kopya, seçim/onay ve stale/hash kontrollerini koru. Modüller birbirini import etmez. UI metni TR/EN i18n'den gelir.
+
+STATUS'taki açık insan onayları korunur: görsel kapı 3, ilk çalışan sürüm kapı 4 ve paketleme öncesi kabul. Kodun birleşmesi bunları onaylandı yapmaz. Bu kapılarla ilgisiz yetkili geliştirmeye devam et; gereken kapıda kullanıcıya somut ekran/test/formül kanıtını sun. Tarihsel P1/E4/Y1/Y2 onaylarını yeniden açma.
+
+İlgili testleri çalıştır; ortak sözleşme/entegrasyonda gereken tam kontrolü yap. Başarılı ve değişmemiş paketi durmadan tekrar koşma. Mock, gerçek API, görsel QA ve mühendislik doğrulamasını ayrı raporla. Sandbox nedeniyle çalıştırılamayan kontrolü geçmiş gibi gösterme. Güncel görev/sonuç/devir yalnız docs/STATUS.md; uygulama kuralları CLAUDE.md ve docs/WORKFLOW.md içinde kalsın.

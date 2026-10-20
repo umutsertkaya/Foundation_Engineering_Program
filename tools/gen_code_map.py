@@ -9,6 +9,7 @@ from __future__ import annotations
 import argparse
 import ast
 from collections import defaultdict
+import glob
 from pathlib import Path
 import re
 import sys
@@ -26,6 +27,7 @@ def _files(base: Path, suffixes: tuple[str, ...]) -> list[Path]:
     out = [
         p for p in base.rglob("*")
         if p.is_file() and p.suffix in suffixes and not (SKIP_DIRS & set(p.parts))
+        and p.resolve().is_relative_to(ROOT.resolve())
     ]
     return sorted(out)
 
@@ -99,29 +101,46 @@ def scan_python() -> dict:
     return {"files": known, "deps": deps}
 
 
-ROUTE_RE = re.compile(r"@(\w+)\.(get|post|put|delete|patch)\(\s*[\"']([^\"']*)[\"']")
-ROUTER_RE = re.compile(r"^(\w+)\s*=\s*APIRouter\(", re.M)
-
-
 def scan_routes() -> list[tuple[str, str, str, str]]:
-    """(METHOD, full path, file:line, handler) for FastAPI decorators."""
+    """Read literal FastAPI decorators without importing the application.
+
+    Mount prefixes follow this repository's core /api and module /api/m/<id>
+    convention. APIRouter's own literal prefix is added separately.
+    Locations point at the handler definition, including multiline decorators.
+    """
     rows = []
     for path in _files(ROOT / "geotek" / "api", (".py",)) + _files(ROOT / "geotek" / "modules", (".py",)):
         rel = _rel(path, ROOT)
         mod = re.match(r"geotek/modules/(\w+)/", rel)
         prefix = f"/api/m/{mod.group(1)}" if mod else "/api"
-        lines = path.read_text(encoding="utf-8").splitlines()
-        for i, line in enumerate(lines):
-            m = ROUTE_RE.search(line)
-            if not m or m.group(2) not in HTTP_VERBS:
+        tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
+        routers = {}
+        for node in ast.walk(tree):
+            if not isinstance(node, ast.Assign) or not isinstance(node.value, ast.Call):
                 continue
-            handler = ""
-            for j in range(i, min(i + 8, len(lines))):
-                d = re.match(r"\s*(?:async\s+)?def\s+(\w+)", lines[j])
-                if d:
-                    handler = d.group(1)
-                    break
-            rows.append((m.group(2).upper(), prefix + m.group(3), f"{rel}:{i + 1}", handler))
+            constructor = node.value.func
+            name = constructor.id if isinstance(constructor, ast.Name) else getattr(constructor, "attr", "")
+            if name not in {"APIRouter", "FastAPI"}:
+                continue
+            own_prefix = next((kw.value.value for kw in node.value.keywords
+                               if kw.arg == "prefix" and isinstance(kw.value, ast.Constant)
+                               and isinstance(kw.value.value, str)), "")
+            for target in node.targets:
+                if isinstance(target, ast.Name):
+                    routers[target.id] = own_prefix
+        for node in ast.walk(tree):
+            if not isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+                continue
+            for dec in node.decorator_list:
+                if not (isinstance(dec, ast.Call) and isinstance(dec.func, ast.Attribute)
+                        and isinstance(dec.func.value, ast.Name)
+                        and dec.func.value.id in routers and dec.func.attr in HTTP_VERBS):
+                    continue
+                value = dec.args[0] if dec.args else next(
+                    (kw.value for kw in dec.keywords if kw.arg == "path"), None)
+                if isinstance(value, ast.Constant) and isinstance(value.value, str):
+                    full = prefix + routers[dec.func.value.id] + value.value
+                    rows.append((dec.func.attr.upper(), full, f"{rel}:{node.lineno}", node.name))
     return sorted(rows, key=lambda r: (r[1], r[0]))
 
 
@@ -132,7 +151,162 @@ IMPORT_RE = re.compile(
     r"""|import\(\s*["']([^"']+)["']\s*\)"""
     r"""|vi\.mock\(\s*["']([^"']+)["']"""
 )
-REQ_RE = re.compile(r"""request(?:<[^()]*?>)?\(\s*["'](\w+)["']\s*,\s*[`"']([^`"']+)[`"']""")
+REQ_RE = re.compile(r"""\brequest\s*(?:<[^()]*?>)?\s*\(\s*["'](\w+)["']\s*,\s*[`"']([^`"']+)[`"']""")
+GLOB_RE = re.compile(r"""import\.meta\.glob(?:\s*<[\s\S]*?>)?\s*\(\s*["']([^"']+)["']""")
+
+
+def web_source(text: str) -> str:
+    """Remove comments while keeping quoted strings and template literals intact."""
+    pattern = r'''("(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'|`(?:\\.|[^`\\])*`)|(/\*[\s\S]*?\*/|//[^\r\n]*)'''
+    return re.sub(pattern, lambda m: m.group(1) or "\n" * m.group(0).count("\n"), text)
+
+
+def scan_symbols(path: Path) -> list[dict]:
+    """Source-backed declaration ranges; Python AST and bounded TS declarations."""
+    text = path.read_text(encoding="utf-8")
+    symbols = []
+    if path.suffix == ".py":
+        def visit(node: ast.AST, parents: tuple[str, ...] = ()) -> None:
+            for child in ast.iter_child_nodes(node):
+                nested = isinstance(child, (ast.ClassDef, ast.FunctionDef, ast.AsyncFunctionDef))
+                if nested:
+                    symbols.append({"name": child.name, "qualified": ".".join((*parents, child.name)),
+                                    "start": child.lineno, "end": child.end_lineno})
+                visit(child, (*parents, child.name) if nested else parents)
+        visit(ast.parse(text, filename=str(path)))
+    else:
+        # Preserve offsets while masking comments/strings, so fixtures cannot
+        # introduce fictional declarations and braces inside literals are ignored.
+        literals = r'''"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'|`(?:\\.|[^`\\])*`|/\*[\s\S]*?\*/|//[^\r\n]*'''
+        masked = re.sub(literals, lambda m: re.sub(r"[^\n]", " ", m.group()), text)
+        declarations = re.compile(
+            r"(?m)^[ \t]*(?:(?:export\s+(?:default\s+)?)?(?:async\s+)?function\s+(?P<fn>[\w$]+)"
+            r"|export\s+(?:const|let|class|interface|type)\s+(?P<export>[\w$]+)"
+            r"|(?:const|let)\s+(?P<arrow>[\w$]+)[^\n=]*=\s*(?:async\s*)?"
+            r"(?:\([^;\n]*\)\s*=>|useCallback(?:<[^>]+>)?\s*\())")
+
+        def closing(start: int, left: str, right: str) -> int:
+            depth = 0
+            for offset in range(start, len(masked)):
+                depth += (masked[offset] == left) - (masked[offset] == right)
+                if depth == 0:
+                    return offset
+            return start
+
+        for match in declarations.finditer(masked):
+            name = match.group("fn") or match.group("export") or match.group("arrow")
+            search = match.end()
+            if match.group("fn"):
+                opening = masked.find("(", search)
+                if opening >= 0:
+                    search = closing(opening, "(", ")") + 1
+            elif match.group("arrow") or match.group("export"):
+                equals = masked.find("=", match.end() if match.group("export") else match.start())
+                initial = masked[equals + 1:].lstrip() if equals >= 0 else ""
+                if match.group("arrow") or initial.startswith(("(", "async ", "useCallback")):
+                    arrow = masked.find("=>", equals + 1)
+                    search = arrow + 2 if arrow >= 0 else search
+            body = -1
+            position, angle = search, 0
+            while position < len(masked):
+                char = masked[position]
+                angle += (char == "<") - (char == ">" and angle > 0)
+                if char == "{" and (angle > 0 or (match.group("fn") and
+                        (masked[search:position].strip() == ":" or masked[search:position].rstrip().endswith(("&", "|"))))):
+                    position = closing(position, "{", "}") + 1
+                    continue
+                if char == "{" and angle == 0:
+                    body = position
+                    break
+                if char == ";" and angle == 0:
+                    break
+                position += 1
+            end = closing(body, "{", "}") if body >= 0 else (
+                position if position < len(masked) and masked[position] == ";" else -1)
+            if end < 0:
+                end = masked.find("\n", search)
+            symbols.append({"name": name, "qualified": name,
+                            "start": text.count("\n", 0, match.start()) + 1,
+                            "end": text.count("\n", 0, max(match.end(), end)) + 1})
+    return sorted(symbols, key=lambda s: (s["start"], s["end"], s["name"]))
+
+
+def normalize_call_path(value: str, text: str = "") -> str | None:
+    """Resolve only literal path templates and simple literal-return helpers.
+
+    We never evaluate JavaScript. Unknown URL builders and embedded path fragments
+    stay unmatched rather than guessing which server operation they represent.
+    """
+    helper_re = r"const\s+(\w+)\s*=\s*\([^;{}]*\)\s*(?::\s*\w+\s*)?=>\s*`([^`]+)`\s*;"
+    helpers = {m.group(1): re.sub(r"\$\{[^}]*\}", "{}", m.group(2))
+               for m in re.finditer(helper_re, text)}
+    # Recognize a locally declared optional query suffix, not arbitrary suffixes.
+    query_re = r'''const\s+(\w+)\s*=\s*[^;\n]*\?\s*`\?[^`]*`\s*:\s*["']{2}\s*;'''
+    queries = {m.group(1) for m in re.finditer(query_re, text)}
+
+    def substitute(match: re.Match) -> str:
+        expression = match.group(1).strip()
+        if expression in queries:
+            return ""
+        helper = re.fullmatch(r"(\w+)\([^{}]*\)", expression)
+        return helpers[helper.group(1)] if helper and helper.group(1) in helpers else "{}"
+
+    value = re.sub(r"\$\{([^}]*)\}", substitute, value).split("?", 1)[0].split("#", 1)[0]
+    if not value.startswith("/") or "//" in value:
+        return None
+    if any(("{" in segment or "}" in segment) and segment != "{}" for segment in value.split("/")):
+        return None
+    return value
+
+
+def route_shape(path: str) -> str:
+    """Normalize a full API path; only complete path-parameter segments vary."""
+    return re.sub(r"(?<=/)\{[^/{}]+\}(?=/|$)", "{}", path)
+
+
+def route_callers(routes: list, web: dict) -> dict[tuple, list[str]]:
+    by_operation: dict[tuple[str, str], set[str]] = defaultdict(set)
+    for file, calls in web["calls"].items():
+        if is_test(file) or "/mock/" in file or file.endswith("mock.ts"):
+            continue
+        for method, path in calls:
+            full = path if path.startswith("/api/") else "/api" + path
+            by_operation[(method, route_shape(full))].add("web/src/" + file)
+    return {route: sorted(by_operation.get((route[0], route_shape(route[1])), ()))
+            for route in routes}
+
+
+def scan_discovery(py: dict, web: dict) -> set[tuple[str, str]]:
+    """Expand the repository's known manifest discovery and literal Vite globs."""
+    edges = set()
+    registry = ROOT / "geotek/api/registry.py"
+    if registry.is_file():
+        registry_tree = ast.parse(registry.read_text(encoding="utf-8"))
+        calls = [n for n in ast.walk(registry_tree) if isinstance(n, ast.Call)]
+        dynamic_import = any(isinstance(n.func, ast.Name) and n.func.id == "import_module"
+                             and n.args and isinstance(n.args[0], ast.JoinedStr)
+                             and isinstance(n.args[0].values[0], ast.Constant)
+                             and n.args[0].values[0].value == "geotek.modules."
+                             for n in calls)
+        package_scan = any(isinstance(n.func, ast.Name) and n.func.id == "iter_modules" for n in calls)
+        if dynamic_import and package_scan:
+            for module, path in py["files"].items():
+                if re.fullmatch(r"geotek\.modules\.[a-z][a-z0-9_]*", module) and path.name == "__init__.py":
+                    tree = ast.parse(path.read_text(encoding="utf-8"))
+                    if any(isinstance(n, ast.Assign) and any(isinstance(t, ast.Name) and t.id == "MANIFEST"
+                           for t in n.targets) for n in tree.body):
+                        edges.add((_rel(registry, ROOT), _rel(path, ROOT)))
+    known = {(web["base"] / f).resolve() for f in web["files"]}
+    for file in web["files"]:
+        if is_test(file):  # test fixtures can contain illustrative glob source strings
+            continue
+        path = web["base"] / file
+        for pattern in GLOB_RE.findall(web_source(path.read_text(encoding="utf-8"))):
+            for matched in glob.glob(str(path.parent / pattern)):
+                target = Path(matched).resolve()
+                if target in known and target.is_relative_to(ROOT.resolve()):
+                    edges.add(("web/src/" + file, _rel(target, ROOT.resolve())))
+    return edges
 
 
 def web_resolve(src: Path, spec: str, known: set[Path]) -> Path | None:
@@ -161,7 +335,7 @@ def scan_web() -> dict:
     calls: dict[str, list[tuple[str, str]]] = {}
     for p in files:
         rel = _rel(p, base)
-        text = p.read_text(encoding="utf-8")
+        text = web_source(p.read_text(encoding="utf-8"))
         found: set[str] = set()
         for m in IMPORT_RE.finditer(text):
             spec = m.group(1) or m.group(2) or m.group(3)
@@ -169,7 +343,9 @@ def scan_web() -> dict:
             if tgt is not None and tgt != p.resolve():
                 found.add(_rel(tgt, base))
         deps[rel] = found
-        c = [(m.group(1).upper(), re.sub(r"\$\{[^}]*\}", "{}", m.group(2))) for m in REQ_RE.finditer(text)]
+        c = [(m.group(1).upper(), normalized) for m in REQ_RE.finditer(text)
+             if m.group(1).lower() in HTTP_VERBS
+             and (normalized := normalize_call_path(m.group(2), text)) is not None]
         if c:
             calls[rel] = c
     return {"files": [_rel(p, base) for p in files], "deps": deps, "calls": calls, "base": base}
@@ -232,6 +408,9 @@ def render() -> str:
                     tests_of[".".join(parts)].add(_rel(tp, ROOT)[len("tests/"):])
 
     web = scan_web()
+    routes = scan_routes()
+    callers = route_callers(routes, web)
+    discovery = scan_discovery(py, web)
     wdeps = web["deps"]
     w_users: dict[str, set[str]] = defaultdict(set)
     for f, ds in wdeps.items():
@@ -243,8 +422,8 @@ def render() -> str:
         "# Kod haritası (bağımlılık şeması)",
         "",
         "> **Üretilmiş dosya — elle düzenlemeyin.** `python tools/gen_code_map.py` ile yeniden üretin; "
-        "`--check` günceli değilse 1 döner. Yalnız statik import taraması yapar (ast + regex); "
-        "dinamik/yansıma ile yüklenen bağlar (ör. `geotek/api/registry.py` modül keşfi) görünmez.",
+        "`--check` günceli değilse 1 döner. Uygulama kodu çalıştırılmadan Python AST ve sınırlı "
+        "TypeScript taraması yapılır. Bilinen modül keşfi ve literal Vite glob bağları ayrıca gösterilir.",
         "",
         "Hata ararken: önce ilgili paketi şemada bul, sonra dosya tablosunda **Bağımlı olduğu** (aşağı yön) "
         "ve **Kullanan** (yukarı yön) sütunlarına bak. Hesap hatası genelde `engine/` → `services/` → "
@@ -252,6 +431,16 @@ def render() -> str:
         "`api.ts` → `shared/api/http.ts` zincirindedir.",
         "",
         "Okuma: `a → b` = a, b'yi import eder. Sayılar paketler arası import kenarı adedidir.",
+        "",
+        "Sınırlar: import grafiği tip/koşullu importları da içerir; çalışma zamanı çağrı grafiği veya "
+        "mühendislik doğruluk kanıtı değildir. Test bağlantıları doğrudan importlara dayanır, kapsam ölçümü değildir. "
+        "API eşleştirmesi sabit yollar, tam segment parametreleri ve basit literal URL yardımcılarıyla sınırlıdır; "
+        "keyfi URL üreticileri, dış paketler, JSON katalogları ve yansıma çalıştırılmaz.",
+        "",
+        "## 0. Modül keşfi", "",
+        "Bunlar import değil, `discovery` bağlarıdır. Paket diyagramlarındaki import sayısına eklenmez.", "",
+        "| Keşfeden | Keşfedilen |", "|---|---|",
+        *[f"| `{source}` | `{target}` |" for source, target in sorted(discovery)],
         "",
         "## 1. Backend (`geotek/`)",
         "",
@@ -276,9 +465,12 @@ def render() -> str:
 
     L += ["", "### Backend API rotaları", "",
           "Modül rotaları `/api/m/<id>` altında bağlanır (`geotek/api/registry.py`); diğerleri `/api` altında.", "",
-          "| Metot | Yol | Yer | İşleyici |", "|---|---|---|---|"]
-    for meth, path, where, handler in scan_routes():
-        L.append(f"| {meth} | `{path}` | `{where}` | `{handler}` |")
+          "Yer sütunu işleyicinin `def` satırıdır; çok satırlı dekoratörler AST ile okunur. "
+          "Web sütunu eşleşen HTTP istemcisidir; sayfa çağıranları import grafiğinden izlenir.", "",
+          "| Metot | Yol | Yer | İşleyici | Web |", "|---|---|---|---|---|"]
+    for meth, path, where, handler in routes:
+        clients = ", ".join(f"`{f}`" for f in callers[(meth, path, where, handler)]) or "—"
+        L.append(f"| {meth} | `{path}` | `{where}` | `{handler}` | {clients} |")
 
     L += ["", "### Backend dosya tablosu", "",
           "Test sütunu: o dosyayı doğrudan import eden `tests/` dosyaları (yoksa `—`).", ""]
