@@ -21,6 +21,8 @@ beforeEach(() => {
   vi.mocked(api.list_report_sections).mockResolvedValue(SECTIONS);
   URL.createObjectURL = vi.fn(() => "blob:x");
   URL.revokeObjectURL = vi.fn();
+  // jsdom does not implement navigation; the download anchor click is not under test.
+  vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(() => undefined);
 });
 afterEach(() => {
   cleanup();

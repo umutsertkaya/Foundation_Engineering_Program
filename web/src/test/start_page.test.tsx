@@ -107,6 +107,8 @@ describe("start page", () => {
   it("renames the open project file and announces it with a named toast", async () => {
     const show = vi.spyOn(notifications, "show");
     renderApp("/start");
+    // Wait for the initial library load through the RTL async wrapper before awaiting the API directly.
+    await screen.findByTestId("row-actions-ornek-proje.gtk");
     const sample = (await list_library()).find(({ file }) => file === "ornek-proje.gtk")!;
     await openRowAction("ornek-proje.gtk", sample.name, "start.action.rename");
     const dialog = await screen.findByRole("dialog");

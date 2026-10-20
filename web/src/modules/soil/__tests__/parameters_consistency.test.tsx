@@ -1,5 +1,5 @@
 import { MantineProvider } from "@mantine/core";
-import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { setMockMode } from "../../../shared/api/client";
@@ -46,6 +46,7 @@ beforeEach(async () => {
 afterEach(async () => {
   setMockMode(null);
   resetMockState();
+  cleanup();
   await i18n.changeLanguage("tr");
 });
 
