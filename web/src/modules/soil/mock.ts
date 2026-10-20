@@ -23,7 +23,18 @@ import type {
   SoilProfile,
   Statistic,
 } from "../../shared/api/types";
-import type { CPTProcessedDTO, InvestigationsDTO, ProfileCreate, SPTProcessedDTO } from "./types";
+import type {
+  BoreholeUSCSDTO,
+  CPTProcessedDTO,
+  CPTSBTNDTO,
+  InvestigationsDTO,
+  ProfileCreate,
+  SBTNReferenceDTO,
+  SPTProcessedDTO,
+  USCSClassifyRequest,
+  USCSItemDTO,
+  USCSReferenceDTO,
+} from "./types";
 
 const PREFIX = "/m/soil";
 
@@ -495,6 +506,139 @@ function createFromProposal(payload: ProfileCreate): Reply {
   return { status: 200, data: structuredClone(created) };
 }
 
+// ---------------------------------------------------------------------------------------------
+// DEMO classification data (same disclaimer as above): geometry follows the published Robertson
+// Ic formula so the chart looks right, but zones, Fr/Qtn and USCS symbols are NOT engine results.
+// ---------------------------------------------------------------------------------------------
+
+const MOCK_IC_BOUNDS = [1.31, 2.05, 2.6, 2.95, 3.6];
+const MOCK_ZONES: [number, string, string][] = [
+  [1, "Sensitive, fine grained", "Hassas, ince daneli"],
+  [2, "Organic soils - clay", "Organik zemin - kil"],
+  [3, "Clays - silty clay to clay", "Kil - siltli kil ile kil"],
+  [4, "Silt mixtures - clayey silt to silty clay", "Silt karışımı - killi silt ile siltli kil"],
+  [5, "Sand mixtures - silty sand to sandy silt", "Kum karışımı - siltli kum ile kumlu silt"],
+  [6, "Sands - clean sand to silty sand", "Kum - temiz kum ile siltli kum"],
+  [7, "Gravelly sand to dense sand", "Çakıllı kum ile sıkı kum"],
+];
+
+function mockZoneOfIc(ic: number): number {
+  const i = MOCK_IC_BOUNDS.findIndex((b) => ic < b);
+  return i < 0 ? 2 : 7 - i;
+}
+
+function mockSbtnReference(): SBTNReferenceDTO {
+  const fr = Array.from({ length: 101 }, (_, i) => 10 ** (-1 + (2 * i) / 100));
+  const inRange = (q: number) => Number.isFinite(q) && q >= 1 && q <= 1000;
+  return {
+    zones: MOCK_ZONES.map(([zone, name_en, name_tr]) => ({
+      zone,
+      name_en,
+      name_tr,
+      ic_min: zone === 1 ? null : zone === 7 ? null : MOCK_IC_BOUNDS[6 - zone] ?? null,
+      ic_max: zone === 1 ? null : MOCK_IC_BOUNDS[7 - zone] ?? null,
+    })),
+    ic_bounds: MOCK_IC_BOUNDS,
+    zone_1_boundary: fr.map((f) => ({ Fr: f, Qtn: 12 * Math.exp(-1.4 * f) })),
+    ic_contours: MOCK_IC_BOUNDS.map((ic) => ({
+      Ic: ic,
+      points: fr.flatMap((f) => {
+        const q = 10 ** (3.47 - Math.sqrt(ic ** 2 - (Math.log10(f) + 1.22) ** 2));
+        return inRange(q) ? [{ Fr: f, Qtn: q }] : [];
+      }),
+    })),
+    fr_range: { min: 0.1, max: 10 },
+    qtn_range: { min: 1, max: 1000 },
+  };
+}
+
+function mockCptSbtn(cpt: CPTSounding): CPTSBTNDTO {
+  const points = cpt.depth.map((depth, i) => {
+    const Fr = round((cpt.fs[i] / cpt.qc[i]) * 100, 2);
+    const Qtn = round(cpt.qc[i] / 60, 1);
+    const Ic = round(Math.sqrt((3.47 - Math.log10(Qtn)) ** 2 + (Math.log10(Fr) + 1.22) ** 2), 2);
+    const zone = mockZoneOfIc(Ic);
+    const named = MOCK_ZONES.find(([z]) => z === zone);
+    return { depth, Fr, Qtn, Ic, zone, zone_name_en: named?.[1] ?? null, zone_name_tr: named?.[2] ?? null };
+  });
+  return { points, warnings: [mockWarning("classification.mock_demo", { message: `Demo ${MOCK_TAG}: not engine output` })] };
+}
+
+function mockUscsItem(lab: Partial<USCSClassifyRequest> & { depth?: number | null; PL?: number | null; FC?: number | null }, symbol: string | null): USCSItemDTO {
+  const named = symbol ? MOCK_USCS_NAMES[symbol] : undefined;
+  return {
+    depth: lab.depth ?? null,
+    symbol,
+    complete: false,
+    notes: [`Demo ${MOCK_TAG}: symbol taken from the borehole log, not classified`],
+    FC: lab.FC ?? lab.fines ?? null,
+    gravel: lab.gravel ?? null,
+    LL: lab.LL ?? null,
+    PL: lab.PL ?? null,
+    PI: lab.PI ?? null,
+    D10: lab.D10 ?? null,
+    D30: lab.D30 ?? null,
+    D60: lab.D60 ?? null,
+    Cu: null,
+    Cc: null,
+    plastic_class: null,
+    group_name_en: named?.[0] ?? null,
+    group_name_tr: named?.[1] ?? null,
+    description: null,
+  };
+}
+
+const MOCK_USCS_NAMES: Record<string, [string, string]> = {
+  SW: ["Well-graded sand", "İyi derecelenmiş kum"],
+  SM: ["Silty sand", "Siltli kum"],
+  CL: ["Lean clay", "Düşük plastisiteli kil"],
+};
+
+function mockUscsReference(): USCSReferenceDTO {
+  const ll = Array.from({ length: 101 }, (_, i) => i);
+  return {
+    a_line: ll.map((x) => ({ LL: x, PI: 0.73 * (x - 20) })),
+    u_line: ll.map((x) => ({ LL: x, PI: 0.9 * (x - 8) })),
+    symbols: Object.entries(MOCK_USCS_NAMES).map(([symbol, [group_name_en, group_name_tr]]) => ({
+      symbol,
+      group_name_en,
+      group_name_tr,
+      description: `Demo ${MOCK_TAG}`,
+    })),
+  };
+}
+
+function handleClassification(method: string, cleanPath: string, body: unknown): Reply | typeof NOT_HANDLED {
+  const store = getMockStore();
+  if (method === "GET" && cleanPath === "/classification/sbtn/reference") return { status: 200, data: mockSbtnReference() };
+  if (method === "GET" && cleanPath === "/classification/uscs/reference") return { status: 200, data: mockUscsReference() };
+  if (method === "POST" && cleanPath === "/classification/uscs") {
+    const payload = body as USCSClassifyRequest;
+    if (typeof payload?.fines !== "number" || payload.fines < 0 || payload.fines > 100) {
+      return bad("fines must be a number from 0 to 100", { key: "fines" });
+    }
+    return { status: 200, data: mockUscsItem(payload, null) };
+  }
+  const cpt = /^\/cpts\/([^/]+)\/sbtn$/.exec(cleanPath);
+  if (method === "GET" && cpt) {
+    const found = store.cpts.find((c) => c.id === decodeURIComponent(cpt[1]));
+    return found ? { status: 200, data: mockCptSbtn(found) } : notFound("CPT");
+  }
+  const bh = /^\/boreholes\/([^/]+)\/uscs$/.exec(cleanPath);
+  if (method === "GET" && bh) {
+    const found = store.boreholes.find((b) => b.id === decodeURIComponent(bh[1]));
+    if (!found) return notFound("Borehole");
+    const data: BoreholeUSCSDTO = {
+      items: (found.lab ?? []).map((lab) => {
+        const interval = (found.log ?? []).find((l) => lab.depth >= l.top && lab.depth < l.bottom);
+        return mockUscsItem(lab, interval?.uscs ?? null);
+      }),
+    };
+    return { status: 200, data };
+  }
+  return NOT_HANDLED;
+}
+
 function handleSoil(method: string, path: string, body: unknown): Reply | typeof NOT_HANDLED {
   const store = getMockStore();
   const cleanPath = path.split("?")[0].slice(PREFIX.length);
@@ -502,6 +646,8 @@ function handleSoil(method: string, path: string, body: unknown): Reply | typeof
 
   const extra = handleLayeringAndParameters(upperMethod, cleanPath, body);
   if (extra !== NOT_HANDLED) return extra;
+  const classification = handleClassification(upperMethod, cleanPath, body);
+  if (classification !== NOT_HANDLED) return classification;
 
   // GET /investigations
   if (upperMethod === "GET" && cleanPath === "/investigations") {
