@@ -1,18 +1,16 @@
 import { Alert, Text } from "@mantine/core";
 import { useTranslation } from "react-i18next";
-import { ApiError } from "../../../shared/api/client";
-import { errorMessage } from "../../../shared/api/errorMessage";
+import { errorMessage, errorTitle } from "../../../shared/api/errorMessage";
 
-/** Shows an API error with its catalog title; any other failure gets the generic soil.error.unexpected title. */
+/** Shows an API error with its catalog title; any other failure or uncatalogued code gets the generic soil.error.unexpected title. */
 export function ErrorAlert({ error, onClose }: { error: unknown; onClose?: () => void }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   if (error === null || error === undefined) return null;
-  const isApi = error instanceof ApiError;
   const message = errorMessage(error, t);
   return (
     <Alert
       color="red"
-      title={isApi ? t(`error.${error.code}`) : t("soil.error.unexpected")}
+      title={errorTitle(error, t, (key) => i18n.exists(key), "soil.error.unexpected")}
       withCloseButton={onClose !== undefined}
       onClose={onClose}
       data-testid="soil-error"

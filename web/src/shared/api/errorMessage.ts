@@ -16,3 +16,17 @@ export function errorMessage(error: unknown, t: TFunction): string {
   }
   return error instanceof Error ? error.message : String(error);
 }
+
+/**
+ * Alert title for an error: the catalog `error.<code>` title, or the generic `fallbackKey` title when the
+ * error is not an ApiError or its code has no catalog entry (never the raw key).
+ */
+export function errorTitle(
+  error: unknown,
+  t: TFunction,
+  exists: (key: string) => boolean,
+  fallbackKey = "error.engine_error",
+): string {
+  const key = error instanceof ApiError ? `error.${error.code}` : null;
+  return t(key !== null && exists(key) ? key : fallbackKey);
+}
