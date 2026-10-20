@@ -411,4 +411,5 @@ def test_engine_mirror_field_names():
     assert set(dto.WallAnalysisDTO.model_fields) == {field.name for field in fields(WallAnalysis)}
     assert set(dto.SheetPileResultDTO.model_fields) == {
         field.name for field in fields(SheetPileResult)
-    } | {"structure_id", "total_length", "assumptions"}
+    } | {"structure_id", "total_length", "assumptions", "warning_items",
+         "anchor_force_per_anchor", "anchor_spacing_used", "anchor_inclination_used"}

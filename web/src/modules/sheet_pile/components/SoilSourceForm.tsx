@@ -106,7 +106,7 @@ export function SoilSourceForm({ value, onChange, missing }: Props) {
                     <NumberInput
                       aria-label={`${t("sheet_pile.soil.top")} ${i + 1}`}
                       value={l.top}
-                      error={missing.includes(`layer_${i}_geometry`)}
+                      error={missing.includes(`layer_${i}_geometry`) ? t("sheet_pile.inputs.required") : missing.includes(`range:layer_${i}_geometry`) ? t("sheet_pile.missing.range_layer_geometry", { n: i + 1 }) : undefined}
                       min={0}
                       decimalScale={2}
                       onChange={(v) => setLayer(i, { top: toNum(v) })}
@@ -116,7 +116,7 @@ export function SoilSourceForm({ value, onChange, missing }: Props) {
                     <NumberInput
                       aria-label={`${t("sheet_pile.soil.bottom")} ${i + 1}`}
                       value={l.bottom}
-                      error={missing.includes(`layer_${i}_geometry`)}
+                      error={missing.includes(`layer_${i}_geometry`) ? t("sheet_pile.inputs.required") : missing.includes(`range:layer_${i}_geometry`) ? t("sheet_pile.missing.range_layer_geometry", { n: i + 1 }) : undefined}
                       min={0}
                       decimalScale={2}
                       onChange={(v) => setLayer(i, { bottom: toNum(v) })}
@@ -126,7 +126,7 @@ export function SoilSourceForm({ value, onChange, missing }: Props) {
                     <NumberInput
                       aria-label={`${t("sheet_pile.soil.gamma")} ${i + 1}`}
                       value={l.gamma}
-                      error={missing.includes(`layer_${i}_geometry`)}
+                      error={missing.includes(`layer_${i}_geometry`) ? t("sheet_pile.inputs.required") : missing.includes(`range:layer_${i}_gamma`) ? t("sheet_pile.missing.range_layer_gamma", { n: i + 1 }) : undefined}
                       min={0}
                       decimalScale={1}
                       onChange={(v) => setLayer(i, { gamma: toNum(v) })}

@@ -250,12 +250,22 @@ class SheetPileCreate(DTO):
     retained_height: float = Field(gt=0.5, le=12)
     support: Literal["cantilever", "anchored"] | None = None
     anchor_depth: float | None = Field(None, ge=0)
+    depth_increase: float | None = Field(None, ge=0)
+    anchor_spacing: float | None = Field(None, gt=0, description="[m]")
+    anchor_inclination: float | None = Field(None, ge=0, lt=90, description="[deg from horizontal]")
+    front_water_depth: float | None = Field(None, ge=0, description="Depth from top [m]")
     surcharge: float | None = Field(None, ge=0)
     sds: float | None = Field(None, gt=0, lt=3)
     design_code: str | None = None
     approach: str | None = None
     allowable_stress_mpa: float | None = Field(None, gt=0)
     analysis_level: Literal["basic", "advanced"] | None = None
+
+    @model_validator(mode="after")
+    def _anchor_inputs(self) -> SheetPileCreate:
+        if self.support != "anchored" and (self.anchor_spacing is not None or self.anchor_inclination is not None):
+            raise ValueError("anchor_spacing and anchor_inclination require anchored support")
+        return self
 
 
 StructureCreate = Annotated[
@@ -268,6 +278,15 @@ class AssumptionDTO(DTO):
 
     text: str
     source: str
+    code: str | None = None
+    params: dict = Field(default_factory=dict)
+
+
+class MessageDTO(DTO):
+    """Stable message identifier and interpolation parameters."""
+
+    code: str
+    params: dict[str, float | int | str] = Field(default_factory=dict)
 
 
 class UsedFactorDTO(DTO):
@@ -413,6 +432,10 @@ class SheetPileResultDTO(DTO):
 
     structure_id: str
     support: str
+    anchor_force_per_anchor: ResultNumber = None
+    anchor_spacing_used: ResultNumber = None
+    anchor_inclination_used: ResultNumber = None
+    warning_items: list[MessageDTO] = Field(default_factory=list)
     H: ResultNumber
     D0: ResultNumber
     D: ResultNumber

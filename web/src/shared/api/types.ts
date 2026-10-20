@@ -40,6 +40,13 @@ export interface ApiErrorDTO {
 export interface AssumptionDTO {
   text: string;
   source: string;
+  code?: string | null;
+  params?: Record<string, unknown>;
+}
+
+export interface MessageDTO {
+  code: string;
+  params?: Record<string, number | string>;
 }
 
 export interface BearingResultDTO {
@@ -483,6 +490,10 @@ export interface SheetPileCreate {
   retained_height: number;
   support?: "cantilever" | "anchored" | null;
   anchor_depth?: number | null;
+  depth_increase?: number | null;
+  anchor_spacing?: number | null;
+  anchor_inclination?: number | null;
+  front_water_depth?: number | null;
   surcharge?: number | null;
   sds?: number | null;
   design_code?: string | null;
@@ -517,6 +528,10 @@ export interface SheetPileStructure {
   support?: "cantilever" | "anchored";
   retained_height: number;
   anchor_depth?: number | null;
+  depth_increase?: number | null;
+  anchor_spacing?: number | null;
+  anchor_inclination?: number | null;
+  front_water_depth?: number | null;
   soil: StructureSoilModel;
   surcharge?: number;
   sds?: number | null;
@@ -525,6 +540,7 @@ export interface SheetPileStructure {
   allowable_stress_mpa?: number | null;
   analysis_level?: "basic" | "advanced";
   result_hash?: string | null;
+  result?: SheetPileResultDTO | null;
 }
 
 export type Structure = RetainingWallStructure | SheetPileStructure;
@@ -594,6 +610,10 @@ export interface WallResultDTO {
 export interface SheetPileResultDTO {
   structure_id: string;
   support: string;
+  anchor_force_per_anchor?: number | null;
+  anchor_spacing_used?: number | null;
+  anchor_inclination_used?: number | null;
+  warning_items?: MessageDTO[];
   H: number | null;
   D0: number | null;
   D: number | null;
@@ -628,6 +648,7 @@ export interface components {
     ActiveProfileUpdate: ActiveProfileUpdate;
     ApiError: ApiErrorDTO;
     AssumptionDTO: AssumptionDTO;
+    MessageDTO: MessageDTO;
     BearingResultDTO: BearingResultDTO;
     Borehole: Borehole;
     BoreholeLayer: BoreholeLayer;

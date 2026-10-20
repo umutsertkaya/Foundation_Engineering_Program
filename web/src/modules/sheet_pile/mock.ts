@@ -21,7 +21,10 @@ function syntheticResult(s: SheetPileStructure): SheetPileResultDTO {
     total_length: H + D,
     anchor_depth: anchored ? (s.anchor_depth ?? null) : null,
     anchor_force: anchored ? 100 : null,
-    toe_force: 50,
+    anchor_force_per_anchor: anchored ? 100 * (s.anchor_spacing ?? 1) / Math.cos((s.anchor_inclination ?? 0) * Math.PI / 180) : null,
+    anchor_spacing_used: anchored ? (s.anchor_spacing ?? 1) : null,
+    anchor_inclination_used: anchored ? (s.anchor_inclination ?? 0) : null,
+    toe_force: anchored ? null : 50,
     M_max: 200,
     z_M_max: H,
     z,
@@ -29,7 +32,8 @@ function syntheticResult(s: SheetPileStructure): SheetPileResultDTO {
     moment: [0, 120, 200, 80, 0],
     net: [0, 10, 30, -20, 0],
     section_modulus_cm3: s.allowable_stress_mpa ? (200 / s.allowable_stress_mpa) * 1000 : null,
-    assumptions: [{ text: "Mock result (not a calculation)", source: "mock" }],
+    assumptions: [{ text: "Mock result (not a calculation)", source: "mock", code: "sheet_pile.mock", params: {} }],
+    warning_items: [{ code: "sheet_pile.mock", params: {} }],
     warnings: ["mock_result_not_a_calculation"],
   };
 }

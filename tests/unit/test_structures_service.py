@@ -457,6 +457,141 @@ def test_sheet_pile_fill_does_not_replace_front_foundation():
     assert filled.result.D0 < plain.result.D0  # lower retained thrust; passive remains natural sand
 
 
+@pytest.mark.parametrize("code", ["asd", "ec7"])
+@pytest.mark.parametrize("anchored", [False, True])
+def test_sheet_pile_optional_defaults_are_bit_identical(code, anchored):
+    import numpy as np
+
+    project = _sheet_project(advanced=code != "asd", code=code)
+    pile = project.structure("sheet")
+    if anchored:
+        pile.support, pile.anchor_depth = "anchored", 1.0
+    before = design_sheet_pile_structure(project, "sheet")
+    pile.depth_increase = 0.0 if anchored else 0.2
+    if anchored:
+        pile.anchor_spacing, pile.anchor_inclination = 1.0, 0.0
+    after = design_sheet_pile_structure(project, "sheet")
+    old_cases = before.cases if code != "asd" else {"basic": before.result}
+    new_cases = after.cases if code != "asd" else {"basic": after.result}
+    for key, old in old_cases.items():
+        new = new_cases[key]
+        assert (new.D0, new.D, new.M_max, new.anchor_force) == (old.D0, old.D, old.M_max, old.anchor_force)
+        for name in ("z", "net", "shear", "moment"):
+            np.testing.assert_array_equal(getattr(new, name), getattr(old, name))
+    pile.depth_increase = 0.35
+    increased = design_sheet_pile_structure(project, "sheet")
+    for key, new in (increased.cases if code != "asd" else {"basic": increased.result}).items():
+        assert new.D == old_cases[key].D0 * 1.35
+        assert new.M_max == old_cases[key].M_max
+
+
+@pytest.mark.parametrize("seismic", [False, True])
+def test_sheet_pile_front_water_override_is_consistent_and_does_not_mutate(seismic):
+    import numpy as np
+
+    project = _sheet_project(wet=True)
+    pile = project.structure("sheet")
+    pile.sds = 0.3 if seismic else None
+    pile.front_water_depth = 8.0
+    original = project.model_dump_json()
+    deeper = design_sheet_pile_structure(project, "sheet")
+    assert project.model_dump_json() == original
+    reference = copy.deepcopy(project)
+    reference.structure("sheet").front_water_depth = None
+    reference.structure("sheet").soil.gwt_front = GroundwaterCondition(depth_insitu=8.0)
+    equal = design_sheet_pile_structure(reference, "sheet")
+    assert deeper.result.D == equal.result.D
+    for name in ("net", "moment", "shear", "z"):
+        np.testing.assert_array_equal(getattr(deeper.result, name), getattr(equal.result, name))
+    assert any("8 m" in a.text and "Ön YASS" in a.text for a in deeper.assumptions)
+    pile.front_water_depth = 4.0
+    shallower = design_sheet_pile_structure(project, "sheet")
+    # In this sand, lost effective passive resistance exceeds the opposing water thrust.
+    assert shallower.result.D > deeper.result.D
+
+
+@pytest.mark.parametrize("field,value", [
+    ("depth_increase", 0.3), ("anchor_spacing", 2.0),
+    ("anchor_inclination", 15.0), ("front_water_depth", 5.0),
+])
+def test_sheet_pile_optional_inputs_invalidate_fingerprint(field, value):
+    project = _sheet_project()
+    pile = project.structure("sheet")
+    pile.support, pile.anchor_depth = "anchored", 1.0
+    pile.result_hash = calculation_fingerprint(project, pile)
+    setattr(pile, field, value)
+    assert calculation_fingerprint(project, pile) != pile.result_hash
+
+
+@pytest.mark.parametrize("seismic", [False, True])
+def test_sheet_pile_front_override_limit_states_require_water_and_match_soil(seismic):
+    from geotek.api.calculation_results import sheet_pile_result
+
+    # EC7 has no seismic combination; AASHTO provides Extreme Event I.
+    code = "aashto_lrfd" if seismic else "ec7"
+    project = _sheet_project(advanced=True, code=code)
+    pile = project.structure("sheet")
+    pile.sds = 0.3 if seismic else None
+    pile.front_water_depth = 8.0
+    missing = required_factors(project, "sheet")
+    assert any("WA" in item.path for item in missing)
+    project.design_overrides[code] = {
+        item.path: FactorOverride(value=1.0, note="Test water factor") for item in missing
+    }
+    original = project.model_dump_json()
+    actual = design_sheet_pile_structure(project, "sheet")
+    assert project.model_dump_json() == original
+    reference = copy.deepcopy(project)
+    reference.structure("sheet").front_water_depth = None
+    reference.structure("sheet").soil.gwt_front = GroundwaterCondition(depth_insitu=8.0)
+    expected = design_sheet_pile_structure(reference, "sheet")
+    for key, case in actual.cases.items():
+        assert case.D == expected.cases[key].D
+        assert case.M_max == expected.cases[key].M_max
+    assert any("Ön YASS" in item.text for item in actual.assumptions)
+    assert any("Ön YASS" in item.text for item in sheet_pile_result("sheet", actual).assumptions)
+
+
+def test_sheet_pile_optional_inputs_gtk_round_trip_and_old_file(tmp_path):
+    from geotek.io.project_io import load_project, save_project
+
+    project = _sheet_project()
+    path = save_project(project, tmp_path / "old")
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    names = ("depth_increase", "anchor_spacing", "anchor_inclination", "front_water_depth")
+    for name in names:
+        payload["structures"][0].pop(name)
+    path.write_text(json.dumps(payload), encoding="utf-8")
+    loaded = load_project(path)
+    assert loaded == project
+    pile = loaded.structure("sheet")
+    pile.support, pile.anchor_depth = "anchored", 1.0
+    pile.depth_increase, pile.anchor_spacing = 0.3, 2.0
+    pile.anchor_inclination, pile.front_water_depth = 15.0, 5.0
+    assert load_project(save_project(loaded, tmp_path / "new")) == loaded
+
+
+@pytest.mark.parametrize("inputs", [
+    {"depth_increase": -0.1}, {"anchor_spacing": 0}, {"anchor_spacing": -1},
+    {"anchor_inclination": -1}, {"anchor_inclination": 90},
+    {"front_water_depth": -1},
+    {"support": "cantilever", "anchor_spacing": 1},
+    {"support": "cantilever", "anchor_inclination": 0},
+])
+def test_sheet_pile_optional_input_validation(inputs):
+    from pydantic import ValidationError
+    from geotek.api.schemas import SheetPileCreate
+
+    payload = _sheet_project().structure("sheet").model_dump()
+    payload.update(support="anchored", anchor_depth=1.0)
+    payload.update(inputs)
+    with pytest.raises(ValidationError):
+        SheetPileStructure.model_validate(payload)
+    with pytest.raises(ValidationError):
+        SheetPileCreate.model_validate({k: v for k, v in payload.items()
+                                       if k not in {"id", "result", "result_hash"}})
+
+
 def test_sheet_pile_partial_envelope_and_missing_water_factor():
     project = _sheet_project(advanced=True, code="ec7")
     result = design_sheet_pile_structure(project, "sheet")

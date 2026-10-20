@@ -1,11 +1,15 @@
 import { Alert, Badge, Card, Group, List, SimpleGrid, Stack, Table, Text, Title } from "@mantine/core";
 import { useTranslation } from "react-i18next";
+import i18n from "../../../app/i18n";
 import type { SheetPileResultDTO } from "../../../shared/api/types";
+import { decimateSheetPileSeries } from "../series";
 
 const MOCK_WARNING = "mock_result_not_a_calculation";
 
 function fmt(v: number | null | undefined, digits = 2): string {
-  return typeof v === "number" && Number.isFinite(v) ? v.toFixed(digits) : "—";
+  return typeof v === "number" && Number.isFinite(v)
+    ? new Intl.NumberFormat(i18n.language, { minimumFractionDigits: digits, maximumFractionDigits: digits }).format(v)
+    : "—";
 }
 
 function Stat({ label, value, unit }: { label: string; value: number | null; unit: string }) {
@@ -21,17 +25,21 @@ function Stat({ label, value, unit }: { label: string; value: number | null; uni
   );
 }
 
-export function ResultPanel({ result }: { result: SheetPileResultDTO }) {
+export function ResultPanel({ result, structure }: { result: SheetPileResultDTO; structure?: { design_code?: string; approach?: string | null; analysis_level?: "basic" | "advanced"; depth_increase?: number | null; support?: "cantilever" | "anchored"; front_water_depth?: number | null } }) {
   const { t } = useTranslation();
   const isMock = result.warnings.includes(MOCK_WARNING);
-  const warnings = result.warnings.filter((w) => w !== MOCK_WARNING);
+  const warnings = result.warning_items
+    ? result.warning_items.filter((w) => w.code !== MOCK_WARNING).map((w) =>
+      t(`sheet_pile.warning.${w.code}`, { ...w.params, defaultValue: String(w.params?.text ?? w.code) }))
+    : result.warnings.filter((w) => w !== MOCK_WARNING);
   const anchored = result.support === "anchored";
-  const rows = result.z.map((z, i) => ({
+  const allRows = result.z.map((z, i) => ({
     z,
     shear: result.shear[i] ?? null,
     moment: result.moment[i] ?? null,
     net: result.net[i] ?? null,
   }));
+  const rows = decimateSheetPileSeries(allRows);
 
   return (
     <Stack gap="md" data-testid="sheet-pile-result">
@@ -52,6 +60,15 @@ export function ResultPanel({ result }: { result: SheetPileResultDTO }) {
         </Alert>
       )}
 
+      {structure && <Card withBorder padding="xs" radius="sm" data-testid="design-basis">
+        <Text fw={600} size="sm">{t("sheet_pile.result.design_basis")}</Text>
+        <Text size="xs">{t("sheet_pile.result.design_code")}: {structure.design_code ?? "—"}</Text>
+        <Text size="xs">{t("sheet_pile.result.approach")}: {structure.approach || t("sheet_pile.inputs.service_default")}</Text>
+        <Text size="xs">{t("sheet_pile.result.analysis_level")}: {structure.analysis_level ?? "—"}</Text>
+        <Text size="xs">{t("sheet_pile.result.depth_increase")}: {fmt((structure.depth_increase ?? (structure.support === "anchored" ? 0 : 0.2)) * 100, 1)}%</Text>
+        {structure.front_water_depth != null && <Text size="xs">{t("sheet_pile.result.front_water_depth")}: {fmt(structure.front_water_depth)} m</Text>}
+      </Card>}
+
       <Text fw={600} size="sm">
         {t("sheet_pile.result.embedment")}
       </Text>
@@ -66,9 +83,9 @@ export function ResultPanel({ result }: { result: SheetPileResultDTO }) {
         {t("sheet_pile.result.forces")}
       </Text>
       <SimpleGrid cols={{ base: 2, sm: 4 }} spacing="xs">
-        <Stat label={t("sheet_pile.result.M_max")} value={result.M_max} unit="kNm/m" />
+        <Stat label={t("sheet_pile.result.M_max_abs")} value={result.M_max} unit="kNm/m" />
         <Stat label={t("sheet_pile.result.z_M_max")} value={result.z_M_max} unit="m" />
-        <Stat label={t("sheet_pile.result.toe_force")} value={result.toe_force} unit="kN/m" />
+        {result.toe_force != null && <Stat label={t("sheet_pile.result.toe_force")} value={result.toe_force} unit="kN/m" />}
         <Stat label={t("sheet_pile.result.section_modulus")} value={result.section_modulus_cm3} unit="cm³/m" />
       </SimpleGrid>
       {result.section_modulus_cm3 == null && (
@@ -85,11 +102,23 @@ export function ResultPanel({ result }: { result: SheetPileResultDTO }) {
           <SimpleGrid cols={{ base: 2, sm: 4 }} spacing="xs">
             <Stat label={t("sheet_pile.result.anchor_depth")} value={result.anchor_depth} unit="m" />
             <Stat label={t("sheet_pile.result.anchor_force")} value={result.anchor_force} unit="kN/m" />
+            <Card withBorder padding="xs" radius="sm" data-testid="per-anchor-load">
+              <Text size="xs" c="dimmed">{t("sheet_pile.result.anchor_force_per_anchor")}</Text>
+              <Text fw={700}>{fmt(result.anchor_force_per_anchor)} {t("sheet_pile.result.per_anchor_unit")}</Text>
+              <Text size="xs" c="dimmed">{t("sheet_pile.result.anchor_geometry", {
+                spacing: fmt(result.anchor_spacing_used), inclination: fmt(result.anchor_inclination_used),
+              })}</Text>
+            </Card>
           </SimpleGrid>
         </>
       )}
 
       {rows.length > 0 && (
+        <>
+        <Text size="xs" c="dimmed">{t("sheet_pile.result.series_toe_note")}</Text>
+        {rows.length < allRows.length && (
+          <Text size="xs" c="dimmed">{t("sheet_pile.result.series_points_shown", { shown: rows.length, total: allRows.length })}</Text>
+        )}
         <Table withTableBorder striped data-testid="result-series">
           <Table.Thead>
             <Table.Tr>
@@ -110,6 +139,7 @@ export function ResultPanel({ result }: { result: SheetPileResultDTO }) {
             ))}
           </Table.Tbody>
         </Table>
+        </>
       )}
 
       {result.assumptions.length > 0 && (
@@ -120,7 +150,7 @@ export function ResultPanel({ result }: { result: SheetPileResultDTO }) {
           <List size="sm">
             {result.assumptions.map((a, i) => (
               <List.Item key={i}>
-                {a.text}{" "}
+                {a.code ? t(`sheet_pile.assumption.${a.code}`, { ...a.params, defaultValue: a.text }) : a.text}{" "}
                 <Text span size="xs" c="dimmed">
                   ({a.source})
                 </Text>

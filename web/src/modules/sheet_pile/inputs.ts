@@ -24,6 +24,13 @@ export interface PileInputs {
   surcharge: Num;
   sds: Num;
   allowable_stress_mpa: Num;
+  design_code: string;
+  approach: string | null;
+  analysis_level: "basic" | "advanced";
+  depth_increase: Num;
+  anchor_spacing: Num;
+  anchor_inclination: Num;
+  front_water_depth: Num;
 }
 
 export interface SoilSource {
@@ -43,6 +50,13 @@ export const DEFAULT_INPUTS: PileInputs = {
   surcharge: "",
   sds: "",
   allowable_stress_mpa: "",
+  design_code: "asd",
+  approach: null,
+  analysis_level: "basic",
+  depth_increase: "",
+  anchor_spacing: 1,
+  anchor_inclination: 0,
+  front_water_depth: "",
 };
 
 export const DEFAULT_SOIL: SoilSource = {
@@ -60,30 +74,51 @@ export function missingInputs(inp: PileInputs, soil: SoilSource | null): string[
   const out: string[] = [];
   if (!inp.name.trim()) out.push("name");
   if (!has(inp.retained_height)) out.push("retained_height");
+  if (has(inp.retained_height) && !(inp.retained_height > 0.5 && inp.retained_height <= 12)) out.push("range:retained_height");
   if (inp.support === "anchored" && !has(inp.anchor_depth)) out.push("anchor_depth");
+  if (inp.support === "anchored" && has(inp.anchor_depth) && (!has(inp.retained_height) || inp.anchor_depth < 0 || inp.anchor_depth >= inp.retained_height)) out.push("range:anchor_depth");
+  if (has(inp.surcharge) && inp.surcharge < 0) out.push("range:surcharge");
+  if (has(inp.sds) && !(inp.sds > 0 && inp.sds < 3)) out.push("range:sds");
+  if (has(inp.allowable_stress_mpa) && inp.allowable_stress_mpa <= 0) out.push("range:allowable_stress_mpa");
+  if (has(inp.depth_increase) && inp.depth_increase < 0) out.push("range:depth_increase");
+  if (inp.support === "anchored" && has(inp.anchor_spacing) && inp.anchor_spacing <= 0) out.push("range:anchor_spacing");
+  if (inp.support === "anchored" && has(inp.anchor_inclination) && !(inp.anchor_inclination >= 0 && inp.anchor_inclination < 90)) out.push("range:anchor_inclination");
+  if (has(inp.front_water_depth) && inp.front_water_depth < 0) out.push("range:front_water_depth");
   if (soil) {
     if (soil.mode === "profile") {
       if (!soil.profile_id) out.push("profile");
     } else {
       if (!has(soil.gwt)) out.push("gwt");
+      if (has(soil.gwt) && soil.gwt < 0) out.push("range:gwt");
       if (soil.layers.length === 0) out.push("layers");
       soil.layers.forEach((l, i) => {
         if (!has(l.top) || !has(l.bottom) || !has(l.gamma)) out.push(`layer_${i}_geometry`);
+        if (has(l.top) && has(l.bottom) && (l.bottom <= l.top || (i === 0 ? l.top !== 0 : !has(soil.layers[i - 1].bottom) || Math.abs(l.top - (soil.layers[i - 1].bottom as number)) > 1e-3))) out.push(`range:layer_${i}_geometry`);
+        if (has(l.gamma) && !(l.gamma > 5 && l.gamma < 30)) out.push(`range:layer_${i}_gamma`);
         if (!has(l.phi)) out.push(`layer_${i}_phi`);
       });
+      if (has(inp.retained_height) && soil.layers.length > 0) {
+        const deepest = soil.layers[soil.layers.length - 1].bottom;
+        if (has(deepest) && deepest <= inp.retained_height) out.push("range:depth");
+      }
     }
   }
   return out;
 }
 
 /** Soil gaps of a stored structure copy: missing design phi per layer, profile not below the dredge line. */
-export function missingSoilInputs(layers: SoilLayer[], height: number): string[] {
+export function missingSoilInputs(layers: SoilLayer[], height: number, gwt?: number): string[] {
   const out: string[] = [];
   layers.forEach((l) => {
     if (l.design?.phi_eff == null) out.push(`phi:${l.id}`);
   });
   const bottom = layers.length ? Math.max(...layers.map((l) => l.bottom)) : 0;
   if (bottom <= height) out.push("depth");
+  if (gwt != null && gwt < 0) out.push("range:gwt");
+  layers.forEach((l, i) => {
+    if (l.bottom <= l.top || (i === 0 ? l.top !== 0 : Math.abs(l.top - layers[i - 1].bottom) > 1e-3)) out.push(`range:layer_${i}_geometry`);
+    if (!(l.gamma > 5 && l.gamma < 30)) out.push(`range:layer_${i}_gamma`);
+  });
   return out;
 }
 
@@ -118,6 +153,13 @@ export function toCreatePayload(inp: PileInputs, soil: SoilSource): SheetPileCre
     surcharge: orNull(inp.surcharge),
     sds: orNull(inp.sds),
     allowable_stress_mpa: orNull(inp.allowable_stress_mpa),
+    design_code: inp.design_code,
+    approach: inp.approach,
+    analysis_level: inp.analysis_level,
+    depth_increase: has(inp.depth_increase) ? inp.depth_increase : null,
+    anchor_spacing: inp.support === "anchored" ? orNull(inp.anchor_spacing) : null,
+    anchor_inclination: inp.support === "anchored" ? orNull(inp.anchor_inclination) : null,
+    front_water_depth: orNull(inp.front_water_depth),
   };
   if (soil.mode === "profile") payload.profile_id = soil.profile_id;
   else payload.soil = manualSoil(soil, inp.name.trim());
@@ -133,6 +175,13 @@ export function fromStructure(s: SheetPileStructure): PileInputs {
     surcharge: s.surcharge ?? 0,
     sds: s.sds ?? "",
     allowable_stress_mpa: s.allowable_stress_mpa ?? "",
+    design_code: s.design_code ?? "asd",
+    approach: s.approach ?? null,
+    analysis_level: s.analysis_level ?? "basic",
+    depth_increase: s.depth_increase ?? "",
+    anchor_spacing: s.anchor_spacing ?? 1,
+    anchor_inclination: s.anchor_inclination ?? 0,
+    front_water_depth: s.front_water_depth ?? "",
   };
 }
 
@@ -147,5 +196,12 @@ export function applyInputs(s: SheetPileStructure, inp: PileInputs): SheetPileSt
     surcharge: has(inp.surcharge) ? inp.surcharge : 0,
     sds: orNull(inp.sds),
     allowable_stress_mpa: orNull(inp.allowable_stress_mpa),
+    design_code: inp.design_code,
+    approach: inp.approach,
+    analysis_level: inp.analysis_level,
+    depth_increase: has(inp.depth_increase) ? inp.depth_increase : null,
+    anchor_spacing: inp.support === "anchored" ? orNull(inp.anchor_spacing) : null,
+    anchor_inclination: inp.support === "anchored" ? orNull(inp.anchor_inclination) : null,
+    front_water_depth: orNull(inp.front_water_depth),
   };
 }

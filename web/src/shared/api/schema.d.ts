@@ -1337,6 +1337,12 @@ export interface components {
             text: string;
             /** Source */
             source: string;
+            /** Code */
+            code?: string | null;
+            /** Params */
+            params?: {
+                [key: string]: unknown;
+            };
         };
         /** AxisRangeDTO */
         AxisRangeDTO: {
@@ -2035,6 +2041,18 @@ export interface components {
             ic_cutoff: number;
         };
         /**
+         * MessageDTO
+         * @description Stable message identifier and interpolation parameters.
+         */
+        MessageDTO: {
+            /** Code */
+            code: string;
+            /** Params */
+            params?: {
+                [key: string]: number | string;
+            };
+        };
+        /**
          * MissingFactorDTO
          * @description Mirror of a missing code factor, including provenance and the entry hint.
          */
@@ -2705,6 +2723,23 @@ export interface components {
             support?: ("cantilever" | "anchored") | null;
             /** Anchor Depth */
             anchor_depth?: number | null;
+            /** Depth Increase */
+            depth_increase?: number | null;
+            /**
+             * Anchor Spacing
+             * @description [m]
+             */
+            anchor_spacing?: number | null;
+            /**
+             * Anchor Inclination
+             * @description [deg from horizontal]
+             */
+            anchor_inclination?: number | null;
+            /**
+             * Front Water Depth
+             * @description Depth from top [m]
+             */
+            front_water_depth?: number | null;
             /** Surcharge */
             surcharge?: number | null;
             /** Sds */
@@ -2732,6 +2767,14 @@ export interface components {
             structure_id: string;
             /** Support */
             support: string;
+            /** Anchor Force Per Anchor */
+            anchor_force_per_anchor?: number | null;
+            /** Anchor Spacing Used */
+            anchor_spacing_used?: number | null;
+            /** Anchor Inclination Used */
+            anchor_inclination_used?: number | null;
+            /** Warning Items */
+            warning_items?: components["schemas"]["MessageDTO"][];
             /** H */
             H: number | null;
             /** D0 */
@@ -2792,6 +2835,23 @@ export interface components {
             retained_height: number;
             /** Anchor Depth */
             anchor_depth?: number | null;
+            /** Depth Increase */
+            depth_increase?: number | null;
+            /**
+             * Anchor Spacing
+             * @description [m]
+             */
+            anchor_spacing?: number | null;
+            /**
+             * Anchor Inclination
+             * @description [deg from horizontal]
+             */
+            anchor_inclination?: number | null;
+            /**
+             * Front Water Depth
+             * @description Depth from top [m]
+             */
+            front_water_depth?: number | null;
             soil: components["schemas"]["StructureSoilModel"];
             /**
              * Surcharge
