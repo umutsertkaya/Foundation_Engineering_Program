@@ -40,12 +40,17 @@ Ulusal Ek değerleri farklı olabilir.
 
 ## AASHTO LRFD
 
-AASHTO metni bu ortamdan erişilebilir değildi (dot.ca.gov ağ kısıtı). DC 1.25/0.90, EH 1.50/0.90,
-EV 1.35/1.00, taşıma 0.55 ve pasif 0.50 birden çok eyalet DOT kılavuzunun arama
-özetlerinde tutarlı (secondary). Kayma (0.80/0.90), toptan göçme (0.75/0.65), palplanş pasif
-(0.75), LS ve Extreme Event katsayıları ile eksantrisite sınırları **unverified**.
+AASHTO metninin kendisine erişilemedi. FHWA NHI-10-024 (GEC-11, AASHTO 2007'den aktarım, **secondary**) ile yük katsayıları
+DC 1.25/0.90, EH 1.50/0.90, EV 1.35/1.00, ES 1.50/0.75, LS 1.75, EQ 1.00 ve toptan göçme 0.75/0.65 eşleşti;
+Extreme Event I eksantrisite sınırı 0.40 B eşleşti. Taşıma 0.55 ve pasif 0.50 önceki eyalet DOT özetlerine dayanır (secondary).
+Kayma (0.80/0.90), palplanş pasif (0.75), Extreme direnç katsayıları, strength eksantrisite sınırları ve LS extreme_I 0.50
+**unverified**.
+
+`LS extreme_I = 0.50` bir tablo değeri değil, **proje varsayımıdır**: AASHTO Extreme Event I'de yaya/trafik yükü katsayısı γEQ'yu proje özel bırakır
+(0.50, Extreme Event II satırındaki değerdir). Karar (2026-10-20, orkestra şefi): YAML'da 0.50 kalır. Ayrıntı: `docs/research/katsayi_kaynak_arastirmasi_2026-10-20.md`.
 
 ## ASD
 
-Global güvenlik sayıları yaygın uygulama değerleridir; FHWA-NHI-06-088 ile henüz
-karşılaştırılmadı (**unverified**).
+FHWA NHI-06-089 (Vol. II, Aralık 2006) ile karşılaştırıldı (2026-10-20): statik kayma 1.5, eksantrisite B/6 (zemin) ve B/4 (kaya),
+taşıma 3.0 (önerilen), toptan göçme 1.5 **secondary**; devrilme 2.0 eksantrisite kriterinden türetilmiş yaklaşık değerdir.
+Sismik değerler ve palplanş pasif katsayısı **unverified**. Ayrıntı: `docs/research/katsayi_kaynak_arastirmasi_2026-10-20.md`.
