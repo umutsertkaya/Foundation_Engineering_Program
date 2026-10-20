@@ -115,3 +115,59 @@ export async function request<T>(method: string, path: string, body?: unknown): 
 
   return parsed as T;
 }
+
+export interface BlobResult {
+  blob: Blob;
+  filename: string | null;
+}
+
+function filenameFromDisposition(header: string | null): string | null {
+  const match = header ? /filename="?([^";]+)"?/i.exec(header) : null;
+  return match ? match[1] : null;
+}
+
+/** Like `request`, but returns the binary body (file downloads); errors still parse as ApiError. */
+export async function request_blob(method: string, path: string, body?: unknown): Promise<BlobResult> {
+  if (isMockMode()) {
+    const { mockRequest } = await import("./mock/index");
+    const { status, data } = await mockRequest(method, path, body);
+    if (status >= 400) {
+      throw parseApiError(status, data);
+    }
+    return { blob: new Blob([String(data)]), filename: null };
+  }
+
+  let response: Response;
+  try {
+    response = await fetch(`${BASE_URL}${path}`, {
+      method,
+      headers:
+        body !== undefined
+          ? { "Content-Type": "application/json", Accept: "*/*" }
+          : { Accept: "*/*" },
+      body: body !== undefined ? JSON.stringify(body) : undefined,
+    });
+  } catch (err) {
+    throw new ApiError(0, {
+      code: "network",
+      message: err instanceof Error ? err.message : "Network request failed",
+      details: {},
+      missing_factors: [],
+    });
+  }
+
+  if (!response.ok) {
+    const text = await response.text();
+    let parsed: unknown = text || null;
+    try {
+      parsed = text ? JSON.parse(text) : null;
+    } catch {
+      // Keep the raw text as the message.
+    }
+    throw parseApiError(response.status, parsed);
+  }
+  return {
+    blob: await response.blob(),
+    filename: filenameFromDisposition(response.headers.get("Content-Disposition")),
+  };
+}

@@ -83,7 +83,6 @@
   "report.liq.n_marginal": "Marginal points",
   "report.liq.errors": "Soundings not computed",
   "report.nav.home": "Report",
-  "report.home.heading": "The report page arrives with T8b; docx generation is available from the API.",
   "report.section.classification": "Soil classification",
   "report.cls.sbtn": "Robertson SBTn (CPT)",
   "report.cls.uscs": "USCS (laboratory)",
@@ -91,5 +90,17 @@
   "report.cls.zone_name": "Name",
   "report.cls.ic_mean": "Mean Ic",
   "report.cls.complete": "Complete",
-  "report.cls.incomplete": "Incomplete data"
+  "report.cls.incomplete": "Incomplete data",
+  "report.page.subtitle": "Builds a Word (docx) report from stored results. Stale or result-less sections are not included.",
+  "report.page.empty_title": "No report sections",
+  "report.page.empty": "There is nothing to report yet. Run a calculation first.",
+  "report.page.status.ready": "Current",
+  "report.page.status.stale": "Stale (recalculate)",
+  "report.page.status.no_result": "No result",
+  "report.page.build": "Build and download report",
+  "report.page.refresh": "Refresh",
+  "report.page.refused.no_result": "Some sections have no result; run the calculation first:",
+  "report.page.refused.stale_result": "Some sections have stale results; recalculate:",
+  "report.page.refused.empty_selection": "Select at least one section.",
+  "report.page.refused.unknown_section": "Unknown section; refresh the list:"
 }

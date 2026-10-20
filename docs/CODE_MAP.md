@@ -224,7 +224,7 @@ Yer sütunu işleyicinin `def` satırıdır; çok satırlı dekoratörler AST il
 | POST | `/api/library/{file}/rename` | `geotek/api/library_routes.py:203` | `rename_library_project` | `web/src/shared/api/core.ts` |
 | POST | `/api/m/liquefaction/run` | `geotek/modules/liquefaction/api.py:31` | `run_liquefaction` | `web/src/modules/liquefaction/api.ts` |
 | POST | `/api/m/report/docx` | `geotek/modules/report/api.py:42` | `build_docx` | — |
-| GET | `/api/m/report/sections` | `geotek/modules/report/api.py:29` | `list_sections` | — |
+| GET | `/api/m/report/sections` | `geotek/modules/report/api.py:29` | `list_sections` | `web/src/modules/report/api.ts` |
 | POST | `/api/m/sheet_pile/structures/{id}/design` | `geotek/modules/sheet_pile/api.py:21` | `design_sheet_pile` | `web/src/modules/sheet_pile/api.ts` |
 | DELETE | `/api/m/soil/boreholes/{id}` | `geotek/modules/soil/api.py:209` | `delete_borehole` | — |
 | PUT | `/api/m/soil/boreholes/{id}` | `geotek/modules/soil/api.py:202` | `update_borehole` | — |
@@ -567,12 +567,12 @@ graph LR
   shared["shared"]
   app -->|22| shared
   modules_liquefaction -->|15| shared
-  modules_report -->|4| shared
+  modules_report -->|8| shared
   modules_sheet_pile -->|1| app
   modules_sheet_pile -->|27| shared
   modules_soil -->|29| shared
   modules_walls -->|41| shared
-  pages -->|3| shared
+  pages -->|2| shared
 ```
 
 | Klasör | Dosya | Bağımlı olduğu klasörler |
@@ -584,7 +584,7 @@ graph LR
 | `modules/sheet_pile` | 14 | `app`, `shared` |
 | `modules/soil` | 21 | `shared` |
 | `modules/walls` | 17 | `shared` |
-| `pages` | 2 | `shared` |
+| `pages` | 1 | `shared` |
 | `shared` | 37 | — |
 
 ### Web → backend çağrıları
@@ -594,7 +594,7 @@ graph LR
 | Dosya | Çağrılar |
 |---|---|
 | `modules/liquefaction/api.ts` | POST `/m/liquefaction/run` |
-| `modules/report/api.ts` | POST `/m/report/run` |
+| `modules/report/api.ts` | POST `/m/report/run`<br>GET `/m/report/sections` |
 | `modules/sheet_pile/api.ts` | POST `/m/sheet_pile/structures/{}/design` |
 | `modules/soil/api.ts` | GET `/m/soil/investigations`<br>GET `/m/soil/cpts/{}/processed`<br>GET `/m/soil/boreholes/{}/processed`<br>POST `/m/soil/layering/cpt/{}`<br>POST `/m/soil/layering/spt/{}`<br>GET `/m/soil/profiles`<br>POST `/m/soil/profiles`<br>GET `/m/soil/profiles/{}`<br>PUT `/m/soil/profiles/{}`<br>DELETE `/m/soil/profiles/{}`<br>GET `/m/soil/profiles/{}/layers/{}/parameters`<br>PUT `/m/soil/profiles/{}/layers/{}/parameters/{}`<br>POST `/m/soil/profiles/{}/layers/{}/parameters/approve`<br>POST `/m/soil/profiles/{}/parameters/suggest-all`<br>GET `/m/soil/classification/sbtn/reference`<br>GET `/m/soil/cpts/{}/sbtn`<br>GET `/m/soil/boreholes/{}/uscs`<br>POST `/m/soil/classification/uscs`<br>GET `/m/soil/classification/uscs/reference` |
 | `modules/walls/api.ts` | GET `/m/walls/wall-types`<br>POST `/m/walls/structures/{}/required-factors`<br>POST `/m/walls/structures/{}/size`<br>POST `/m/walls/structures/{}/check` |
@@ -644,10 +644,10 @@ Testler yalnız **Kullanan** sütununda görünür; “Test” sütunu o dosyay�
 | Dosya | Satır | Bağımlı olduğu | Kullanan | Test |
 |---|---:|---|---|---|
 | `modules/report/Root.tsx` | 11 | `modules/report/pages/HomePage.tsx` | `modules/report/manifest.ts` | — |
-| `modules/report/api.ts` | 6 | `shared/api/http.ts`, `shared/api/types.ts` | — | — |
+| `modules/report/api.ts` | 18 | `shared/api/http.ts`, `shared/api/types.ts` | `modules/report/pages/HomePage.tsx` | `modules/report/__tests__/report.test.tsx` |
 | `modules/report/manifest.ts` | 14 | `modules/report/Root.tsx`, `shared/moduleTypes.ts` | — | — |
-| `modules/report/mock.ts` | 20 | `shared/api/mock/dispatcher.ts` | — | — |
-| `modules/report/pages/HomePage.tsx` | 12 | — | `modules/report/Root.tsx` | `modules/report/__tests__/report.test.tsx` |
+| `modules/report/mock.ts` | 53 | `shared/api/mock/dispatcher.ts` | — | — |
+| `modules/report/pages/HomePage.tsx` | 141 | `modules/report/api.ts`, `shared/api/client.ts`, `shared/api/types.ts`, `shared/components/EmptyState.tsx`, `shared/components/ErrorAlert.tsx` | `modules/report/Root.tsx` | `modules/report/__tests__/report.test.tsx` |
 
 #### `modules/sheet_pile`
 
@@ -721,15 +721,14 @@ Testler yalnız **Kullanan** sütununda görünür; “Test” sütunu o dosyay�
 | Dosya | Satır | Bağımlı olduğu | Kullanan | Test |
 |---|---:|---|---|---|
 | `pages/ProjectPage.tsx` | 253 | `shared/api/client.ts`, `shared/api/types.ts` | — | — |
-| `pages/ReportPage.tsx` | 23 | `shared/components/EmptyState.tsx` | — | — |
 
 #### `shared`
 
 | Dosya | Satır | Bağımlı olduğu | Kullanan | Test |
 |---|---:|---|---|---|
-| `shared/api/client.ts` | 136 | `shared/api/http.ts`, `shared/api/types.ts` | `app/ProjectProvider.tsx`, `app/i18n.ts`, `app/pages/LauncherPage.tsx`, `app/pages/StartPage.tsx`, `modules/liquefaction/pages/AnalysisPage.tsx` +17 | `modules/liquefaction/__tests__/liquefaction.test.tsx`, `modules/sheet_pile/__tests__/sheet_pile.test.tsx`, `modules/soil/__tests__/classification.test.tsx` +12 |
+| `shared/api/client.ts` | 136 | `shared/api/http.ts`, `shared/api/types.ts` | `app/ProjectProvider.tsx`, `app/i18n.ts`, `app/pages/LauncherPage.tsx`, `app/pages/StartPage.tsx`, `modules/liquefaction/pages/AnalysisPage.tsx` +18 | `modules/liquefaction/__tests__/liquefaction.test.tsx`, `modules/report/__tests__/report.test.tsx`, `modules/sheet_pile/__tests__/sheet_pile.test.tsx` +13 |
 | `shared/api/core.ts` | 71 | `shared/api/http.ts`, `shared/api/types.ts` | `app/ProjectProvider.tsx`, `app/pages/SettingsPage.tsx`, `app/pages/StartPage.tsx`, `modules/liquefaction/pages/AnalysisPage.tsx`, `modules/sheet_pile/components/SoilSourceForm.tsx` +1 | `modules/liquefaction/__tests__/liquefaction.test.tsx`, `test/shell.test.tsx`, `test/shell_mock.test.ts` +1 |
-| `shared/api/http.ts` | 117 | `shared/api/mock/index.ts`, `shared/api/types.ts` | `modules/liquefaction/api.ts`, `modules/report/api.ts`, `modules/sheet_pile/api.ts`, `modules/soil/api.ts`, `modules/walls/api.ts` +2 | `test/shell_mock.test.ts` |
+| `shared/api/http.ts` | 173 | `shared/api/mock/index.ts`, `shared/api/types.ts` | `modules/liquefaction/api.ts`, `modules/report/api.ts`, `modules/sheet_pile/api.ts`, `modules/soil/api.ts`, `modules/walls/api.ts` +2 | `test/shell_mock.test.ts` |
 | `shared/api/mock/core.ts` | 244 | `shared/api/mock/data.ts`, `shared/api/mock/dispatcher.ts`, `shared/api/mock/store.ts`, `shared/api/types.ts` | `modules/liquefaction/mock.ts`, `modules/sheet_pile/mock.ts`, `shared/api/mock/index.ts` | `modules/liquefaction/__tests__/liquefaction.test.tsx`, `modules/sheet_pile/__tests__/sheet_pile.test.tsx` |
 | `shared/api/mock/coreRoutes.ts` | 514 | `shared/api/mock/data.ts`, `shared/api/mock/dispatcher.ts`, `shared/api/mock/hash.ts`, `shared/api/mock/store.ts`, `shared/api/types.ts`, `shared/soil/layerOps.ts` | `shared/api/mock/index.ts` | — |
 | `shared/api/mock/data.ts` | 595 | `shared/api/types.ts` | `modules/soil/mock.ts`, `modules/walls/mock.ts`, `shared/api/mock/core.ts`, `shared/api/mock/coreRoutes.ts`, `shared/api/mock/store.ts` | — |
@@ -738,9 +737,9 @@ Testler yalnız **Kullanan** sütununda görünür; “Test” sütunu o dosyay�
 | `shared/api/mock/index.ts` | 26 | `shared/api/mock/core.ts`, `shared/api/mock/coreRoutes.ts`, `shared/api/mock/dispatcher.ts`, `shared/api/mock/store.ts` | `shared/api/http.ts` | `modules/liquefaction/__tests__/liquefaction.test.tsx`, `modules/sheet_pile/__tests__/sheet_pile.test.tsx`, `modules/soil/__tests__/classification.test.tsx` +14 |
 | `shared/api/mock/store.ts` | 146 | `shared/api/mock/data.ts`, `shared/api/mock/hash.ts`, `shared/api/types.ts` | `modules/liquefaction/mock.ts`, `modules/sheet_pile/mock.ts`, `modules/soil/mock.ts`, `modules/walls/mock.ts`, `shared/api/mock/core.ts` +2 | `modules/liquefaction/__tests__/liquefaction.test.tsx`, `modules/sheet_pile/__tests__/sheet_pile.test.tsx`, `modules/soil/__tests__/soil_mock.test.ts` +2 |
 | `shared/api/schema.d.ts` | 10205 | — | — | — |
-| `shared/api/types.ts` | 759 | — | `app/ModuleShell.tsx`, `app/ProjectProvider.tsx`, `app/i18n.ts`, `app/pages/LauncherPage.tsx`, `app/pages/SettingsPage.tsx` +59 | `modules/liquefaction/__tests__/liquefaction.test.tsx`, `modules/sheet_pile/__tests__/result-contract.test.tsx`, `modules/sheet_pile/__tests__/sheet_pile.test.tsx` +11 |
-| `shared/components/EmptyState.tsx` | 26 | — | `app/ModuleShell.tsx`, `app/pages/LauncherPage.tsx`, `app/pages/StartPage.tsx`, `modules/liquefaction/pages/ResultsPage.tsx`, `modules/sheet_pile/pages/SheetPileDetailPage.tsx` +9 | — |
-| `shared/components/ErrorAlert.tsx` | 37 | `shared/api/client.ts` | `app/ModuleShell.tsx`, `app/RequireProject.tsx`, `app/pages/LauncherPage.tsx`, `app/pages/SettingsPage.tsx`, `app/pages/StartPage.tsx` +8 | — |
+| `shared/api/types.ts` | 759 | — | `app/ModuleShell.tsx`, `app/ProjectProvider.tsx`, `app/i18n.ts`, `app/pages/LauncherPage.tsx`, `app/pages/SettingsPage.tsx` +60 | `modules/liquefaction/__tests__/liquefaction.test.tsx`, `modules/sheet_pile/__tests__/result-contract.test.tsx`, `modules/sheet_pile/__tests__/sheet_pile.test.tsx` +11 |
+| `shared/components/EmptyState.tsx` | 26 | — | `app/ModuleShell.tsx`, `app/pages/LauncherPage.tsx`, `app/pages/StartPage.tsx`, `modules/liquefaction/pages/ResultsPage.tsx`, `modules/report/pages/HomePage.tsx` +9 | — |
+| `shared/components/ErrorAlert.tsx` | 37 | `shared/api/client.ts` | `app/ModuleShell.tsx`, `app/RequireProject.tsx`, `app/pages/LauncherPage.tsx`, `app/pages/SettingsPage.tsx`, `app/pages/StartPage.tsx` +9 | — |
 | `shared/components/MissingFactorsForm.tsx` | 115 | `shared/api/types.ts` | `modules/walls/pages/WallWizardPage.tsx` | — |
 | `shared/components/UtilisationCards.tsx` | 105 | `shared/api/types.ts`, `shared/utils/utilisation.ts` | — | — |
 | `shared/hooks/useJob.ts` | 166 | `shared/api/client.ts`, `shared/api/types.ts` | `modules/walls/pages/WallWizardPage.tsx` | `test/skeleton.test.tsx` |
