@@ -38,6 +38,19 @@ def soil_behaviour_index(Qtn, Fr):
         return np.sqrt((3.47 - np.log10(Qtn)) ** 2 + (np.log10(Fr) + 1.22) ** 2)
 
 
+def qtn_from_ic(Ic, Fr):
+    """Invert I_c on the log10(Qtn) <= 3.47 branch; undefined points are NaN."""
+    Fr = np.asarray(Fr, dtype=float)
+    with np.errstate(divide="ignore", invalid="ignore", over="ignore"):
+        return 10.0 ** (3.47 - np.sqrt(np.asarray(Ic) ** 2 - (np.log10(Fr) + 1.22) ** 2))
+
+
+def zone_1_boundary(Fr):
+    """Return the existing sensitive-soil boundary Qtn = 12 exp(-1.4 Fr)."""
+    with np.errstate(invalid="ignore", over="ignore"):
+        return 12.0 * np.exp(-1.4 * np.asarray(Fr, dtype=float))
+
+
 def zone_from_ic(Ic):
     """Zones 2-7 from I_c (Robertson 2009/2010). NaN I_c gives zone 0 (undefined)."""
     Ic = np.asarray(Ic, dtype=float)
@@ -66,7 +79,7 @@ def sbtn_zone(Qtn, Fr, Ic=None, *, include_zones_8_9: bool = False):
     zone = zone_from_ic(Ic)
 
     with np.errstate(invalid="ignore", over="ignore"):
-        zone = np.where(Qtn < 12.0 * np.exp(-1.4 * Fr), 1, zone)
+        zone = np.where(Qtn < zone_1_boundary(Fr), 1, zone)
         if include_zones_8_9:
             x = Fr - 1.0
             denom = 0.005 * x - 0.0003 * x**2 - 0.002

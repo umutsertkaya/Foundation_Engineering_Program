@@ -782,6 +782,110 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/m/soil/classification/sbtn/reference": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Sbtn Reference
+         * @description Return SBTn chart data; zones 8/9 are disabled by default and omitted.
+         *
+         *     Ic limits describe zones 2-7 before the zone-1 override, which has no Ic
+         *     interval. Contours use the lower-Qtn inverse branch, clipped to the chart
+         *     axes. The full zone-1 boundary is sampled even below the Qtn axis minimum.
+         */
+        get: operations["get_sbtn_reference"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/m/soil/cpts/{id}/sbtn": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Cpt Sbtn
+         * @description Use the processed-CPT path, including its profile, warnings and errors.
+         */
+        get: operations["get_cpt_sbtn"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/m/soil/boreholes/{id}/uscs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Borehole Uscs
+         * @description Classify every lab record, preserving engine incompleteness and notes.
+         */
+        get: operations["get_borehole_uscs"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/m/soil/classification/uscs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Classify Uscs
+         * @description Classify stateless inputs; unavailable depth and PL are returned as null.
+         */
+        post: operations["classify_uscs"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/m/soil/classification/uscs/reference": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Uscs Reference
+         * @description Sample LL=0..100%; preserve negative A/U-line values from the engine.
+         */
+        get: operations["get_uscs_reference"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/m/soil/boreholes/{id}/processed": {
         parameters: {
             query?: never;
@@ -1234,6 +1338,13 @@ export interface components {
             /** Source */
             source: string;
         };
+        /** AxisRangeDTO */
+        AxisRangeDTO: {
+            /** Min */
+            min: number;
+            /** Max */
+            max: number;
+        };
         /** Borehole */
         Borehole: {
             /** Id */
@@ -1305,6 +1416,11 @@ export interface components {
              */
             notes: string;
         };
+        /** BoreholeUSCSDTO */
+        BoreholeUSCSDTO: {
+            /** Items */
+            items: components["schemas"]["USCSItemDTO"][];
+        };
         /**
          * CPTProcessedDTO
          * @description Depth-aligned CPT chart series; stresses in kPa, friction ratios and fc in percent.
@@ -1336,6 +1452,13 @@ export interface components {
             sigma_v: (number | null)[];
             /** Sigma V Eff */
             sigma_v_eff: (number | null)[];
+            /** Warnings */
+            warnings: string[];
+        };
+        /** CPTSBTNDTO */
+        CPTSBTNDTO: {
+            /** Points */
+            points: components["schemas"]["SBTNPointDTO"][];
             /** Warnings */
             warnings: string[];
         };
@@ -2033,6 +2156,13 @@ export interface components {
             /** Max */
             max: number;
         };
+        /** PlasticityPointDTO */
+        PlasticityPointDTO: {
+            /** Ll */
+            LL: number;
+            /** Pi */
+            PI: number | null;
+        };
         /**
          * PressureDiagramDTO
          * @description PressureDistribution chart projection; stresses kPa, force kN/m, depths m.
@@ -2315,7 +2445,7 @@ export interface components {
              * Kind
              * @enum {string}
              */
-            kind: "project" | "soil_profile" | "retaining_wall" | "sheet_pile" | "liquefaction";
+            kind: "project" | "soil_profile" | "classification" | "retaining_wall" | "sheet_pile" | "liquefaction";
             /** Name */
             name: string;
             /**
@@ -2419,6 +2549,66 @@ export interface components {
             result?: {
                 [key: string]: unknown;
             } | null;
+        };
+        /** SBTNContourDTO */
+        SBTNContourDTO: {
+            /** Ic */
+            Ic: number;
+            /** Points */
+            points: components["schemas"]["SBTNCoordinateDTO"][];
+        };
+        /**
+         * SBTNCoordinateDTO
+         * @description Chart coordinate: Fr in percent and dimensionless Qtn.
+         */
+        SBTNCoordinateDTO: {
+            /** Fr */
+            Fr: number | null;
+            /** Qtn */
+            Qtn: number | null;
+        };
+        /** SBTNPointDTO */
+        SBTNPointDTO: {
+            /** Fr */
+            Fr: number | null;
+            /** Qtn */
+            Qtn: number | null;
+            /** Depth */
+            depth: number | null;
+            /** Ic */
+            Ic: number | null;
+            /** Zone */
+            zone: number | null;
+            /** Zone Name En */
+            zone_name_en: string | null;
+            /** Zone Name Tr */
+            zone_name_tr: string | null;
+        };
+        /** SBTNReferenceDTO */
+        SBTNReferenceDTO: {
+            /** Zones */
+            zones: components["schemas"]["SBTNZoneDTO"][];
+            /** Ic Bounds */
+            ic_bounds: number[];
+            /** Zone 1 Boundary */
+            zone_1_boundary: components["schemas"]["SBTNCoordinateDTO"][];
+            /** Ic Contours */
+            ic_contours: components["schemas"]["SBTNContourDTO"][];
+            fr_range: components["schemas"]["AxisRangeDTO"];
+            qtn_range: components["schemas"]["AxisRangeDTO"];
+        };
+        /** SBTNZoneDTO */
+        SBTNZoneDTO: {
+            /** Zone */
+            zone: number;
+            /** Name En */
+            name_en: string;
+            /** Name Tr */
+            name_tr: string;
+            /** Ic Min */
+            ic_min: number | null;
+            /** Ic Max */
+            ic_max: number | null;
         };
         /**
          * SPTProcessedDTO
@@ -2819,6 +3009,88 @@ export interface components {
         TrashResponse: {
             /** Trash Path */
             trash_path: string;
+        };
+        /**
+         * USCSClassifyRequest
+         * @description Stateless engine inputs, with the same numeric bounds as LabRecord.
+         */
+        USCSClassifyRequest: {
+            /** Fines */
+            fines: number;
+            /** Gravel */
+            gravel?: number | null;
+            /** Ll */
+            LL?: number | null;
+            /** Pi */
+            PI?: number | null;
+            /** D10 */
+            D10?: number | null;
+            /** D30 */
+            D30?: number | null;
+            /** D60 */
+            D60?: number | null;
+        };
+        /**
+         * USCSItemDTO
+         * @description Lab result; depth and PL are null for stateless classify() requests.
+         */
+        USCSItemDTO: {
+            /** Depth */
+            depth: number | null;
+            /** Symbol */
+            symbol: string | null;
+            /** Complete */
+            complete: boolean;
+            /** Notes */
+            notes: string[];
+            /** Fc */
+            FC: number | null;
+            /** Gravel */
+            gravel: number | null;
+            /** Ll */
+            LL: number | null;
+            /** Pl */
+            PL: number | null;
+            /** Pi */
+            PI: number | null;
+            /** D10 */
+            D10: number | null;
+            /** D30 */
+            D30: number | null;
+            /** D60 */
+            D60: number | null;
+            /** Cu */
+            Cu: number | null;
+            /** Cc */
+            Cc: number | null;
+            /** Plastic Class */
+            plastic_class: string | null;
+            /** Group Name En */
+            group_name_en: string | null;
+            /** Group Name Tr */
+            group_name_tr: string | null;
+            /** Description */
+            description: string | null;
+        };
+        /** USCSReferenceDTO */
+        USCSReferenceDTO: {
+            /** A Line */
+            a_line: components["schemas"]["PlasticityPointDTO"][];
+            /** U Line */
+            u_line: components["schemas"]["PlasticityPointDTO"][];
+            /** Symbols */
+            symbols: components["schemas"]["USCSSymbolDTO"][];
+        };
+        /** USCSSymbolDTO */
+        USCSSymbolDTO: {
+            /** Symbol */
+            symbol: string;
+            /** Group Name En */
+            group_name_en: string;
+            /** Group Name Tr */
+            group_name_tr: string;
+            /** Description */
+            description: string;
         };
         /**
          * UsedFactorDTO
@@ -7225,6 +7497,474 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["CPTProcessedDTO"];
+                };
+            };
+            /** @description Invalid operation or input file */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Resource not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Conflicting or stale structure state */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Validation error or missing_factors */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Engine or server error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Contract stub; not implemented */
+            501: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Other client error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Other server error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    get_sbtn_reference: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SBTNReferenceDTO"];
+                };
+            };
+            /** @description Invalid operation or input file */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Resource not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Conflicting or stale structure state */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Validation error or missing_factors */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Engine or server error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Contract stub; not implemented */
+            501: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Other client error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Other server error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    get_cpt_sbtn: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CPTSBTNDTO"];
+                };
+            };
+            /** @description Invalid operation or input file */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Resource not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Conflicting or stale structure state */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Validation error or missing_factors */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Engine or server error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Contract stub; not implemented */
+            501: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Other client error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Other server error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    get_borehole_uscs: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BoreholeUSCSDTO"];
+                };
+            };
+            /** @description Invalid operation or input file */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Resource not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Conflicting or stale structure state */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Validation error or missing_factors */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Engine or server error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Contract stub; not implemented */
+            501: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Other client error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Other server error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    classify_uscs: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["USCSClassifyRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["USCSItemDTO"];
+                };
+            };
+            /** @description Invalid operation or input file */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Resource not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Conflicting or stale structure state */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Validation error or missing_factors */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Engine or server error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Contract stub; not implemented */
+            501: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Other client error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Other server error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    get_uscs_reference: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["USCSReferenceDTO"];
                 };
             };
             /** @description Invalid operation or input file */

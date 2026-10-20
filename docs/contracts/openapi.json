@@ -5285,6 +5285,548 @@
         }
       }
     },
+    "/api/m/soil/classification/sbtn/reference": {
+      "get": {
+        "tags": [
+          "soil"
+        ],
+        "summary": "Get Sbtn Reference",
+        "description": "Return SBTn chart data; zones 8/9 are disabled by default and omitted.\n\nIc limits describe zones 2-7 before the zone-1 override, which has no Ic\ninterval. Contours use the lower-Qtn inverse branch, clipped to the chart\naxes. The full zone-1 boundary is sampled even below the Qtn axis minimum.",
+        "operationId": "get_sbtn_reference",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SBTNReferenceDTO"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid operation or input file",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflicting or stale structure state",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation error or missing_factors",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Engine or server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "501": {
+            "description": "Contract stub; not implemented",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Other client error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "5XX": {
+            "description": "Other server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/m/soil/cpts/{id}/sbtn": {
+      "get": {
+        "tags": [
+          "soil"
+        ],
+        "summary": "Get Cpt Sbtn",
+        "description": "Use the processed-CPT path, including its profile, warnings and errors.",
+        "operationId": "get_cpt_sbtn",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CPTSBTNDTO"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid operation or input file",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflicting or stale structure state",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation error or missing_factors",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Engine or server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "501": {
+            "description": "Contract stub; not implemented",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Other client error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "5XX": {
+            "description": "Other server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/m/soil/boreholes/{id}/uscs": {
+      "get": {
+        "tags": [
+          "soil"
+        ],
+        "summary": "Get Borehole Uscs",
+        "description": "Classify every lab record, preserving engine incompleteness and notes.",
+        "operationId": "get_borehole_uscs",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BoreholeUSCSDTO"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid operation or input file",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflicting or stale structure state",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation error or missing_factors",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Engine or server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "501": {
+            "description": "Contract stub; not implemented",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Other client error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "5XX": {
+            "description": "Other server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/m/soil/classification/uscs": {
+      "post": {
+        "tags": [
+          "soil"
+        ],
+        "summary": "Classify Uscs",
+        "description": "Classify stateless inputs; unavailable depth and PL are returned as null.",
+        "operationId": "classify_uscs",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/USCSClassifyRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/USCSItemDTO"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid operation or input file",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflicting or stale structure state",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation error or missing_factors",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Engine or server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "501": {
+            "description": "Contract stub; not implemented",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Other client error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "5XX": {
+            "description": "Other server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/m/soil/classification/uscs/reference": {
+      "get": {
+        "tags": [
+          "soil"
+        ],
+        "summary": "Get Uscs Reference",
+        "description": "Sample LL=0..100%; preserve negative A/U-line values from the engine.",
+        "operationId": "get_uscs_reference",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/USCSReferenceDTO"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid operation or input file",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflicting or stale structure state",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation error or missing_factors",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Engine or server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "501": {
+            "description": "Contract stub; not implemented",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Other client error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "5XX": {
+            "description": "Other server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/m/soil/boreholes/{id}/processed": {
       "get": {
         "tags": [
@@ -7983,6 +8525,25 @@
         "title": "AssumptionDTO",
         "description": "Mirror of an engine assumption and its source label."
       },
+      "AxisRangeDTO": {
+        "properties": {
+          "min": {
+            "type": "number",
+            "title": "Min"
+          },
+          "max": {
+            "type": "number",
+            "title": "Max"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "min",
+          "max"
+        ],
+        "title": "AxisRangeDTO"
+      },
       "Borehole": {
         "properties": {
           "id": {
@@ -8130,6 +8691,23 @@
         ],
         "title": "BoreholeLayer",
         "description": "One logged interval of a borehole (field description). Gaps between intervals are\nallowed (unlogged or no recovery); overlaps are not."
+      },
+      "BoreholeUSCSDTO": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/USCSItemDTO"
+            },
+            "type": "array",
+            "title": "Items"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "items"
+        ],
+        "title": "BoreholeUSCSDTO"
       },
       "CPTProcessedDTO": {
         "properties": {
@@ -8350,6 +8928,31 @@
         ],
         "title": "CPTProcessedDTO",
         "description": "Depth-aligned CPT chart series; stresses in kPa, friction ratios and fc in percent."
+      },
+      "CPTSBTNDTO": {
+        "properties": {
+          "points": {
+            "items": {
+              "$ref": "#/components/schemas/SBTNPointDTO"
+            },
+            "type": "array",
+            "title": "Points"
+          },
+          "warnings": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Warnings"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "points",
+          "warnings"
+        ],
+        "title": "CPTSBTNDTO"
       },
       "CPTSounding": {
         "properties": {
@@ -10038,6 +10641,32 @@
         "title": "ParameterStats",
         "description": "Spread when several correlations were evaluated for the same parameter."
       },
+      "PlasticityPointDTO": {
+        "properties": {
+          "LL": {
+            "type": "number",
+            "title": "Ll"
+          },
+          "PI": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Pi"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "LL",
+          "PI"
+        ],
+        "title": "PlasticityPointDTO"
+      },
       "PressureDiagramDTO": {
         "properties": {
           "side": {
@@ -10732,6 +11361,7 @@
             "enum": [
               "project",
               "soil_profile",
+              "classification",
               "retaining_wall",
               "sheet_pile",
               "liquefaction"
@@ -11033,6 +11663,252 @@
           "soil"
         ],
         "title": "RetainingWallStructure"
+      },
+      "SBTNContourDTO": {
+        "properties": {
+          "Ic": {
+            "type": "number",
+            "title": "Ic"
+          },
+          "points": {
+            "items": {
+              "$ref": "#/components/schemas/SBTNCoordinateDTO"
+            },
+            "type": "array",
+            "title": "Points"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "Ic",
+          "points"
+        ],
+        "title": "SBTNContourDTO"
+      },
+      "SBTNCoordinateDTO": {
+        "properties": {
+          "Fr": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Fr"
+          },
+          "Qtn": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Qtn"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "Fr",
+          "Qtn"
+        ],
+        "title": "SBTNCoordinateDTO",
+        "description": "Chart coordinate: Fr in percent and dimensionless Qtn."
+      },
+      "SBTNPointDTO": {
+        "properties": {
+          "Fr": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Fr"
+          },
+          "Qtn": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Qtn"
+          },
+          "depth": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Depth"
+          },
+          "Ic": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ic"
+          },
+          "zone": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Zone"
+          },
+          "zone_name_en": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Zone Name En"
+          },
+          "zone_name_tr": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Zone Name Tr"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "Fr",
+          "Qtn",
+          "depth",
+          "Ic",
+          "zone",
+          "zone_name_en",
+          "zone_name_tr"
+        ],
+        "title": "SBTNPointDTO"
+      },
+      "SBTNReferenceDTO": {
+        "properties": {
+          "zones": {
+            "items": {
+              "$ref": "#/components/schemas/SBTNZoneDTO"
+            },
+            "type": "array",
+            "title": "Zones"
+          },
+          "ic_bounds": {
+            "items": {
+              "type": "number"
+            },
+            "type": "array",
+            "title": "Ic Bounds"
+          },
+          "zone_1_boundary": {
+            "items": {
+              "$ref": "#/components/schemas/SBTNCoordinateDTO"
+            },
+            "type": "array",
+            "title": "Zone 1 Boundary"
+          },
+          "ic_contours": {
+            "items": {
+              "$ref": "#/components/schemas/SBTNContourDTO"
+            },
+            "type": "array",
+            "title": "Ic Contours"
+          },
+          "fr_range": {
+            "$ref": "#/components/schemas/AxisRangeDTO"
+          },
+          "qtn_range": {
+            "$ref": "#/components/schemas/AxisRangeDTO"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "zones",
+          "ic_bounds",
+          "zone_1_boundary",
+          "ic_contours",
+          "fr_range",
+          "qtn_range"
+        ],
+        "title": "SBTNReferenceDTO"
+      },
+      "SBTNZoneDTO": {
+        "properties": {
+          "zone": {
+            "type": "integer",
+            "title": "Zone"
+          },
+          "name_en": {
+            "type": "string",
+            "title": "Name En"
+          },
+          "name_tr": {
+            "type": "string",
+            "title": "Name Tr"
+          },
+          "ic_min": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ic Min"
+          },
+          "ic_max": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ic Max"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "zone",
+          "name_en",
+          "name_tr",
+          "ic_min",
+          "ic_max"
+        ],
+        "title": "SBTNZoneDTO"
       },
       "SPTProcessedDTO": {
         "properties": {
@@ -12325,6 +13201,373 @@
         ],
         "title": "TrashResponse",
         "description": "Location of a deleted library file inside the library's .trash directory."
+      },
+      "USCSClassifyRequest": {
+        "properties": {
+          "fines": {
+            "type": "number",
+            "maximum": 100.0,
+            "minimum": 0.0,
+            "title": "Fines"
+          },
+          "gravel": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 100.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Gravel"
+          },
+          "LL": {
+            "anyOf": [
+              {
+                "type": "number",
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ll"
+          },
+          "PI": {
+            "anyOf": [
+              {
+                "type": "number",
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Pi"
+          },
+          "D10": {
+            "anyOf": [
+              {
+                "type": "number",
+                "exclusiveMinimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "D10"
+          },
+          "D30": {
+            "anyOf": [
+              {
+                "type": "number",
+                "exclusiveMinimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "D30"
+          },
+          "D60": {
+            "anyOf": [
+              {
+                "type": "number",
+                "exclusiveMinimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "D60"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "fines"
+        ],
+        "title": "USCSClassifyRequest",
+        "description": "Stateless engine inputs, with the same numeric bounds as LabRecord."
+      },
+      "USCSItemDTO": {
+        "properties": {
+          "depth": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Depth"
+          },
+          "symbol": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Symbol"
+          },
+          "complete": {
+            "type": "boolean",
+            "title": "Complete"
+          },
+          "notes": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Notes"
+          },
+          "FC": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Fc"
+          },
+          "gravel": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Gravel"
+          },
+          "LL": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ll"
+          },
+          "PL": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Pl"
+          },
+          "PI": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Pi"
+          },
+          "D10": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "D10"
+          },
+          "D30": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "D30"
+          },
+          "D60": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "D60"
+          },
+          "Cu": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cu"
+          },
+          "Cc": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cc"
+          },
+          "plastic_class": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Plastic Class"
+          },
+          "group_name_en": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Group Name En"
+          },
+          "group_name_tr": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Group Name Tr"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "depth",
+          "symbol",
+          "complete",
+          "notes",
+          "FC",
+          "gravel",
+          "LL",
+          "PL",
+          "PI",
+          "D10",
+          "D30",
+          "D60",
+          "Cu",
+          "Cc",
+          "plastic_class",
+          "group_name_en",
+          "group_name_tr",
+          "description"
+        ],
+        "title": "USCSItemDTO",
+        "description": "Lab result; depth and PL are null for stateless classify() requests."
+      },
+      "USCSReferenceDTO": {
+        "properties": {
+          "a_line": {
+            "items": {
+              "$ref": "#/components/schemas/PlasticityPointDTO"
+            },
+            "type": "array",
+            "title": "A Line"
+          },
+          "u_line": {
+            "items": {
+              "$ref": "#/components/schemas/PlasticityPointDTO"
+            },
+            "type": "array",
+            "title": "U Line"
+          },
+          "symbols": {
+            "items": {
+              "$ref": "#/components/schemas/USCSSymbolDTO"
+            },
+            "type": "array",
+            "title": "Symbols"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "a_line",
+          "u_line",
+          "symbols"
+        ],
+        "title": "USCSReferenceDTO"
+      },
+      "USCSSymbolDTO": {
+        "properties": {
+          "symbol": {
+            "type": "string",
+            "title": "Symbol"
+          },
+          "group_name_en": {
+            "type": "string",
+            "title": "Group Name En"
+          },
+          "group_name_tr": {
+            "type": "string",
+            "title": "Group Name Tr"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "symbol",
+          "group_name_en",
+          "group_name_tr",
+          "description"
+        ],
+        "title": "USCSSymbolDTO"
       },
       "UsedFactorDTO": {
         "properties": {

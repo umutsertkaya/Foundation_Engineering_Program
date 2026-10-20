@@ -83,5 +83,13 @@
   "report.liq.n_marginal": "Sınırda nokta",
   "report.liq.errors": "Hesaplanamayan sondajlar",
   "report.nav.home": "Rapor",
-  "report.home.heading": "Rapor sayfası T8b ile gelecek; docx üretimi API'den kullanılabilir."
+  "report.home.heading": "Rapor sayfası T8b ile gelecek; docx üretimi API'den kullanılabilir.",
+  "report.section.classification": "Zemin sınıflandırması",
+  "report.cls.sbtn": "Robertson SBTn (CPT)",
+  "report.cls.uscs": "USCS (laboratuvar)",
+  "report.cls.zone": "Bölge",
+  "report.cls.zone_name": "Ad",
+  "report.cls.ic_mean": "Ortalama Ic",
+  "report.cls.complete": "Tam",
+  "report.cls.incomplete": "Eksik veri"
 }

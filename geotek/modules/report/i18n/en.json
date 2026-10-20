@@ -83,5 +83,13 @@
   "report.liq.n_marginal": "Marginal points",
   "report.liq.errors": "Soundings not computed",
   "report.nav.home": "Report",
-  "report.home.heading": "The report page arrives with T8b; docx generation is available from the API."
+  "report.home.heading": "The report page arrives with T8b; docx generation is available from the API.",
+  "report.section.classification": "Soil classification",
+  "report.cls.sbtn": "Robertson SBTn (CPT)",
+  "report.cls.uscs": "USCS (laboratory)",
+  "report.cls.zone": "Zone",
+  "report.cls.zone_name": "Name",
+  "report.cls.ic_mean": "Mean Ic",
+  "report.cls.complete": "Complete",
+  "report.cls.incomplete": "Incomplete data"
 }

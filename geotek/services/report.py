@@ -20,10 +20,12 @@ from geotek.services import module1
 from geotek.services.structures import calculation_fingerprint
 
 SectionStatus = Literal["ready", "stale", "no_result"]
-SectionKind = Literal["project", "soil_profile", "retaining_wall", "sheet_pile", "liquefaction"]
+SectionKind = Literal[
+    "project", "soil_profile", "classification", "retaining_wall", "sheet_pile", "liquefaction"]
 
 PROJECT_SECTION = "project"
 LIQUEFACTION_SECTION = "liquefaction"
+CLASSIFICATION_SECTION = "classification"
 DASH = "-"
 
 
@@ -79,6 +81,10 @@ def list_sections(project: Project) -> list[SectionInfo]:
                  for p in project.soil_profiles]
     sections += [SectionInfo(f"structure:{s.id}", s.kind, s.name or s.id,
                              _structure_status(project, s)) for s in project.structures]
+    inv = project.investigations
+    has_data = bool(inv.cpts) or any(b.lab for b in inv.boreholes)
+    sections.append(SectionInfo(CLASSIFICATION_SECTION, "classification", "",
+                                "ready" if has_data else "no_result"))
     sections.append(SectionInfo(LIQUEFACTION_SECTION, "liquefaction", "",
                                 _liquefaction_status(project)))
     return sections
@@ -168,6 +174,56 @@ def _soil_section(w: _Writer, profile: SoilProfile) -> None:
           _fmt(layer.gamma), _fmt(layer.gamma_sat), _fmt(layer.design.phi_eff, 1),
           _fmt(layer.design.c_eff, 1), _fmt(layer.design.su, 1)] for layer in profile.layers],
     )
+
+
+def _classification_section(w: _Writer, project: Project) -> None:
+    """SBTn zones per CPT and USCS per lab record, derived from the current investigations."""
+    from geotek.engine.classification import robertson, uscs
+    from geotek.engine.classification.uscs_names import USCS_NAMES
+
+    w.heading(w.tr("report.section.classification"))
+    lang = "tr" if w.lang == "tr" else "en"
+    if project.investigations.cpts:
+        processed = module1.process_investigations(project)
+        w.heading(w.tr("report.cls.sbtn"), 2)
+        for cpt in project.investigations.cpts:
+            if cpt.id in processed.errors:
+                w.bullets([f"{cpt.id}: {processed.errors[cpt.id]}"])
+                continue
+            data = processed.cpt[cpt.id]
+            rows, start = [], 0
+            zones = [int(z) if 1 <= z <= 9 else 0 for z in data.zone]
+            for i in range(1, len(zones) + 1):
+                if i == len(zones) or zones[i] != zones[start]:
+                    zone = zones[start]
+                    rows.append([
+                        _fmt(data.depth[start]), _fmt(data.depth[i - 1]),
+                        str(zone) if zone else DASH,
+                        robertson.ZONE_NAMES[zone][lang] if zone else DASH,
+                        _fmt(float(sum(data.Ic[start:i]) / (i - start)), 2),
+                    ])
+                    start = i
+            w.paragraph(cpt.id, bold=True)
+            w.table([w.tr("report.soil.top"), w.tr("report.soil.bottom"), w.tr("report.cls.zone"),
+                     w.tr("report.cls.zone_name"), w.tr("report.cls.ic_mean")], rows)
+    labs = [(b.id, record) for b in project.investigations.boreholes for record in b.lab]
+    if labs:
+        w.heading(w.tr("report.cls.uscs"), 2)
+        rows = []
+        for bid, record in labs:
+            result = uscs.classify_lab_record(record)
+            name = USCS_NAMES.get(result.symbol)
+            label = (name.group_name_tr if lang == "tr" else name.group_name_en) if name else DASH
+            rows.append([bid, _fmt(record.depth), result.symbol or DASH, label, _fmt(record.FC, 1),
+                         _fmt(record.LL, 1), _fmt(record.PI, 1),
+                         w.tr("report.cls.complete" if result.complete else "report.cls.incomplete")])
+        w.table([w.tr("report.liq.sounding"), w.tr("report.soil.top"), w.tr("report.soil.uscs"),
+                 w.tr("report.cls.zone_name"), "FC [%]", "LL", "PI", w.tr("report.col.value")], rows)
+        notes = [f"{bid} {_fmt(r.depth)} m: {n}" for bid, r in labs
+                 for n in uscs.classify_lab_record(r).notes]
+        if notes:
+            w.heading(w.tr("report.warnings"), 3)
+            w.bullets(notes)
 
 
 def _evidence(w: _Writer, result: dict) -> None:
@@ -306,6 +362,8 @@ def build_docx(project: Project, section_ids: list[str] | None = None,
             _project_section(w, project)
         elif info.kind == "soil_profile":
             _soil_section(w, project.profile(info.id.removeprefix("soil:")))
+        elif info.kind == "classification":
+            _classification_section(w, project)
         elif info.kind == "liquefaction":
             _liquefaction_section(w, project.modules[LIQUEFACTION_SECTION].data)
         else:

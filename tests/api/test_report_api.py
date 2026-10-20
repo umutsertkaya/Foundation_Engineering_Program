@@ -5,7 +5,8 @@ import io
 import pytest
 from docx import Document
 
-from geotek.core.models.investigations import Borehole, CPTSounding, Investigations, SPTRecord
+from geotek.core.models.investigations import (
+    Borehole, CPTSounding, Investigations, LabRecord, SPTRecord)
 from geotek.core.models.project import ProjectMeta
 from geotek.core.models.structures import RetainingWallStructure
 
@@ -34,7 +35,8 @@ def open_project(shell, two_layer_profile):
     project.active_profile_id = two_layer_profile.id
     project.investigations = Investigations(
         boreholes=[Borehole(id="BH1", spt=[SPTRecord(depth=1.5, n_field=6),
-                                           SPTRecord(depth=5, n_field=8)])],
+                                           SPTRecord(depth=5, n_field=8)],
+                            lab=[LabRecord(depth=2, FC=60, LL=40, PI=20)])],
         cpts=[CPTSounding(id="CPT1", depth=[1, 2, 4, 5, 7, 9], qc=[3000, 3000, 3000, 3000, 800, 800],
                           fs=[20, 20, 20, 20, 35, 35])])
     project.meta = ProjectMeta(name="Rapor Projesi", language="en")
@@ -109,3 +111,17 @@ def test_liquefaction_goes_stale_when_investigations_change(shell, open_project)
     assert status["liquefaction"] == "stale"
     refused = shell.post(f"{BASE}/docx", json={"sections": ["liquefaction"]})
     assert refused.status_code == 409 and refused.json()["code"] == "stale_result"
+
+
+def test_classification_section(shell, open_project):
+    response = shell.post(f"{BASE}/docx", json={"sections": ["classification"]})
+    assert response.status_code == 200, response.text
+    text = _text(response)
+    assert "Robertson SBTn" in text and "CPT1" in text and "USCS" in text and "CL" in text
+
+
+def test_classification_without_data_is_no_result(shell, open_project):
+    open_project.investigations.cpts.clear()
+    open_project.investigations.boreholes[0].lab.clear()
+    refused = shell.post(f"{BASE}/docx", json={"sections": ["classification"]})
+    assert refused.status_code == 409 and refused.json()["code"] == "no_result"
