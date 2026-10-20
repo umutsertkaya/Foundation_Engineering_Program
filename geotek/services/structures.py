@@ -517,9 +517,16 @@ def _sheet_soil(structure, soil):
 
 
 def _sheet_assumptions(structure):
+    out = []
+    if structure.depth_increase is not None:
+        out.append(Assumption(
+            text=f"Gömülme artışı: {structure.depth_increase:g}; D = D0 * (1 + artış)",
+            source="SheetPileStructure.depth_increase; mevcut sheet_pile.py",
+            code="sheet_pile.depth_increase", params={"increase": structure.depth_increase},
+        ))
     if structure.front_water_depth is None:
-        return []
-    return [Assumption(
+        return out
+    return out + [Assumption(
         text=f"Ön YASS üstten {structure.front_water_depth:g} m olarak geçersiz kılındı; "
              "tasarım ve deprem durumlarında aynı seviye kullanılır",
         source="SheetPileStructure.front_water_depth; mühendis girdisi",
@@ -630,13 +637,10 @@ def design_sheet_pile_structure(project: Project, structure_id: str, progress: P
                        source="Mevcut sheet_pile.py; USS Steel Sheet Piling Design Manual / USACE EM 1110-2-2504",
                        code="sheet_pile.support_method", params={"percent": 20}),
         ]
-        assumptions.extend(_sheet_assumptions(structure))
         if structure.depth_increase is not None:
-            assumptions[2] = Assumption(
-                text=f"Gömülme artışı: {structure.depth_increase:g}; D = D0 * (1 + artış)",
-                source="SheetPileStructure.depth_increase; mevcut sheet_pile.py",
-                code="sheet_pile.depth_increase", params={"increase": structure.depth_increase},
-            )
+            # The user-set increase replaces the default 20 % cantilever statement.
+            assumptions = [a for a in assumptions if a.code != "sheet_pile.support_method"]
+        assumptions.extend(_sheet_assumptions(structure))
         if seismic:
             assumptions.append(Assumption(text="r=1; M-O artımı H boyunca düzgün (bileşke H/2); "
                                                 "katman başına pasif M-O/Rankine oranı en çok 1; drenajsız deprem durdurulur; "

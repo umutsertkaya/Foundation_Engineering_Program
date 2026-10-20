@@ -107,7 +107,7 @@
   "sheet_pile.job.resume_hint": "İzleme kesilirse bu sayfayı yenileyin; ?job= bağlantısı hesap durumunu sürdürür.",
   "sheet_pile.detail.result_stale_title": "Sonuç eski olabilir",
   "sheet_pile.result.saved": "Kaydedilmiş sonuç",
-  "sheet_pile.result.series_points_shown": "{{total}} noktanın {{shown}} tanesi gösteriliyor",
+  "sheet_pile.result.series_points_shown": "{total} noktanın {shown} tanesi gösteriliyor",
   "sheet_pile.warning.generic": "{text}",
   "sheet_pile.warning.sheet_pile.embedment_below_profile": "Tasarım gömülmesi zemin profilinin altına uzanıyor",
   "sheet_pile.warning.sheet_pile.tension_crack": "{depth} m derinliğe kadar çekme bölgesi sıfırlandı (çekme çatlağı)",
