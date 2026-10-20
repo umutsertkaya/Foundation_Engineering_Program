@@ -1,6 +1,7 @@
+import { lazy } from "react";
 import { IconFileText } from "@tabler/icons-react";
 import type { WebModuleManifest } from "../../shared/moduleTypes";
-import Root from "./Root";
+const Root = lazy(() => import("./Root"));
 
 export const manifest: WebModuleManifest = {
   id: "report",
