@@ -60,7 +60,7 @@ export function DepthChart({ depth, series, ariaLabel, xLabel, yLabel, reference
           )}
           {points.length === 0 && <text x={296} y={190} textAnchor="middle">{t("liquefaction.results.no_chart_data")}</text>}
         </g>
-        {series.map((s) => {
+        {series.map((s, si) => {
           let connected = false;
           const path = depth.map((d, i) => {
             const value = s.values[i];
@@ -73,7 +73,7 @@ export function DepthChart({ depth, series, ariaLabel, xLabel, yLabel, reference
             return `${command}${x(value)} ${y(d)}`;
           }).join(" ");
           return (
-            <g key={s.label}>
+            <g key={`${si}-${s.label}`}>
               <path d={path} fill="none" stroke={s.color} strokeWidth={2} strokeDasharray={s.dashArray} />
               {depth.map((d, i) => finite(d) && finite(s.values[i]) && (
                 <circle key={i} cx={x(s.values[i] as number)} cy={y(d)}
@@ -86,8 +86,8 @@ export function DepthChart({ depth, series, ariaLabel, xLabel, yLabel, reference
         })}
       </svg>
       <figcaption style={{ display: "flex", gap: "1rem", flexWrap: "wrap" }}>
-        {series.map((s) => (
-          <span key={s.label}>
+        {series.map((s, si) => (
+          <span key={`${si}-${s.label}`}>
             <svg aria-hidden="true" width={32} height={12} style={{ marginRight: 6 }}>
               <line x1={0} y1={6} x2={32} y2={6} stroke={s.color} strokeWidth={2} strokeDasharray={s.dashArray} />
             </svg>{s.label}

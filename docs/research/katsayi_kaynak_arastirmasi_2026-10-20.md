@@ -26,7 +26,7 @@ Duvar kriterleri Cilt II, Bölüm 10.5.5–10.5.6 ve Bölüm 8.4.6'dadır.
 | ES 1.50/0.75 | Tablo 4-2 | secondary, eşleşir |
 | LS 1.75 (Strength I) | Tablo 4-1 (LL/LS sütunu) | secondary, eşleşir |
 | EQ 1.00 (Extreme I) | Tablo 4-1 | secondary, eşleşir |
-| LS extreme_I 0.50 | Tablo 4-1'de Extreme Event I için γEQ (proje özel), 0.50 ise Extreme Event II satırında | **belirsiz**: YAML'ın 0.50'si Extreme II değeriyle karışmış olabilir; Umut'a soru |
+| LS extreme_I 0.50 | Tablo 4-1'de Extreme Event I için γEQ (proje özel), 0.50 ise Extreme Event II satırında | **karar verildi** (koordinatör, 2026-10-20): 0.50 korunur; Extreme II ile karışma olasılığı ve 0.40B eksantrisite ilişkisi madde metniyle ayrıca doğrulanacak |
 | EH at-rest 1.35 | bu kaynakta yok | unverified |
 
 ## 3. AASHTO direnç katsayıları ve eksantrisite — GEC-11 (MSE duvarlar için; Tablo 11.5.6-1 / 10.6.3.1.2a)
