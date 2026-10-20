@@ -1,5 +1,5 @@
 import { MantineProvider } from "@mantine/core";
-import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { setMockMode } from "../../../shared/api/client";
 import { resetMockState } from "../../../shared/api/mock";
@@ -191,6 +191,7 @@ describe("ClassificationPage (mock)", () => {
     renderPage();
     expect(await screen.findByText("Zemin sınıflandırma")).toBeInTheDocument();
     expect(await screen.findByTestId("sbtn-chart")).toHaveAttribute("aria-label", expect.stringContaining("Robertson"));
+    cleanup();
     await i18n.changeLanguage("en");
   });
 });
