@@ -110,6 +110,7 @@ export function WallWizardPage() {
   const [geometrySource, setGeometrySource] = useState<GeometrySource>("draft");
 
   const [surcharge, setSurcharge] = useState<number>(10.0);
+  const [surchargeBasis, setSurchargeBasis] = useState<"horizontal" | "inclined">("horizontal");
   const [sds, setSds] = useState<number | null>(null);
   const [rFactor, setRFactor] = useState<number | null>(null);
   const [includeGlobal, setIncludeGlobal] = useState<boolean>(true);
@@ -183,6 +184,7 @@ export function WallWizardPage() {
         }
       }
       setSurcharge(wall.inputs?.surcharge ?? 0);
+      setSurchargeBasis(wall.inputs?.surcharge_basis ?? "horizontal");
       setSds(wall.inputs?.sds ?? null);
       setRFactor(wall.inputs?.r ?? null);
       setIncludeGlobal(wall.inputs?.include_global_stability ?? true);
@@ -282,9 +284,9 @@ export function WallWizardPage() {
       JSON.stringify([
         wallType, height, embedment, backfillSlope,
         wallType === "cantilever" ? cantileverGeo : gravityGeo,
-        surcharge, sds, rFactor, includeGlobal, analysisLevel, designCode, analysisOptions, soilDraft.value,
+        surcharge, surchargeBasis, sds, rFactor, includeGlobal, analysisLevel, designCode, analysisOptions, soilDraft.value,
       ]),
-    [wallType, height, embedment, backfillSlope, cantileverGeo, gravityGeo, surcharge, sds, rFactor, includeGlobal, analysisLevel, designCode, analysisOptions, soilDraft.value],
+    [wallType, height, embedment, backfillSlope, cantileverGeo, gravityGeo, surcharge, surchargeBasis, sds, rFactor, includeGlobal, analysisLevel, designCode, analysisOptions, soilDraft.value],
   );
 
   // Capture the signature after the finished run's own state updates (e.g. the proposed geometry) have rendered.
@@ -333,6 +335,7 @@ export function WallWizardPage() {
       inputs: {
         ...structure.inputs,
         surcharge,
+        surcharge_basis: surchargeBasis,
         sds,
         r: rFactor,
         include_global_stability: includeGlobal,
@@ -695,6 +698,18 @@ export function WallWizardPage() {
                     onChange={(v) => {
                       if (typeof v === "number" && Number.isFinite(v)) setSurcharge(v);
                     }}
+                  />
+                  <Select
+                    size="xs"
+                    label={t("walls.loads.surcharge_basis")}
+                    description={t("walls.loads.surcharge_basis_hint")}
+                    allowDeselect={false}
+                    data={[
+                      { value: "horizontal", label: t("walls.loads.surcharge_basis_horizontal") },
+                      { value: "inclined", label: t("walls.loads.surcharge_basis_inclined") },
+                    ]}
+                    value={surchargeBasis}
+                    onChange={(v) => setSurchargeBasis((v as "horizontal" | "inclined") ?? "horizontal")}
                   />
                   <NumberInput
                     size="xs"

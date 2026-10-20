@@ -62,6 +62,16 @@ export function InputsForm({ value, onChange, missing }: Props) {
           />
         )}
         <NumberInput
+          label={t("sheet_pile.inputs.backfill_slope")}
+          description={t("sheet_pile.inputs.backfill_slope_hint")}
+          value={value.backfill_slope}
+          error={err("backfill_slope")}
+          min={0}
+          max={44.9}
+          decimalScale={1}
+          onChange={(v) => set({ backfill_slope: toNum(v) })}
+        />
+        <NumberInput
           label={t("sheet_pile.inputs.surcharge")}
           description={t("sheet_pile.inputs.surcharge_hint")}
           value={value.surcharge}
@@ -69,6 +79,17 @@ export function InputsForm({ value, onChange, missing }: Props) {
           min={0}
           decimalScale={2}
           onChange={(v) => set({ surcharge: toNum(v) })}
+        />
+        <Select
+          label={t("sheet_pile.inputs.surcharge_basis")}
+          description={t("sheet_pile.inputs.surcharge_basis_hint")}
+          allowDeselect={false}
+          data={[
+            { value: "horizontal", label: t("sheet_pile.inputs.surcharge_basis_horizontal") },
+            { value: "inclined", label: t("sheet_pile.inputs.surcharge_basis_inclined") },
+          ]}
+          value={value.surcharge_basis}
+          onChange={(v) => set({ surcharge_basis: (v as PileInputs["surcharge_basis"]) ?? "horizontal" })}
         />
         <NumberInput
           label={t("sheet_pile.inputs.sds")}

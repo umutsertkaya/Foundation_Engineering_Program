@@ -21,7 +21,9 @@ export interface PileInputs {
   retained_height: Num;
   support: "cantilever" | "anchored";
   anchor_depth: Num;
+  backfill_slope: Num;
   surcharge: Num;
+  surcharge_basis: "horizontal" | "inclined";
   sds: Num;
   allowable_stress_mpa: Num;
   design_code: string;
@@ -47,7 +49,9 @@ export const DEFAULT_INPUTS: PileInputs = {
   retained_height: "",
   support: "cantilever",
   anchor_depth: "",
+  backfill_slope: "",
   surcharge: "",
+  surcharge_basis: "horizontal",
   sds: "",
   allowable_stress_mpa: "",
   design_code: "asd",
@@ -77,6 +81,7 @@ export function missingInputs(inp: PileInputs, soil: SoilSource | null): string[
   if (has(inp.retained_height) && !(inp.retained_height > 0.5 && inp.retained_height <= 12)) out.push("range:retained_height");
   if (inp.support === "anchored" && !has(inp.anchor_depth)) out.push("anchor_depth");
   if (inp.support === "anchored" && has(inp.anchor_depth) && (!has(inp.retained_height) || inp.anchor_depth < 0 || inp.anchor_depth >= inp.retained_height)) out.push("range:anchor_depth");
+  if (has(inp.backfill_slope) && !(inp.backfill_slope >= 0 && inp.backfill_slope < 45)) out.push("range:backfill_slope");
   if (has(inp.surcharge) && inp.surcharge < 0) out.push("range:surcharge");
   if (has(inp.sds) && !(inp.sds > 0 && inp.sds < 3)) out.push("range:sds");
   if (has(inp.allowable_stress_mpa) && inp.allowable_stress_mpa <= 0) out.push("range:allowable_stress_mpa");
@@ -150,7 +155,9 @@ export function toCreatePayload(inp: PileInputs, soil: SoilSource): SheetPileCre
     retained_height: inp.retained_height as number,
     support: inp.support,
     anchor_depth: inp.support === "anchored" ? orNull(inp.anchor_depth) : null,
+    backfill_slope: has(inp.backfill_slope) ? inp.backfill_slope : null,
     surcharge: orNull(inp.surcharge),
+    surcharge_basis: inp.surcharge_basis,
     sds: orNull(inp.sds),
     allowable_stress_mpa: orNull(inp.allowable_stress_mpa),
     design_code: inp.design_code,
@@ -172,7 +179,9 @@ export function fromStructure(s: SheetPileStructure): PileInputs {
     retained_height: s.retained_height,
     support: s.support ?? "cantilever",
     anchor_depth: s.anchor_depth ?? "",
+    backfill_slope: s.backfill_slope ?? 0,
     surcharge: s.surcharge ?? 0,
+    surcharge_basis: s.surcharge_basis ?? "horizontal",
     sds: s.sds ?? "",
     allowable_stress_mpa: s.allowable_stress_mpa ?? "",
     design_code: s.design_code ?? "asd",
@@ -193,7 +202,9 @@ export function applyInputs(s: SheetPileStructure, inp: PileInputs): SheetPileSt
     retained_height: inp.retained_height as number,
     support: inp.support,
     anchor_depth: inp.support === "anchored" ? orNull(inp.anchor_depth) : null,
+    backfill_slope: has(inp.backfill_slope) ? inp.backfill_slope : 0,
     surcharge: has(inp.surcharge) ? inp.surcharge : 0,
+    surcharge_basis: inp.surcharge_basis,
     sds: orNull(inp.sds),
     allowable_stress_mpa: orNull(inp.allowable_stress_mpa),
     design_code: inp.design_code,

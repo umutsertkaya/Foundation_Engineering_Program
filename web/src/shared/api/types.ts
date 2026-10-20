@@ -456,6 +456,7 @@ export interface StructureSoilModel {
 
 export interface WallDesignInputs {
   surcharge?: number;
+  surcharge_basis?: "horizontal" | "inclined";
   surcharge_resists?: boolean;
   sds?: number | null;
   r?: number | null;
@@ -502,7 +503,9 @@ export interface SheetPileCreate {
   anchor_spacing?: number | null;
   anchor_inclination?: number | null;
   front_water_depth?: number | null;
+  backfill_slope?: number | null;
   surcharge?: number | null;
+  surcharge_basis?: "horizontal" | "inclined" | null;
   sds?: number | null;
   design_code?: string | null;
   approach?: string | null;
@@ -543,7 +546,9 @@ export interface SheetPileStructure {
   anchor_inclination?: number | null;
   front_water_depth?: number | null;
   soil: StructureSoilModel;
+  backfill_slope?: number;
   surcharge?: number;
+  surcharge_basis?: "horizontal" | "inclined";
   sds?: number | null;
   design_code?: string;
   approach?: string | null;
