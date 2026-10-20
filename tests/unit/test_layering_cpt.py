@@ -388,3 +388,13 @@ def test_thinnest_segment_is_merged_before_upper_thin_segment():
                         settings(min_thickness=.8))
     assert [s.bottom for s in result.layers] == pytest.approx([1.5, 2.5, 4])
     assert [s.ic_mean for s in result.layers] == pytest.approx([1.75, 2.875, 1.25])
+
+
+def test_unit_weight_floor_warning_names_the_bound():
+    p = processed([1.0, 1.5, 2.0], [2.8, 2.8, 2.8])
+    p.qt[:] = 100.0
+    p.fs[:] = 0.1
+    proposal = cpt_layers(p, settings())
+    floors = [parse_warning(w)[1] for w in proposal.warnings if w.startswith("layering.warning.gamma_floor")]
+    assert floors and floors[0]["gamma_min"] == 12.0
+    assert proposal.layers[0].gamma_suggested == pytest.approx(12.0)

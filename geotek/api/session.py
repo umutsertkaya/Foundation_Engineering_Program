@@ -37,6 +37,9 @@ class Session:
         self.path: Path | None = None
         """Absolute file of a project opened outside the library (legacy /project/open)."""
         self.dirty = False
+        self.generation = 0
+        """Changes only when a project is opened, created or closed. Soil edits replace the
+        ``project`` object, so jobs and uploads compare this, not object identity."""
 
     def info(self) -> dto.SessionInfo:
         with self.lock:
@@ -49,10 +52,12 @@ class Session:
     ) -> None:
         with self.lock:
             self.project, self.file, self.path, self.dirty = project, file, path, dirty
+            self.generation += 1
 
     def close(self) -> None:
         with self.lock:
             self.project, self.file, self.path, self.dirty = None, None, None, False
+            self.generation += 1
 
     def mark_dirty(self) -> None:
         with self.lock:

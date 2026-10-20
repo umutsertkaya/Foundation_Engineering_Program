@@ -11,8 +11,8 @@ Başlangıç: `CLAUDE.md` → `STATUS.md` → **bir görev kartı**. Tüm planı
 | Konu şefi | Projects konusu + cihazdaki Claude Code oturumu (Remote Control) | Tek kartı yürütür; yerel MCP'yi (`ai-orchestrator`, `geotek-codemap`) yalnız cihazdaki oturum çağırabilir. |
 | Alt ajan | Codex / Antigravity: cihazdaki Claude Code oturumundan `ai-orchestrator` ile. Claude: Projects konusunun kendi içinde `Agent` aracıyla | Brief'teki tek teslimi yapar veya salt okuma inceler. |
 
-Her bağımsız görev ayrı konudur. Aynı klasörde aynı anda tek yazıcı çalışır; paralel yazıcı
-konuları `Documents/geotek-wt/<kart>` altında ayrı Git worktree kullanır.
+Her bağımsız görev ayrı konudur. Aynı klasörde aynı anda tek yazıcı çalışır; paralel yazıcı ayrı Git
+worktree kullanır (cihazda `Documents/geotek-wt/<kart>`, bulut konusunda `Agent` aracının `worktree` yalıtımı).
 **Claude alt ajan kuralı (Umut, 2026-10-20):** Claude modelleriyle yapılacak işler (uygulama, inceleme, araştırma)
 cihazdaki Claude Code oturumunda değil, ilgili Projects konusunun içinde `Agent` aracıyla çalıştırılır.
 Cihazdaki oturum yalnız Codex/Antigravity çağrıları (`ai-orchestrator`) ve cihaz zorunlu işler (Windows paketleme,

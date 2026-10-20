@@ -143,7 +143,7 @@ def wall_global_stability(
         bands = sorted(retained_bands, key=lambda band: -band.top)
         first = bands[0]
         bands = [SoilBand(top=y_back + L * tan_b + 1.0, gamma=first.gamma, c=first.c, phi=first.phi)] + bands[1:]
-    bands += [b for b in foundation_bands if b.top <= 0]
+    bands += [b for b in foundation_bands if b.top <= EPS]
     if not foundation_bands or max(b.top for b in foundation_bands) < -EPS:
         raise ValueError("The top foundation band must start at the base level (top = 0)")
     model = SlopeModel(surface=surface, layers=bands, water_level=water_level, loads=surf_loads,

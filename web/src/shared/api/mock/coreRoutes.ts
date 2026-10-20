@@ -183,6 +183,8 @@ function pollJobState(jobId: string): { status: number; data: JobState | ApiErro
       wall.geometry = { ...MOCK_CANTILEVER_5M };
     }
     wall.result_hash = (job.result as WallResultDTO).result_hash;
+    // Like the API, the finished job stores its payload in the structure.
+    wall.result = structuredClone(job.result as WallResultDTO);
   } else if (target?.kind === "sheet_pile") {
     const pile = target as SheetPileStructure & { mock_result_snapshot?: string };
     pile.result = structuredClone(job.result as SheetPileResultDTO);
@@ -444,15 +446,9 @@ function handleCoreRoutes(
         const currentPile = current as SheetPileStructure & { mock_result_snapshot?: string };
         // The mock-only result baseline is not part of the API structure type. Keep it
         // when a client PUT omits it so changed inputs remain detectable as stale.
-        // Like the real API, a PUT never drops the stored result (result_hash).
+        // Like the real API, the PUT body replaces the structure, result fields included.
         if (savedPile.mock_result_snapshot === undefined) {
           savedPile.mock_result_snapshot = currentPile.mock_result_snapshot;
-        }
-        if (savedPile.result_hash == null) {
-          savedPile.result_hash = currentPile.result_hash;
-        }
-        if (savedPile.result == null) {
-          savedPile.result = currentPile.result;
         }
       }
       store.structures[index] = saved;

@@ -19,7 +19,6 @@ from geotek.core.models import (
     SoilLayer,
     SoilProfile,
     StructureSoilModel,
-    WallDesignInputs,
 )
 from geotek.core.models.walls import CantileverGeometry, GravityGeometry
 from geotek.services.module1 import active_profile

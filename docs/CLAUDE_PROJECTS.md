@@ -7,7 +7,7 @@ Proje: **Foundation Engineering Program**. Kurallar `CLAUDE.md` ve `docs/WORKFLO
 | Yer | Erişim |
 |---|---|
 | Projects ana konuşması (koordinatör) | Konu açar ve izler; yerel MCP'ye erişmez. |
-| Projects konusu (thread) | Cihazdaki onaylı klasörde dosya okur/yazar; cihaz kabuğu Linux VM'dir, Windows `.venv`, `codex.exe`, `agy.exe` çalıştıramaz. |
+| Projects konusu (thread) | Bulut kapsayıcısında depo dalında çalışır, Claude alt ajanlarını `Agent` ile başlatır, PR açar; gerekirse cihazdaki onaylı klasöre erişir (cihaz kabuğu Linux VM'dir, Windows `.venv`, `codex.exe`, `agy.exe` çalıştıramaz). |
 | Cihazdaki Claude Code oturumu (Remote Control) | Windows araçları, `ai-orchestrator`, `geotek-codemap`, testler ve Git. Konu bu oturumu başlatır. |
 
 ## MCP sunucuları

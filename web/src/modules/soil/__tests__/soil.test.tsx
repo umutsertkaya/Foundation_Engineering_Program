@@ -1,5 +1,5 @@
 import { MantineProvider } from "@mantine/core";
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import enCatalog from "../../../../../geotek/i18n/en.json";
@@ -374,5 +374,32 @@ describe("ProfilesPage (mock)", () => {
     expect(await screen.findByDisplayValue("Sentetik Profil 1 — CPT Kökenli (Mock)")).toBeInTheDocument();
     expect(screen.getAllByRole("img", { name: /5/ }).length).toBeGreaterThan(0);
     expect(screen.getByDisplayValue("L3")).toBeInTheDocument();
+    // The profile is named in the header; its raw id is not shown.
+    expect(screen.queryByText("prof-mock-1")).toBeNull();
+  });
+
+  it("discarding edits before another action returns to the saved profile (edits do not become the baseline)", async () => {
+    render(
+      <MantineProvider theme={theme}>
+        <MemoryRouter>
+          <ProfilesPage />
+        </MemoryRouter>
+      </MantineProvider>,
+    );
+    const id = await screen.findByDisplayValue("L3");
+    fireEvent.change(id, { target: { value: "LX" } });
+    fireEvent.blur(id);
+    expect(await screen.findByText(trCatalog["web.soil.unsaved"])).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: trCatalog["web.soil.new_profile"] }));
+    fireEvent.click(await screen.findByRole("menuitem", { name: trCatalog["web.soil.new.from_cpt"] }));
+    const confirm = await screen.findByRole("dialog", { name: trCatalog["web.soil.discard_title"] });
+    fireEvent.click(within(confirm).getByRole("button", { name: trCatalog["web.soil.discard"] }));
+    expect(await screen.findByTestId("layering-propose")).toBeInTheDocument();
+
+    // The layering dialog opened; the page behind it shows the saved profile again, not dirty.
+    expect(await screen.findByDisplayValue("L3")).toBeInTheDocument();
+    expect(screen.queryByDisplayValue("LX")).toBeNull();
+    expect(screen.queryByText(trCatalog["web.soil.unsaved"])).toBeNull();
   });
 });

@@ -21,9 +21,12 @@ from geotek.core.constants import GAMMA_W, PA
 from geotek.core.errors import ProfileError
 from geotek.core.models.investigations import CPTSounding
 from geotek.core.models.profile import SoilProfile
+from geotek.core.warning_codes import format_warning
 from geotek.engine.classification.robertson import sbtn_zone, soil_behaviour_index
 from geotek.engine.correlations.physical import (
+    GAMMA_MIN_RC2010,
     fines_content_from_ic,
+    rc2010_below_floor,
     unit_weight_robertson_cabal,
 )
 
@@ -45,11 +48,11 @@ def stress_exponent(Ic, sigma_v_eff):
 def normalise_iterative(qt, fs, sigma_v, sigma_v_eff, *, tol: float = 1e-3, max_iter: int = 50):
     """Solve Q_tn, n and I_c simultaneously (Robertson 2009).
 
-    Returns (Qtn, Fr, Ic, n, converged) as arrays; invalid points (q_t <= sigma_v0 or
-    sigma'_v0 <= 0) are NaN and count as converged.
+    Returns (Qtn, Fr, Ic, n, converged) as arrays; invalid points (q_t <= sigma_v0,
+    sigma'_v0 <= 0 or f_s <= 0, where I_c is undefined) are NaN and count as converged.
     """
     net = qt - sigma_v
-    valid = (net > 0) & (sigma_v_eff > 0)
+    valid = (net > 0) & (sigma_v_eff > 0) & (fs > 0)
     net_v = np.where(valid, net, np.nan)
     s_eff = np.where(valid, sigma_v_eff, np.nan)
     Fr = fs / net_v * 100.0
@@ -138,12 +141,21 @@ def process_cpt(
     CPT itself (Robertson & Cabal 2010) and ``gwt_depth`` (or the sounding's own GWT) is used.
     """
     a = sounding.arrays()
+    warnings: list[str] = []
+    # Readings inside the predrilled (cased/augered) depth do not measure the soil: drop them.
+    kept = a["depth"] >= sounding.predrill_depth
+    if not kept.any():
+        raise ValueError(f"CPT {sounding.id!r} has no readings below the predrill depth "
+                         f"({sounding.predrill_depth:g} m)")
+    if not kept.all():
+        a = {name: values[kept] for name, values in a.items()}
+        warnings.append(format_warning("insitu.warning.cpt_predrill_excluded", count=int((~kept).sum()),
+                                       predrill=float(sounding.predrill_depth)))
     depth, qc, fs = a["depth"], a["qc"], a["fs"]
     u2 = a.get("u2")
     qt = corrected_tip_resistance(qc, u2, sounding.area_ratio)
-    warnings: list[str] = []
     if u2 is None:
-        warnings.append("No u2 data: q_t taken equal to q_c")
+        warnings.append(format_warning("insitu.warning.cpt_no_u2"))
 
     gamma = None
     if profile is not None:
@@ -157,6 +169,24 @@ def process_cpt(
         if gwt is None:
             raise ValueError("Groundwater depth is required when no soil profile is given")
         gamma = unit_weight_robertson_cabal(qt, fs)
+        floored = rc2010_below_floor(qt, fs)
+        if floored.any():
+            warnings.append(format_warning("insitu.warning.cpt_gamma_floor", count=int(floored.sum()),
+                                           gamma_min=GAMMA_MIN_RC2010))
+        missing = ~np.isfinite(gamma)
+        if missing.all():
+            raise ValueError(f"CPT {sounding.id!r}: unit weight cannot be estimated (q_t <= 0 throughout)")
+        if missing.any():
+            # q_t <= 0 leaves gamma undefined; integrating NaN would void every deeper stress, so
+            # take the nearest estimated value and report it as a visible assumption.
+            good = np.flatnonzero(~missing)
+            nearest = good[np.abs(depth[good][None, :] - depth[missing][:, None]).argmin(axis=1)]
+            gamma = gamma.copy()
+            gamma[missing] = gamma[nearest]
+            warnings.append(format_warning(
+                "insitu.warning.cpt_gamma_nearest", count=int(missing.sum()),
+                depths=", ".join(f"{float(z):g}" for z in depth[missing]),
+            ))
         sigma_v, u0, sigma_eff = stresses_from_unit_weight(depth, gamma, gwt)
 
     with np.errstate(divide="ignore", invalid="ignore"):
@@ -171,9 +201,10 @@ def process_cpt(
 
     invalid = np.isnan(Ic)
     if invalid.any():
-        warnings.append(f"{int(invalid.sum())} point(s) with q_t <= sigma_v0 or sigma'_v0 <= 0 skipped")
+        warnings.append(format_warning("insitu.warning.cpt_points_skipped", count=int(invalid.sum())))
     if not converged.all():
-        warnings.append(f"Q_tn iteration did not converge at {int((~converged).sum())} point(s)")
+        warnings.append(format_warning("insitu.warning.cpt_not_converged",
+                                       count=int((~converged).sum())))
 
     return CPTProcessed(
         sounding_id=sounding.id, depth=depth, qc=qc, fs=fs, u2=u2, qt=qt, gamma=gamma,

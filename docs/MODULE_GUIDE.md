@@ -90,7 +90,7 @@ Mevcut sözleşmede mock tanımı web manifest'inin alanı değildir.
 ## Bağımlılık sınırları
 
 - Modüller birbirini import etmez; backend ve web için aynı kural geçerlidir.
-- Backend modülleri eski `geotek.ui` arayüzünü import etmez.
+- Backend modülleri `geotek.ui` paketini import edemez (kaldırıldı; sınır testi geri dönüşü engeller).
 - Backend keşfi `geotek/api/registry.py` üzerinden yapılır; araçlar keşif yapabilir.
 - Web `shared/` ve `app/` kodu modül iç dosyalarını doğrudan import etmez.
 - Uygulamanın manifest keşfi ve i18n glob'ları belirlenmiş entegrasyon noktalarıdır.

@@ -16,19 +16,25 @@ interface DepthChartProps {
   yLabel: string;
   reference?: { value: number; label: string };
   highlightLabel?: string;
+  /** Upper x-axis limit; larger values are drawn at the edge as a marker (data keeps the exact value). */
+  xCap?: { value: number; label: string };
 }
 
 const finite = (value: number | null | undefined): value is number =>
   typeof value === "number" && Number.isFinite(value);
 
 /** Plot supplied values only; missing coordinates break the series. */
-export function DepthChart({ depth, series, ariaLabel, xLabel, yLabel, reference, highlightLabel }: DepthChartProps) {
+export function DepthChart({ depth, series, ariaLabel, xLabel, yLabel, reference, highlightLabel, xCap }: DepthChartProps) {
   const { t } = useTranslation();
   const points = series.flatMap((s) => depth.flatMap((d, i) =>
     finite(d) && finite(s.values[i]) ? [{ depth: d, value: s.values[i] as number }] : [],
   ));
   const xMin = points.reduce((min, p) => Math.min(min, p.value), Math.min(0, reference?.value ?? 0));
-  const xMax = points.reduce((max, p) => Math.max(max, p.value), reference?.value ?? 0);
+  const dataMax = points.reduce((max, p) => Math.max(max, p.value), reference?.value ?? 0);
+  const clipped = xCap !== undefined && dataMax > xCap.value;
+  const xMax = clipped ? xCap.value : dataMax;
+  const shown = (value: number) => clipped ? Math.min(value, xCap.value) : value;
+  const isClipped = (value: number) => clipped && value > xCap.value;
   const yMin = depth.reduce<number>((min, d) => finite(d) ? Math.min(min, d) : min, 0);
   const yMax = depth.reduce<number>((max, d) => finite(d) ? Math.max(max, d) : max, 0);
   const xSpan = xMax - xMin || 1;
@@ -70,12 +76,18 @@ export function DepthChart({ depth, series, ariaLabel, xLabel, yLabel, reference
             }
             const command = connected ? "L" : "M";
             connected = true;
-            return `${command}${x(value)} ${y(d)}`;
+            return `${command}${x(shown(value))} ${y(d)}`;
           }).join(" ");
           return (
             <g key={`${si}-${s.label}`}>
               <path d={path} fill="none" stroke={s.color} strokeWidth={2} strokeDasharray={s.dashArray} />
-              {depth.map((d, i) => finite(d) && finite(s.values[i]) && (
+              {depth.map((d, i) => finite(d) && finite(s.values[i]) && isClipped(s.values[i] as number) && (
+                <path key={`clip-${i}`} d={`M${x(xMax) - 6} ${y(d) - 6} L${x(xMax) + 4} ${y(d)} L${x(xMax) - 6} ${y(d) + 6} Z`}
+                  fill={s.highlighted?.[i] ? "var(--mantine-color-red-6)" : s.color} data-testid="clipped-point">
+                  <title>{(s.values[i] as number).toFixed(2)}</title>
+                </path>
+              ))}
+              {depth.map((d, i) => finite(d) && finite(s.values[i]) && !isClipped(s.values[i] as number) && (
                 <circle key={i} cx={x(s.values[i] as number)} cy={y(d)}
                   r={s.highlighted?.[i] ? 5 : 2.5}
                   fill={s.highlighted?.[i] ? "var(--mantine-color-red-6)" : s.color}
@@ -93,6 +105,7 @@ export function DepthChart({ depth, series, ariaLabel, xLabel, yLabel, reference
             </svg>{s.label}
           </span>
         ))}
+        {clipped && <span data-testid="clipped-note"><svg aria-hidden="true" width={16} height={12}><path d="M2 1 L13 6 L2 11 Z" fill="currentColor" /></svg>{xCap.label}</span>}
         {highlightLabel && <span><svg aria-hidden="true" width={16} height={12}><circle cx={6} cy={6} r={5} fill="var(--mantine-color-red-6)" /></svg>{highlightLabel}</span>}
       </figcaption>
     </figure>

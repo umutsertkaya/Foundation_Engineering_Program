@@ -170,12 +170,15 @@ class SheetPileResult:
     warnings: list[str] = field(default_factory=list)
 
 
-def _root(fun, z, start_index):
+_NO_DRIVE = ("The net pressure above the dredge line does not drive the wall "
+             "(e.g. tension crack deeper than H); no embedment is needed for equilibrium")
+
+
+def _root(fun, z, start_index, no_drive_message=_NO_DRIVE):
     """First sign change of fun on z[start_index:], refined with brentq."""
     values = fun(z)
     if np.all(values[: start_index + 1] <= 1e-9):
-        raise GeoTekError("The net pressure above the dredge line does not drive the wall "
-                          "(e.g. tension crack deeper than H); no embedment is needed for equilibrium")
+        raise GeoTekError(no_drive_message)
     s = np.sign(values[start_index:])
     change = np.flatnonzero(s[:-1] * s[1:] < 0)
     if change.size == 0:
@@ -256,7 +259,9 @@ def anchored_sheet_pile(
     # moment of net pressure above zt about the anchor
     moment_about_anchor = lambda zt: np.interp(zt, z, Fz) - anchor_depth * np.interp(zt, z, F)  # noqa: E731
     i_h = int(np.searchsorted(z, H))
-    toe = _root(lambda zz: moment_about_anchor(zz), z, i_h + 1)
+    toe = _root(lambda zz: moment_about_anchor(zz), z, i_h + 1, no_drive_message=(
+        "The anchor is too low for free earth support: the net pressure above the dredge line "
+        "gives no overturning moment about the anchor; raise the anchor"))
     if toe is None:
         raise GeoTekError("No embedment satisfies moment equilibrium about the anchor within the profile")
     d0 = toe - H

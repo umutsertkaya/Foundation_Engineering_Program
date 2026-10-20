@@ -167,5 +167,10 @@
   "walls.run.passive_unconfirmed": "Pasif direnç açık ve azaltma katsayısı {value} bu oturumda onaylanmadı. Hesap notları bu değeri “mühendis seçimi” olarak yazar; Yükler/deprem adımında onaylayın.",
   "walls.result.stale_inputs": "Girdiler bu sonuçtan sonra değişti; gösterilen sonuç güncel değil. Yeniden hesaplayın.",
   "walls.result.stale_job": "Son hesap tamamlanmadı (hata, iptal veya sürüyor); gösterilen sonuç önceki çalıştırmaya aittir.",
-  "walls.result.section_geometry_only": "Kesit yalnızca sonuç geometrisini gösterir; sonuç, hesapta kullanılan zemin katmanlarını ve dolgu eğimini taşımaz."
+  "walls.result.section_geometry_only": "Kesit yalnızca sonuç geometrisini gösterir; sonuç, hesapta kullanılan zemin katmanlarını ve dolgu eğimini taşımaz.",
+  "walls.loads.sds_hint": "Boş = deprem durumu yok",
+  "walls.loads.r_hint": "Boş = duvar tipine göre (TBDY Tablo 16.7)",
+  "walls.loads.sds_range": "S_DS 0'dan büyük ve 3'ten küçük olmalıdır.",
+  "walls.loads.r_range": "r 0'dan büyük ve en fazla 2 olmalıdır.",
+  "walls.run.seismic_invalid": "Bir deprem girdisi aralık dışında; Yükler/deprem adımında düzeltin veya boşaltın."
 }

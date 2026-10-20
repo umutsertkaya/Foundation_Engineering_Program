@@ -84,3 +84,18 @@ def test_profile_too_short(two_layer_profile):
     deep = CPTSounding(id="C", depth=[5.0, 12.0], qc=[1000, 1000], fs=[10, 10])
     with pytest.raises(ProfileError):
         process_cpt(deep, two_layer_profile)
+
+
+@pytest.mark.parametrize("lang", ["tr", "en"])
+def test_cpt_warnings_are_translatable_codes(lang):
+    from geotek.core.warning_codes import parse_warning
+    from geotek.i18n import t
+
+    s = CPTSounding(id="C", gwt_depth=1.0, depth=[1.0, 2.0], qc=[3000, 10], fs=[30, 5])
+    r = process_cpt(s)
+    parsed = [parse_warning(w) for w in r.warnings]
+    assert ("insitu.warning.cpt_no_u2", {}) in parsed
+    assert ("insitu.warning.cpt_points_skipped", {"count": 1}) in parsed
+    for code, params in parsed:
+        text = t(code, lang, **params)
+        assert text != code and "{" not in text

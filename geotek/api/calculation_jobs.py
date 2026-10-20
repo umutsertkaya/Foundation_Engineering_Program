@@ -56,6 +56,7 @@ def submit_structure(session: Session, runner: JobRunner, id: str,
                 before = service.calculation_fingerprint(project, structure)
                 source_before = _source_hash(project, structure)
                 snapshot = project.model_copy(deep=True)
+                generation = session.generation
             except Exception as exc:
                 raise_service_error(exc)
 
@@ -72,8 +73,9 @@ def submit_structure(session: Session, runner: JobRunner, id: str,
 
         def complete(result):
             with session.lock:
-                if session.project is not project:
+                if session.generation != generation or session.project is None:
                     discard_stale()
+                project = session.project  # soil edits may have replaced the object
                 try:
                     target = project.structure(id)
                 except KeyError:

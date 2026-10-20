@@ -4,6 +4,15 @@ import type { SoundingLiquefactionDTO } from "../../../shared/api/types";
 import { useWarningText } from "../../../shared/hooks/useWarningText";
 import { DepthChart } from "./DepthChart";
 
+/** FS above this is not meaningful for the chart; such points sit at the edge (the table keeps exact values). */
+const FS_AXIS_MAX = 3;
+
+/** CSR/CRR axis cap: twice the largest finite CSR (at least 1), so a very large CRR does not flatten CSR. */
+function ratioAxisCap(csr: (number | null)[]): number {
+  const finite = csr.filter((v): v is number => typeof v === "number" && Number.isFinite(v));
+  return Math.max(1, 2 * (finite.length ? Math.max(...finite) : 0));
+}
+
 const format = (value: number | null | undefined) =>
   typeof value === "number" && Number.isFinite(value) ? value.toFixed(3) : "—";
 
@@ -13,6 +22,7 @@ export function SoundingDetail({ id, sounding }: { id: string; sounding: Soundin
   const label = (key: string) => t(`liquefaction.results.${key}`);
   const warnings = sounding.warnings.map((warning) => warning === "mock_result_not_a_calculation"
     ? label("mock_note") : warningText(warning)).join("; ") || "—";
+  const ratioCap = ratioAxisCap(sounding.CSR);
 
   return (
     <Stack gap="sm">
@@ -21,10 +31,13 @@ export function SoundingDetail({ id, sounding }: { id: string; sounding: Soundin
         <DepthChart depth={sounding.depth} ariaLabel={label("chart_fs")} xLabel={label("fs_dimensionless")}
           yLabel={label("depth_m")} reference={{ value: 1, label: label("fs_reference") }}
           highlightLabel={label("status.liquefiable")}
+          xCap={{ value: FS_AXIS_MAX, label: t("liquefaction.results.fs_clipped", { max: FS_AXIS_MAX }) }}
           series={[{ label: label("fs"), values: sounding.FS, color: "var(--mantine-color-blue-6)",
             highlighted: sounding.status.map((status) => status === "liquefiable") }]} />
         <DepthChart depth={sounding.depth} ariaLabel={label("chart_csr_crr")} xLabel={label("ratio_dimensionless")}
-          yLabel={label("depth_m")} series={[
+          yLabel={label("depth_m")}
+          xCap={{ value: ratioCap, label: t("liquefaction.results.ratio_clipped", { max: ratioCap.toFixed(2) }) }}
+          series={[
             { label: label("csr"), values: sounding.CSR, color: "var(--mantine-color-blue-6)" },
             { label: label("crr"), values: sounding.CRR, color: "var(--mantine-color-orange-6)", dashArray: "7 4" },
           ]} />

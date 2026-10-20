@@ -46,6 +46,10 @@ def router() -> APIRouter:
                     api_error(404, "not_found", f"Profile not found: {payload.profile_id}")
                 if profile is None:
                     api_error(409, "no_soil_source", "Select a soil profile for liquefaction.")
+                inv = project.investigations
+                if not inv.cpts and not any(b.spt for b in inv.boreholes):
+                    api_error(422, "validation", "Liquefaction needs CPT or SPT data.",
+                              message_code="liquefaction_no_data")
                 # Use the engine's established scalar limits before submitting work. The
                 # DTO already enforces finite numbers; no coefficients are selected here.
                 if not (0 < payload.amax_g <= 2 and 4 <= payload.mw <= 9.5
@@ -58,6 +62,7 @@ def router() -> APIRouter:
                 profile_id = profile.id
                 use_active = payload.profile_id is None
                 before = _inputs(project, profile_id, use_active)
+                generation = session.generation
                 snapshot = project.model_copy(deep=True)
                 snapshot.active_profile_id = profile_id
                 settings_data = payload.model_dump(exclude={"profile_id"})
@@ -68,8 +73,9 @@ def router() -> APIRouter:
 
             def complete(result):
                 with session.lock:
-                    if session.project is not project:
+                    if session.generation != generation or session.project is None:
                         discard_stale()
+                    project = session.project  # soil edits may have replaced the object
                     try:
                         unchanged = _inputs(project, profile_id, use_active) == before
                     except KeyError:

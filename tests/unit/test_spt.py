@@ -40,7 +40,7 @@ def test_process_borehole_hand_calc(two_layer_profile):
     sigma_eff = 95.0 - 3 * 9.81
     assert r.n60[1] == pytest.approx(17.0)
     assert r.n1_60[1] == pytest.approx(17.0 * np.sqrt(101.325 / sigma_eff))
-    assert any("refusal" in w for w in r.warnings)
+    assert "insitu.warning.spt_refusal: count=1 depths=\"5\"" in r.warnings
     assert list(r.to_dataframe().columns)[:3] == ["depth", "N", "refusal"]
 
 
@@ -48,3 +48,17 @@ def test_energy_ratio_scaling(two_layer_profile):
     bh = Borehole(id="SK2", energy_ratio=80, spt=[SPTRecord(depth=12.0 - 2.5, n_field=30)])
     r = process_borehole(bh, two_layer_profile)
     assert r.n60[0] == pytest.approx(30 * 80 / 60 * 0.95)
+
+
+@pytest.mark.parametrize("lang", ["tr", "en"])
+def test_spt_warnings_are_translatable_codes(two_layer_profile, lang):
+    from geotek.core.warning_codes import parse_warning
+    from geotek.i18n import t
+
+    bh = Borehole(id="SK3", spt=[SPTRecord(depth=2.5, n_field=50, refusal=True),
+                                 SPTRecord(depth=4.0, n_field=50, refusal=True)])
+    r = process_borehole(bh, two_layer_profile)
+    code, params = parse_warning(r.warnings[0])
+    assert (code, params) == ("insitu.warning.spt_refusal", {"count": 2, "depths": "2.5, 4"})
+    text = t(code, lang, **params)
+    assert text != code and "2.5, 4" in text and "{" not in text

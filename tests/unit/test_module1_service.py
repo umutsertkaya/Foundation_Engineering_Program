@@ -1,21 +1,14 @@
-import io
 import re
 from pathlib import Path
 
-import matplotlib
+import numpy as np
+import pytest
 
-matplotlib.use("Agg")
-
-import numpy as np  # noqa: E402
-import pytest  # noqa: E402
-from matplotlib.figure import Figure  # noqa: E402
-
-import geotek  # noqa: E402
-from geotek.core.models import Borehole, LabRecord, SPTRecord  # noqa: E402
-from geotek.i18n import _catalog  # noqa: E402
-from geotek.io.project_io import load_project  # noqa: E402
-from geotek.plotting import figures  # noqa: E402
-from geotek.services.module1 import (  # noqa: E402
+import geotek
+from geotek.core.models import Borehole, LabRecord, SPTRecord
+from geotek.i18n import _catalog
+from geotek.io.project_io import load_project
+from geotek.services.module1 import (
     LiquefactionSettings,
     process_investigations,
     run_liquefaction,
@@ -66,24 +59,6 @@ def test_missing_fc_is_reported_not_raised(project):
     assert "SK-1" in r.errors and "CPT-1" in r.liquefaction
 
 
-def _render(fig: Figure) -> int:
-    buf = io.BytesIO()
-    fig.savefig(buf, format="png", dpi=60)
-    return buf.tell()
-
-
-def test_figures_render(project):
-    r = run_liquefaction(project, LiquefactionSettings(default_fc=10))
-    fig = Figure(figsize=(10, 7))
-    assert _render(figures.plot_cpt(fig, r.cpt["CPT-1"])) > 1000
-    assert len(fig.axes) == 5
-    assert _render(figures.plot_sbtn_chart(fig, r.cpt["CPT-1"])) > 1000
-    assert _render(figures.plot_spt(fig, r.spt["SK-1"])) > 1000
-    assert _render(figures.plot_borehole_log(fig, project.soil_profiles[0], r.spt["SK-1"])) > 1000
-    for res in r.liquefaction.values():
-        assert _render(figures.plot_liquefaction(fig, res)) > 1000
-
-
 def test_all_literal_i18n_keys_exist():
     root = Path(geotek.__file__).parent
     keys = set()
@@ -96,21 +71,13 @@ def test_all_literal_i18n_keys_exist():
 
 
 def test_dynamic_i18n_keys_exist():
-    from geotek.engine.liquefaction import common
+    """Keys built at run time from engine/config identifiers (shown by the web and the report)."""
     from geotek.config.codes import list_design_codes
-    from geotek.ui import labels
-    from geotek.ui.pages.profile import BEHAVIOURS, COLUMNS
-    from geotek.ui.pages.wall import CANTILEVER_FIELDS, GRAVITY_FIELDS
+    from geotek.engine.liquefaction import common
 
     statuses = [v for k, v in vars(common).items() if k.isupper() and isinstance(v, str) and k != "NO_FS_STATUSES"]
-    dynamic = [f"status.{s}" for s in statuses] + [f"ui.layer.{c}" for c in COLUMNS] + \
-              [f"lpi.{c}" for c in ("very_low", "low", "high", "very_high")] + \
-              [f"check.{c}" for c in labels.CHECKS] + [f"case.{c}" for c in labels.CASES] + \
-              [f"fstatus.{s}{x}" for s in labels.FACTOR_STATUSES for x in ("", "_tip")] + \
-              [f"ui.geo.{g}{x}" for g in CANTILEVER_FIELDS + GRAVITY_FIELDS for x in ("", "_tip")] + \
-              [f"ui.behaviour.{b}" for b in BEHAVIOURS] + \
-              [f"ui.wall.source.{s}" for s in ("draft", "suggested", "user")] + \
-              [f"ui.code.status.{c.status}" for c in list_design_codes().values()] + \
-              list(figures.FORCE_KEYS.values())
+    dynamic = [f"status.{s}" for s in statuses] + \
+              [f"fstatus.{s}" for s in ("verified", "secondary", "unverified", "not_in_source", "user")] + \
+              [f"ui.code.status.{c.status}" for c in list_design_codes().values()]
     for lang in ("tr", "en"):
         assert not set(dynamic) - set(_catalog(lang))

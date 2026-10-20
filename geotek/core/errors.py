@@ -16,6 +16,13 @@ class GeoTekError(Exception):
     message_params: dict[str, float | int | str] | None = None
 
 
+class BearingFailureError(GeoTekError):
+    """The foundation cannot carry the load at all (no effective width or base adhesion exceeded).
+
+    It is a property of the trial geometry, so width sizing treats it as a failed trial.
+    """
+
+
 class MissingFactorsError(GeoTekError):
     """A calculation needs project-supplied design factors before it can run."""
 

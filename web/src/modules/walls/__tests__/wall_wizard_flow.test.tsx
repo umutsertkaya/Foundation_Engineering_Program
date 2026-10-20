@@ -198,7 +198,9 @@ describe("walls wizard: options, jobs and results (mock API)", () => {
 
       fireEvent.click(await step(tr["web.wizard.step.run"]));
       fireEvent.click(await screen.findByRole("button", { name: tr["ui.wall.check"] }));
-      await waitFor(() => expect(screen.getByRole("button", { name: tr["ui.wall.check"] })).toBeEnabled());
+      // The buttons stay disabled from the click (save + start) until the job finishes.
+      expect(screen.getByRole("button", { name: tr["ui.wall.check"] })).toBeDisabled();
+      await waitFor(() => expect(screen.getByRole("button", { name: tr["ui.wall.check"] })).toBeEnabled(), { timeout: JOB_TIMEOUT });
       await screen.findAllByTestId("check-card");
       await waitFor(() => expect(screen.queryByTestId("result-stale")).toBeNull(), { timeout: JOB_TIMEOUT });
     }, 30000);

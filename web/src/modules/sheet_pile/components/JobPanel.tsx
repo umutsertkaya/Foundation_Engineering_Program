@@ -13,11 +13,13 @@ interface Props {
   jobId: string;
   /** Called once when a job finishes `done`, so the page can refresh stale/result badges. */
   onDone?: () => void;
+  /** Called when the server no longer knows the job (404), so the page can show the stored result. */
+  onGone?: () => void;
   structure?: SheetPileStructure;
 }
 
 /** Polls one design job and renders progress / cancel / failure / the completed result. */
-export function JobPanel({ jobId, onDone, structure }: Props) {
+export function JobPanel({ jobId, onDone, onGone, structure }: Props) {
   const { t } = useTranslation();
   const [state, setState] = useState<JobState | null>(null);
   const [gone, setGone] = useState(false);
@@ -26,6 +28,8 @@ export function JobPanel({ jobId, onDone, structure }: Props) {
   const seq = useRef(0);
   const doneRef = useRef(onDone);
   doneRef.current = onDone;
+  const goneRef = useRef(onGone);
+  goneRef.current = onGone;
 
   useEffect(() => {
     const mine = ++seq.current;
@@ -43,8 +47,10 @@ export function JobPanel({ jobId, onDone, structure }: Props) {
         else if (s.status === "done") doneRef.current?.();
       } catch (err) {
         if (mine !== seq.current) return;
-        if (err instanceof ApiError && err.status === 404) setGone(true);
-        else if (transientFailures < 3) {
+        if (err instanceof ApiError && err.status === 404) {
+          setGone(true);
+          goneRef.current?.();
+        } else if (transientFailures < 3) {
           transientFailures += 1;
           timer = setTimeout(tick, POLL_MS * transientFailures);
         } else setError(err);

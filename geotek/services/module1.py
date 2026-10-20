@@ -118,7 +118,10 @@ def liquefaction_input_hash(project: Project, profile_id: str, use_active: bool)
     ``ValueError`` when the inputs contain non-finite numbers.
     """
     active = project.active_profile() if use_active else None
-    data = {"profile": project.profile(profile_id).model_dump(mode="json"),
+    # Same engineering content as SoilProfile.content_hash: no name, candidates or selections.
+    profile = project.profile(profile_id).model_dump(
+        mode="json", exclude={"name": True, "layers": {"__all__": {"params", "selections"}}})
+    data = {"profile": profile,
             "investigations": project.investigations.model_dump(mode="json"),
             "active_profile_id": active.id if active is not None else None}
     return hashlib.sha256(json.dumps(data, sort_keys=True, allow_nan=False).encode()).hexdigest()

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Alert,
   Badge,
@@ -22,21 +22,24 @@ import { useNavigate, useParams } from "react-router-dom";
 import {
   ApiError,
   get_structure,
+  list_codes,
   list_structures,
   update_structure,
 } from "../../../shared/api/client";
-import { errorMessage } from "../../../shared/api/errorMessage";
 import { check_wall, size_wall } from "../api";
 import type {
   CantileverGeometry,
+  DesignCodeSummary,
   FactorOverride,
   GravityGeometry,
   RetainingWallStructure,
   StructureSoilModel,
   WallResultDTO,
+  WallSettings,
   WallType,
 } from "../../../shared/api/types";
 import { EmptyState } from "../../../shared/components/EmptyState";
+import { ErrorAlert } from "../../../shared/components/ErrorAlert";
 import { MissingFactorsForm } from "../../../shared/components/MissingFactorsForm";
 import { StructureSoilSection } from "../../../shared/structureSoil/StructureSoilSection";
 import { useJob } from "../../../shared/hooks/useJob";
@@ -54,6 +57,17 @@ import { ANALYSIS_DEFAULTS, applyOptions, layersWithoutPermeability, optionsFrom
 import type { AnalysisOptions } from "../types";
 
 type GeometrySource = "draft" | "suggested" | "user";
+
+/** Backend WallDesignInputs: S_DS in (0, 3); null = no seismic case. */
+const sdsInRange = (v: number | null) => v === null || (v > 0 && v < 3);
+/** Backend WallDesignInputs: r in (0, 2]; null = by wall type (TBDY Table 16.7). */
+const rInRange = (v: number | null) => v === null || (v > 0 && v <= 2);
+
+/** An emptied field is null (no value is assumed); other non-numbers are ignored. */
+const setNullable = (v: string | number, set: (next: number | null) => void) => {
+  if (v === "") set(null);
+  else if (typeof v === "number" && Number.isFinite(v)) set(v);
+};
 
 const DEFAULT_GRAVITY_5M: GravityGeometry = {
   height: 5.0,
@@ -96,13 +110,16 @@ export function WallWizardPage() {
   const [geometrySource, setGeometrySource] = useState<GeometrySource>("draft");
 
   const [surcharge, setSurcharge] = useState<number>(10.0);
-  const [sds, setSds] = useState<number>(0.5);
-  const [rFactor, setRFactor] = useState<number>(1.5);
+  const [sds, setSds] = useState<number | null>(null);
+  const [rFactor, setRFactor] = useState<number | null>(null);
   const [includeGlobal, setIncludeGlobal] = useState<boolean>(true);
   const [analysisLevel, setAnalysisLevel] = useState<"basic" | "advanced">("basic");
   const [designCode, setDesignCode] = useState<string>("asd");
+  const [codes, setCodes] = useState<DesignCodeSummary[]>([]);
 
   const [lastResult, setLastResult] = useState<WallResultDTO | null>(null);
+  /** The shown result is the one stored in the project, not one produced in this session. */
+  const [resultFromStore, setResultFromStore] = useState<boolean>(false);
   const [lastRunMode, setLastRunMode] = useState<"suggest" | "check">("suggest");
   const [analysisOptions, setAnalysisOptions] = useState<AnalysisOptions>({ ...ANALYSIS_DEFAULTS });
   const [passiveConfirmed, setPassiveConfirmed] = useState<boolean>(false);
@@ -116,6 +133,22 @@ export function WallWizardPage() {
   const [stale, setStale] = useState<boolean>(false);
   const [gwtView, setGwtView] = useState<GwtCase>("design");
   const [runBlocked, setRunBlocked] = useState<string | null>(null);
+  const [actionError, setActionError] = useState<unknown>(null);
+  /** Save + job start in flight; the ref also stops a second click before the re-render. */
+  const [pending, setPending] = useState<boolean>(false);
+  const pendingRef = useRef<boolean>(false);
+
+  useEffect(() => {
+    let active = true;
+    void list_codes()
+      .then((items) => {
+        if (active) setCodes(items);
+      })
+      .catch(() => undefined);
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const refreshStale = useCallback(async () => {
     if (!id) return;
@@ -149,14 +182,19 @@ export function WallWizardPage() {
           setGravityGeo({ ...wall.geometry });
         }
       }
-      setSurcharge(wall.inputs?.surcharge ?? 10.0);
-      setSds(wall.inputs?.sds ?? 0.5);
-      setRFactor(wall.inputs?.r ?? 1.5);
+      setSurcharge(wall.inputs?.surcharge ?? 0);
+      setSds(wall.inputs?.sds ?? null);
+      setRFactor(wall.inputs?.r ?? null);
       setIncludeGlobal(wall.inputs?.include_global_stability ?? true);
       setAnalysisLevel(wall.analysis_level ?? "basic");
       setDesignCode(wall.settings?.design_code ?? "asd");
       setAnalysisOptions(optionsFromSettings(wall.settings));
       setPassiveConfirmed(false);
+      // The project keeps the last result: show it (the summary's stale flag marks it out of date).
+      const stored = wall.result ?? null;
+      setLastResult(stored);
+      setResultFromStore(stored !== null);
+      if (stored) setCaptureSig(true);
     } catch (err) {
       if (err instanceof ApiError) {
         setLoadError(err);
@@ -175,6 +213,7 @@ export function WallWizardPage() {
   useEffect(() => {
     if (job.status === "done" && job.result) {
       setLastResult(job.result);
+      setResultFromStore(false);
       setCaptureSig(true);
       if (lastRunMode === "suggest") {
         if ("stem_bottom" in job.result.geometry) {
@@ -186,6 +225,23 @@ export function WallWizardPage() {
       }
     }
   }, [job.status, job.result, lastRunMode]);
+
+  // The finished job stored its result (and a sized geometry) in the project: take the fresh copy, so a
+  // later save (PUT replaces the whole structure) does not write the previous result back.
+  useEffect(() => {
+    if (job.status !== "done" || !id) return;
+    let active = true;
+    get_structure(id).then(
+      (fresh) => {
+        if (active) setStructure(fresh as RetainingWallStructure);
+      },
+      () => undefined,
+    );
+    void refreshStale();
+    return () => {
+      active = false;
+    };
+  }, [job.status, id, refreshStale]);
 
   const currentGeometry: CantileverGeometry | GravityGeometry =
     wallType === "cantilever"
@@ -253,7 +309,10 @@ export function WallWizardPage() {
     setGeometrySource("user");
   };
 
-  const syncStructureBeforeRun = async (): Promise<RetainingWallStructure | null> => {
+  /** Saves the form into the structure; `settingsPatch` (e.g. entered missing factors) goes in the same PUT. */
+  const syncStructureBeforeRun = async (
+    settingsPatch: Partial<WallSettings> = {},
+  ): Promise<RetainingWallStructure | null> => {
     if (!structure) return null;
     // Unsaved soil edits go with the run when valid; invalid edits block the run.
     if (soilDraft.dirty && soilValidation.count > 0) {
@@ -281,6 +340,7 @@ export function WallWizardPage() {
       settings: {
         ...applyOptions(structure.settings, analysisOptions),
         design_code: designCode,
+        ...settingsPatch,
       },
     };
     const saved = (await update_structure(structure.id, updated)) as RetainingWallStructure;
@@ -290,21 +350,31 @@ export function WallWizardPage() {
   };
 
   const passiveUnconfirmed = () => analysisLevel === "advanced" && analysisOptions.use_passive && !passiveConfirmed;
+  const seismicInvalid = !sdsInRange(sds) || !rInRange(rFactor);
 
-  const handleSuggest = async () => {
-    if (!structure || passiveUnconfirmed()) return;
-    setLastRunMode("suggest");
-    if (!(await syncStructureBeforeRun())) return;
-    await job.start(() => size_wall(structure.id));
+  /** Save, then start the job; a save failure is shown and a second click while pending is ignored. */
+  const runJob = async (mode: "suggest" | "check", settingsPatch?: Partial<WallSettings>) => {
+    if (!structure || passiveUnconfirmed() || seismicInvalid || pendingRef.current) return;
+    pendingRef.current = true;
+    setPending(true);
+    setActionError(null);
+    setLastRunMode(mode);
+    try {
+      const saved = await syncStructureBeforeRun(settingsPatch);
+      if (!saved) return;
+      await job.start(() => (mode === "suggest" ? size_wall(saved.id) : check_wall(saved.id)));
+    } catch (err) {
+      setActionError(err);
+    } finally {
+      pendingRef.current = false;
+      setPending(false);
+    }
   };
 
-  const handleCheck = async () => {
-    if (!structure || passiveUnconfirmed()) return;
-    setLastRunMode("check");
-    if (!(await syncStructureBeforeRun())) return;
-    await job.start(() => check_wall(structure.id));
-  };
+  const handleSuggest = () => runJob("suggest");
+  const handleCheck = () => runJob("check");
 
+  /** Stores the entered factors with the form and re-runs the calculation that asked for them. */
   const handleMissingFactorsSubmit = async (overrides: Record<string, number>) => {
     if (!structure) return;
     const mapped: Record<string, FactorOverride> = {
@@ -313,16 +383,7 @@ export function WallWizardPage() {
     for (const [path, val] of Object.entries(overrides)) {
       mapped[path] = { value: val };
     }
-    const updated: RetainingWallStructure = {
-      ...structure,
-      settings: {
-        ...structure.settings,
-        design_code: designCode,
-        factor_overrides: mapped,
-      },
-    };
-    const saved = (await update_structure(structure.id, updated)) as RetainingWallStructure;
-    setStructure(saved);
+    await runJob(lastRunMode, { factor_overrides: mapped });
   };
 
   if (loading && !structure) {
@@ -352,8 +413,14 @@ export function WallWizardPage() {
   const isRunning = job.status === "queued" || job.status === "running";
   const jobIncomplete = job.status === "failed" || job.status === "cancelled" || isRunning;
   const staleResult =
-    lastResult !== null && !captureSig && (jobIncomplete || (resultSig !== null && resultSig !== inputSignature));
+    lastResult !== null &&
+    !captureSig &&
+    (jobIncomplete || (resultSig !== null && resultSig !== inputSignature) || (resultFromStore && stale));
   const staleReason: "inputs" | "job" = jobIncomplete ? "job" : "inputs";
+  const busy = isRunning || pending;
+  // Options come from the codes API; a stored id the server no longer lists stays visible as itself.
+  const codeOptions = codes.map((c) => ({ value: c.id, label: c.name }));
+  if (!codes.some((c) => c.id === designCode)) codeOptions.push({ value: designCode, label: designCode });
   // The service writes "mühendis seçimi" for the passive reduction: it must be confirmed in this session first
   // (at the basic level the service ignores passive resistance, so nothing needs confirming).
   const passiveBlocked = analysisLevel === "advanced" && analysisOptions.use_passive && !passiveConfirmed;
@@ -632,26 +699,22 @@ export function WallWizardPage() {
                   <NumberInput
                     size="xs"
                     label={t("web.project.sds")}
-                    value={sds}
-                    min={0}
-                    max={3}
+                    description={t("walls.loads.sds_hint")}
+                    error={sdsInRange(sds) ? undefined : t("walls.loads.sds_range")}
+                    value={sds ?? ""}
                     step={0.05}
-                    decimalScale={2}
-                    onChange={(v) => {
-                      if (typeof v === "number" && Number.isFinite(v)) setSds(v);
-                    }}
+                    decimalScale={3}
+                    onChange={(v) => setNullable(v, setSds)}
                   />
                   <NumberInput
                     size="xs"
                     label="r"
-                    value={rFactor}
-                    min={1.0}
-                    max={2.5}
-                    step={0.25}
+                    description={t("walls.loads.r_hint")}
+                    error={rInRange(rFactor) ? undefined : t("walls.loads.r_range")}
+                    value={rFactor ?? ""}
+                    step={0.1}
                     decimalScale={2}
-                    onChange={(v) => {
-                      if (typeof v === "number" && Number.isFinite(v)) setRFactor(v);
-                    }}
+                    onChange={(v) => setNullable(v, setRFactor)}
                   />
                 </SimpleGrid>
                 <Checkbox
@@ -684,12 +747,7 @@ export function WallWizardPage() {
                   onChange={(v) => {
                     if (v) setDesignCode(v);
                   }}
-                  data={[
-                    { value: "asd", label: "ASD" },
-                    { value: "tbdy2018", label: "TBDY 2018" },
-                    { value: "ec7", label: "Eurocode 7" },
-                    { value: "lrfd", label: "AASHTO LRFD" },
-                  ]}
+                  data={codeOptions}
                 />
               </Stack>
             </Card>
@@ -728,8 +786,8 @@ export function WallWizardPage() {
                     <Button
                       size="xs"
                       color="blue"
-                      loading={isRunning && lastRunMode === "suggest"}
-                      disabled={isRunning || passiveBlocked}
+                      loading={busy && lastRunMode === "suggest"}
+                      disabled={busy || passiveBlocked || seismicInvalid}
                       leftSection={<IconSparkles size={14} />}
                       onClick={() => void handleSuggest()}
                     >
@@ -738,8 +796,8 @@ export function WallWizardPage() {
                     <Button
                       size="xs"
                       variant="default"
-                      loading={isRunning && lastRunMode === "check"}
-                      disabled={isRunning || passiveBlocked}
+                      loading={busy && lastRunMode === "check"}
+                      disabled={busy || passiveBlocked || seismicInvalid}
                       leftSection={<IconPlayerPlay size={14} />}
                       onClick={() => void handleCheck()}
                     >
@@ -888,9 +946,18 @@ export function WallWizardPage() {
               />
             )}
 
-            {job.error && missingFactors.length === 0 && (
-              <Alert color="red" title={t(`error.${job.error.code}`)}>
-                <Text size="xs">{errorMessage(job.error, t)}</Text>
+            {job.error && missingFactors.length === 0 && <ErrorAlert error={job.error} />}
+
+            {actionError != null && <ErrorAlert error={actionError} />}
+
+            {seismicInvalid && (
+              <Alert color="orange" variant="light" p="xs" data-testid="seismic-run-blocked">
+                <Group justify="space-between" gap="xs">
+                  <Text size="xs">{t("walls.run.seismic_invalid")}</Text>
+                  <Button size="compact-xs" variant="light" onClick={() => setActiveStep(2)}>
+                    {t("web.wizard.step.loads")}
+                  </Button>
+                </Group>
               </Alert>
             )}
 

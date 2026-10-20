@@ -9,6 +9,7 @@ import re
 from geotek.api import schemas as dto
 from geotek.engine.limit_state import SheetPileDesign
 from geotek.services.structures import StructureWallResult
+from geotek.core.warning_codes import parse_warning
 
 
 def _check(case, check) -> dto.CheckDTO:
@@ -66,6 +67,9 @@ def _sheet_warning(text: str) -> dto.MessageDTO:
     Steep seismic/passive Coulomb diagnostics are covered defensively even though
     current _sheet_case defaults cannot emit them. Legacy strings stay unchanged.
     """
+    if text.startswith("wall.warning.override_not_applied"):
+        _, params = parse_warning(text)
+        return dto.MessageDTO(code="override_not_applied", params=params)
     if text == "Design embedment extends below the soil profile":
         return dto.MessageDTO(code="sheet_pile.embedment_below_profile")
     patterns = [

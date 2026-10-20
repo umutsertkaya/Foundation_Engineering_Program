@@ -94,8 +94,9 @@ def open_project(payload: dto.ProjectOpen, session: SessionDep) -> dto.ProjectSu
     """Open a local project file by path, outside the library."""
     path = Path(payload.path).expanduser().resolve()
     opened = load_external(path)
+    summary = _summary(opened)  # fail before the session switches to the new project
     session.open_project(opened, path=path)
-    return _summary(opened)
+    return summary
 
 
 @project.post("/project/save", response_model=dto.ProjectSaveResponse, operation_id="save_project")

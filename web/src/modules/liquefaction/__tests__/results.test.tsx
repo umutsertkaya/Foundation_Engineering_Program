@@ -61,6 +61,35 @@ describe("DepthChart", () => {
   });
 });
 
+describe("DepthChart x-axis cap", () => {
+  const cap = { value: 3, label: "capped" };
+  const xOf = (el: Element) => Number(el.getAttribute("cx"));
+
+  it("keeps the meaningful FS range readable when one value is extreme", () => {
+    const { container } = render(<DepthChart {...chartProps} depth={[1, 2, 4]} xCap={cap}
+      series={[{ label: label("fs"), values: [0.5, 1.5, 90.68], color }]} />);
+    const circles = container.querySelectorAll("circle");
+    expect(circles).toHaveLength(2);
+    // Axis runs 0..3 over 440 px from x=76, so FS 1.5 sits mid-axis instead of near the origin.
+    expect(xOf(circles[1])).toBeCloseTo(76 + 1.5 / 3 * 440);
+    const clippedPoints = container.querySelectorAll('[data-testid="clipped-point"]');
+    expect(clippedPoints).toHaveLength(1);
+    expect(clippedPoints[0].textContent).toBe("90.68");
+    expect(screen.getByTestId("clipped-note")).toHaveTextContent("capped");
+    const xTicks = [...container.querySelectorAll('text[y="355"]')].map((el) => el.textContent);
+    expect(xTicks.at(-1)).toBe("3.00");
+    expect(container.innerHTML).not.toMatch(/NaN|Infinity/);
+  });
+
+  it("leaves the axis unchanged when no value exceeds the cap", () => {
+    const { container } = render(<DepthChart {...chartProps} depth={[1, 2]} xCap={cap}
+      series={[{ label: label("fs"), values: [0.5, 2], color }]} />);
+    expect(container.querySelectorAll('[data-testid="clipped-point"]')).toHaveLength(0);
+    expect(screen.queryByTestId("clipped-note")).not.toBeInTheDocument();
+    expect(xOf(container.querySelectorAll("circle")[1])).toBeCloseTo(516);
+  });
+});
+
 const result: LiquefactionResultDTO = {
   per_sounding: {
     "BH-1": {
@@ -135,6 +164,37 @@ describe("stored liquefaction result (no job in the URL)", () => {
     });
     renderStored("/m/liquefaction/results?job=old");
     await screen.findByRole("img", { name: label("chart_fs") });
+  });
+});
+
+describe("finished job result", () => {
+  const settings = { method: "bi2014", amax_g: 0.3, mw: 7.5, target_fs: 1.1, c_fc: 0, ic_cutoff: 2.6 } as const;
+
+  it("flags the job result stale when the stored copy says the soil changed since the run", async () => {
+    vi.spyOn(moduleApi, "get_liquefaction_result").mockResolvedValue({ profile_id: "P1", settings, result, stale: true });
+    renderResults();
+    await screen.findByRole("img", { name: label("chart_fs") });
+    expect(await screen.findByTestId("liq-stale")).toHaveTextContent(label("stale"));
+  });
+
+  it("shows no stale notice when the stored copy is current", async () => {
+    const stored = vi.spyOn(moduleApi, "get_liquefaction_result").mockResolvedValue({ profile_id: "P1", settings, result, stale: false });
+    renderResults();
+    await screen.findByRole("img", { name: label("chart_fs") });
+    expect(stored).toHaveBeenCalled();
+    expect(screen.queryByTestId("liq-stale")).not.toBeInTheDocument();
+  });
+
+  it("caps the CSR/CRR axis at twice the largest CSR and keeps the exact value in the table", async () => {
+    vi.spyOn(moduleApi, "get_liquefaction_result").mockRejectedValue(new Error("offline"));
+    renderResults({
+      per_sounding: { "BH-9": { depth: [1, 2], CSR: [0.2, 0.3], CRR: [0.25, 45.5], FS: [1.25, 151.67], status: ["safe", "safe"], warnings: [] } },
+      errors: {},
+    });
+    const ratios = await screen.findByRole("img", { name: label("chart_csr_crr") });
+    expect(within(ratios).getByTestId("clipped-point").textContent).toBe("45.50");
+    expect(screen.getByText(tr["liquefaction.results.ratio_clipped"].replace("{max}", "1.00"))).toBeInTheDocument();
+    expect(screen.getByRole("cell", { name: "45.500" })).toBeInTheDocument();
   });
 });
 

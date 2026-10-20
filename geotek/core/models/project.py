@@ -5,7 +5,7 @@ from __future__ import annotations
 import datetime as dt
 from typing import Any, Literal
 
-from pydantic import BaseModel, Field, model_validator
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from geotek.config.codes import FactorOverride
 from geotek.core.models.investigations import Investigations
@@ -35,6 +35,8 @@ class ProjectMeta(BaseModel):
 
 
 class SiteSeismic(BaseModel):
+    model_config = ConfigDict(allow_inf_nan=False)
+
     pga_g: float | None = Field(None, ge=0, le=3, description="Peak ground acceleration [g]")
     mw: float | None = Field(None, ge=4, le=9.5, description="Moment magnitude")
     sds: float | None = Field(None, ge=0, description="TBDY 2018 short-period design coefficient")
@@ -48,6 +50,8 @@ class SiteSeismic(BaseModel):
         if self.source == "TBDY2018":
             if self.sds is None:
                 raise ValueError("TBDY2018 source requires S_DS")
+            if 0.4 * self.sds > 3:
+                raise ValueError("TBDY2018 S_DS gives PGA = 0.4 S_DS above 3 g")
             self.pga_g = 0.4 * self.sds
         return self
 
@@ -67,7 +71,8 @@ class Project(BaseModel):
     build are preserved unchanged on save.
     """
     module2_inputs: dict[str, dict] = Field(default_factory=dict)
-    """Legacy (PySide6 UI): last form values of the Module 2 pages. Kept until that UI is removed."""
+    """Legacy field of the removed PySide6 UI (last Module 2 form values); kept so older .gtk
+    files round-trip without silently losing data. Nothing reads it."""
 
     @model_validator(mode="after")
     def _check_refs(self) -> Project:

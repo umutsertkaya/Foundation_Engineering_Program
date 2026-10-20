@@ -60,6 +60,7 @@
   "liquefaction.results.select_sounding": "Sondaj seçin",
   "liquefaction.results.detail_table": "Ayrıntılı sondaj sonuçları",
   "liquefaction.results.warnings_scope": "Uyarılar sondajın tamamına aittir; derinlik bazında eşleştirme içermez.",
+  "liquefaction.results.fs_clipped": "GS > {max}: grafiğin kenarında gösterildi (tam değer tabloda)",
   "liquefaction.results.no_chart_data": "Çizilecek veri yok.",
   "liquefaction.warning.spt_iteration_not_converged": "(N1)60cs yinelemesi {count} noktada yakınsamadı.",
   "liquefaction.warning.spt_refusal_lower_bound": "Refü darbe sayıları alt sınırdır; bu noktalardaki GS tutucudur.",
@@ -78,5 +79,6 @@
   "liquefaction.results.status.non_liquefiable_dense": "Sıkı, sıvılaşmaz",
   "liquefaction.results.status.excluded_by_user": "Kullanıcı tarafından hariç tutuldu",
   "liquefaction.results.status.beyond_method_depth": "Yöntem derinliği dışında",
-  "liquefaction.results.status.invalid": "Geçersiz"
+  "liquefaction.results.status.invalid": "Geçersiz",
+  "liquefaction.results.ratio_clipped": "CSR/CRR > {max} (en büyük CSR'nin iki katı): grafiğin kenarında gösterildi (tam değer tabloda)"
 }

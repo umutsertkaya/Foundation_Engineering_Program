@@ -17,7 +17,8 @@ from dataclasses import dataclass, field, replace
 import numpy as np
 
 from geotek.config.codes import FactorLog
-from geotek.core.errors import GeoTekError, MissingFactorsError
+from geotek.core.errors import BearingFailureError, GeoTekError, MissingFactorsError
+from geotek.core.warning_codes import format_warning
 from geotek.core.models.project import Project
 from geotek.core.models.profile import GroundwaterCondition
 from geotek.core.models.structures import RetainingWallStructure, SheetPileStructure
@@ -91,7 +92,8 @@ def _settings(project, structure):
 
 def _fingerprint(project, structure, code_id):
     payload = {
-        "structure": structure.model_dump(mode="json", exclude={"result_hash", "result"}),
+        # The display name is not a calculation input; renaming must not stale the result.
+        "structure": structure.model_dump(mode="json", exclude={"name", "result_hash", "result"}),
         "design_code": code_id,
         "design_overrides": {p: v.model_dump(mode="json")
                              for p, v in project.design_overrides.get(code_id, {}).items()},
@@ -404,6 +406,7 @@ def _finish(project, structure, geometry, settings, loads, kh, kv, evaluated, it
         for factor in result.factors_used:
             used[factor.path] = factor
     warnings = sorted({w for a in analyses.values() for w in a.warnings})
+    warnings += _ignored_override_warnings(settings)
     if structure.inputs.sds is not None and loads.kv and settings.kv_sign == "envelope":
         warnings.append("Düşey deprem katsayısı ±kv zarfı uygulandı (TBDY 16.12.2.3); "
                         "yöneten işaret kontrol bazında detayda belirtilmiştir.")
@@ -428,6 +431,7 @@ def _finish(project, structure, geometry, settings, loads, kh, kv, evaluated, it
         if structure.soil.is_stale(source):
             warnings.append("Yapıya kopyalanan zemin profili kaynak profile göre bayat; yapı kopyasıyla hesaplandı")
     assumptions = _assumptions(structure, settings, geometry.embedment)
+    assumptions += _approach_assumption(code, structure.approach, "wall.default_approach")
     if "load.LS.extreme_I" in used:
         assumptions.append(Assumption(text=LS_EXTREME_ASSUMPTION, source=LS_EXTREME_SOURCE, code="wall.ls_extreme_i"))
         warnings.append(LS_EXTREME_ASSUMPTION)
@@ -457,22 +461,29 @@ def size_structure(project: Project, structure_id: str, progress: ProgressFn | N
     reporter.emit(0.0, "job.step.sizing")
     B = max(_ceil(0.3 * H), 0.9)
     count = int(round((1.2 * H - B) / STEP)) + 1
-    best, last_fail, iterations, slot = None, [], 0, 0
+    best, last_fail, last_error, iterations, slot = None, [], None, 0, 0
     while B <= 1.2 * H + 1e-9:
         geometry = proportion_for(structure.wall_type, H, B, D)
         if geometry is not None:
             iterations += 1
-            evaluated = _evaluate_wall(structure, geometry, settings, loads, reporter,
-                                       0.95 * slot / count, 0.95 / count, sizing=True)
-            fails = _failures(evaluated[0], evaluated[1])
-            best = geometry, evaluated, fails
-            if not fails:
-                break
-            last_fail = fails
+            try:
+                evaluated = _evaluate_wall(structure, geometry, settings, loads, reporter,
+                                           0.95 * slot / count, 0.95 / count, sizing=True)
+            except BearingFailureError as exc:
+                # This width cannot carry the load at all; a wider base may.
+                last_error = exc
+            else:
+                fails = _failures(evaluated[0], evaluated[1])
+                best = geometry, evaluated, fails
+                if not fails:
+                    break
+                last_fail = fails
         slot += 1
         reporter.emit(0.95 * slot / count, "job.step.sizing")
         B = round(B + STEP, 6)
     if best is None:
+        if last_error is not None:
+            raise last_error
         raise GeoTekError("No feasible geometry for these proportions")
     geometry, evaluated, fails = best
     governing = (last_fail[0] if last_fail else "minimum width") if not fails else ", ".join(fails)
@@ -523,6 +534,25 @@ def _sheet_soil(structure, soil):
     return soil.model_copy(update={
         "gwt_front": GroundwaterCondition(depth_insitu=structure.front_water_depth),
     })
+
+
+def _ignored_override_warnings(settings) -> list[str]:
+    """Overrides accepted by the code tables but never read by the engine must not look applied.
+
+    The material factor on unit weight (``<combination>.material.gamma``) is not used yet
+    (docs/tasks/T12-MATERIAL-FACTORS.md).
+    """
+    return [format_warning("wall.warning.override_not_applied", path=path)
+            for path in sorted(settings.factor_overrides) if path.endswith(".material.gamma")]
+
+
+def _approach_assumption(code, approach, code_key):
+    """Make the EC7-style default design approach visible instead of a silent choice."""
+    if approach or code.approach != "partial_factors" or len(code.approaches) < 2:
+        return []
+    key = next(iter(code.approaches))
+    return [Assumption(text=f"Tasarım yaklaşımı seçilmedi; {code.id} için ilk yaklaşım {key} kullanıldı",
+                       source=f"{code.id} approaches", code=code_key, params={"approach": key})]
 
 
 def _sheet_assumptions(structure):
@@ -677,11 +707,14 @@ def design_sheet_pile_structure(project: Project, structure_id: str, progress: P
             )
             results[key], used[key] = result, list(case.factors_used)
     gd, gm = max(results, key=lambda k: results[k].D), max(results, key=lambda k: results[k].M_max)
+    results[gd].warnings.extend(_ignored_override_warnings(settings))
     anchors = [r.anchor_force for r in results.values() if r.anchor_force is not None]
     reporter.emit(1.0, "job.step.sizing")
     return StructureSheetPileDesign(cases=results, D_required=results[gd].D, M_design=results[gm].M_max,
                            anchor_force_design=max(anchors) if anchors else None,
                            governing_embedment=gd, governing_moment=gm, factors_used=used,
-                           assumptions=_sheet_assumptions(structure),
+                           assumptions=_approach_assumption(code, structure.approach,
+                                                            "sheet_pile.default_approach")
+                           + _sheet_assumptions(structure),
                            anchor_spacing_used=structure.anchor_spacing,
                            anchor_inclination_used=structure.anchor_inclination)

@@ -853,8 +853,11 @@ def test_split_merge_preserve_values_and_structure_copies(opened):
     changed["layers"][0]["gamma"] = 19
     assert opened.put(path, json=changed).status_code == 200
     assert opened.get("/api/project").json()["structures"][0]["stale"] is True
-    assert opened.delete(path).status_code == 200
-    assert opened.get("/api/project").json()["structures"][0]["stale"] is True
+    # A profile that structures copy from cannot be deleted (their copy would stay stale for good).
+    response = opened.delete(path)
+    assert response.status_code == 409 and error_code(response) == "profile_in_use"
+    assert response.json()["details"]["message_code"] == "profile_in_use"
+    assert opened.get(path).status_code == 200
     assert session.project.structures[0].soil.model_dump() == before_copy
     assert Project.model_validate(session.project.model_dump()) == session.project
 

@@ -7,7 +7,6 @@ refuse to run while a needed factor is missing and name all of them at once.
 
 from __future__ import annotations
 
-import math
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Literal
@@ -26,7 +25,7 @@ from geotek.core.models.walls import (
     WallLoads,
     WallSettings,
 )
-from geotek.engine.limit_state import SheetPileDesign, design_sheet_pile, verify_wall, verify_wall_global_stability
+from geotek.engine.limit_state import verify_wall, verify_wall_global_stability
 from geotek.engine.stability import SoilBand
 from geotek.engine.walls.base import CheckResult, WallAnalysis
 from geotek.engine.walls.global_stability import wall_global_stability
@@ -345,13 +344,3 @@ def size_wall_advanced(
                                   f"sağlanamayan: {governing}"]
     return AdvancedSizingResult(geometry=geom, result=res, passed=passed, governing=governing, iterations=it,
                                 warnings=warnings)
-
-
-def design_sheet_pile_advanced(profile: SoilProfile, H: float, *, code: str, approach: str | None = None,
-                               overrides: dict[str, FactorOverride] | None = None, **kwargs) -> SheetPileDesign:
-    """Partial-factor sheet pile design after checking that every needed factor is available."""
-    resolved = resolve_code(code, overrides)
-    if resolved.approach == "global_fs":
-        raise GeoTekError("ASD sheet piles: use the basic level or the engine functions with passive_factor")
-    _ensure_complete(code, approach, False, overrides)
-    return design_sheet_pile(profile, H, code=code, approach=approach, overrides=overrides, **kwargs)

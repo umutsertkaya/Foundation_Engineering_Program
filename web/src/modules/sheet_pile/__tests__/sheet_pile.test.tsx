@@ -116,7 +116,8 @@ describe("sheet_pile shell (mock)", () => {
     seedSheetPile("sp-2", "Perde B", "anchored");
     const view = renderAt("/m/sheet_pile/s/sp-2");
     expect(await screen.findByRole("heading", { name: "Perde B" })).toBeInTheDocument();
-    expect(screen.getByTestId("soil-source").textContent).toContain(getMockStore().profiles[0].id);
+    await waitFor(() => expect(screen.getByTestId("soil-source").textContent).toContain(getMockStore().profiles[0].name));
+    expect(screen.getByTestId("soil-source").textContent).not.toContain(getMockStore().profiles[0].id);
     fireEvent.click(screen.getByRole("button", { name: "Tasarımı çalıştır" }));
     expect(await screen.findByTestId("job-progress")).toBeInTheDocument();
     expect(await screen.findByTestId("sheet-pile-result", {}, { timeout: 5000 })).toBeInTheDocument();
@@ -228,6 +229,44 @@ describe("sheet_pile shell (mock)", () => {
     seedSheetPile("sp-4", "Perde D");
     renderAt("/m/sheet_pile/s/sp-4?job=nope");
     expect(await screen.findByText(/artık mevcut değil/)).toBeInTheDocument();
+  });
+
+  it("names a deleted source profile as such, never by its id", async () => {
+    seedSheetPile("sp-del", "Perde Del");
+    const pile = getMockStore().structures.find((s) => s.id === "sp-del")!;
+    pile.soil.source_profile_id = "0123456789abcdef0123456789abcdef";
+    renderAt("/m/sheet_pile/s/sp-del");
+    await waitFor(() => expect(screen.getByTestId("soil-source")).toHaveTextContent("silinmiş profil"));
+    expect(screen.getByTestId("soil-source").textContent).not.toContain("0123456789abcdef");
+  });
+
+  it("an unknown job id falls back to the stored result", async () => {
+    seedSheetPile("sp-gone", "Perde Gone");
+    const first = renderAt("/m/sheet_pile/s/sp-gone");
+    fireEvent.click(await screen.findByRole("button", { name: "Tasarımı çalıştır" }));
+    await screen.findByTestId("sheet-pile-result", {}, { timeout: 5000 });
+    first.unmount();
+    renderAt("/m/sheet_pile/s/sp-gone?job=nope");
+    expect(await screen.findByText(/artık mevcut değil/)).toBeInTheDocument();
+    expect(await screen.findByText("Kaydedilmiş sonuç")).toBeInTheDocument();
+    expect(screen.getByTestId("sheet-pile-result")).toBeInTheDocument();
+  });
+
+  it("saving after a run keeps the new result (the PUT does not write the previous one back)", async () => {
+    seedSheetPile("sp-keep", "Perde Keep");
+    const seeded = getMockStore().structures.find((s) => s.id === "sp-keep") as unknown as Record<string, unknown>;
+    seeded.result_hash = "before-the-run";
+    renderAt("/m/sheet_pile/s/sp-keep");
+    fireEvent.click(await screen.findByRole("button", { name: "Tasarımı çalıştır" }));
+    await screen.findByTestId("sheet-pile-result", {}, { timeout: 5000 });
+    const stored = () => getMockStore().structures.find((s) => s.id === "sp-keep")!;
+    const runHash = stored().result_hash;
+    expect(runHash).not.toBe("before-the-run");
+    await waitFor(() => expect(screen.getByRole("button", { name: "Tasarımı çalıştır" })).toBeEnabled());
+    fireEvent.change(screen.getByLabelText(/Sürşarj/), { target: { value: "12" } });
+    fireEvent.click(screen.getByRole("button", { name: "Kaydet" }));
+    expect(await screen.findByText(/Girdiler değişti/)).toBeInTheDocument();
+    expect(stored().result_hash).toBe(runHash);
   });
 
   it("detail blocks the run and lists the missing design phi", async () => {

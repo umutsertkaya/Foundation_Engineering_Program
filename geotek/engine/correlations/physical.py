@@ -5,11 +5,39 @@ from __future__ import annotations
 import numpy as np
 
 from geotek.core.constants import GAMMA_W, PA
+from geotek.core.warning_codes import format_warning
 from geotek.engine.correlations.checks import all_of, clay_like, in_range, sand_like
 from geotek.engine.correlations.registry import register
 
 RF_MIN = 0.01
 """Numerical floor on R_f [%] so that log(R_f) stays finite when f_s = 0."""
+
+GAMMA_MIN_RC2010 = 12.0
+"""Project assumption (approved by the user 2026-10-20, docs/katsayi_dogrulama.md): lower bound
+[kN/m3] on the Robertson & Cabal (2010) estimate. The regression has no lower limit and gives
+unphysical (even negative) values for very small q_t; no upper bound is applied."""
+
+
+def _rc2010_raw(qt, fs):
+    qt = np.asarray(qt, dtype=float)
+    with np.errstate(divide="ignore", invalid="ignore"):
+        rf = np.maximum(np.asarray(fs, dtype=float) / qt * 100.0, RF_MIN)
+        ratio = 0.27 * np.log10(rf) + 0.36 * np.log10(qt / PA) + 1.236
+    return ratio * GAMMA_W
+
+
+def rc2010_below_floor(qt, fs):
+    """True where the raw Robertson & Cabal estimate is finite and below GAMMA_MIN_RC2010."""
+    raw = _rc2010_raw(qt, fs)
+    with np.errstate(invalid="ignore"):
+        return np.isfinite(raw) & (raw < GAMMA_MIN_RC2010)
+
+
+def _rc2010_floor_check(inputs, opts) -> list[str]:
+    qt, fs = inputs.get("qt"), inputs.get("fs")
+    if qt is None or fs is None or not bool(rc2010_below_floor(qt, fs)):
+        return []
+    return [format_warning("correlation.warning.gamma_floor", gamma_min=GAMMA_MIN_RC2010)]
 
 
 @register(
@@ -18,14 +46,12 @@ RF_MIN = 0.01
     reference="Robertson & Cabal (2010), 2nd Int. Symp. on Cone Penetration Testing",
     reliability="B",
     validity="General; less reliable in organic/very soft soils",
+    check=_rc2010_floor_check,
 )
 def unit_weight_robertson_cabal(qt, fs):
-    """gamma / gamma_w = 0.27 log R_f + 0.36 log(q_t/Pa) + 1.236, R_f = f_s/q_t * 100 [%]."""
-    qt = np.asarray(qt, dtype=float)
-    with np.errstate(divide="ignore", invalid="ignore"):
-        rf = np.maximum(np.asarray(fs, dtype=float) / qt * 100.0, RF_MIN)
-        ratio = 0.27 * np.log10(rf) + 0.36 * np.log10(qt / PA) + 1.236
-    out = ratio * GAMMA_W
+    """gamma / gamma_w = 0.27 log R_f + 0.36 log(q_t/Pa) + 1.236, R_f = f_s/q_t * 100 [%],
+    floored at GAMMA_MIN_RC2010 (NaN stays NaN; callers warn via ``rc2010_below_floor``)."""
+    out = np.maximum(_rc2010_raw(qt, fs), GAMMA_MIN_RC2010)
     return float(out) if out.ndim == 0 else out
 
 

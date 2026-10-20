@@ -107,7 +107,7 @@ def layer_points(
         if sounding.id not in ids:
             continue
         indices = [i for i, depth in enumerate(sounding.depth)
-                   if layer.top <= depth < layer.bottom]
+                   if layer.top <= depth < layer.bottom and depth >= sounding.predrill_depth]
         if not indices:
             continue
         cropped = {name: [getattr(sounding, name)[i] for i in indices]
@@ -178,7 +178,7 @@ def evaluate_candidates(
         for correlation in registry.applicable(key, inputs):
             try:
                 result = registry.evaluate(correlation.id, inputs)
-            except (ArithmeticError, ValueError) as exc:
+            except (ArithmeticError, ValueError):
                 # Some registered scalar formulae divide before reaching numpy's
                 # errstate (e.g. qc / sigma'_v at the ground surface).
                 result = DerivedParameter(

@@ -65,7 +65,7 @@ function formatModified(iso: string, lang: string): string {
 export function StartPage() {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
-  const { session, openFromLibrary, createInLibrary, refresh: refreshSession } = useProjectSession();
+  const { session, openFromLibrary, createInLibrary, refresh: refreshProject, refreshSession } = useProjectSession();
 
   const currentLang: Language = i18n.language === "en" ? "en" : "tr";
 
@@ -165,7 +165,16 @@ export function StartPage() {
     void loadLanguageCatalog(nextLang);
   };
 
-  const hasUnsavedProject = session.open && session.dirty;
+  /** Re-reads the session first: a finished job or another tab may have changed the project meanwhile. */
+  const hasUnsavedProject = async (): Promise<boolean> => {
+    let current = session;
+    try {
+      current = await refreshSession();
+    } catch {
+      // Keep the last known session when it cannot be read.
+    }
+    return current.open && current.dirty;
+  };
 
   const performOpen = async (file: string) => {
     setBusy(true);
@@ -181,7 +190,7 @@ export function StartPage() {
   };
 
   const handleOpen = async (file: string) => {
-    if (hasUnsavedProject) {
+    if (await hasUnsavedProject()) {
       setPendingReplace(() => () => performOpen(file));
       return;
     }
@@ -225,7 +234,7 @@ export function StartPage() {
       setNewNameError(true);
       return;
     }
-    if (hasUnsavedProject) {
+    if (await hasUnsavedProject()) {
       setPendingReplace(() => () => performCreate(trimmedName));
       return;
     }
@@ -269,7 +278,7 @@ export function StartPage() {
       const updated = await rename_library_project(renameTarget.file, trimmed);
       await refreshLibrary();
       // The open session follows the renamed file, so its name may have changed.
-      void refreshSession({ silent: true }).catch(() => undefined);
+      void refreshProject({ silent: true }).catch(() => undefined);
       setRenameTarget(null);
       notifications.show({ message: t("start.renamed", { name: updated.name }), color: "green" });
     } catch (err) {

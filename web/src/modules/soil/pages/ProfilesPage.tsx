@@ -386,11 +386,6 @@ export function ProfilesPage() {
                             : t("web.common.none")}
                         </Text>
                       </Text>
-                      {!isNew && (
-                        <Text size="xs" c="dimmed" ff="monospace">
-                          {profile.id}
-                        </Text>
-                      )}
                       {draft.dirty && (
                         <Badge size="xs" color="orange" variant="light">
                           {t("web.soil.unsaved")}
@@ -538,7 +533,9 @@ export function ProfilesPage() {
               onClick={() => {
                 const action = pendingAction;
                 setPendingAction(null);
-                draft.reset(draft.value);
+                // Back to the saved profile (an unsaved new one is dropped), so a cancelled follow-up
+                // action (e.g. closing the layering dialog) does not leave the edits as the saved state.
+                draft.reset(isNew ? null : draft.base);
                 action?.();
               }}
             >

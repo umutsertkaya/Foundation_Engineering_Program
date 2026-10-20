@@ -1,6 +1,5 @@
 """T10c: translatable engine messages and report presentation details."""
 
-from types import SimpleNamespace
 
 import numpy as np
 import pytest
