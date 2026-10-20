@@ -495,6 +495,16 @@ class StructureSheetPileDesign(SheetPileDesign):
     """Service envelope with explicit structure input assumptions."""
 
     assumptions: list[Assumption] = field(default_factory=list)
+    anchor_spacing_used: float = 1.0
+    anchor_inclination_used: float = 0.0
+
+
+@dataclass
+class StructureBasicSheetPileResult(BasicSheetPileResult):
+    """Basic envelope carrying structure anchor geometry for reporting."""
+
+    anchor_spacing_used: float = 1.0
+    anchor_inclination_used: float = 0.0
 
 
 def _sheet_soil(structure, soil):
@@ -513,6 +523,7 @@ def _sheet_assumptions(structure):
         text=f"Ön YASS üstten {structure.front_water_depth:g} m olarak geçersiz kılındı; "
              "tasarım ve deprem durumlarında aynı seviye kullanılır",
         source="SheetPileStructure.front_water_depth; mühendis girdisi",
+        code="sheet_pile.front_water_depth", params={"depth": structure.front_water_depth},
     )]
 
 
@@ -612,23 +623,29 @@ def design_sheet_pile_structure(project: Project, structure_id: str, progress: P
         result, kh = _sheet_case(structure, structure.soil, seismic=seismic, passive_factor=factor)
         assumptions = [
             Assumption(text="Katmanlı Rankine aktif/pasif; ön/arka profil ve YASS ayrı; hidrostatik su; sızma yok",
-                       source="Rankine (1857); P1 §1"),
-            Assumption(text=f"Pasif basınç GS={factor:g} ile bölündü", source=code.source_of("safety.sheet_pile_passive.static").source),
+                       source="Rankine (1857); P1 §1", code="sheet_pile.layered_rankine"),
+            Assumption(text=f"Pasif basınç GS={factor:g} ile bölündü", source=code.source_of("safety.sheet_pile_passive.static").source,
+                       code="sheet_pile.passive_factor", params={"factor": factor}),
             Assumption(text="Konsolda Blum gömülmesi %20 artırılır; ankrajlıda serbest zemin desteği",
-                       source="Mevcut sheet_pile.py; USS Steel Sheet Piling Design Manual / USACE EM 1110-2-2504"),
+                       source="Mevcut sheet_pile.py; USS Steel Sheet Piling Design Manual / USACE EM 1110-2-2504",
+                       code="sheet_pile.support_method", params={"percent": 20}),
         ]
         assumptions.extend(_sheet_assumptions(structure))
         if structure.depth_increase is not None:
             assumptions[2] = Assumption(
                 text=f"Gömülme artışı: {structure.depth_increase:g}; D = D0 * (1 + artış)",
                 source="SheetPileStructure.depth_increase; mevcut sheet_pile.py",
+                code="sheet_pile.depth_increase", params={"increase": structure.depth_increase},
             )
         if seismic:
             assumptions.append(Assumption(text="r=1; M-O artımı H boyunca düzgün (bileşke H/2); "
                                                 "katman başına pasif M-O/Rankine oranı en çok 1; drenajsız deprem durdurulur; "
-                                                "hidrodinamik ve fazla boşluk suyu basıncı yok", source=SRC_TBDY_SEISMIC))
+                                                "hidrodinamik ve fazla boşluk suyu basıncı yok", source=SRC_TBDY_SEISMIC,
+                                                code="sheet_pile.seismic", params={"r": 1, "passive_ratio_max": 1}))
         reporter.emit(1.0, "job.step.sizing")
-        return BasicSheetPileResult(result=result, assumptions=assumptions, kh=kh, warnings=list(result.warnings))
+        return StructureBasicSheetPileResult(
+            result=result, assumptions=assumptions, kh=kh, warnings=list(result.warnings),
+            anchor_spacing_used=structure.anchor_spacing, anchor_inclination_used=structure.anchor_inclination)
     results, used = {}, {}
     for seismic in ([False, True] if structure.sds is not None else [False]):
         if seismic:
@@ -652,4 +669,6 @@ def design_sheet_pile_structure(project: Project, structure_id: str, progress: P
     return StructureSheetPileDesign(cases=results, D_required=results[gd].D, M_design=results[gm].M_max,
                            anchor_force_design=max(anchors) if anchors else None,
                            governing_embedment=gd, governing_moment=gm, factors_used=used,
-                           assumptions=_sheet_assumptions(structure))
+                           assumptions=_sheet_assumptions(structure),
+                           anchor_spacing_used=structure.anchor_spacing,
+                           anchor_inclination_used=structure.anchor_inclination)

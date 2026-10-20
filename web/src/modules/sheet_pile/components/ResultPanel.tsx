@@ -28,7 +28,10 @@ function Stat({ label, value, unit }: { label: string; value: number | null; uni
 export function ResultPanel({ result }: { result: SheetPileResultDTO }) {
   const { t } = useTranslation();
   const isMock = result.warnings.includes(MOCK_WARNING);
-  const warnings = result.warnings.filter((w) => w !== MOCK_WARNING);
+  const warnings = result.warning_items
+    ? result.warning_items.filter((w) => w.code !== MOCK_WARNING).map((w) =>
+      t(`sheet_pile.warning.${w.code}`, { ...w.params, defaultValue: String(w.params?.text ?? w.code) }))
+    : result.warnings.filter((w) => w !== MOCK_WARNING);
   const anchored = result.support === "anchored";
   const allRows = result.z.map((z, i) => ({
     z,
@@ -90,6 +93,13 @@ export function ResultPanel({ result }: { result: SheetPileResultDTO }) {
           <SimpleGrid cols={{ base: 2, sm: 4 }} spacing="xs">
             <Stat label={t("sheet_pile.result.anchor_depth")} value={result.anchor_depth} unit="m" />
             <Stat label={t("sheet_pile.result.anchor_force")} value={result.anchor_force} unit="kN/m" />
+            <Card withBorder padding="xs" radius="sm" data-testid="per-anchor-load">
+              <Text size="xs" c="dimmed">{t("sheet_pile.result.anchor_force_per_anchor")}</Text>
+              <Text fw={700}>{fmt(result.anchor_force_per_anchor)} {t("sheet_pile.result.per_anchor_unit")}</Text>
+              <Text size="xs" c="dimmed">{t("sheet_pile.result.anchor_geometry", {
+                spacing: fmt(result.anchor_spacing_used), inclination: fmt(result.anchor_inclination_used),
+              })}</Text>
+            </Card>
           </SimpleGrid>
         </>
       )}
@@ -131,7 +141,7 @@ export function ResultPanel({ result }: { result: SheetPileResultDTO }) {
           <List size="sm">
             {result.assumptions.map((a, i) => (
               <List.Item key={i}>
-                {a.text}{" "}
+                {a.code ? t(`sheet_pile.assumption.${a.code}`, { ...a.params, defaultValue: a.text }) : a.text}{" "}
                 <Text span size="xs" c="dimmed">
                   ({a.source})
                 </Text>

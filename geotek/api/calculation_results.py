@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 from dataclasses import replace
+import math
+import re
 
 from geotek.api import schemas as dto
 from geotek.engine.limit_state import SheetPileDesign
@@ -56,6 +58,37 @@ def wall_result(id: str, result: StructureWallResult, fingerprint: str) -> dto.W
     )
 
 
+def _sheet_warning(text: str) -> dto.MessageDTO:
+    """Map sheet/pressure diagnostics, retaining unknown text losslessly.
+
+    Sources: structures._sheet_case, earth_pressure.distribution (including
+    coefficient diagnostics), and the standalone anchored solver load message.
+    Steep seismic/passive Coulomb diagnostics are covered defensively even though
+    current _sheet_case defaults cannot emit them. Legacy strings stay unchanged.
+    """
+    if text == "Design embedment extends below the soil profile":
+        return dto.MessageDTO(code="sheet_pile.embedment_below_profile")
+    patterns = [
+        (r"Tension zone to ([-+\d.eE]+) m set to zero \(tension crack\)",
+         "sheet_pile.tension_crack", ("depth",), (float,)),
+        (r"Layer (.+): c' ignored by the (.+) solution",
+         "sheet_pile.cohesion_ignored", ("layer", "method"), (str, str)),
+        (r"Katman (.+): TBDY Denk. 16\.24b \(β > φ' − ψ\) uygulandı\.",
+         "sheet_pile.steep_seismic", ("layer",), (str,)),
+        (r"Layer (.+): Coulomb passive with delta > phi/2 is unconservative",
+         "sheet_pile.passive_coulomb", ("layer",), (str,)),
+        (r"Anchor load: ([-+\d.eE]+) kN per anchor \(spacing ([-+\d.eE]+) m, inclination ([-+\d.eE]+) deg\)",
+         "sheet_pile.anchor_load", ("load", "spacing", "inclination"), (float, float, float)),
+    ]
+    for pattern, code, names, converters in patterns:
+        match = re.fullmatch(pattern, text)
+        if match:
+            return dto.MessageDTO(code=code, params={
+                name: convert(value) for name, convert, value in zip(names, converters, match.groups())
+            })
+    return dto.MessageDTO(code="generic", params={"text": text})
+
+
 def sheet_pile_result(id: str, result) -> dto.SheetPileResultDTO:
     """Expose service design envelopes; curves belong to the governing moment case.
 
@@ -72,6 +105,8 @@ def sheet_pile_result(id: str, result) -> dto.SheetPileResultDTO:
             text=(f"Embedment and toe force: {result.governing_embedment}; moment, curves "
                   f"and section modulus: {result.governing_moment}; anchor force: case envelope."),
             source="geotek.services.structures.design_sheet_pile_structure / SheetPileDesign",
+            code="sheet_pile.governing_cases", params={"embedment": result.governing_embedment,
+                                                      "moment": result.governing_moment},
         )]
         warnings = list(dict.fromkeys(w for case in result.cases.values() for w in case.warnings))
         assumptions.extend(dto.AssumptionDTO.model_validate(item)
@@ -80,7 +115,24 @@ def sheet_pile_result(id: str, result) -> dto.SheetPileResultDTO:
         raw = result.result
         assumptions = [dto.AssumptionDTO.model_validate(item) for item in result.assumptions]
         warnings = list(dict.fromkeys([*result.warnings, *raw.warnings]))
+    # Engine defaults (anchored_sheet_pile): 1 m spacing, horizontal anchor; shown in the assumptions.
+    spacing = getattr(result, "anchor_spacing_used", None)
+    inclination = getattr(result, "anchor_inclination_used", None)
+    spacing = 1.0 if spacing is None else spacing
+    inclination = 0.0 if inclination is None else inclination
+    per_anchor = None
+    if raw.support == "anchored" and raw.anchor_force is not None:
+        per_anchor = raw.anchor_force * spacing / math.cos(math.radians(inclination))
+        assumptions.append(dto.AssumptionDTO(
+            text=f"Anchor load = wall force × spacing / cos(inclination); spacing {spacing:g} m, inclination {inclination:g} deg",
+            source="SheetPileStructure; geotek.engine.sheet_pile.anchored_sheet_pile",
+            code="sheet_pile.anchor_geometry", params={"spacing": spacing, "inclination": inclination},
+        ))
     return dto.SheetPileResultDTO(
+        anchor_force_per_anchor=per_anchor,
+        anchor_spacing_used=spacing if raw.support == "anchored" else None,
+        anchor_inclination_used=inclination if raw.support == "anchored" else None,
+        warning_items=[_sheet_warning(w) for w in warnings],
         structure_id=id, support=raw.support, H=raw.H, D0=raw.D0, D=raw.D,
         total_length=raw.H + raw.D, anchor_depth=raw.anchor_depth,
         anchor_force=raw.anchor_force, toe_force=raw.toe_force, M_max=raw.M_max,

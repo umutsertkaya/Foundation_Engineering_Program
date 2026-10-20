@@ -278,6 +278,15 @@ class AssumptionDTO(DTO):
 
     text: str
     source: str
+    code: str | None = None
+    params: dict = Field(default_factory=dict)
+
+
+class MessageDTO(DTO):
+    """Stable message identifier and interpolation parameters."""
+
+    code: str
+    params: dict[str, float | int | str] = Field(default_factory=dict)
 
 
 class UsedFactorDTO(DTO):
@@ -423,6 +432,10 @@ class SheetPileResultDTO(DTO):
 
     structure_id: str
     support: str
+    anchor_force_per_anchor: ResultNumber = None
+    anchor_spacing_used: ResultNumber = None
+    anchor_inclination_used: ResultNumber = None
+    warning_items: list[MessageDTO] = Field(default_factory=list)
     H: ResultNumber
     D0: ResultNumber
     D: ResultNumber

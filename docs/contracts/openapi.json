@@ -8514,6 +8514,22 @@
           "source": {
             "type": "string",
             "title": "Source"
+          },
+          "code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Code"
+          },
+          "params": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Params"
           }
         },
         "additionalProperties": false,
@@ -10308,6 +10324,38 @@
         ],
         "title": "LiquefactionSettingsDTO",
         "description": "Explicit liquefaction inputs; the contract chooses no engineering coefficients."
+      },
+      "MessageDTO": {
+        "properties": {
+          "code": {
+            "type": "string",
+            "title": "Code"
+          },
+          "params": {
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "string"
+                }
+              ]
+            },
+            "type": "object",
+            "title": "Params"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "code"
+        ],
+        "title": "MessageDTO",
+        "description": "Stable message identifier and interpolation parameters."
       },
       "MissingFactorDTO": {
         "properties": {
@@ -12335,6 +12383,46 @@
           "support": {
             "type": "string",
             "title": "Support"
+          },
+          "anchor_force_per_anchor": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Anchor Force Per Anchor"
+          },
+          "anchor_spacing_used": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Anchor Spacing Used"
+          },
+          "anchor_inclination_used": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Anchor Inclination Used"
+          },
+          "warning_items": {
+            "items": {
+              "$ref": "#/components/schemas/MessageDTO"
+            },
+            "type": "array",
+            "title": "Warning Items"
           },
           "H": {
             "anyOf": [

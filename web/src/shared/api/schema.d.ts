@@ -1337,6 +1337,12 @@ export interface components {
             text: string;
             /** Source */
             source: string;
+            /** Code */
+            code?: string | null;
+            /** Params */
+            params?: {
+                [key: string]: unknown;
+            };
         };
         /** AxisRangeDTO */
         AxisRangeDTO: {
@@ -2033,6 +2039,18 @@ export interface components {
             c_fc: number;
             /** Ic Cutoff */
             ic_cutoff: number;
+        };
+        /**
+         * MessageDTO
+         * @description Stable message identifier and interpolation parameters.
+         */
+        MessageDTO: {
+            /** Code */
+            code: string;
+            /** Params */
+            params?: {
+                [key: string]: number | string;
+            };
         };
         /**
          * MissingFactorDTO
@@ -2749,6 +2767,14 @@ export interface components {
             structure_id: string;
             /** Support */
             support: string;
+            /** Anchor Force Per Anchor */
+            anchor_force_per_anchor?: number | null;
+            /** Anchor Spacing Used */
+            anchor_spacing_used?: number | null;
+            /** Anchor Inclination Used */
+            anchor_inclination_used?: number | null;
+            /** Warning Items */
+            warning_items?: components["schemas"]["MessageDTO"][];
             /** H */
             H: number | null;
             /** D0 */

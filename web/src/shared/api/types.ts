@@ -40,6 +40,13 @@ export interface ApiErrorDTO {
 export interface AssumptionDTO {
   text: string;
   source: string;
+  code?: string | null;
+  params?: Record<string, unknown>;
+}
+
+export interface MessageDTO {
+  code: string;
+  params?: Record<string, number | string>;
 }
 
 export interface BearingResultDTO {
@@ -603,6 +610,10 @@ export interface WallResultDTO {
 export interface SheetPileResultDTO {
   structure_id: string;
   support: string;
+  anchor_force_per_anchor?: number | null;
+  anchor_spacing_used?: number | null;
+  anchor_inclination_used?: number | null;
+  warning_items?: MessageDTO[];
   H: number | null;
   D0: number | null;
   D: number | null;
@@ -637,6 +648,7 @@ export interface components {
     ActiveProfileUpdate: ActiveProfileUpdate;
     ApiError: ApiErrorDTO;
     AssumptionDTO: AssumptionDTO;
+    MessageDTO: MessageDTO;
     BearingResultDTO: BearingResultDTO;
     Borehole: Borehole;
     BoreholeLayer: BoreholeLayer;

@@ -59,6 +59,8 @@ SRC_CONSERVATIVE = "Temel seviye güvenli varsayımı"
 class Assumption(BaseModel):
     text: str
     source: str
+    code: str | None = None
+    params: dict = Field(default_factory=dict)
 
 
 class BasicWallInput(BaseModel):
