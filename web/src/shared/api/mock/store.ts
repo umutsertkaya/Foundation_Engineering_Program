@@ -49,6 +49,8 @@ export interface MockStore {
   jobs: Map<string, MockJobInternal>;
   jobSeq: number;
   profileSeq: number;
+  /** Result of the last mock liquefaction run (`StoredLiquefactionDTO`). */
+  liquefactionResult: unknown | null;
 }
 
 function createInitialStore(): MockStore {
@@ -72,6 +74,7 @@ function createInitialStore(): MockStore {
     jobs: new Map<string, MockJobInternal>(),
     jobSeq: 0,
     profileSeq: profiles.length,
+    liquefactionResult: null,
   };
 }
 

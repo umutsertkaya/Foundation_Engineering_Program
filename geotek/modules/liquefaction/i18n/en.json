@@ -36,6 +36,7 @@
   "liquefaction.results.back": "Back to analysis",
   "liquefaction.results.no_job": "No analysis to show. Run the analysis first.",
   "liquefaction.results.unavailable": "The result of this analysis is not available (it may have expired or the server restarted). Run the analysis again.",
+  "liquefaction.results.stale": "This result is outdated: the soil profile or investigation data changed after the analysis. Run the analysis again.",
   "liquefaction.results.failed": "The analysis failed.",
   "liquefaction.results.cancelled": "The analysis was cancelled; there is no result.",
   "liquefaction.results.running": "Analysis running…",

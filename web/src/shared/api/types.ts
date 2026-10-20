@@ -298,6 +298,14 @@ export interface LiquefactionResultDTO {
   errors: Record<string, string>;
 }
 
+export interface StoredLiquefactionDTO {
+  profile_id: string;
+  settings: LiquefactionSettingsDTO;
+  result: LiquefactionResultDTO;
+  /** True when the soil profile or investigations changed since the run. */
+  stale: boolean;
+}
+
 export interface ParameterApproval {
   keys: DesignKey[];
 }
@@ -676,6 +684,7 @@ export interface components {
     LiquefactionSettingsDTO: LiquefactionSettingsDTO;
     MissingFactorDTO: MissingFactorDTO;
     ParameterApproval: ParameterApproval;
+    StoredLiquefactionDTO: StoredLiquefactionDTO;
     ParameterSelection: ParameterSelection;
     ParameterStats: ParameterStats;
     PressureDiagramDTO: PressureDiagramDTO;

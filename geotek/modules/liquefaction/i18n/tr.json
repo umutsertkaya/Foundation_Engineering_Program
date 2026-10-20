@@ -36,6 +36,7 @@
   "liquefaction.results.back": "Analize dön",
   "liquefaction.results.no_job": "Gösterilecek bir analiz yok. Önce analizi çalıştırın.",
   "liquefaction.results.unavailable": "Bu analizin sonucuna erişilemiyor (süresi dolmuş veya sunucu yeniden başlamış olabilir). Analizi yeniden çalıştırın.",
+  "liquefaction.results.stale": "Bu sonuç güncel değil: zemin profili veya sondaj verisi analizden sonra değişti. Analizi yeniden çalıştırın.",
   "liquefaction.results.failed": "Analiz başarısız oldu.",
   "liquefaction.results.cancelled": "Analiz iptal edildi; sonuç yok.",
   "liquefaction.results.running": "Analiz çalışıyor…",

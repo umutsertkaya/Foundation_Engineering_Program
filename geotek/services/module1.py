@@ -124,6 +124,24 @@ def liquefaction_input_hash(project: Project, profile_id: str, use_active: bool)
     return hashlib.sha256(json.dumps(data, sort_keys=True, allow_nan=False).encode()).hexdigest()
 
 
+def liquefaction_result_state(project: Project) -> Literal["no_result", "ready", "stale"]:
+    """State of the liquefaction result stored in the project against its current inputs."""
+    section = project.modules.get("liquefaction")
+    data = section.data if section is not None else {}
+    if not data.get("result") or data.get("profile_id") is None:
+        return "no_result"
+    # The run either followed the active profile or an explicit one; the stored hash matches
+    # exactly one of the two cases.
+    for use_active in (True, False):
+        try:
+            current = liquefaction_input_hash(project, data["profile_id"], use_active)
+        except (KeyError, ValueError):
+            continue
+        if current == data.get("input_hash"):
+            return "ready"
+    return "stale"
+
+
 def run_liquefaction(
     project: Project, settings: LiquefactionSettings, results: Module1Results | None = None,
     progress: Callable[[float, str], None] | None = None,

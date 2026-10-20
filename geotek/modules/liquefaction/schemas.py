@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Literal
 
-from geotek.api.schemas import DTO
+from geotek.api.schemas import DTO, LiquefactionResultDTO
 
 
 class LiquefactionSettingsDTO(DTO):
@@ -20,3 +20,13 @@ class LiquefactionSettingsDTO(DTO):
     default_fc: float | None = None
     c_fc: float
     ic_cutoff: float
+
+
+class StoredLiquefactionDTO(DTO):
+    """The liquefaction result saved in the project, with the settings it was computed with."""
+
+    profile_id: str
+    settings: LiquefactionSettingsDTO
+    result: LiquefactionResultDTO
+    stale: bool
+    """True when soil profile or investigations changed since the run (the result is outdated)."""

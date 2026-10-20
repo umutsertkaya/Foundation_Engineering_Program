@@ -63,20 +63,7 @@ def _structure_status(project: Project, structure) -> SectionStatus:
 
 
 def _liquefaction_status(project: Project) -> SectionStatus:
-    section = project.modules.get(LIQUEFACTION_SECTION)
-    data = section.data if section is not None else {}
-    if not data.get("result") or data.get("profile_id") is None:
-        return "no_result"
-    # The run either followed the active profile or an explicit one; the stored hash matches
-    # exactly one of the two cases.
-    for use_active in (True, False):
-        try:
-            current = module1.liquefaction_input_hash(project, data["profile_id"], use_active)
-        except (KeyError, ValueError):
-            continue
-        if current == data.get("input_hash"):
-            return "ready"
-    return "stale"
+    return module1.liquefaction_result_state(project)
 
 
 def list_sections(project: Project) -> list[SectionInfo]:

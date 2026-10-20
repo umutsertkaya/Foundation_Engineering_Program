@@ -227,3 +227,22 @@ def test_liquefaction_service_progress_propagates_cancellation(shell, liquefacti
         assert not session.dirty and "liquefaction" not in project.modules
     finally:
         release.set()
+
+
+def test_stored_result_endpoint_follows_the_saved_run(shell, liquefaction_project):
+    url = "/api/m/liquefaction/result"
+    assert shell.get(url).json()["code"] == "no_project_open"
+    session = shell.app.state.session
+    session.open_project(liquefaction_project)
+    response = shell.get(url)
+    assert response.status_code == 404 and response.json()["code"] == "not_found"
+
+    state = poll_job(shell, submit(shell, PATH, json=SETTINGS))
+    assert state["status"] == "done", state
+    stored = shell.get(url).json()
+    assert stored["stale"] is False and stored["profile_id"] == "P1"
+    assert stored["settings"]["amax_g"] == SETTINGS["amax_g"]
+    assert stored["result"] == state["result"]
+
+    liquefaction_project.investigations.cpts[0].qc[0] += 1
+    assert shell.get(url).json()["stale"] is True
