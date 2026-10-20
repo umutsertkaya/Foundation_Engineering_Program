@@ -89,7 +89,7 @@ def test_cpt_without_profile_needs_gwt():
         analyze_cpt(p, amax_g=0.3, mw=7.0)
     r = analyze_cpt(p, amax_g=0.3, mw=7.0, gwt_seismic=2.0)
     assert r.sigma_v == pytest.approx(p.sigma_v)
-    assert any("C_FC" in w for w in r.warnings)
+    assert any(w.startswith("liquefaction.warning.fc_from_ic: c_fc=") for w in r.warnings)
 
 
 def test_bi_cpt_user_fc_raises_resistance(two_layer_profile):

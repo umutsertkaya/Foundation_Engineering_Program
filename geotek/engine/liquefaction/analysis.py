@@ -11,6 +11,7 @@ from typing import Literal
 import numpy as np
 
 from geotek.core.models.profile import SoilProfile
+from geotek.core.warning_codes import format_warning
 from geotek.engine.correlations.physical import fines_content_from_ic
 from geotek.engine.insitu.cpt import CPTProcessed
 from geotek.engine.insitu.spt import SPTProcessed
@@ -72,13 +73,13 @@ MSF_AS_HIGH_MW_WARNING = "liquefaction.warning.msf_andrus_stokoe_high_magnitude"
 def _msf_warning(method: str, mw: float, msf_variant: str) -> list[str]:
     """Youd 2001 recommends Idriss MSF for M > 7.5; Andrus-Stokoe is lower there (more conservative)."""
     if method == "youd2001" and msf_variant == "andrus_stokoe" and mw > 7.5:
-        return [MSF_AS_HIGH_MW_WARNING]
+        return [format_warning(MSF_AS_HIGH_MW_WARNING)]
     return []
 
 
 def _depth_warning(depth) -> list[str]:
     if np.any(depth > SIMPLIFIED_DEPTH_WARNING):
-        return [f"Points below {SIMPLIFIED_DEPTH_WARNING:g} m: simplified procedure is less reliable"]
+        return [format_warning("liquefaction.warning.simplified_depth", depth=SIMPLIFIED_DEPTH_WARNING)]
     return []
 
 
@@ -123,7 +124,8 @@ def analyze_spt(
             processed.n60, processed.n1_60, fc, processed.sigma_v_eff
         )
         if not converged.all():
-            warnings.append(f"(N1)60cs iteration did not converge at {int((~converged).sum())} point(s)")
+            warnings.append(format_warning("liquefaction.warning.spt_iteration_not_converged",
+                                            count=int((~converged).sum())))
 
     sv, _, se, gwt = seismic_stresses(depth, profile=profile, gwt_depth=gwt_seismic)
     rd, csr, msf, ks, crr, fs, max_depth = _demand_and_capacity(
@@ -138,7 +140,7 @@ def analyze_spt(
         max_depth=max_depth, clay_like=clay_like, dense=dense, exclude=exclude,
     )
     if processed.refusal.any():
-        warnings.append("Refusal blow counts are lower bounds; their FS is conservative")
+        warnings.append(format_warning("liquefaction.warning.spt_refusal_lower_bound"))
     warnings += _depth_warning(depth)
     warnings += _msf_warning(method, mw, msf_variant)
     return LiquefactionResult(
@@ -183,20 +185,19 @@ def analyze_cpt(
         fc_used = np.full(n, np.nan)
         undefined = int((~np.isfinite(r["ic"])).sum())
         if undefined:
-            warnings.append(
-                f"I_c undefined at {undefined} point(s) (net q_c <= 0, f_s <= 0 or invalid stress); marked invalid"
-            )
+            warnings.append(format_warning("liquefaction.warning.ic_undefined", count=undefined))
     else:
         if fc is None:
             fc_used = fines_content_from_ic(processed.Ic, c_fc)
-            warnings.append(f"FC estimated from I_c with C_FC = {c_fc:g}")
+            warnings.append(format_warning("liquefaction.warning.fc_from_ic", c_fc=float(c_fc)))
         else:
             fc_used = _per_point(fc, n, "FC")
         r = bi.cpt_resistance(
             processed.qt, processed.sigma_v_eff, fc_used, processed.Ic, ic_cutoff=ic_cutoff
         )
         if not r["converged"].all():
-            warnings.append(f"q_c1Ncs iteration did not converge at {int((~r['converged']).sum())} point(s)")
+            warnings.append(format_warning("liquefaction.warning.cpt_iteration_not_converged",
+                                            count=int((~r["converged"]).sum())))
 
     if profile is None and gwt_seismic is None:
         raise ValueError("gwt_seismic is required when no soil profile is given")

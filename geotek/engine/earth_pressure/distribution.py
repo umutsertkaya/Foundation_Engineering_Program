@@ -24,7 +24,7 @@ from typing import Literal
 import numpy as np
 
 from geotek.core.constants import GAMMA_W
-from geotek.core.errors import GeoTekError
+from geotek.core.errors import GeoTekError, LayerDesignError
 from geotek.core.models.profile import SoilLayer, SoilProfile
 from geotek.engine.earth_pressure.coefficients import (
     coulomb_ka, coulomb_kp, mononobe_okabe_kae, rankine_ka, rankine_kp, seismic_angle, tbdy_kae_steep,
@@ -75,12 +75,12 @@ def _layer_coefficients(layer: SoilLayer, state, method, delta, beta, drainage, 
     dp = layer.design
     if drainage == "undrained":
         if dp.su is None:
-            raise GeoTekError(f"Layer {layer.id}: undrained analysis needs s_u")
+            raise LayerDesignError(layer, "su_missing")
         if kh or kv:
-            raise GeoTekError(f"Layer {layer.id}: seismic undrained earth pressure is not implemented")
+            raise LayerDesignError(layer, "seismic_undrained_unsupported")
         return 1.0, 1.0, dp.su
     if dp.phi_eff is None:
-        raise GeoTekError(f"Layer {layer.id}: design phi' not set")
+        raise LayerDesignError(layer, "phi_missing")
     phi, c = dp.phi_eff, dp.c_eff
     if state == "at_rest":
         if beta:

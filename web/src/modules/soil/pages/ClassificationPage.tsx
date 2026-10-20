@@ -57,16 +57,30 @@ interface ZoneRow {
   bottom: number | null;
 }
 
-/** Per-zone sample count and depth extent; samples without a zone are not counted. */
+/**
+ * Per-zone sample count and depth extent; samples without a zone are not counted.
+ * A sample stands for the interval down to the next sample (the last one for one sample spacing),
+ * so a single-sample zone is not shown as a zero-thickness `x–x` row.
+ */
 export function summariseZones(points: CPTSBTNDTO["points"]): ZoneRow[] {
+  const depths = points.map((p) => p.depth).filter((d): d is number => d !== null).sort((a, b) => a - b);
+  const intervalEnd = (depth: number): number => {
+    const i = depths.indexOf(depth);
+    if (i < 0) return depth;
+    const next = depths.find((d, j) => j > i && d > depth);
+    if (next !== undefined) return next;
+    const prev = [...depths].reverse().find((d) => d < depth);
+    return prev === undefined ? depth : depth + (depth - prev);
+  };
   const rows = new Map<number, ZoneRow>();
   for (const p of points) {
     if (p.zone === null) continue;
     const row = rows.get(p.zone) ?? { zone: p.zone, count: 0, top: null, bottom: null };
     row.count += 1;
     if (p.depth !== null) {
+      const end = intervalEnd(p.depth);
       row.top = row.top === null ? p.depth : Math.min(row.top, p.depth);
-      row.bottom = row.bottom === null ? p.depth : Math.max(row.bottom, p.depth);
+      row.bottom = row.bottom === null ? end : Math.max(row.bottom, end);
     }
     rows.set(p.zone, row);
   }

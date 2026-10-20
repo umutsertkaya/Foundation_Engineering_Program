@@ -16,7 +16,7 @@ from pydantic import BaseModel
 
 from geotek.config.codes import DesignCode, FactorOverride, FactorStatus, UsedFactor, resolve_code
 from geotek.core.constants import GAMMA_W
-from geotek.core.errors import GeoTekError
+from geotek.core.errors import GeoTekError, LayerDesignError
 from geotek.core.models.profile import SoilProfile
 from geotek.core.models.walls import (
     Backfill,
@@ -150,10 +150,10 @@ def foundation_from_profile(profile: SoilProfile, base_depth: float, *,
     overburden = float(profile.stresses(base_depth, gwt_case)[2]) if base_depth > 0 else 0.0
     if drainage == "undrained":
         if d.su is None:
-            raise GeoTekError(f"Layer {layer.id}: undrained analysis needs design s_u")
+            raise LayerDesignError(layer, "su_missing")
         return FoundationSoil(drainage="undrained", su=d.su, gamma=gamma, overburden=overburden)
     if d.phi_eff is None:
-        raise GeoTekError(f"Layer {layer.id}: design phi' not set")
+        raise LayerDesignError(layer, "phi_missing")
     return FoundationSoil(phi=d.phi_eff, c=d.c_eff, gamma=gamma, overburden=overburden,
                           delta_base=d.delta_base)
 
@@ -170,11 +170,11 @@ def bands_from_profile(profile: SoilProfile, base_depth: float,
         d = layer.design
         if mode == "undrained":
             if d.su is None:
-                raise GeoTekError(f"Layer {layer.id}: design s_u not set")
+                raise LayerDesignError(layer, "su_missing")
             bands.append(SoilBand(top=top, gamma=layer.gamma_sat, c=d.su, phi=0.0))
         else:
             if d.phi_eff is None:
-                raise GeoTekError(f"Layer {layer.id}: design phi' not set")
+                raise LayerDesignError(layer, "phi_missing")
             bands.append(SoilBand(top=top, gamma=layer.gamma_sat, c=d.c_eff, phi=d.phi_eff))
     return bands
 

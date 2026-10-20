@@ -1,6 +1,7 @@
 import { Badge, SimpleGrid, Stack, Table, Text, Title } from "@mantine/core";
 import { useTranslation } from "react-i18next";
 import type { SoundingLiquefactionDTO } from "../../../shared/api/types";
+import { useWarningText } from "../../../shared/hooks/useWarningText";
 import { DepthChart } from "./DepthChart";
 
 const format = (value: number | null | undefined) =>
@@ -8,9 +9,10 @@ const format = (value: number | null | undefined) =>
 
 export function SoundingDetail({ id, sounding }: { id: string; sounding: SoundingLiquefactionDTO }) {
   const { t } = useTranslation();
+  const warningText = useWarningText();
   const label = (key: string) => t(`liquefaction.results.${key}`);
   const warnings = sounding.warnings.map((warning) => warning === "mock_result_not_a_calculation"
-    ? label("mock_note") : t(warning, { defaultValue: warning })).join("; ") || "—";
+    ? label("mock_note") : warningText(warning)).join("; ") || "—";
 
   return (
     <Stack gap="sm">

@@ -129,8 +129,8 @@ describe("summariseZones", () => {
       { ...base, depth: 4, zone: null },
     ]);
     expect(rows).toEqual([
-      { zone: 3, count: 1, top: 2, bottom: 2 },
-      { zone: 5, count: 2, top: 1, bottom: 3 },
+      { zone: 3, count: 1, top: 2, bottom: 3 },
+      { zone: 5, count: 2, top: 1, bottom: 4 },
     ]);
   });
 });

@@ -25,6 +25,7 @@ import {
   list_structures,
   update_structure,
 } from "../../../shared/api/client";
+import { errorMessage } from "../../../shared/api/errorMessage";
 import { check_wall, size_wall } from "../api";
 import type {
   CantileverGeometry,
@@ -889,7 +890,7 @@ export function WallWizardPage() {
 
             {job.error && missingFactors.length === 0 && (
               <Alert color="red" title={t(`error.${job.error.code}`)}>
-                <Text size="xs">{job.error.message}</Text>
+                <Text size="xs">{errorMessage(job.error, t)}</Text>
               </Alert>
             )}
 

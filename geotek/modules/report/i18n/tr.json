@@ -50,6 +50,7 @@
   "report.wall.geometry": "Geometri",
   "report.wall.verdict": "Sonuç",
   "report.wall.governing": "Belirleyici kontrol",
+  "report.wall.governing_utilisation": "Belirleyici kontrol (en yüksek kullanım oranı)",
   "report.wall.checks": "Kontroller",
   "report.check.case": "Durum",
   "report.check.name": "Kontrol",

@@ -58,7 +58,7 @@ def test_liquefaction_example(project, method):
     assert np.all(cpt.status[(cpt.depth > 6.5) & (cpt.depth < 8.5)] == "clay_like")
     spt = r.liquefaction["SK-1"]
     assert spt.status[spt.depth == 7.5][0] == "clay_like"  # lab PI = 19
-    assert any("Default FC" in w for w in spt.warnings)
+    assert any(w.startswith("liquefaction.warning.default_fc") for w in spt.warnings)
 
 
 def test_missing_fc_is_reported_not_raised(project):

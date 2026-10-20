@@ -12,7 +12,7 @@ from typing import TYPE_CHECKING
 import numpy as np
 
 from geotek.core.constants import GAMMA_W
-from geotek.core.errors import GeoTekError
+from geotek.core.errors import GeoTekError, LayerDesignError
 from geotek.core.models.profile import DesignParameters, GroundwaterCondition, SoilLayer, SoilProfile
 from geotek.core.models.structures import GwtCase, StructureSoilModel
 from geotek.core.models.walls import CantileverGeometry, FoundationSoil, GravityGeometry, WallLoads, WallSettings
@@ -77,11 +77,11 @@ def foundation_from_structure(soil: StructureSoilModel, front_depth: float, base
     warnings = []
     if layer.behaviour == "undrained":
         if d.su is None or d.su <= 0:
-            raise GeoTekError(f"Layer {layer.id}: foundation needs positive design s_u")
+            raise LayerDesignError(layer, "su_not_positive")
         foundation = FoundationSoil(drainage="undrained", su=d.su, gamma=gamma, overburden=max(q, 0.0))
     else:
         if d.phi_eff is None:
-            raise GeoTekError(f"Layer {layer.id}: design phi' not set")
+            raise LayerDesignError(layer, "phi_missing")
         foundation = FoundationSoil(phi=d.phi_eff, c=d.c_eff, gamma=gamma,
                                     overburden=max(q, 0.0), delta_base=d.delta_base)
     for lower in profile.layers:
@@ -115,11 +115,11 @@ def _profile_bands(profile: SoilProfile, a: float, b: float, base: float,
         d = layer.design
         if layer.behaviour == "undrained":
             if d.su is None:
-                raise GeoTekError(f"Layer {layer.id}: design s_u not set")
+                raise LayerDesignError(layer, "su_missing")
             c, phi = d.su, 0.0
         else:
             if d.phi_eff is None:
-                raise GeoTekError(f"Layer {layer.id}: design phi' not set")
+                raise LayerDesignError(layer, "phi_missing")
             c, phi = d.c_eff, d.phi_eff
         if top == 0.0 and gwt == 0.0:
             # A zero-thickness dry cap becomes finite above z=0 on sloping ground.

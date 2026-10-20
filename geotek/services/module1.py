@@ -16,6 +16,7 @@ import numpy as np
 from geotek.core.models.investigations import Borehole
 from geotek.core.models.profile import SoilProfile
 from geotek.core.models.project import Project
+from geotek.core.warning_codes import format_warning
 from geotek.engine.insitu.cpt import CPTProcessed, process_cpt
 from geotek.engine.insitu.spt import SPTProcessed, process_borehole
 from geotek.engine.liquefaction import LiquefactionResult, analyze_cpt, analyze_spt
@@ -76,7 +77,8 @@ def spt_fc_pi(borehole: Borehole, default_fc: float | None):
                 f"Borehole {borehole.id}: no lab FC at depth(s) {missing} m; enter a default FC"
             )
         fc[np.isnan(fc)] = default_fc
-        notes.append(f"Default FC = {default_fc:g}% used at depth(s) {missing} m")
+        notes.append(format_warning("liquefaction.warning.default_fc", fc=float(default_fc),
+                                    depths=", ".join(f"{d:g}" for d in missing)))
     return fc, np.array(pi), notes
 
 
