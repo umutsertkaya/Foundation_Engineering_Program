@@ -15,10 +15,20 @@ import {
   type GoverningInfo,
 } from "../labels";
 
-/** FS / ratio display: three decimals below 1 (e/B), two otherwise; non-finite = unlimited. */
+/** FS / ratio display: three decimals below 1 (e/B), two otherwise; an undefined value is "—". */
 export function formatQuantity(value: number | null): string {
-  if (value === null || !Number.isFinite(value)) return "∞";
+  if (value === null || !Number.isFinite(value)) return "—";
   return Math.abs(value) < 1 ? value.toFixed(3) : value.toFixed(2);
+}
+
+/**
+ * The API sends every non-finite check value as null (calculation_results / schemas `_finite_or_none`).
+ * Only a passed `>=` check can come from +∞ (e.g. no driving force); NaN never passes and a `<=` check
+ * passes only with -∞, so anything else is shown as undefined rather than unlimited.
+ */
+export function formatCheckValue(check: Pick<CheckDTO, "value" | "comparison" | "passed">): string {
+  if (check.value === null && check.comparison === ">=" && check.passed) return "∞";
+  return formatQuantity(check.value);
 }
 
 export interface WallCheckCardProps {
@@ -81,7 +91,7 @@ export function WallCheckCard({ check, governing, governingKind }: WallCheckCard
               {t("walls.result.computed")}
             </Text>
             <Text size="sm" ff="monospace" fw={700} data-field="value">
-              {formatQuantity(check.value)}
+              {formatCheckValue(check)}
             </Text>
           </div>
           <div>

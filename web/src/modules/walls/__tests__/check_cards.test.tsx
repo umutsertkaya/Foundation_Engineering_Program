@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import trCatalog from "../../../../../geotek/i18n/tr.json";
 import wallsTr from "../../../../../geotek/modules/walls/i18n/tr.json";
 import i18n from "../../../app/i18n";
-import { WallCheckCards, formatQuantity } from "../components/WallCheckCards";
+import { WallCheckCards, formatCheckValue, formatQuantity } from "../components/WallCheckCards";
 import { WallResultView } from "../components/WallResultView";
 import { check, GRAVITY, renderThemed, result } from "./helpers";
 
@@ -109,9 +109,14 @@ describe("WallCheckCards", () => {
   });
 
   it("formats undefined and small quantities", () => {
-    expect(formatQuantity(null)).toBe("∞");
+    expect(formatQuantity(null)).toBe("—");
     expect(formatQuantity(0.1667)).toBe("0.167");
     expect(formatQuantity(1.456)).toBe("1.46");
+    // null = non-finite: unlimited only for a passed >= check (+inf); NaN fails, <= passes only with -inf.
+    expect(formatCheckValue({ value: null, comparison: ">=", passed: true })).toBe("∞");
+    expect(formatCheckValue({ value: null, comparison: ">=", passed: false })).toBe("—");
+    expect(formatCheckValue({ value: null, comparison: "<=", passed: true })).toBe("—");
+    expect(formatCheckValue({ value: 2.5, comparison: ">=", passed: true })).toBe("2.50");
   });
 });
 
