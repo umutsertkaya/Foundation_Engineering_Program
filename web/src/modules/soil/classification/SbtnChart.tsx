@@ -16,7 +16,7 @@ export function SbtnChart({ reference, points }: { reference: SBTNReferenceDTO; 
   const toPts = (list: { Fr: number | null; Qtn: number | null }[]): Pt[] =>
     list.flatMap((c) => (c.Fr !== null && c.Qtn !== null ? [{ x: c.Fr, y: c.Qtn }] : []));
   const draw = (list: { Fr: number | null; Qtn: number | null }[]) =>
-    clipSegments(toPts(list), xr, yr).map((run) => pathOf(run.map((p) => ({ x: px(p.x), y: py(p.y) }))));
+    clipSegments(toPts(list), xr, yr, true, true).map((run) => pathOf(run.map((p) => ({ x: px(p.x), y: py(p.y) }))));
 
   const plotted = points.filter(
     (p) => p.Fr !== null && p.Qtn !== null && p.Fr >= xr.min && p.Fr <= xr.max && p.Qtn >= yr.min && p.Qtn <= yr.max,

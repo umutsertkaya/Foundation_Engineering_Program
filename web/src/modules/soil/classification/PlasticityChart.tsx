@@ -31,7 +31,8 @@ export function PlasticityChart({ reference, items }: { reference: USCSReference
     ).map((run) => pathOf(run.map((p) => ({ x: px(p.x), y: py(p.y) }))));
 
   const plottable = items.filter(
-    (i) => i.LL !== null && i.PI !== null && i.LL <= LL_RANGE.max && i.PI <= PI_RANGE.max,
+    (i) => i.LL !== null && i.PI !== null && i.LL >= LL_RANGE.min && i.LL <= LL_RANGE.max
+      && i.PI >= PI_RANGE.min && i.PI <= PI_RANGE.max,
   );
   const withLimits = items.filter((i) => i.LL !== null && i.PI !== null).length;
   const hidden = withLimits - plottable.length;

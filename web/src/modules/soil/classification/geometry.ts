@@ -34,19 +34,54 @@ export function inside(p: Pt, xr: Range, yr: Range): boolean {
     && p.x >= xr.min && p.x <= xr.max && p.y >= yr.min && p.y <= yr.max;
 }
 
-/** Splits a sampled polyline into runs of consecutive points that lie inside both ranges. */
-export function clipSegments(points: Pt[], xr: Range, yr: Range): Pt[][] {
-  const out: Pt[][] = [];
-  let run: Pt[] = [];
-  for (const p of points) {
-    if (inside(p, xr, yr)) {
-      run.push(p);
-    } else if (run.length > 0) {
-      out.push(run);
-      run = [];
+/** Liang-Barsky clip of one segment to the box; null when it lies fully outside. */
+function clipSegment(a: Pt, b: Pt, xr: Range, yr: Range, lx: boolean, ly: boolean): [Pt, Pt] | null {
+  const tx = (v: number) => (lx ? Math.log10(v) : v);
+  const ty = (v: number) => (ly ? Math.log10(v) : v);
+  const ux = (v: number) => (lx ? 10 ** v : v);
+  const uy = (v: number) => (ly ? 10 ** v : v);
+  const x0 = tx(a.x), y0 = ty(a.y), dx = tx(b.x) - x0, dy = ty(b.y) - y0;
+  let t0 = 0;
+  let t1 = 1;
+  const edges: [number, number][] = [
+    [-dx, x0 - tx(xr.min)], [dx, tx(xr.max) - x0], [-dy, y0 - ty(yr.min)], [dy, ty(yr.max) - y0],
+  ];
+  for (const [p, q] of edges) {
+    if (p === 0) {
+      if (q < 0) return null;
+    } else {
+      const r = q / p;
+      if (p < 0) { if (r > t1) return null; t0 = Math.max(t0, r); }
+      else { if (r < t0) return null; t1 = Math.min(t1, r); }
     }
   }
-  if (run.length > 0) out.push(run);
+  return [
+    t0 === 0 ? a : { x: ux(x0 + t0 * dx), y: uy(y0 + t0 * dy) },
+    t1 === 1 ? b : { x: ux(x0 + t1 * dx), y: uy(y0 + t1 * dy) },
+  ];
+}
+
+/**
+ * Splits a sampled polyline into runs inside both ranges; segments crossing the boundary are cut
+ * at the boundary. `logX` / `logY` interpolate in log10 space for log axes.
+ */
+export function clipSegments(points: Pt[], xr: Range, yr: Range, logX = false, logY = false): Pt[][] {
+  const out: Pt[][] = [];
+  let run: Pt[] = [];
+  const flush = () => { if (run.length > 1) out.push(run); run = []; };
+  const ok = points.filter((p) => Number.isFinite(p.x) && Number.isFinite(p.y)
+    && (!logX || p.x > 0) && (!logY || p.y > 0));
+  for (let i = 1; i < ok.length; i += 1) {
+    const seg = clipSegment(ok[i - 1], ok[i], xr, yr, logX, logY);
+    if (!seg) { flush(); continue; }
+    const [s, e] = seg;
+    const last = run[run.length - 1];
+    if (last && (last.x !== s.x || last.y !== s.y)) flush();
+    if (run.length === 0) run.push(s);
+    run.push(e);
+    if (e !== ok[i]) flush();
+  }
+  flush();
   return out;
 }
 

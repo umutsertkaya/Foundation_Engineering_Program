@@ -69,8 +69,10 @@ describe("chart geometry", () => {
   it("splits a polyline where it leaves the ranges", () => {
     const pts = [{ x: 1, y: 1 }, { x: 2, y: 2 }, { x: 3, y: 99 }, { x: 4, y: 1 }];
     const runs = clipSegments(pts, { min: 0, max: 10 }, { min: 0, max: 10 });
-    expect(runs.map((r) => r.length)).toEqual([2, 1]);
-    expect(pathOf(runs[0])).toBe("M1.0,1.0 L2.0,2.0");
+    expect(runs.map((r) => r.length)).toEqual([3, 2]);
+    expect(pathOf(runs[0])).toBe("M1.0,1.0 L2.0,2.0 L2.1,10.0");
+    expect(runs[0][2].y).toBeCloseTo(10);
+    expect(runs[1][1]).toEqual({ x: 4, y: 1 });
   });
 
   it("lists decade ticks and finds line crossings", () => {
@@ -92,7 +94,7 @@ describe("SbtnChart", () => {
     expect(screen.getByTestId("sbtn-hidden")).toHaveTextContent("2");
     const zone1 = screen.getByTestId("sbtn-zone1");
     const ys = pathYs(zone1.getAttribute("d") ?? "");
-    expect(ys).toHaveLength(2);
+    expect(ys).toHaveLength(3);
     expect(Math.max(...ys)).toBeLessThanOrEqual(PLOT.height - PLOT.bottom);
     expect(screen.getAllByTestId("sbtn-contour")).toHaveLength(1);
   });
