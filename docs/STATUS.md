@@ -117,3 +117,10 @@ Etki (σv=100, σ'v=60 kPa, bağımsız denklem hesabı; FS = CRR·MSF·Kσ/CSR 
 kum (qc 10000) CRR 0.276→0.276 (0%); siltli kum (4000/60) 0.154→0.157 (+2%); kil (800) değişmez; Ic≈2.56 ara bölge (900/5) 0.084→0.087 (+3%); düşük-F siltli kum (2000/5, F<0.5) 0.071→0.085 (+18%, kısayol kalktığı için Kc 1→1.62). Etki yalnız Ic>1.64 ara/siltli CPT katmanlarında; temiz kum değişmez.
 Test 2026-10-20: tam pytest 1688 geçti/1 atlandı; discrepancy 16 geçti; gen_code_map --check 0. Andrus-Stokoe üssü (madde 5) doğrulanmadı, kod değişmedi.
 Not (T3a-FIX inceleme): Kc'deki F<0.5 kısayolu R&W 1998'de vardı, Youd 2001 Eq.19'da yok; çevre PDF metni doğrulanmadı, koordinatör kararıyla silinmiş kalır. Ic tanımsız (net qc<=0, fs<=0, σ'v<=0) noktalar NaN -> INVALID + uyarı; fs=0 artık "clay_like" değil INVALID. Ic>2.6 noktalar mevcut sözleşmeyle CLAY_LIKE (FS atanmaz). σ'v>Pa için n=0.7 ara dalı ızgara taramasında ulaşılamadı (yalnız n=0.5/1).
+
+## Bekleyen işlerin kapatılması (2026-10-20)
+
+- T1 (feat/t1-liq-charts) ve T3b (test/T3b-bearing-earthpressure) main'e birleştirildi; T3b test dosyalarındaki BOM kaldırıldı (kod haritası testini bozuyordu). Bulut testi: pytest 1802 geçti, 3 atlandı, 1 ortam hatası (PySide6 yok, `test_dynamic_i18n_keys_exist`); web Vitest 298 geçti, tsc temiz; gen_code_map --check 0.
+- T4 belgeleri (`katsayi_dogrulama.md`, `research/katsayi_kaynak_arastirmasi_2026-10-20.md`) main'de.
+- T3a-FIX açıkları **doğrulanamadı** (2026-10-20): Youd 2001 tam metni bulut ağından alınamadı (memphis.edu/cgs.ca erişilemez). (a) F<0.5 kısayolu Youd 2001 Eq.19'da var mı: kaynak görülmeden karar verilmedi, kod değişmedi (kaldırılmış hâli +2…+18% CRR, yalnız Ic>1.64). (b) Andrus-Stokoe üssü: kod (M/7.5)^-3.3, Tablo 3 ile tutuyor; -2.56 Idriss'in (Eq.24) üssüdür, çıkarım artefaktı olasılığı yüksek, basılı metinden doğrulanmadı. Cihazdan PDF ile kontrol gerekir.
+- Bağımsız incelemeler (T1, T4 Antigravity; T8a Antigravity; T8b Codex luna) ai-orchestrator bağlanamadığı için çalıştırılamadı (cihaz oturumu gerekir).
