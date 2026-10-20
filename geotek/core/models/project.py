@@ -71,7 +71,8 @@ class Project(BaseModel):
     build are preserved unchanged on save.
     """
     module2_inputs: dict[str, dict] = Field(default_factory=dict)
-    """Legacy (PySide6 UI): last form values of the Module 2 pages. Kept until that UI is removed."""
+    """Legacy field of the removed PySide6 UI (last Module 2 form values); kept so older .gtk
+    files round-trip without silently losing data. Nothing reads it."""
 
     @model_validator(mode="after")
     def _check_refs(self) -> Project:

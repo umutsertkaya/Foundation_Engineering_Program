@@ -17,3 +17,6 @@ test-results/
 
 # Telifli tam metin makaleler (yalnız yerel; STATUS'ta atıf yapılır)
 docs/research/Youd.et.al.*
+
+# Agent worktrees (local only)
+.claude/worktrees/

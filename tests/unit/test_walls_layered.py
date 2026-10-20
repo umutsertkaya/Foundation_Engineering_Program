@@ -12,7 +12,7 @@ from geotek.core.models.profile import DesignParameters, GroundwaterCondition, S
 from geotek.core.models.structures import StructureSoilModel
 from geotek.core.models.walls import Backfill, CantileverGeometry, GravityGeometry, WallLoads, WallSettings
 from geotek.engine.earth_pressure.coefficients import (
-    mononobe_okabe_kae, rankine_ka, seismic_angle, tbdy_kae_steep, tbdy_seismic_coefficients, TBDY_R,
+    mononobe_okabe_kae, seismic_angle, tbdy_kae_steep, tbdy_seismic_coefficients, TBDY_R,
 )
 from geotek.engine.earth_pressure.distribution import lateral_pressure
 from geotek.engine.earth_pressure.wedge import trial_wedge

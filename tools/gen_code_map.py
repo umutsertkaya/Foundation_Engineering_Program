@@ -448,14 +448,9 @@ def render() -> str:
     pgroup = py_group
     groups = sorted({pgroup(m) for m in pdeps})
     agg = edges_between(pdeps, pgroup)
-    # hide the legacy PySide6 UI from the main diagram to keep it readable
-    main_groups = [g for g in groups if g not in ("geotek.ui", "geotek.plotting")]
-    main_agg = {k: v for k, v in agg.items() if k[0] in main_groups and k[1] in main_groups}
-    L += ["### Paket diyagramı (web-yolu; eski `ui`/`plotting` ayrı listelenir)", ""]
-    L += mermaid(main_groups, main_agg)
-    legacy = sorted((a, b, n) for (a, b), n in agg.items() if a in ("geotek.ui", "geotek.plotting"))
-    L += ["", "Eski PySide6 yolu (`geotek.ui`, `geotek.plotting`) bağları: " +
-          (", ".join(f"{a}→{b} ({n})" for a, b, n in legacy) or "yok") + ".", ""]
+    L += ["### Paket diyagramı", ""]
+    L += mermaid(groups, agg)
+    L += [""]
 
     L += ["### Paket bağımlılık tablosu", "", "| Paket | Dosya | Bağımlı olduğu paketler |", "|---|---:|---|"]
     for g in groups:

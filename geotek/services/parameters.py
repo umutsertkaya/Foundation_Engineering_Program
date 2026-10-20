@@ -178,7 +178,7 @@ def evaluate_candidates(
         for correlation in registry.applicable(key, inputs):
             try:
                 result = registry.evaluate(correlation.id, inputs)
-            except (ArithmeticError, ValueError) as exc:
+            except (ArithmeticError, ValueError):
                 # Some registered scalar formulae divide before reaching numpy's
                 # errstate (e.g. qc / sigma'_v at the ground surface).
                 result = DerivedParameter(

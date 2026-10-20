@@ -23,13 +23,10 @@ from pydantic import (
 )
 
 from geotek.config.codes import FactorStatus
-from geotek.core.models.investigations import Borehole, CPTSounding
-from geotek.core.models.parameters import DesignKey, SelectionMode, Statistic
 from geotek.core.models.profile import (
     GroundwaterCondition,
     LayeringSettings,
     ProfileOrigin,
-    SoilLayer,
 )
 from geotek.core.models.project import ProjectMeta, SiteSeismic
 from geotek.core.models.structures import StructureSoilModel, WallDesignInputs

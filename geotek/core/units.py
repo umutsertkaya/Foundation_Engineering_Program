@@ -56,13 +56,6 @@ def dimension_of(unit: str) -> str:
         raise UnitError(f"Unknown unit: {unit!r}") from None
 
 
-def units_for(dimension: str) -> list[str]:
-    try:
-        return list(_UNITS[dimension])
-    except KeyError:
-        raise UnitError(f"Unknown dimension: {dimension!r}") from None
-
-
 def convert(value, from_unit: str, to_unit: str):
     """Convert a scalar or array between two units of the same dimension."""
     dim_from, f_from = _LOOKUP.get(from_unit, (None, None))

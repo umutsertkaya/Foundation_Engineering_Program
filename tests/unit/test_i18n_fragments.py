@@ -77,7 +77,7 @@ def test_wrong_prefix_raises(
 def test_core_collision_raises(tmp_path: Path, monkeypatch: pytest.MonkeyPatch, lang: str):
     monkeypatch.setattr(i18n, "_MODULES_DIR", tmp_path)
     core = _read(Path(i18n.__file__).parent / f"{lang}.json")
-    key = next(key for key in core if key.startswith("soil."))
+    key = next(iter(core))  # any core key, whatever its prefix
     _write_fragment(tmp_path, "soil", lang, {key: "Override"})
     with pytest.raises(ValueError, match="collides with core"):
         i18n._catalog(lang)
