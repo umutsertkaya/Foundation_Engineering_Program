@@ -729,14 +729,17 @@ def design_sheet_pile_structure(project: Project, structure_id: str, progress: P
             reporter.emit(0.3, "job.step.seismic_checks")
         log = FactorLog(code)
         # Preserve the basic sheet-pile convention (FS=static 1.5 even with seismic action).
-        factor = log.value("safety.sheet_pile_passive.static")
+        # EM 1110-2-2504 Table 5-1: fine-grained (undrained, Q-case) front soil needs the larger factor.
+        fine = any(layer.behaviour == "undrained" and layer.bottom > structure.retained_height
+                   for layer in structure.soil.front_profile().layers)
+        factor = log.value("safety.sheet_pile_passive_fine.static" if fine else "safety.sheet_pile_passive.static")
         result, kh = _sheet_case(structure, structure.soil, seismic=seismic, passive_factor=factor,
                                  strength_reduction=True)
         assumptions = [
             Assumption(text="Katmanlı Rankine aktif/pasif; ön/arka profil ve YASS ayrı; hidrostatik su; sızma yok",
                        source="Rankine (1857); P1 §1", code="sheet_pile.layered_rankine"),
             Assumption(text=f"Pasif basınç GS={factor:g} ile bölündü; tanφ′ ve c′ de GS ile bölünerek bulunan pasif basınç "
-                            "daha küçükse o alındı (yüksek φ′; USACE EM 1110-2-2504 5-2d)", source=code.source_of("safety.sheet_pile_passive.static").source,
+                            "daha küçükse o alındı (yüksek φ′; USACE EM 1110-2-2504 5-2d)", source=code.source_of("safety.sheet_pile_passive_fine.static" if fine else "safety.sheet_pile_passive.static").source,
                        code="sheet_pile.passive_factor", params={"factor": factor}),
             Assumption(text="Konsolda Blum gömülmesi %20 artırılır; ankrajlıda serbest zemin desteği",
                        source="Mevcut sheet_pile.py; USS Steel Sheet Piling Design Manual / USACE EM 1110-2-2504",

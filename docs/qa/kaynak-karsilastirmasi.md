@@ -77,13 +77,21 @@ Büyüklük doğru; arayüzde "uç kuvveti (karşı kuvvet) |R|" olarak mutlak d
 
 ## 5. Açık kararlar ve Umut'tan istenenler
 
-**A1 (öneri: uygula).** İnce daneli (drenajsız, Q durumu) pasifte EM 2504 Tablo 5-1 FS = 2.00 (olağan) / 1.75 / 1.50 ister;
-programın temel palplanş yolu ve `asd.yaml` hepsi için 1.5. Drenajsız katmanda pasif (σ_v + 2 s_u) / 1.5 verir. Öneri:
-`asd.yaml`'a ince daneli için ayrı FS ve drenajsız katmanda EM yöntemi (yalnız s_u'ya FS, σ_v'ye değil) uygulansın.
-**A2.** Palplanşta deprem artımı dağılımı: KDYY P9 örneği (AASHTO 2010) düzgün; program H üstünde düzgün, altında ΔK·σ_v.
-Basit karşılaştırma (φ = 30°, H = 5, k_h = 0.2, k_v = 0.1): D0 6.83 m (program) / 7.45 m (artımı toe'ya kadar düzgün alırsak;
-KDYY örneği artımı yalnız dönme noktasına kadar uygular, bu nedenle kesin bir kıyas değildir). Öneri: değiştirme, uyarı
-metnine "KDYY P9 düzgün dağılım kullanır" ekle.
+**A1 (uygulandı, 2026-10-21).** İnce daneli (drenajsız, Q) pasifte temel palplanş yolu ve yapı yolu artık FS = 2.0
+(EM 2504 Tablo 5-1, olağan); `asd.yaml` → `sheet_pile_passive_fine` (statik 2.0, deprem 1.5). Drenajsız pasifte FS yine
+kuvvete uygulanır (σ_v + 2s_u)/FS; EM'in "yalnız s_u'ya FS" biçimi uygulanmadı.
+**A2 (sonraki adım; kod `wip/kdyy-seismic` dalında, birleştirilmedi).** KDYY dağılımıyla karşılaştırma programı güvensiz buldu
+(φ = 32°, k_h = 0.2: konsol D0 8.37 m yerine 9.30 m, M_max 624 yerine 974 kNm/m; ankrajlı T 80.4 yerine 90.7 kN/m, %5–29).
+Dalda: ½·ΔK_ad·σ′v(uç) düzgün + sürşarj için 2·q·ΔK_ad·(1−z/uç) üçgen, uç derinliği sabit nokta yinelemesiyle
+(`net_pressure(seismic_dk, seismic_toe)`, `structures._sheet_case`). Hedefli testler geçti (158 + 4); eksikler: tam test,
+CLAUDE.md'nin istediği iki bağımsız salt okuma incelemesi, kullanıcıya formül özeti, i18n varsayım metinleri
+(`sheet_pile.assumption.sheet_pile.seismic`), eski H/2 düzgün artım testlerinin güncellenmesi.
+**Şev yön kontrolü (sonraki adım).** `bishop` yalnız kayan kütle −x yönüne hareket ediyorsa doğru m_α kuralını uygular;
+ters yönlü geometride sin α < 0 dilimi olmayan daire m_α'yı olduğundan yüksek (güvensiz) verir. Önerilen: `bishop`'ta
+çıkış tarafı dilimi yoksa (min sin α ≥ 0) daireyi reddet ve `SlopeModel` için yüzey eğimi yönü denetimi + hata testi.
+`tbdy_kae_steep` β: `SlopeError` ile β ≥ φ′ − ψ durumunda durduruluyor, değişiklik gerekmedi. `toe_force`: konsol için
+işareti kazı yönünde negatif, büyüklük doğru; arayüzde |R| gösterimi önerilir (ön yüz kapsamı, "Exe arayüz" işiyle
+çakışmamak için dokunulmadı).
 **A3.** ec7.yaml dışında sonuç almak için: AASHTO 11.5.7-1, TBDY 16.24b ve 16.26 metni (B8, B13–B15 için) hâlâ gerekli.
 
 Umut'tan alternatif/ek kaynak istekleri (öncelik sırasıyla):
