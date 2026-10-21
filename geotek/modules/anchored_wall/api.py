@@ -129,6 +129,9 @@ def router() -> APIRouter:
         body: AnchoredWallAnalysisInputs, session: SessionDep, save: bool = False,
     ) -> AnalysisResult:
         """Analyse the anchored wall; with ``save`` store inputs and result in the open project."""
+        missing = analysis_engine.missing_inputs(body)
+        if missing:
+            api_error(422, "missing_inputs", "Missing analysis inputs: " + ", ".join(missing), missing=missing)
         try:
             result = analysis_engine.run_analysis(body)
         except analysis_engine.AnchoredWallStop as exc:

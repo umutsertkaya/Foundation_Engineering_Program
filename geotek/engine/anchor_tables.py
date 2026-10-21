@@ -52,8 +52,16 @@ MIN_FREE_LENGTH = {"strand": 4.5, "bar": 3.0}
 """Minimum unbonded length [m], GEC-4 section 5.3.4, p. 67."""
 MIN_FREE_LENGTH_SOURCE = f"{GEC4} section 5.3.4, p. 67"
 
-TYPICAL_BOND_LENGTH_MAX = 12.0
-"""GEC-4 section 5.3.6, p. 71: capacity gain beyond about 12 m is not reliable."""
+MIN_BOND_LENGTH = {("soil", "strand"): 4.5, ("soil", "bar"): 4.5, ("rock", "strand"): 4.5, ("rock", "bar"): 3.0}
+"""Minimum bond length [m], GEC-4 appendix E part 3B (p. E-15); rock also section 5.3.6, p. 74."""
+MIN_BOND_LENGTH_SOURCE = f"{GEC4} appendix E part 3B, p. E-15"
+
+MIN_HORIZONTAL_SPACING = 1.2
+"""Minimum horizontal anchor spacing [m], GEC-4 figure 37b, p. 76 (group effects, drill deviation)."""
+
+TYPICAL_BOND_LENGTH_MAX = {"soil": 12.0, "rock": 10.0}
+"""GEC-4 section 5.3.6: soil, capacity gain beyond about 12 m is not reliable (p. 71); rock,
+typical bond lengths 3-10 m (p. 74)."""
 INCLINATION_RANGE = (10.0, 45.0)
 """GEC-4 section 5.3.6, p. 70: 10°-45° is within most contractors' capability."""
 

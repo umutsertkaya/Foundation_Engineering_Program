@@ -63,13 +63,38 @@ def _notices(w, items: list[Notice], kind: str, prefix: str = "") -> list[str]:
     return [prefix + _notice(w, kind, n) for n in items]
 
 
-def _checks(w, checks: list[AnchorCheck]) -> None:
+def _checks(w, checks: list[AnchorCheck], prefixes: list[str] | None = None) -> None:
     if not checks:
         return
+    prefixes = prefixes or [""] * len(checks)
     w.table([w.tr("anchored_wall.report.check"), w.tr("anchored_wall.report.demand"),
              w.tr("anchored_wall.report.limit"), w.tr("anchored_wall.report.result")],
-            [[w.coded(f"anchored_wall.check.{c.id}", {}, c.id), _num(c.demand), _num(c.limit),
-              w.passfail(c.ok)] for c in checks])
+            [[prefix + w.coded(f"anchored_wall.check.{c.id}", {}, c.id), _num(c.demand), _num(c.limit),
+              w.passfail(c.ok)] for c, prefix in zip(checks, prefixes)])
+
+
+def _common_rows(w, c) -> list[tuple[str, str]]:
+    """Anchor design inputs shared by the single anchor and every analysed level."""
+    rows = [(w.tr("anchored_wall.report.safety_factor"), _num(c.safety_factor))]
+    if c.ultimate_transfer_load is not None:
+        rows.append((w.tr("anchored_wall.report.transfer_load"), _num(c.ultimate_transfer_load, 1)))
+    else:
+        rows += [(w.tr("anchored_wall.missing.ultimate_bond_stress"), _num(c.ultimate_bond_stress, 1)),
+                 (w.tr("anchored_wall.missing.hole_diameter"), _num(c.hole_diameter, 3))]
+    rows += [
+        (w.tr("anchored_wall.missing.lock_off_ratio"), _num(c.lock_off_ratio)),
+        (w.tr("anchored_wall.input.test_factor"), _num(c.test_factor)),
+        (w.tr("anchored_wall.input.design_limit"), _num(c.design_limit)),
+        (w.tr("anchored_wall.input.lock_off_limit"), _num(c.lock_off_limit)),
+        (w.tr("anchored_wall.input.test_limit"), _num(c.test_limit)),
+        (w.tr("anchored_wall.input.tendon_type"), w.tr(f"anchored_wall.tendon.{c.tendon.type}")
+         + ("" if c.tendon.library_id is None else f" ({c.tendon.library_id})")),
+        (w.tr("anchored_wall.report.ground"), w.tr(f"anchored_wall.ground.{c.ground}")),
+        (w.tr("anchored_wall.input.beyond_wedge"), _num(c.beyond_wedge)),
+    ]
+    if c.transfer_load_ref:
+        rows.append((w.tr("anchored_wall.input.transfer_load_ref"), c.transfer_load_ref))
+    return rows
 
 
 def _evidence(w, assumptions: list[Notice], warnings: list[Notice], sources: list[str]) -> None:
@@ -110,6 +135,11 @@ def _anchor_section(w, inputs: AnchorDesignInputs, result: AnchorDesignResult) -
         (w.tr("anchored_wall.input.head_depth"), _num(inputs.head_depth)),
         (w.tr("anchored_wall.input.inclination"), _num(inputs.inclination_deg, 1)),
         (w.tr("anchored_wall.input.phi"), _num(inputs.phi_deg, 1)),
+        *([(w.tr("anchored_wall.missing.horizontal_load_per_m"), _num(inputs.horizontal_load_per_m, 1)),
+           (w.tr("anchored_wall.missing.spacing"), _num(inputs.spacing))]
+          if inputs.horizontal_load_per_m is not None
+          else [(w.tr("anchored_wall.missing.axial_load"), _num(inputs.axial_load, 1))]),
+        *_common_rows(w, inputs),
     ] + _design_rows(w, result))
     _checks(w, result.checks)
     _evidence(w, result.assumptions, result.warnings, result.sources)
@@ -123,7 +153,20 @@ def _analysis_section(w, result: AnalysisResult, inputs) -> None:
         (w.tr("anchored_wall.report.drainage"), w.tr(f"anchored_wall.drainage.{inputs.drainage}")),
         (w.tr("anchored_wall.report.slope"), _num(inputs.backfill_slope, 1)),
         (w.tr("anchored_wall.report.surcharge"), _num(inputs.surcharge)),
+        (w.tr("anchored_wall.input.surcharge_basis"), w.tr(f"anchored_wall.input.surcharge_basis_{inputs.surcharge_basis}")),
         (w.tr("anchored_wall.report.passive_factor"), _num(inputs.passive_factor)),
+        (w.tr("anchored_wall.input.depth_increase"), _num(inputs.depth_increase)),
+        *([(w.tr("anchored_wall.input.pile_spacing"), _num(inputs.pile_spacing)),
+           (w.tr("anchored_wall.input.passive_width"), _num(inputs.passive_width))]
+          if inputs.wall_type == "soldier_pile" else []),
+        *([(w.tr("anchored_wall.input.service"), w.tr(f"anchored_wall.service.{inputs.service}")),
+           (w.tr("anchored_wall.input.excavation_width"), _num(inputs.excavation_width)),
+           (w.tr("anchored_wall.input.excavation_length"), _num(inputs.excavation_length)),
+           (w.tr("anchored_wall.input.stiff_layer_depth"), _num(inputs.stiff_layer_depth)),
+           (w.tr("anchored_wall.input.henkel_depth"), _num(inputs.henkel_depth)),
+           (w.tr("anchored_wall.input.stiff_clay_coefficient"), _num(inputs.stiff_clay_coefficient))]
+          if inputs.drainage == "undrained" else []),
+        (w.tr("anchored_wall.input.allowable_stress"), _num(inputs.section.allowable_stress_mpa, 1)),
         (w.tr("anchored_wall.report.method"), w.tr(f"anchored_wall.method.{result.method}")),
         (w.tr("anchored_wall.result.embedment_theoretical"), _num(result.embedment_theoretical)),
         (w.tr("anchored_wall.result.embedment"), _num(result.embedment)),
@@ -134,9 +177,13 @@ def _analysis_section(w, result: AnalysisResult, inputs) -> None:
         *([(w.tr("anchored_wall.result.m_max_member"), _num(result.m_max_member, 1)),
            (w.tr("anchored_wall.result.v_max_member"), _num(result.v_max_member, 1))]
           if result.wall_type == "soldier_pile" else []),
-        (w.tr("anchored_wall.result.required_section_modulus"),
+        (w.tr("anchored_wall.result.required_section_modulus")
+         + (f" ({w.tr('anchored_wall.unit.cm3_pile')})" if result.wall_type == "soldier_pile" else " (cm³/m)"),
          _num(result.required_section_modulus_cm3, 1)),
     ])
+    if inputs.anchor_design is not None:
+        w.heading(w.tr("anchored_wall.input.design_anchors"), 3)
+        w.key_values(_common_rows(w, inputs.anchor_design))
     soil = inputs.soil.profile
     w.heading(w.tr("anchored_wall.report.soil"), 3)
     w.table(
@@ -171,13 +218,34 @@ def _analysis_section(w, result: AnalysisResult, inputs) -> None:
     if problems:
         w.heading(w.tr("anchored_wall.report.design_problems"), 3)
         w.bullets(problems)
-    _checks(w, result.checks)
-    assumptions, warnings = list(result.assumptions), list(result.warnings)
+    if result.basal_heave is not None:
+        b = result.basal_heave
+        w.paragraph(w.tr("anchored_wall.report.basal_heave", fs=_num(b.fs), required=_num(b.fs_required, 1),
+                         nc=_num(b.nc), su=_num(b.su_below, 1), b=_num(b.b_eff)))
+    checks, prefixes = list(result.checks), [""] * len(result.checks)
     for lv in result.levels:
         if lv.design is not None:
-            assumptions += [n for n in lv.design.assumptions if n not in assumptions]
-            warnings += [n for n in lv.design.warnings if n not in warnings]
-    _evidence(w, assumptions, warnings, result.sources)
+            checks += lv.design.checks
+            prefixes += [f"{_num(lv.depth)} m: "] * len(lv.design.checks)
+    _checks(w, checks, prefixes)
+    if result.assumptions:
+        w.heading(w.tr("report.assumptions"), 3)
+        w.bullets(_notices(w, result.assumptions, "assumption"))
+    warnings = _notices(w, result.warnings, "warning")
+    level_assumptions = []
+    for lv in result.levels:
+        if lv.design is not None:
+            label = f"{_num(lv.depth)} m: "
+            warnings += _notices(w, lv.design.warnings, "warning", label)
+            level_assumptions += _notices(w, lv.design.assumptions, "assumption", label)
+    if level_assumptions:
+        w.bullets(level_assumptions)
+    if warnings:
+        w.heading(w.tr("report.warnings"), 3)
+        w.bullets(warnings)
+    if result.sources:
+        w.heading(w.tr("anchored_wall.report.sources"), 3)
+        w.bullets(list(result.sources))
 
 
 def report_writer(w, project, entry_id: str) -> None:

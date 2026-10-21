@@ -57,7 +57,8 @@ class AnchorDesignInputs(_Model):
     wedge_origin_below_base: float = Field(0.0, ge=0)
     """Depth of the failure surface origin below the excavation base [m]; 0 = at the corner."""
     beyond_wedge: float | None = Field(None, gt=0)
-    """Distance of the bond zone start behind the failure surface [m]; default max(1.5, 0.2 H)."""
+    """Clearance chi of the bond zone behind the failure surface, measured normal to the surface
+    (GEC-4 fig. 37a) [m]; default max(1.5, 0.2 H)."""
     # Load: either horizontal load per metre of wall with spacing, or axial load per anchor
     horizontal_load_per_m: float | None = Field(None, gt=0)
     """T_h,i: horizontal anchor load per metre of wall [kN/m]."""
@@ -169,6 +170,9 @@ class AnchorDesignResult(_Model):
     wedge_length: float
     """Anchor length from the head to the failure surface [m]."""
     beyond_wedge: float
+    """Clearance chi behind the failure surface, measured normal to it (GEC-4 fig. 37a) [m]."""
+    beyond_wedge_along_anchor: float | None = None
+    """chi / sin(45 + phi/2 + alpha): the same clearance along the anchor axis [m]."""
     free_length_required: float
     free_length_minimum: float
     free_length: float
@@ -259,15 +263,28 @@ class AnchoredWallAnalysisInputs(_Model):
     """Retained ground slope β [°]; single anchor level only."""
     surcharge: float = Field(0.0, ge=0)
     surcharge_basis: SurchargeBasis = Field("horizontal", description=SURCHARGE_BASIS_DESCRIPTION)
-    passive_factor: float = Field(1.0, ge=1)
-    """Divisor on the passive resistance below the excavation base."""
+    passive_factor: float | None = Field(None, ge=1)
+    """Divisor on the passive resistance below the excavation base; required (GEC-4 5.5.3
+    suggests 1.5, shown to the user, never applied by default)."""
     depth_increase: float | None = Field(None, ge=0)
     """D = D0 (1 + increase); ``None``: 0 for one level, 0.2 for several levels."""
     front_water_depth: float | None = Field(None, ge=0)
     load_method: Literal["hinge", "tributary"] = "hinge"
     """Several levels: how the apparent pressure envelope is split into anchor loads."""
     stiff_clay_coefficient: float = Field(0.3, ge=0.2, le=0.4)
-    """Several levels, stiff clay (γH/Su <= 4): envelope ordinate = coefficient x γ H."""
+    """Stiff clay (N_s <= 4): envelope ordinate p = coefficient x γ H (GEC-4 fig. 27: 0.2-0.4)."""
+    service: Literal["temporary", "permanent"] | None = None
+    """Undrained (clay) analyses: temporary or permanent works; sets the basal heave target
+    FS (GEC-4 5.8.2.2: 1.5 / 2.5) and the stiff clay long-term check. Required for clay."""
+    excavation_width: float | None = Field(None, gt=0)
+    """B: excavation width [m]; required for clay (basal heave, GEC-4 eq. 34-36)."""
+    excavation_length: float | None = Field(None, gt=0)
+    """L: excavation length [m]; ``None`` = long excavation (B/L = 0, lowest N_c)."""
+    stiff_layer_depth: float | None = Field(None, gt=0)
+    """D: depth of a stiff stratum below the excavation base [m]; ``None`` = deep soft deposit."""
+    henkel_depth: float | None = Field(None, gt=0)
+    """d: depth of the Henkel failure surface below the excavation base [m] (GEC-4 eq. 12,
+    fig. 28); ``None`` = B' of the basal heave check (B/√2 or the stiff layer depth)."""
     pile_spacing: float | None = Field(None, gt=0)
     """Soldier pile wall: centre spacing [m]."""
     passive_width: float | None = Field(None, gt=0)
@@ -319,6 +336,28 @@ class EnvelopeResult(_Model):
     ka: float | None
     z: list[float]
     p: list[float]
+    ns: float | None = None
+    """Clay: stability number γH / Su,b with Su,b below the excavation base (GEC-4 eq. 9)."""
+    su_below: float | None = None
+
+
+class BasalHeaveResult(_Model):
+    """Bottom heave of a cut in clay, GEC-4 5.8.2.2 eq. 34-36 (Terzaghi et al. 1996)."""
+
+    b_eff: float
+    """B': B/√2, or the depth D of a stiff stratum when smaller [m]."""
+    b_eff_basis: Literal["width", "stiff_layer"]
+    nc: float
+    """Nc of eq. 37: lower of Skempton (1951) and the GEC-4 figure 51c chart at H/B, B/L."""
+    su_below: float
+    """Lowest design Su between the base and B' below it [kPa]."""
+    su_retained: float
+    """Thickness-averaged Su over the retained height (shear on the block side) [kPa]."""
+    gamma: float
+    surcharge: float
+    fs: float
+    fs_required: float
+    ok: bool
 
 
 class AnalysisResult(_Model):
@@ -343,6 +382,7 @@ class AnalysisResult(_Model):
     v_max_member: float
     required_section_modulus_cm3: float | None
     checks: list[AnchorCheck]
+    basal_heave: BasalHeaveResult | None = None
     z: list[float]
     shear: list[float]
     moment: list[float]

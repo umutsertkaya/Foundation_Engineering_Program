@@ -2,7 +2,7 @@ import { Badge, Card, Group, SimpleGrid, Stack, Table, Text, Title } from "@mant
 import { useTranslation } from "react-i18next";
 import { fmt } from "../format";
 import type { AnalysisResult, AnchorCheck, AnchorDesignResult, StructureSoil } from "../types";
-import { Notices } from "./Notices";
+import { Notices, type LabelledNotice } from "./Notices";
 import { ForceDiagrams, WallSection } from "./WallSection";
 
 function Stat({ label, value, unit }: { label: string; value: string; unit?: string }) {
@@ -16,7 +16,8 @@ function Stat({ label, value, unit }: { label: string; value: string; unit?: str
   );
 }
 
-export function Checks({ checks }: { checks: AnchorCheck[] }) {
+/** Check rows; ``prefixes[i]`` labels row i (the anchor level of a per-level check). */
+export function Checks({ checks, prefixes }: { checks: AnchorCheck[]; prefixes?: string[] }) {
   const { t, i18n } = useTranslation();
   if (checks.length === 0) return null;
   return (
@@ -30,11 +31,12 @@ export function Checks({ checks }: { checks: AnchorCheck[] }) {
         </Table.Tr>
       </Table.Thead>
       <Table.Tbody>
-        {checks.map((c) => {
+        {checks.map((c, i) => {
           const key = `anchored_wall.check.${c.id}`;
+          const prefix = prefixes?.[i];
           return (
-            <Table.Tr key={c.id}>
-              <Table.Td>{i18n.exists(key) ? t(key) : c.id}</Table.Td>
+            <Table.Tr key={`${c.id}-${i}`}>
+              <Table.Td>{prefix ? `${prefix}: ` : ""}{i18n.exists(key) ? t(key) : c.id}</Table.Td>
               <Table.Td>{fmt(c.demand)}</Table.Td>
               <Table.Td>{fmt(c.limit)}</Table.Td>
               <Table.Td>
@@ -83,6 +85,14 @@ export function AnalysisResultView({ result, soil }: { result: AnalysisResult; s
   const { t } = useTranslation();
   const designed = result.levels.some((lv) => lv.design != null);
   const soldier = result.wall_type === "soldier_pile";
+  const levelLabel = (depth: number) => `${t("anchored_wall.report.level_depth")} ${fmt(depth)}`;
+  // Per-level anchor checks are listed with the wall checks so a failure is never hidden.
+  const allChecks = [
+    ...result.checks.map((check) => ({ check, prefix: "" })),
+    ...result.levels.flatMap((lv) => (lv.design?.checks ?? []).map((check) => ({ check, prefix: levelLabel(lv.depth) }))),
+  ];
+  const levelNotices = (kind: "warnings" | "assumptions"): LabelledNotice[] =>
+    result.levels.flatMap((lv) => (lv.design?.[kind] ?? []).map((n) => ({ ...n, prefix: levelLabel(lv.depth) })));
   return (
     <Stack gap="md" data-testid="aw-analysis-result">
       <Group justify="space-between">
@@ -98,7 +108,7 @@ export function AnalysisResultView({ result, soil }: { result: AnalysisResult; s
         <Stat label={t("anchored_wall.result.v_max")} value={fmt(result.v_max, 1)} unit="kN/m" />
         {soldier && <Stat label={t("anchored_wall.result.m_max_member")} value={fmt(result.m_max_member, 1)} unit="kNm" />}
         {soldier && <Stat label={t("anchored_wall.result.v_max_member")} value={fmt(result.v_max_member, 1)} unit="kN" />}
-        <Stat label={t("anchored_wall.result.required_section_modulus")} value={fmt(result.required_section_modulus_cm3, 1)} unit="cm³" />
+        <Stat label={t("anchored_wall.result.required_section_modulus")} value={fmt(result.required_section_modulus_cm3, 1)} unit={soldier ? t("anchored_wall.unit.cm3_pile") : "cm³/m"} />
       </SimpleGrid>
       {result.envelope && (
         <Text size="sm" data-testid="aw-envelope">
@@ -150,12 +160,23 @@ export function AnalysisResultView({ result, soil }: { result: AnalysisResult; s
         </Table.Tbody>
       </Table>
 
-      <Checks checks={result.checks} />
+      {result.basal_heave && (
+        <Text size="sm" data-testid="aw-basal">
+          {t("anchored_wall.report.basal_heave", {
+            fs: fmt(result.basal_heave.fs, 2),
+            required: fmt(result.basal_heave.fs_required, 1),
+            nc: fmt(result.basal_heave.nc, 2),
+            su: fmt(result.basal_heave.su_below, 1),
+            b: fmt(result.basal_heave.b_eff, 2),
+          })}
+        </Text>
+      )}
+      <Checks checks={allChecks.map((r) => r.check)} prefixes={allChecks.map((r) => r.prefix)} />
       <WallSection result={result} soil={soil} />
       <ForceDiagrams result={result} />
       <Notices
-        warnings={dedupe([...result.warnings, ...result.levels.flatMap((lv) => lv.design?.warnings ?? [])])}
-        assumptions={dedupe([...result.assumptions, ...result.levels.flatMap((lv) => lv.design?.assumptions ?? [])])}
+        warnings={dedupe([...result.warnings, ...levelNotices("warnings")])}
+        assumptions={dedupe([...result.assumptions, ...levelNotices("assumptions")])}
         sources={result.sources}
       />
     </Stack>
@@ -165,7 +186,7 @@ export function AnalysisResultView({ result, soil }: { result: AnalysisResult; s
 function dedupe<T extends { code: string; params?: unknown }>(items: T[]): T[] {
   const seen = new Set<string>();
   return items.filter((n) => {
-    const key = `${n.code}:${JSON.stringify(n.params ?? {})}`;
+    const key = `${(n as { prefix?: string }).prefix ?? ""}:${n.code}:${JSON.stringify(n.params ?? {})}`;
     if (seen.has(key)) return false;
     seen.add(key);
     return true;

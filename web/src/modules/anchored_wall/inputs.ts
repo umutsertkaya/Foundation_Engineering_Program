@@ -219,6 +219,11 @@ export interface AnalysisForm {
   depth_increase: Num;
   load_method: "hinge" | "tributary";
   stiff_clay_coefficient: Num;
+  service: "temporary" | "permanent" | null;
+  excavation_width: Num;
+  excavation_length: Num;
+  stiff_layer_depth: Num;
+  henkel_depth: Num;
   pile_spacing: Num;
   passive_width: Num;
   w_cm3: Num;
@@ -239,10 +244,15 @@ export const EMPTY_ANALYSIS: AnalysisForm = {
   backfill_slope: 0,
   surcharge: 0,
   surcharge_basis: "horizontal",
-  passive_factor: 1,
+  passive_factor: "",
   depth_increase: "",
   load_method: "hinge",
   stiff_clay_coefficient: 0.3,
+  service: null,
+  excavation_width: "",
+  excavation_length: "",
+  stiff_layer_depth: "",
+  henkel_depth: "",
   pile_spacing: "",
   passive_width: "",
   w_cm3: "",
@@ -270,6 +280,15 @@ export function analysisMissing(f: AnalysisForm): string[] {
     if (!has(lv.spacing) || lv.spacing <= 0) out.push(`level_${i}_spacing`);
     if (!has(lv.inclination_deg)) out.push(`level_${i}_inclination`);
   });
+  if (!has(f.passive_factor) || f.passive_factor < 1) out.push("passive_factor");
+  if (!has(f.surcharge)) out.push("surcharge");
+  if (!has(f.backfill_slope)) out.push("backfill_slope");
+  if (!has(f.stiff_clay_coefficient)) out.push("stiff_clay_coefficient");
+  if (f.drainage === "undrained") {
+    if (f.service === null) out.push("service");
+    if (!has(f.excavation_width) || f.excavation_width <= 0) out.push("excavation_width");
+  }
+  if (f.levels.length > 1 && has(f.backfill_slope) && f.backfill_slope > 0) out.push("backfill_slope_multi");
   if (f.wall_type === "soldier_pile") {
     if (!has(f.pile_spacing)) out.push("pile_spacing");
     if (!has(f.passive_width)) out.push("passive_width");
@@ -291,13 +310,18 @@ export function analysisPayload(f: AnalysisForm): AnalysisInputs {
       inclination_deg: has(lv.inclination_deg) ? lv.inclination_deg : 0,
     })),
     drainage: f.drainage,
-    backfill_slope: has(f.backfill_slope) ? f.backfill_slope : 0,
-    surcharge: has(f.surcharge) ? f.surcharge : 0,
+    backfill_slope: f.backfill_slope as number,
+    surcharge: f.surcharge as number,
     surcharge_basis: f.surcharge_basis,
-    passive_factor: has(f.passive_factor) ? f.passive_factor : 1,
+    passive_factor: opt(f.passive_factor),
     depth_increase: opt(f.depth_increase),
     load_method: f.load_method,
-    stiff_clay_coefficient: has(f.stiff_clay_coefficient) ? f.stiff_clay_coefficient : 0.3,
+    stiff_clay_coefficient: f.stiff_clay_coefficient as number,
+    service: f.drainage === "undrained" ? f.service : null,
+    excavation_width: f.drainage === "undrained" ? opt(f.excavation_width) : null,
+    excavation_length: f.drainage === "undrained" ? opt(f.excavation_length) : null,
+    stiff_layer_depth: f.drainage === "undrained" ? opt(f.stiff_layer_depth) : null,
+    henkel_depth: f.drainage === "undrained" ? opt(f.henkel_depth) : null,
     pile_spacing: soldier ? opt(f.pile_spacing) : null,
     passive_width: soldier ? opt(f.passive_width) : null,
     section: { w_cm3: opt(f.w_cm3), allowable_stress_mpa: opt(f.allowable_stress_mpa), ei_knm2: opt(f.ei_knm2) },
@@ -313,10 +337,15 @@ export function analysisFromPayload(p: AnalysisInputs): AnalysisForm {
     backfill_slope: p.backfill_slope,
     surcharge: p.surcharge,
     surcharge_basis: p.surcharge_basis,
-    passive_factor: p.passive_factor,
+    passive_factor: num(p.passive_factor),
     depth_increase: num(p.depth_increase),
     load_method: p.load_method,
     stiff_clay_coefficient: p.stiff_clay_coefficient,
+    service: p.service ?? null,
+    excavation_width: num(p.excavation_width),
+    excavation_length: num(p.excavation_length),
+    stiff_layer_depth: num(p.stiff_layer_depth),
+    henkel_depth: num(p.henkel_depth),
     pile_spacing: num(p.pile_spacing),
     passive_width: num(p.passive_width),
     w_cm3: num(p.section?.w_cm3),
@@ -332,11 +361,10 @@ export function analysisFromPayload(p: AnalysisInputs): AnalysisForm {
 /** Same JSON with the keys the form does not edit removed: dirty checks compare payloads. */
 export const sameInputs = (a: unknown, b: unknown): boolean => JSON.stringify(a) === JSON.stringify(b);
 
-/** Layers that lack the design value the analysis needs over the excavation depth. */
-export function soilGaps(soil: StructureSoil | null, drainage: "drained" | "undrained", height: Num): string[] {
+/** Layers that lack the design value the analysis needs (above and below the base: the embedment,
+ * the single-level solver and the basal heave check use the layers below it too). */
+export function soilGaps(soil: StructureSoil | null, drainage: "drained" | "undrained"): string[] {
   if (!soil) return [];
   const key = drainage === "drained" ? "phi_eff" : "su";
-  return soil.profile.layers
-    .filter((l) => (!has(height) || l.top < height) && (l.design?.[key] ?? null) == null)
-    .map((l) => l.id);
+  return soil.profile.layers.filter((l) => (l.design?.[key] ?? null) == null).map((l) => l.id);
 }
