@@ -12,6 +12,7 @@ factor_sources:
   load: {source: "AASHTO LRFD Tablo 3.4.1-1/-2 — doğrulanmadı", status: unverified}
   load.DC: {source: "AASHTO LRFD Tablo 3.4.1-2 (eyalet DOT kılavuzlarında aynı)", status: secondary}
   load.EV: {source: "AASHTO LRFD Tablo 3.4.1-2 (eyalet DOT kılavuzlarında aynı)", status: secondary}
+  load.EH_at_rest: {source: "fhwa.dot.gov/publications/research/infrastructure/structures/11026 (012.cfm) Tablo 17, AASHTO aktarımı: EH at-rest 1.35 / 0.90 (okundu 2026-10-21; AASHTO metni değil)", status: secondary}
   load.EH_active: {source: "AASHTO LRFD Tablo 3.4.1-2 (eyalet DOT kılavuzlarında aynı)", status: secondary}
   resistance: {source: "AASHTO LRFD Tablo 11.5.7-1 — doğrulanmadı", status: unverified}
   resistance.strength.bearing: {source: "AASHTO LRFD Tablo 11.5.7-1 (MoDOT, WisDOT kılavuzları); araştırma raporunda doğrulanmadı", status: unverified}
@@ -58,6 +59,10 @@ verification:
     value: "DC 1.25/0.90, EH 1.50/0.90, EV 1.35/1.00"
     status: secondary
     source: "Consistent across state DOT manuals quoting AASHTO Table 3.4.1-2 (WSDOT BDM Ch. 3, WisDOT Ch. 14, NHDOT Ch. 4, Caltrans BDP Ch. 3) - search excerpts only"
+  - item: "EH at-rest load factor max / min"
+    value: "1.35 / 0.90"
+    status: secondary
+    source: "fhwa.dot.gov/publications/research/infrastructure/structures/11026 (012.cfm) Table 17 reproducing AASHTO LRFD Table 3.4.1-2 (EH active 1.50/0.90, at-rest 1.35/0.90, AEP 1.35), read 2026-10-21"
   - item: "Bearing resistance factor, gravity / semi-gravity walls"
     value: "0.55"
     status: secondary

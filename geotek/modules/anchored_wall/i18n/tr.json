@@ -59,7 +59,7 @@
   "anchored_wall.assumption.envelope_source_unverified": "Zarf şekilleri ve menteşe yöntemi Peck diyagramlarının özet bir ders notuyla karşılaştırıldı, özgün şekillerle değil; tasarımda kullanmadan önce doğrulayın.",
   "anchored_wall.assumption.load_method_hinge": "Ankraj yükleri menteşe yöntemiyle: ilk ankraj dışında her ankrajda menteşe; momentler aynı modelden.",
   "anchored_wall.assumption.load_method_tributary": "Ankraj yükleri katkı alanı yöntemiyle (destekler arası orta noktalar); momentler yine menteşe modelinden.",
-  "anchored_wall.assumption.embedment_from_base_reaction": "Gömülme: taban reaksiyonu R_B ve taban altı net basınç (pasif, girilen güvenlik sayısına bölünmüş) altında uç noktaya göre moment dengesi. GEC-4 5.5.3 kuvvet ölçütünden daha derin sonuç verir.",
+  "anchored_wall.assumption.embedment_from_base_reaction": "Gömülme: taban reaksiyonu R_B ve taban altı net basınç (pasif, girilen güvenlik sayısına bölünmüş; tanφ′ ve c′ de bu sayıya bölünerek bulunan pasif basınç daha küçükse o alınır, USACE EM 1110-2-2504 5-2d) altında uç noktaya göre moment dengesi. GEC-4 5.5.3 kuvvet ölçütünden daha derin sonuç verir.",
   "anchored_wall.assumption.sand_surcharge_uniform": "Kum zarfı: sürşarj tüm yükseklikte düzgün Ka q ekler.",
   "anchored_wall.assumption.stiff_clay_coefficient": "Sert kil zarf ordinatı p = {value}·γH (kullanıcı seçimi, GEC-4 Şekil 27 aralığı 0,2–0,4); trapez biçim.",
   "anchored_wall.assumption.stiff_clay_bottom_ramp_omitted": "Sert kil zarfının alt rampası bırakıldı (güvenli taraf).",

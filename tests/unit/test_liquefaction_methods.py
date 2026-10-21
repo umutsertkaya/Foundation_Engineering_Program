@@ -154,6 +154,14 @@ def test_status_precedence():
 
 def test_lpi():
     # intervals 1-3, 3-5, 5-7 m; only the first has FS < 1: (1 - 0.5) * integral(10 - 0.5z) = 0.5 * 18
-    assert liquefaction_potential_index([2.0, 4.0, 6.0], [0.5, np.nan, 2.0]) == pytest.approx(9.0)
+    # when the water table is at 1 m (the first interval is not extended above it)
+    assert liquefaction_potential_index([2.0, 4.0, 6.0], [0.5, np.nan, 2.0], gwt_depth=1.0) == pytest.approx(9.0)
+    # no GWT given: the first point also represents the layer above it, 0-3 m:
+    # 0.5 * (10*3 - 0.25*3^2) = 0.5 * 27.75 (Iwasaki integral starts at the ground surface)
+    assert liquefaction_potential_index([2.0, 4.0, 6.0], [0.5, np.nan, 2.0]) == pytest.approx(13.875)
+    # water table below the default interval top (1.5 m > 1 m): nothing to extend
+    assert liquefaction_potential_index([2.0, 4.0, 6.0], [0.5, np.nan, 2.0], gwt_depth=1.5) == pytest.approx(9.0)
+    # GWT at the surface behaves like no GWT
+    assert liquefaction_potential_index([2.0, 4.0, 6.0], [0.5, np.nan, 2.0], gwt_depth=0.0) == pytest.approx(13.875)
     assert liquefaction_potential_index([25.0, 26.0], [0.1, 0.1]) == 0.0  # below 20 m
     assert [lpi_category(v) for v in (0, 3, 10, 20)] == ["very_low", "low", "high", "very_high"]

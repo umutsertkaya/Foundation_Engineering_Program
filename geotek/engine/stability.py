@@ -23,6 +23,10 @@ from scipy.optimize import minimize
 from geotek.core.constants import GAMMA_W
 from geotek.core.errors import GeoTekError
 
+DRIVING_MIN_RATIO = 1e-6
+"""A circle is rejected when its net driving moment is below this fraction of the sum of the
+absolute slice moments (a symmetric mass on flat ground cancels to round-off)."""
+
 M_ALPHA_MIN = 0.2
 """Circles with a smaller m_alpha on an exit-side slice (alpha < 0) are rejected."""
 
@@ -164,7 +168,9 @@ def bishop(model: SlopeModel, xc: float, yc: float, R: float, *, n_slices: int =
     u = GAMMA_W * np.maximum(0.0, (model.water_level - ybot)) if model.water_level is not None else np.zeros_like(xm)
 
     driving = float(np.sum(W * sin_a) + np.sum(model.kh * W * (yc - yg)) / R)
-    if driving <= 0:
+    if driving <= DRIVING_MIN_RATIO * float(np.sum(np.abs(W * sin_a)) + np.sum(model.kh * W * np.abs(yc - yg)) / R):
+        # No driving moment (flat or reversed ground): the quotient would be round-off noise
+        # (FS ~ 1e16) instead of a safety factor.
         return None
     numer_base = c * b + np.maximum(W - u * b, 0.0) * tphi
     F = 1.0

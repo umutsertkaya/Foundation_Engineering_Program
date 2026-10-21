@@ -126,7 +126,7 @@
   "sheet_pile.warning.sheet_pile.mock": "Örnek sonuç; mühendislik hesabı değildir.",
   "sheet_pile.assumption.sheet_pile.default_approach": "Tasarım yaklaşımı seçilmedi; yönetmeliğin ilk yaklaşımı {approach} kullanıldı.",
   "sheet_pile.assumption.sheet_pile.layered_rankine": "Katmanlı Rankine aktif/pasif; ön/arka profil ve YASS ayrı; hidrostatik su; sızma yok",
-  "sheet_pile.assumption.sheet_pile.passive_factor": "Pasif basınç GS={factor} ile bölündü",
+  "sheet_pile.assumption.sheet_pile.passive_factor": "Pasif basınç GS={factor} ile bölündü; tanφ′ ve c′ de GS ile bölünerek bulunan pasif basınç daha küçükse o alındı (yüksek φ′; USACE EM 1110-2-2504 5-2d)",
   "sheet_pile.assumption.sheet_pile.support_method": "Konsolda Blum gömülmesi %{percent} artırılır; ankrajlıda serbest zemin desteği",
   "sheet_pile.assumption.sheet_pile.depth_increase": "Gömülme artışı: {increase}; D = D0 × (1 + artış)",
   "sheet_pile.assumption.sheet_pile.front_water_depth": "Ön YASS üstten {depth} m olarak geçersiz kılındı; tasarım ve deprem durumlarında aynı seviye kullanılır",

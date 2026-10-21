@@ -9,8 +9,9 @@ Single-anchored wall - free earth support: the pile toe is free to rotate. Momen
 anchor give D; horizontal equilibrium gives the anchor force T.
 
 Safety is applied either by dividing the passive pressure by ``passive_factor`` (FS on
-passive resistance), by increasing the embedment, or both (USS Steel Sheet Piling Design
-Manual; USACE EM 1110-2-2504). Depths are measured from the retained ground surface (z = 0);
+passive resistance; with ``passive_strength_reduction`` the smaller of that and the pressure from
+tan(phi') and c' divided by the factor, USACE EM 1110-2-2504 para. 5-2d), by increasing the
+embedment, or both (USS Steel Sheet Piling Design Manual). Depths are measured from the retained ground surface (z = 0);
 the dredge line is at z = H.
 
 Pressures: active behind over the full length, passive in front below the dredge line, both
@@ -35,6 +36,24 @@ from geotek.engine.earth_pressure.distribution import PressureDistribution, late
 
 DZ = 0.002
 """Integration step [m]."""
+
+
+def strength_reduced_profile(profile: SoilProfile, factor: float) -> SoilProfile:
+    """Copy of ``profile`` with tan(phi') and c' divided by ``factor`` in every layer.
+
+    This is the way USACE EM 1110-2-2504 (para. 5-2d, Table 5-1) applies its factor of safety on
+    passive pressure ("effective" phi and c). Undrained strengths (s_u) are left unchanged: for
+    those the pressure is linear in s_u and dividing the whole force by the factor is the
+    smaller (safer) value, so ``min`` of the two methods picks it.
+    """
+    layers = []
+    for layer in profile.layers:
+        design = layer.design
+        update: dict = {"c_eff": design.c_eff / factor}
+        if design.phi_eff is not None:
+            update["phi_eff"] = math.degrees(math.atan(math.tan(math.radians(design.phi_eff)) / factor))
+        layers.append(layer.model_copy(update={"design": design.model_copy(update=update)}))
+    return profile.model_copy(update={"layers": layers})
 
 
 def _evaluate(dist: PressureDistribution, z_query, offset: float = 0.0, which: str = "sigma_h_eff",
@@ -67,7 +86,7 @@ class NetPressure:
     active: np.ndarray
     """Total pressure behind (effective + water) [kPa]."""
     passive: np.ndarray
-    """Factored total pressure in front (effective / passive_factor + water) [kPa]."""
+    """Factored total pressure in front (reduced effective pressure + water) [kPa]."""
     net: np.ndarray
     """active - passive, positive pushing the wall toward the excavation."""
     warnings: list[str] = field(default_factory=list)
@@ -95,10 +114,11 @@ def net_pressure(
     passive_seismic_ratio: float = 1.0,
     backfill_slope: float = 0.0,
     passive_width_ratio: float = 1.0,
+    passive_strength_reduction: bool = False,
 ) -> NetPressure:
     """Net pressure diagram. ``active_factor``, ``surcharge_factor`` and ``water_factor`` are
     load factors on the soil, surcharge and water parts of the driving pressure (partial
-    factor design); the passive side is divided by ``passive_factor``.
+    factor design); the passive side is divided by ``passive_factor`` (see the module docstring).
 
     Seismic (simplified): ``seismic_increment`` [kPa] is a uniform dynamic pressure added
     behind the wall over the retained height H (resultant at H/2, TBDY 16.12.2.8);
@@ -112,6 +132,11 @@ def net_pressure(
     ground stays horizontal). Rankine uses the slope coefficient with the resultant parallel to
     the surface; c' is dropped on sloping ground with a warning. ``surcharge`` is per horizontal
     projection (see ``surcharge_per_horizontal``).
+
+    ``passive_strength_reduction`` applies the global factor of safety the USACE EM 1110-2-2504
+    way as well (tan(phi') and c' divided by ``passive_factor``) and takes the smaller passive
+    pressure; it is for global-FS (ASD) design, not for partial factors on the resistance
+    (EN 1997-1 gamma_R;e, KDYY gamma_Re), which divide the force only.
 
     ``passive_width_ratio`` (<= 1) is the effective passive width over the member spacing for
     soldier pile walls; it scales the effective passive pressure only, not the water."""
@@ -132,6 +157,11 @@ def net_pressure(
         drainage=drainage, min_efp=min_efp, beta=backfill_slope, slope_cohesion="ignore")
     pas = lateral_pressure(profile, bottom - H, state="passive", method=passive_method,
                            delta=passive_delta, drainage=drainage, top=H)
+    pas_s = None
+    if passive_factor > 1.0 and passive_strength_reduction:
+        pas_s = lateral_pressure(strength_reduced_profile(profile, passive_factor), bottom - H,
+                                 state="passive", method=passive_method, delta=passive_delta,
+                                 drainage=drainage, top=H)
     # Fine grid plus every breakpoint twice (left and right limits) so jumps are exact
     breaks = np.unique(np.concatenate([act.z, act0.z, pas.z + H, [H]]))
     grid = np.arange(0.0, bottom + DZ / 2, DZ)
@@ -145,6 +175,13 @@ def net_pressure(
     a_eff = active_factor * a_0 + surcharge_factor * (a_q - a_0)
     p_eff = _evaluate(pas, z, offset=H, left=left) * passive_seismic_ratio * passive_width_ratio
     p_eff[(z < H) | ((z == H) & left)] = 0.0
+    p_div = p_eff / passive_factor
+    if pas_s is not None:
+        # EM 1110-2-2504 divides tan(phi') and c' by the factor; for dense sand that gives a
+        # smaller passive pressure than dividing the force. Use the smaller of the two.
+        p_s = _evaluate(pas_s, z, offset=H, left=left) * passive_seismic_ratio * passive_width_ratio
+        p_s[(z < H) | ((z == H) & left)] = 0.0
+        p_div = np.minimum(p_div, p_s)
     if seismic_increment:
         a_eff = a_eff + np.where((z < H) | ((z == H) & left), seismic_increment, 0.0)
     if seismic_increment_below > 0:
@@ -161,7 +198,7 @@ def net_pressure(
             raise GeoTekError("Front water level above the dredge line is not supported")
         u_front = GAMMA_W * np.maximum(0.0, z - fw)
     active = a_eff + water_factor * u_back
-    passive = p_eff / passive_factor + u_front
+    passive = p_div + u_front
     return NetPressure(z=z, active=active, passive=passive, net=active - passive,
                        warnings=[w for w in act.warnings if "sloping backfill" in w])
 

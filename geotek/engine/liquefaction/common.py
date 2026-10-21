@@ -24,6 +24,9 @@ INVALID = "invalid"
 
 NO_FS_STATUSES = (ABOVE_GWT, CLAY_LIKE, DENSE, EXCLUDED, BEYOND_DEPTH, INVALID)
 
+LPI_SURFACE_EXTENSION_DEPTH = 2.0
+"""Depth [m] up to which the first test point is extended to the ground surface in the LPI."""
+
 SIMPLIFIED_DEPTH_WARNING = 20.0
 """Depth [m] beyond which the simplified procedure is less reliable."""
 
@@ -62,13 +65,21 @@ def tributary_thickness(depth) -> tuple[np.ndarray, np.ndarray]:
     return top, bot
 
 
-def liquefaction_potential_index(depth, fs) -> float:
+def liquefaction_potential_index(depth, fs, gwt_depth: float | None = None) -> float:
     """LPI = integral over 0-20 m of F(z) w(z) dz (Iwasaki et al. 1978).
 
     F = 1 - FS for FS < 1, else 0 (NaN FS, i.e. non-susceptible points, count as 0);
     w = 10 - 0.5 z.
+
+    When the first test point is shallow (at most ``LPI_SURFACE_EXTENSION_DEPTH``), it also
+    represents the layer above it: its interval is extended up to the ground surface, where
+    the weight is largest (dropping that layer is on the unsafe side), but not above
+    ``gwt_depth`` when given, since soil above the water table is not counted as liquefiable.
     """
     top, bot = tributary_thickness(depth)
+    top = top.copy()
+    if depth[0] <= LPI_SURFACE_EXTENSION_DEPTH:
+        top[0] = min(top[0], 0.0 if gwt_depth is None else max(0.0, float(gwt_depth)))
     top, bot = np.minimum(top, 20.0), np.minimum(bot, 20.0)
     fs = np.asarray(fs, dtype=float)
     F = np.where(np.isfinite(fs) & (fs < 1.0), 1.0 - fs, 0.0)
@@ -123,7 +134,7 @@ class LiquefactionResult:
 
     @property
     def lpi(self) -> float:
-        return liquefaction_potential_index(self.depth, self.fs)
+        return liquefaction_potential_index(self.depth, self.fs, self.gwt_depth)
 
     def to_dataframe(self) -> pd.DataFrame:
         cols = {

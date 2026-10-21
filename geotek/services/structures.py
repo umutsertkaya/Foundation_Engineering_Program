@@ -31,7 +31,9 @@ from geotek.engine.limit_state import (
     LimitStateCase, SheetPileDesign, _design_structure_soil, layered_design_code, layered_limit_state_cases,
     required_layered_inputs, verify_wall_layered,
 )
-from geotek.engine.sheet_pile import SheetPileResult, _cumulative, _evaluate, _internal_forces, _root, _section
+from geotek.engine.sheet_pile import (
+    SheetPileResult, _cumulative, _evaluate, _internal_forces, _root, _section, strength_reduced_profile,
+)
 from geotek.engine.walls.base import CheckResult
 from geotek.engine.walls.global_stability import wall_global_stability
 from geotek.engine.walls.layered import (
@@ -616,7 +618,7 @@ def _sheet_assumptions(structure):
 
 
 def _sheet_case(structure, design_soil, *, seismic, passive_factor, active_factor=1.0,
-                surcharge_factor=1.0, water_factor=1.0, seismic_factor=1.0):
+                surcharge_factor=1.0, water_factor=1.0, seismic_factor=1.0, strength_reduction=False):
     """Existing Blum/free-earth solver with independent active/passive structure profiles.
 
     Only the pressure adapter is new; numerical integration/root/section routines are
@@ -643,9 +645,18 @@ def _sheet_case(structure, design_soil, *, seismic, passive_factor, active_facto
     aq, a0 = _evaluate(active, z, left=left), _evaluate(zero, z, left=left)
     pe = _evaluate(passive, z, offset=H, left=left)
     pe[(z < H) | ((z == H) & left)] = 0.0
+    pd = pe / passive_factor
+    if passive_factor > 1.0 and strength_reduction:
+        # Global-FS design only. USACE EM 1110-2-2504 para. 5-2d divides tan(phi') and c' by the factor; for dense sand
+        # that is smaller than dividing the force, so the smaller of the two is used.
+        passive_s = lateral_pressure(strength_reduced_profile(front, passive_factor), bottom - H, top=H,
+                                     state="passive", layerwise=True)
+        pe_s = _evaluate(passive_s, z, offset=H, left=left)
+        pe_s[(z < H) | ((z == H) & left)] = 0.0
+        pd = np.minimum(pd, pe_s)
     ua = _evaluate(active, z, which="u", left=left)
     up = _evaluate(front_water, z, which="u", left=left)
-    net = active_factor * a0 + surcharge_factor * (aq - a0) - pe / passive_factor + water_factor * (ua - up)
+    net = active_factor * a0 + surcharge_factor * (aq - a0) - pd + water_factor * (ua - up)
     kh = None
     if seismic:
         kh, kv = tbdy_seismic_coefficients(structure.sds, TBDY_R["anchored_or_rigid"])
@@ -673,7 +684,7 @@ def _sheet_case(structure, design_soil, *, seismic, passive_factor, active_facto
                 raise GeoTekError("Seismic undrained sheet-pile passive pressure is not implemented")
             phi = layer.design.phi_eff
             ratio[i] = min(1.0, (1 - kv) * mononobe_okabe_kpe(phi, kh=kh, kv=kv) / rankine_kp(phi))
-        net += pe * (1 - ratio) / passive_factor
+        net += pd * (1 - ratio)
     F, Fz = _cumulative(z, net), _cumulative(z, net * z)
     i_h = int(np.searchsorted(z, H))
     anchor = structure.anchor_depth if structure.support == "anchored" else None
@@ -719,11 +730,13 @@ def design_sheet_pile_structure(project: Project, structure_id: str, progress: P
         log = FactorLog(code)
         # Preserve the basic sheet-pile convention (FS=static 1.5 even with seismic action).
         factor = log.value("safety.sheet_pile_passive.static")
-        result, kh = _sheet_case(structure, structure.soil, seismic=seismic, passive_factor=factor)
+        result, kh = _sheet_case(structure, structure.soil, seismic=seismic, passive_factor=factor,
+                                 strength_reduction=True)
         assumptions = [
             Assumption(text="Katmanlı Rankine aktif/pasif; ön/arka profil ve YASS ayrı; hidrostatik su; sızma yok",
                        source="Rankine (1857); P1 §1", code="sheet_pile.layered_rankine"),
-            Assumption(text=f"Pasif basınç GS={factor:g} ile bölündü", source=code.source_of("safety.sheet_pile_passive.static").source,
+            Assumption(text=f"Pasif basınç GS={factor:g} ile bölündü; tanφ′ ve c′ de GS ile bölünerek bulunan pasif basınç "
+                            "daha küçükse o alındı (yüksek φ′; USACE EM 1110-2-2504 5-2d)", source=code.source_of("safety.sheet_pile_passive.static").source,
                        code="sheet_pile.passive_factor", params={"factor": factor}),
             Assumption(text="Konsolda Blum gömülmesi %20 artırılır; ankrajlıda serbest zemin desteği",
                        source="Mevcut sheet_pile.py; USS Steel Sheet Piling Design Manual / USACE EM 1110-2-2504",

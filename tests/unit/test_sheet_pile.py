@@ -111,3 +111,39 @@ def test_errors():
         anchored_sheet_pile(_profile(), H, anchor_depth=6.0)
     with pytest.raises(GeoTekError):
         net_pressure(_profile(), H, passive_factor=0.8)
+
+
+def _kp_eff(phi, factor):
+    """Smaller of Kp / factor (force) and Kp of tan(phi)/factor (USACE EM 1110-2-2504 para. 5-2d)."""
+    phi_e = math.degrees(math.atan(math.tan(math.radians(phi)) / factor))
+    return min(rankine_kp(phi) / factor, rankine_kp(phi_e))
+
+
+def test_passive_factor_uses_smaller_of_force_and_strength_reduction():
+    # phi = 30: dividing the force (2.0) is smaller than reducing tan(phi) (2.12), unchanged
+    n30 = net_pressure(_profile(phi=30.0), H, passive_factor=1.5, passive_strength_reduction=True)
+    i = np.searchsorted(n30.z, H + 2.0)
+    assert n30.passive[i] == pytest.approx(rankine_kp(30.0) / 1.5 * G * 2.0, rel=1e-6)
+    # phi = 40: tan(40)/1.5 -> 29.2 deg, Kp = 2.91 < 4.60 / 1.5 = 3.07, strength reduction governs
+    n40 = net_pressure(_profile(phi=40.0), H, passive_factor=1.5, passive_strength_reduction=True)
+    assert _kp_eff(40.0, 1.5) < rankine_kp(40.0) / 1.5
+    i = np.searchsorted(n40.z, H + 2.0)
+    assert n40.passive[i] == pytest.approx(_kp_eff(40.0, 1.5) * G * 2.0, rel=1e-6)
+
+
+def test_cantilever_dense_sand_closed_form_with_strength_reduced_passive():
+    # Moments about the toe: Ka (H+D)^3 = Kp_eff D^3 with the EM 1110-2-2504 passive coefficient
+    phi = 40.0
+    r = cantilever_sheet_pile(_profile(phi=phi), H, passive_factor=1.5, passive_strength_reduction=True)
+    ratio = (rankine_ka(phi) / _kp_eff(phi, 1.5)) ** (1 / 3)
+    assert r.D0 == pytest.approx(H * ratio / (1 - ratio), rel=1e-3)
+    # dividing the force alone would give the shorter (unsafe) embedment
+    ratio_force = (rankine_ka(phi) / (rankine_kp(phi) / 1.5)) ** (1 / 3)
+    assert r.D0 > H * ratio_force / (1 - ratio_force)
+
+
+def test_partial_factor_resistance_divides_force_only():
+    # EN 1997-1 gamma_R;e / KDYY gamma_Re divide the passive force: no strength reduction there
+    n = net_pressure(_profile(phi=40.0), H, passive_factor=1.4)
+    i = np.searchsorted(n.z, H + 2.0)
+    assert n.passive[i] == pytest.approx(rankine_kp(40.0) / 1.4 * G * 2.0, rel=1e-6)

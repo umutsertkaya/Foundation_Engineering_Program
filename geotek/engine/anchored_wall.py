@@ -25,7 +25,7 @@ One anchor level: free earth support on the actual earth pressures (``anchored_s
 envelope with the hinge method (figure 33); the larger anchor force and bending moment govern.
 
 Embedment (several levels): moments about the toe of the embedded part under R and the net
-active/passive pressure below the base, passive divided by the input factor (GEC-4 5.5.3
+active/passive pressure below the base, passive divided by the input factor (or the smaller pressure from tan(phi') and c' divided by it, EM 1110-2-2504 5-2d) (GEC-4 5.5.3
 suggests 1.5). This is deeper than the GEC-4 force criterion (passive / FS >= R + active), so it
 is on the safe side; the unbalanced toe force is reported. D = D0 (1 + increase).
 
@@ -410,7 +410,8 @@ def run_analysis(inputs: AnchoredWallAnalysisInputs) -> AnalysisResult:
     spacing = inputs.pile_spacing if soldier else 1.0
     ratio = min(1.0, inputs.passive_width / inputs.pile_spacing) if soldier else 1.0
     q_h = surcharge_per_horizontal(inputs.surcharge, inputs.backfill_slope, inputs.surcharge_basis)
-    pressure = dict(passive_factor=inputs.passive_factor, surcharge=q_h, drainage=inputs.drainage,
+    pressure = dict(passive_factor=inputs.passive_factor, passive_strength_reduction=True,
+                    surcharge=q_h, drainage=inputs.drainage,
                     front_water_depth=inputs.front_water_depth, backfill_slope=inputs.backfill_slope,
                     passive_width_ratio=ratio)
     warnings: list[Notice] = [Notice(code="external_stability_not_checked")]

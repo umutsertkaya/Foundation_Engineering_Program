@@ -126,7 +126,7 @@
   "sheet_pile.warning.sheet_pile.mock": "Synthetic result; not an engineering calculation.",
   "sheet_pile.assumption.sheet_pile.default_approach": "No design approach was selected; the first approach {approach} of the code was used.",
   "sheet_pile.assumption.sheet_pile.layered_rankine": "Layered Rankine active/passive pressure; separate front/retained profiles and groundwater; hydrostatic water; no seepage",
-  "sheet_pile.assumption.sheet_pile.passive_factor": "Passive pressure divided by FS={factor}",
+  "sheet_pile.assumption.sheet_pile.passive_factor": "Passive pressure divided by FS={factor}; where smaller, the passive pressure from tan φ′ and c′ divided by FS is used (high φ′; USACE EM 1110-2-2504 5-2d)",
   "sheet_pile.assumption.sheet_pile.support_method": "Cantilever Blum embedment increased by {percent}%; free-earth support for anchored walls",
   "sheet_pile.assumption.sheet_pile.depth_increase": "Embedment increase: {increase}; D = D0 × (1 + increase)",
   "sheet_pile.assumption.sheet_pile.front_water_depth": "Front groundwater overridden to {depth} m below the top; the same level is used for design and seismic cases",
