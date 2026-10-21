@@ -15,12 +15,14 @@ Bunlar import değil, `discovery` bağlarıdır. Paket diyagramlarındaki import
 | Keşfeden | Keşfedilen |
 |---|---|
 | `geotek/api/registry.py` | `geotek/modules/anchored_wall/__init__.py` |
+| `geotek/api/registry.py` | `geotek/modules/education/__init__.py` |
 | `geotek/api/registry.py` | `geotek/modules/liquefaction/__init__.py` |
 | `geotek/api/registry.py` | `geotek/modules/report/__init__.py` |
 | `geotek/api/registry.py` | `geotek/modules/sheet_pile/__init__.py` |
 | `geotek/api/registry.py` | `geotek/modules/soil/__init__.py` |
 | `geotek/api/registry.py` | `geotek/modules/walls/__init__.py` |
 | `web/src/app/moduleRegistry.ts` | `web/src/modules/anchored_wall/manifest.ts` |
+| `web/src/app/moduleRegistry.ts` | `web/src/modules/education/manifest.ts` |
 | `web/src/app/moduleRegistry.ts` | `web/src/modules/liquefaction/manifest.ts` |
 | `web/src/app/moduleRegistry.ts` | `web/src/modules/report/manifest.ts` |
 | `web/src/app/moduleRegistry.ts` | `web/src/modules/sheet_pile/manifest.ts` |
@@ -66,6 +68,7 @@ graph LR
   geotek_library["geotek.library"]
   geotek_modules["geotek.modules"]
   geotek_modules_anchored_wall["geotek.modules.anchored_wall"]
+  geotek_modules_education["geotek.modules.education"]
   geotek_modules_liquefaction["geotek.modules.liquefaction"]
   geotek_modules_report["geotek.modules.report"]
   geotek_modules_sheet_pile["geotek.modules.sheet_pile"]
@@ -154,6 +157,7 @@ graph LR
   geotek_modules_anchored_wall -->|1| geotek_engine_anchored_wall
   geotek_modules_anchored_wall -->|1| geotek_engine_anchors
   geotek_modules_anchored_wall -->|1| geotek_i18n
+  geotek_modules_education -->|1| geotek_core
   geotek_modules_liquefaction -->|8| geotek_api
   geotek_modules_liquefaction -->|1| geotek_core
   geotek_modules_liquefaction -->|1| geotek_core_models
@@ -220,6 +224,7 @@ graph LR
 | `geotek.library` | 3 | `geotek.core`, `geotek.core.models`, `geotek.io` |
 | `geotek.modules` | 2 | — |
 | `geotek.modules.anchored_wall` | 4 | `geotek.api`, `geotek.core`, `geotek.core.models`, `geotek.engine`, `geotek.engine.anchor_tables`, `geotek.engine.anchored_wall`, `geotek.engine.anchors`, `geotek.i18n` |
+| `geotek.modules.education` | 1 | `geotek.core` |
 | `geotek.modules.liquefaction` | 3 | `geotek.api`, `geotek.core`, `geotek.core.models`, `geotek.services` |
 | `geotek.modules.report` | 3 | `geotek.api`, `geotek.core`, `geotek.services` |
 | `geotek.modules.sheet_pile` | 2 | `geotek.api`, `geotek.core` |
@@ -355,7 +360,7 @@ Test sütunu: o dosyayı doğrudan import eden `tests/` dosyaları (yoksa `—`)
 | `core/constants.py` | 13 | — | `core.models.investigations`, `core.models.profile`, `core.models.structures`, `engine.correlations.physical`, `engine.correlations.stiffness`, `engine.correlations.strength` +14 | `unit/test_earth_pressure.py`, `unit/test_layering_spt.py`, `unit/test_stresses.py` +5 |
 | `core/errors.py` | 89 | `services.walls_advanced` | `api.app`, `api.calculation_jobs`, `api.jobs`, `api.library_routes`, `api.registry`, `config.codes` +28 | `api/test_jobs_api.py`, `unit/test_anchored_wall.py`, `unit/test_anchors.py` +25 |
 | `core/module_state.py` | 54 | `core.errors`, `core.models.project` | `modules.anchored_wall.api`, `modules.anchored_wall.report` | `api/test_anchored_wall_api.py`, `unit/test_module_report_hook.py`, `unit/test_project_io_13.py` |
-| `core/modules.py` | 76 | `core.errors` | `api.registry`, `modules.anchored_wall`, `modules.anchored_wall.report`, `modules.liquefaction`, `modules.report`, `modules.sheet_pile` +2 | `unit/test_module_registry.py`, `unit/test_module_report_hook.py`, `unit/test_new_module.py` |
+| `core/modules.py` | 76 | `core.errors` | `api.registry`, `modules.anchored_wall`, `modules.anchored_wall.report`, `modules.education`, `modules.liquefaction`, `modules.report` +3 | `unit/test_module_registry.py`, `unit/test_module_report_hook.py`, `unit/test_new_module.py` |
 | `core/units.py` | 79 | `core.errors` | `io.tabular` | `unit/test_units.py` |
 | `core/warning_codes.py` | 48 | — | `api.calculation_results`, `engine.correlations.physical`, `engine.insitu.cpt`, `engine.insitu.spt`, `engine.layering.common`, `engine.liquefaction.analysis` +5 | `unit/test_cpt.py`, `unit/test_shear_key.py`, `unit/test_spt.py` +1 |
 
@@ -526,7 +531,7 @@ Test sütunu: o dosyayı doğrudan import eden `tests/` dosyaları (yoksa `—`)
 | Dosya | Satır | Bağımlı olduğu | Kullanan | Test |
 |---|---:|---|---|---|
 | `modules/__init__.py` | 4 | — | `api.registry` | `unit/test_module_registry.py` |
-| `modules/_index.py` | 12 | — | `api.registry` | `unit/test_module_registry.py` |
+| `modules/_index.py` | 13 | — | `api.registry` | `unit/test_module_registry.py` |
 
 #### `geotek.modules.anchored_wall`
 
@@ -536,6 +541,12 @@ Test sütunu: o dosyayı doğrudan import eden `tests/` dosyaları (yoksa `—`)
 | `modules/anchored_wall/api.py` | 188 | `api.calculation_jobs`, `api.common`, `api.jobs`, `api.session`, `core.errors`, `core.models.anchors`, `core.models.structures`, `core.module_state`, `engine`, `engine.anchor_tables`, `engine.anchored_wall`, `engine.anchors`, `modules.anchored_wall.schemas` | `modules.anchored_wall`, `modules.anchored_wall.report` | — |
 | `modules/anchored_wall/report.py` | 258 | `core.errors`, `core.models.anchors`, `core.module_state`, `core.modules`, `i18n`, `modules.anchored_wall.api` | `modules.anchored_wall` | — |
 | `modules/anchored_wall/schemas.py` | 63 | `api.schemas`, `core.models.anchors` | `modules.anchored_wall.api` | — |
+
+#### `geotek.modules.education`
+
+| Dosya | Satır | Bağımlı olduğu | Kullanan | Test |
+|---|---:|---|---|---|
+| `modules/education/__init__.py` | 15 | `core.modules` | — | — |
 
 #### `geotek.modules.liquefaction`
 
@@ -599,6 +610,7 @@ graph LR
   _root_["(root)"]
   app["app"]
   modules_anchored_wall["modules/anchored_wall"]
+  modules_education["modules/education"]
   modules_liquefaction["modules/liquefaction"]
   modules_report["modules/report"]
   modules_sheet_pile["modules/sheet_pile"]
@@ -608,6 +620,7 @@ graph LR
   app -->|23| shared
   modules_anchored_wall -->|1| app
   modules_anchored_wall -->|13| shared
+  modules_education -->|1| shared
   modules_liquefaction -->|17| shared
   modules_report -->|8| shared
   modules_sheet_pile -->|1| app
@@ -621,6 +634,7 @@ graph LR
 | `(root)` | 1 | — |
 | `app` | 12 | `shared` |
 | `modules/anchored_wall` | 16 | `app`, `shared` |
+| `modules/education` | 24 | `shared` |
 | `modules/liquefaction` | 8 | `shared` |
 | `modules/report` | 5 | `shared` |
 | `modules/sheet_pile` | 14 | `app`, `shared` |
@@ -661,7 +675,7 @@ Testler yalnız **Kullanan** sütununda görünür; “Test” sütunu o dosyay�
 | `app/ProjectProvider.tsx` | 120 | `shared/api/client.ts`, `shared/api/core.ts`, `shared/api/http.ts`, `shared/api/types.ts` | `app/App.tsx`, `app/ModuleShell.tsx`, `app/RequireProject.tsx`, `app/pages/LauncherPage.tsx`, `app/pages/StartPage.tsx` | `test/shell.test.tsx` |
 | `app/RequireProject.tsx` | 13 | `app/ProjectProvider.tsx`, `shared/components/ErrorAlert.tsx` | `app/App.tsx` | — |
 | `app/ThemeToggle.tsx` | 19 | — | `app/ModuleShell.tsx`, `app/pages/LauncherPage.tsx`, `app/pages/StartPage.tsx` | — |
-| `app/i18n.ts` | 60 | `shared/api/client.ts`, `shared/api/types.ts` | `app/ModuleShell.tsx`, `app/main.tsx`, `app/pages/LauncherPage.tsx`, `app/pages/SettingsPage.tsx`, `app/pages/StartPage.tsx` +2 | `modules/anchored_wall/__tests__/anchored_wall.test.tsx`, `modules/liquefaction/__tests__/liquefaction.test.tsx`, `modules/liquefaction/__tests__/results.test.tsx` +19 |
+| `app/i18n.ts` | 60 | `shared/api/client.ts`, `shared/api/types.ts` | `app/ModuleShell.tsx`, `app/main.tsx`, `app/pages/LauncherPage.tsx`, `app/pages/SettingsPage.tsx`, `app/pages/StartPage.tsx` +2 | `modules/anchored_wall/__tests__/anchored_wall.test.tsx`, `modules/education/__tests__/education.test.tsx`, `modules/liquefaction/__tests__/liquefaction.test.tsx` +20 |
 | `app/main.tsx` | 42 | `app/App.tsx`, `app/i18n.ts`, `app/theme.ts` | — | — |
 | `app/moduleRegistry.ts` | 29 | `shared/moduleTypes.ts` | `app/App.tsx`, `app/ModuleShell.tsx`, `app/pages/LauncherPage.tsx` | `test/module_paths.test.ts`, `test/shell.test.tsx` |
 | `app/pages/LauncherPage.tsx` | 606 | `app/ProjectProvider.tsx`, `app/ThemeToggle.tsx`, `app/i18n.ts`, `app/moduleRegistry.ts`, `shared/api/client.ts`, `shared/api/types.ts`, `shared/components/EmptyState.tsx`, `shared/components/ErrorAlert.tsx` | `app/App.tsx` | — |
@@ -689,6 +703,35 @@ Testler yalnız **Kullanan** sütununda görünür; “Test” sütunu o dosyay�
 | `modules/anchored_wall/pages/AnalysisPage.tsx` | 102 | `modules/anchored_wall/api.ts`, `modules/anchored_wall/components/AnalysisForm.tsx`, `modules/anchored_wall/components/MissingList.tsx`, `modules/anchored_wall/components/Notices.tsx`, `modules/anchored_wall/components/ResultViews.tsx`, `modules/anchored_wall/inputs.ts`, `modules/anchored_wall/types.ts`, `shared/components/ErrorAlert.tsx` | `modules/anchored_wall/Root.tsx` | `modules/anchored_wall/__tests__/anchored_wall.test.tsx` |
 | `modules/anchored_wall/pages/AnchorPage.tsx` | 122 | `modules/anchored_wall/api.ts`, `modules/anchored_wall/components/AnchorFields.tsx`, `modules/anchored_wall/components/MissingList.tsx`, `modules/anchored_wall/components/Notices.tsx`, `modules/anchored_wall/components/NumField.tsx`, `modules/anchored_wall/components/ResultViews.tsx`, `modules/anchored_wall/inputs.ts`, `modules/anchored_wall/types.ts`, `shared/components/ErrorAlert.tsx` | `modules/anchored_wall/Root.tsx` | `modules/anchored_wall/__tests__/anchored_wall.test.tsx` |
 | `modules/anchored_wall/types.ts` | 16 | — | `modules/anchored_wall/api.ts`, `modules/anchored_wall/components/AnalysisForm.tsx`, `modules/anchored_wall/components/AnchorFields.tsx`, `modules/anchored_wall/components/Notices.tsx`, `modules/anchored_wall/components/ResultViews.tsx` +5 | — |
+
+#### `modules/education`
+
+| Dosya | Satır | Bağımlı olduğu | Kullanan | Test |
+|---|---:|---|---|---|
+| `modules/education/Root.tsx` | 13 | `modules/education/pages/HomePage.tsx`, `modules/education/pages/TopicPage.tsx` | `modules/education/manifest.ts` | `modules/education/__tests__/education.test.tsx` |
+| `modules/education/content/anchored_wall.ts` | 305 | `modules/education/content/types.ts` | `modules/education/content/index.ts` | — |
+| `modules/education/content/anchors.ts` | 181 | `modules/education/content/types.ts` | `modules/education/content/index.ts` | — |
+| `modules/education/content/bearing.ts` | 160 | `modules/education/content/types.ts` | `modules/education/content/index.ts` | — |
+| `modules/education/content/classification.ts` | 151 | `modules/education/content/types.ts` | `modules/education/content/index.ts` | — |
+| `modules/education/content/earth_pressure.ts` | 205 | `modules/education/content/types.ts` | `modules/education/content/index.ts` | — |
+| `modules/education/content/ep_student_a.ts` | 349 | `modules/education/content/types.ts` | `modules/education/content/index.ts` | — |
+| `modules/education/content/ep_student_b.ts` | 314 | `modules/education/content/types.ts` | `modules/education/content/index.ts` | — |
+| `modules/education/content/ground_anchors.ts` | 220 | `modules/education/content/types.ts` | `modules/education/content/index.ts` | — |
+| `modules/education/content/index.ts` | 20 | `modules/education/content/anchored_wall.ts`, `modules/education/content/anchors.ts`, `modules/education/content/bearing.ts`, `modules/education/content/classification.ts`, `modules/education/content/earth_pressure.ts`, `modules/education/content/ep_student_a.ts`, `modules/education/content/ep_student_b.ts`, `modules/education/content/ground_anchors.ts`, `modules/education/content/liquefaction.ts`, `modules/education/content/shear_key.ts`, `modules/education/content/sheet_pile.ts`, `modules/education/content/slope.ts`, `modules/education/content/sloping_surcharge.ts`, `modules/education/content/types.ts` | `modules/education/pages/HomePage.tsx`, `modules/education/pages/TopicPage.tsx` | `modules/education/__tests__/education.test.tsx` |
+| `modules/education/content/liquefaction.ts` | 148 | `modules/education/content/types.ts` | `modules/education/content/index.ts` | — |
+| `modules/education/content/shear_key.ts` | 224 | `modules/education/content/types.ts` | `modules/education/content/index.ts` | — |
+| `modules/education/content/sheet_pile.ts` | 228 | `modules/education/content/types.ts` | `modules/education/content/index.ts` | — |
+| `modules/education/content/slope.ts` | 187 | `modules/education/content/types.ts` | `modules/education/content/index.ts` | — |
+| `modules/education/content/sloping_surcharge.ts` | 203 | `modules/education/content/types.ts` | `modules/education/content/index.ts` | — |
+| `modules/education/content/types.ts` | 43 | — | `modules/education/content/anchored_wall.ts`, `modules/education/content/anchors.ts`, `modules/education/content/bearing.ts`, `modules/education/content/classification.ts`, `modules/education/content/earth_pressure.ts` +10 | — |
+| `modules/education/figures/dataFigures.tsx` | 121 | `modules/education/figures/plot.tsx` | `modules/education/figures/index.tsx` | — |
+| `modules/education/figures/epFigures.tsx` | 201 | `modules/education/figures/plot.tsx` | `modules/education/figures/index.tsx` | — |
+| `modules/education/figures/index.tsx` | 47 | `modules/education/figures/dataFigures.tsx`, `modules/education/figures/epFigures.tsx`, `modules/education/figures/schematicFigures.tsx` | `modules/education/pages/TopicPage.tsx` | `modules/education/__tests__/education.test.tsx` |
+| `modules/education/figures/plot.tsx` | 96 | — | `modules/education/figures/dataFigures.tsx`, `modules/education/figures/epFigures.tsx`, `modules/education/figures/schematicFigures.tsx` | — |
+| `modules/education/figures/schematicFigures.tsx` | 242 | `modules/education/figures/plot.tsx` | `modules/education/figures/index.tsx` | — |
+| `modules/education/manifest.ts` | 14 | `modules/education/Root.tsx`, `shared/moduleTypes.ts` | — | — |
+| `modules/education/pages/HomePage.tsx` | 25 | `modules/education/content/index.ts` | `modules/education/Root.tsx` | — |
+| `modules/education/pages/TopicPage.tsx` | 169 | `modules/education/content/index.ts`, `modules/education/content/types.ts`, `modules/education/figures/index.tsx` | `modules/education/Root.tsx` | — |
 
 #### `modules/liquefaction`
 
@@ -804,7 +847,7 @@ Testler yalnız **Kullanan** sütununda görünür; “Test” sütunu o dosyay�
 | `shared/hooks/useProfileName.ts` | 38 | `shared/api/core.ts`, `shared/api/types.ts` | `modules/sheet_pile/pages/SheetPileDetailPage.tsx`, `shared/structureSoil/StructureSoilStep.tsx` | — |
 | `shared/hooks/useUndoable.ts` | 85 | — | `modules/soil/pages/ProfilesPage.tsx`, `modules/walls/pages/WallWizardPage.tsx`, `shared/structureSoil/StructureSoilStep.tsx` | — |
 | `shared/hooks/useWarningText.ts` | 13 | `shared/warnings.ts` | `modules/liquefaction/components/SoundingDetail.tsx`, `modules/soil/useWarningText.ts`, `modules/walls/components/WallResultView.tsx` | — |
-| `shared/moduleTypes.ts` | 23 | — | `app/moduleRegistry.ts`, `modules/anchored_wall/manifest.ts`, `modules/liquefaction/manifest.ts`, `modules/report/manifest.ts`, `modules/sheet_pile/manifest.ts` +2 | `test/shell.test.tsx` |
+| `shared/moduleTypes.ts` | 23 | — | `app/moduleRegistry.ts`, `modules/anchored_wall/manifest.ts`, `modules/education/manifest.ts`, `modules/liquefaction/manifest.ts`, `modules/report/manifest.ts` +3 | `test/shell.test.tsx` |
 | `shared/soil/CommitInputs.tsx` | 154 | — | `modules/soil/pages/ProfilesPage.tsx`, `modules/walls/pages/WallTypePicker.tsx`, `shared/soil/GwtEditor.tsx`, `shared/soil/LayerEditor.tsx` | — |
 | `shared/soil/GwtEditor.tsx` | 113 | `shared/api/types.ts`, `shared/soil/CommitInputs.tsx`, `shared/soil/GwtMarker.tsx`, `shared/soil/zones.ts` | `modules/soil/pages/ProfilesPage.tsx`, `shared/structureSoil/StructureSoilStep.tsx` | — |
 | `shared/soil/GwtMarker.tsx` | 47 | `shared/soil/zones.ts` | `shared/soil/GwtEditor.tsx`, `shared/soil/LayerLegend.tsx`, `shared/soil/SoilColumn.tsx`, `shared/structureSoil/StructureSoilSection.tsx` | — |

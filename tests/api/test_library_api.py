@@ -23,7 +23,7 @@ def test_modules_in_menu_order(shell):
     response = shell.get("/api/modules")
     assert response.status_code == 200
     modules = response.json()
-    assert [m["id"] for m in modules] == ["soil", "liquefaction", "walls", "sheet_pile", "anchored_wall", "report"]
+    assert [m["id"] for m in modules] == ["soil", "liquefaction", "walls", "sheet_pile", "anchored_wall", "report", "education"]
     assert [m["order"] for m in modules] == sorted(m["order"] for m in modules)
     assert set(modules[0]) == {"id", "version", "title_key", "description_key", "icon", "order"}
 

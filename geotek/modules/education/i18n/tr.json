@@ -1,0 +1,15 @@
+{
+  "education.title": "Eğitim",
+  "education.description": "Programdaki hesapların formüllerini, varsayımlarını ve kaynaklarını anlatan eğitim bölümü.",
+  "education.nav.home": "Konular",
+  "education.home.heading": "Eğitim",
+  "education.home.intro": "Programın gerçekte kullandığı yöntemler: formüller, varsayımlar, kaynaklar ve şekiller. Bu bölüm hesapları değiştirmez.",
+  "education.level.basic": "Temel",
+  "education.level.intermediate": "Orta",
+  "education.level.advanced": "İleri",
+  "education.example": "Örnek",
+  "education.warning": "Dikkat",
+  "education.back": "Tüm konular",
+  "education.sources": "Kaynaklar",
+  "education.code_refs": "Kodda karşılığı"
+}
