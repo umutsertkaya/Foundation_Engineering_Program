@@ -82,6 +82,15 @@ Kaynak: Umut'un cihazındaki tam metin md dönüşümü (`docs/research/Youd.et.
   El hesabı: GEC-4 Ek A Örnek 1 (T=445 kN, L_b=8.9 m, 3 halat / 32 mm çubuk) + bağımsız kama kesişim hesabı; iki salt okuma
   inceleme yapıldı, bulgular düzeltildi. Tam pytest 1933 geçti / 2 atlandı; `tsc --noEmit` temiz; Vitest 38 dosya / 339 test geçti;
   `npm run build` başarılı; `gen_code_map.py --check` 0; `pyinstaller_modules.py --check` 0. Sıradaki: G6 ankrajlı duvar analizi.
+- 2026-10-21, G6 ankrajlı duvar analizi dalı (Linux bulut, kip: cloud): `geotek/engine/anchored_wall.py` ve `POST /api/m/anchored_wall/analysis/run`
+  (durum `AnchoredWallState.analysis`, stale/hash, `state_version=1`). Tek seviye: `anchored_sheet_pile` ile aynı çözücü (birebir test);
+  çok seviye: görünür basınç zarfı (kum 0,65 Ka γH, yumuşak kil γH−4Su, sert kil c·γH, 0,25H üst rampa), menteşe veya katkı alanı
+  ankraj yükleri, taban reaksiyonu R_B ile taban altı moment dengesinden gömülme, soldier kazık pasif genişliği, M/W kontrolü,
+  her seviye G5 ankraj tasarımına beslenir. β>0, karışık/ drenaj uyumsuz katmanlar, kazı içinde YASS, kil+sürşarj, menteşede çekme dışı yük:
+  kodlu 422 `calculation_stopped`. Zarf şekilleri özgün Peck şekilleriyle değil ders notu özetiyle karşılaştırıldı (görünür varsayım).
+  El hesabı 3 seviyeli kum (H=10, Ka=1/3: 131,625/102,375/107,25 kN/m, R_B 48,75) ve kil ordinatları; iki bağımsız salt okuma inceleme:
+  işaret tutarsızlığı, negatif menteşe yükü, taban uç kesmesi, drenaj/katman uyumsuzluğu bulguları düzeltildi.
+  Kapsam dışı: Kranz derin stabilite, aşamalı kazı, yaylı kiriş, sehim (EI saklanır, kullanılmaz), betonarme/çelik kesit tasarımı.
 
 Her kayıt tarih, kapsam ve gerçek sonuç taşır; eski sayı güncel başarı diye kullanılmaz.
 

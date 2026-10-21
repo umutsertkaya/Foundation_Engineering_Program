@@ -65,7 +65,8 @@ def test_invalid_input_and_engine_refusal(shell):
 
 def test_state_defaults_save_and_stale(shell, open_project):
     assert shell.get(f"{BASE}/state").json() == {
-        "state": {"anchor": None}, "anchor_result_stale": False}
+        "state": {"anchor": None, "analysis": None}, "anchor_result_stale": False,
+        "analysis_result_stale": False, "analysis_soil_stale": False}
     assert "anchored_wall" not in open_project.modules
     saved = shell.post(f"{BASE}/anchor/design?save=true", json=BODY)
     assert saved.status_code == 200
@@ -118,3 +119,41 @@ def test_reference_tables_are_source_labelled(shell):
     assert data["defaults"]["min_free_length_strand"] == 4.5
     assert {g["ground"] for g in data["safety_factor_guidance"]} == {
         "soil", "rock", "intermediate_geomaterial"}
+
+
+ANALYSIS = {
+    "excavation_height": 10.0, "passive_factor": 1.5,
+    "soil": {"profile": {"id": "SP", "gwt": {"depth_insitu": 100.0}, "layers": [
+        {"id": "S", "top": 0, "bottom": 40, "gamma": 18.0, "gamma_sat": 20.0,
+         "design": {"phi_eff": 30.0}}]}},
+    "levels": [{"depth": 1.5, "spacing": 2.5}, {"depth": 4.5, "spacing": 2.5},
+               {"depth": 7.5, "spacing": 2.5}],
+}
+
+
+def test_analysis_runs_without_a_project_and_refuses_save(shell):
+    response = shell.post(f"{BASE}/analysis/run", json=ANALYSIS)
+    assert response.status_code == 200, response.text
+    data = response.json()
+    assert data["method"] == "apparent_hinge"
+    assert data["levels"][0]["horizontal_load_per_m"] == pytest.approx(131.625, abs=0.01)
+    assert shell.post(f"{BASE}/analysis/run?save=true", json=ANALYSIS).status_code == 409
+
+
+def test_analysis_stop_is_a_coded_422(shell):
+    body = {**ANALYSIS, "backfill_slope": 5.0}
+    response = shell.post(f"{BASE}/analysis/run", json=body)
+    assert response.status_code == 422
+    error = response.json()
+    assert error["code"] == "calculation_stopped"
+    assert error["details"]["stop_code"] == "envelope_sloping_ground"
+
+
+def test_analysis_save_state_and_stale(shell, open_project):
+    assert shell.post(f"{BASE}/analysis/run?save=true", json=ANALYSIS).status_code == 200
+    state = shell.get(f"{BASE}/state").json()
+    assert state["analysis_result_stale"] is False and state["analysis_soil_stale"] is False
+    assert state["state"]["analysis"]["result"]["base_reaction"] == pytest.approx(48.75, abs=0.01)
+    # a stored result that no longer matches its inputs is rejected
+    state["state"]["analysis"]["inputs"]["excavation_height"] = 11.0
+    assert shell.put(f"{BASE}/state", json=state["state"]).status_code == 422

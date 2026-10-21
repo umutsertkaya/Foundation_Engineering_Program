@@ -93,6 +93,7 @@ def net_pressure(
     seismic_increment: float = 0.0,
     passive_seismic_ratio: float = 1.0,
     backfill_slope: float = 0.0,
+    passive_width_ratio: float = 1.0,
 ) -> NetPressure:
     """Net pressure diagram. ``active_factor``, ``surcharge_factor`` and ``water_factor`` are
     load factors on the soil, surcharge and water parts of the driving pressure (partial
@@ -105,9 +106,14 @@ def net_pressure(
     ``backfill_slope`` [deg] is the retained ground slope beta (active side only; the front
     ground stays horizontal). Rankine uses the slope coefficient with the resultant parallel to
     the surface; c' is dropped on sloping ground with a warning. ``surcharge`` is per horizontal
-    projection (see ``surcharge_per_horizontal``)."""
+    projection (see ``surcharge_per_horizontal``).
+
+    ``passive_width_ratio`` (<= 1) is the effective passive width over the member spacing for
+    soldier pile walls; it scales the effective passive pressure only, not the water."""
     if H <= 0:
         raise GeoTekError("Retained height H must be positive")
+    if not 0 < passive_width_ratio <= 1:
+        raise GeoTekError("passive_width_ratio must be in (0, 1]")
     if passive_factor < 1.0:
         raise GeoTekError("passive_factor must be >= 1")
     bottom = profile.bottom
@@ -132,7 +138,7 @@ def net_pressure(
     a_q = _evaluate(act, z, left=left)
     a_0 = _evaluate(act0, z, left=left)
     a_eff = active_factor * a_0 + surcharge_factor * (a_q - a_0)
-    p_eff = _evaluate(pas, z, offset=H, left=left) * passive_seismic_ratio
+    p_eff = _evaluate(pas, z, offset=H, left=left) * passive_seismic_ratio * passive_width_ratio
     p_eff[(z < H) | ((z == H) & left)] = 0.0
     if seismic_increment:
         a_eff = a_eff + np.where((z < H) | ((z == H) & left), seismic_increment, 0.0)
@@ -293,3 +299,9 @@ def anchored_sheet_pile(
         f"(spacing {anchor_spacing:g} m, inclination {anchor_inclination:g} deg)"
     )
     return res
+
+
+# Public names of the integration helpers used by geotek/engine/anchored_wall.py
+cumulative_integral = _cumulative
+find_root = _root
+internal_forces = _internal_forces

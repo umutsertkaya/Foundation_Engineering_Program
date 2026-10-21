@@ -8635,6 +8635,130 @@
         }
       }
     },
+    "/api/m/anchored_wall/analysis/run": {
+      "post": {
+        "tags": [
+          "anchored_wall"
+        ],
+        "summary": "Run Wall Analysis",
+        "description": "Analyse the anchored wall; with ``save`` store inputs and result in the open project.",
+        "operationId": "anchored_wall_run_analysis",
+        "parameters": [
+          {
+            "name": "save",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": false,
+              "title": "Save"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AnchoredWallAnalysisInputs"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnalysisResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid operation or input file",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflicting or stale structure state",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation error or missing_factors",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Engine or server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "501": {
+            "description": "Contract stub; not implemented",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Other client error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "5XX": {
+            "description": "Other server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/m/anchored_wall/anchor/reference": {
       "get": {
         "tags": [
@@ -8981,6 +9105,217 @@
         "title": "ActiveProfileUpdate",
         "description": "Select a project profile; null restores the domain's first-profile fallback."
       },
+      "AnalysisRecord": {
+        "properties": {
+          "inputs": {
+            "$ref": "#/components/schemas/AnchoredWallAnalysisInputs"
+          },
+          "result": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AnalysisResult"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "result_hash": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Result Hash"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "inputs"
+        ],
+        "title": "AnalysisRecord"
+      },
+      "AnalysisResult": {
+        "properties": {
+          "method": {
+            "type": "string",
+            "enum": [
+              "free_earth_single",
+              "apparent_hinge",
+              "apparent_tributary"
+            ],
+            "title": "Method"
+          },
+          "wall_type": {
+            "type": "string",
+            "enum": [
+              "sheet_pile",
+              "soldier_pile"
+            ],
+            "title": "Wall Type"
+          },
+          "excavation_height": {
+            "type": "number",
+            "title": "Excavation Height"
+          },
+          "embedment_theoretical": {
+            "type": "number",
+            "title": "Embedment Theoretical"
+          },
+          "embedment": {
+            "type": "number",
+            "title": "Embedment"
+          },
+          "wall_length": {
+            "type": "number",
+            "title": "Wall Length"
+          },
+          "base_reaction": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Base Reaction"
+          },
+          "envelope": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/EnvelopeResult"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "levels": {
+            "items": {
+              "$ref": "#/components/schemas/LevelResult"
+            },
+            "type": "array",
+            "title": "Levels"
+          },
+          "m_max": {
+            "type": "number",
+            "title": "M Max"
+          },
+          "z_m_max": {
+            "type": "number",
+            "title": "Z M Max"
+          },
+          "v_max": {
+            "type": "number",
+            "title": "V Max"
+          },
+          "member_spacing": {
+            "type": "number",
+            "title": "Member Spacing"
+          },
+          "m_max_member": {
+            "type": "number",
+            "title": "M Max Member"
+          },
+          "v_max_member": {
+            "type": "number",
+            "title": "V Max Member"
+          },
+          "required_section_modulus_cm3": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Required Section Modulus Cm3"
+          },
+          "checks": {
+            "items": {
+              "$ref": "#/components/schemas/AnchorCheck"
+            },
+            "type": "array",
+            "title": "Checks"
+          },
+          "z": {
+            "items": {
+              "type": "number"
+            },
+            "type": "array",
+            "title": "Z"
+          },
+          "shear": {
+            "items": {
+              "type": "number"
+            },
+            "type": "array",
+            "title": "Shear"
+          },
+          "moment": {
+            "items": {
+              "type": "number"
+            },
+            "type": "array",
+            "title": "Moment"
+          },
+          "warnings": {
+            "items": {
+              "$ref": "#/components/schemas/Notice"
+            },
+            "type": "array",
+            "title": "Warnings"
+          },
+          "assumptions": {
+            "items": {
+              "$ref": "#/components/schemas/Notice"
+            },
+            "type": "array",
+            "title": "Assumptions"
+          },
+          "sources": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Sources"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "method",
+          "wall_type",
+          "excavation_height",
+          "embedment_theoretical",
+          "embedment",
+          "wall_length",
+          "base_reaction",
+          "envelope",
+          "levels",
+          "m_max",
+          "z_m_max",
+          "v_max",
+          "member_spacing",
+          "m_max_member",
+          "v_max_member",
+          "required_section_modulus_cm3",
+          "checks",
+          "z",
+          "shear",
+          "moment",
+          "warnings",
+          "assumptions",
+          "sources"
+        ],
+        "title": "AnalysisResult"
+      },
       "AnchorCheck": {
         "properties": {
           "id": {
@@ -9070,6 +9405,189 @@
         ],
         "title": "AnchorDefaults",
         "description": "Defaults the engine applies when the input is left out, each with its source."
+      },
+      "AnchorDesignCommon": {
+        "properties": {
+          "safety_factor": {
+            "anyOf": [
+              {
+                "type": "number",
+                "exclusiveMinimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Safety Factor"
+          },
+          "ultimate_transfer_load": {
+            "anyOf": [
+              {
+                "type": "number",
+                "exclusiveMinimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ultimate Transfer Load"
+          },
+          "ultimate_bond_stress": {
+            "anyOf": [
+              {
+                "type": "number",
+                "exclusiveMinimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ultimate Bond Stress"
+          },
+          "hole_diameter": {
+            "anyOf": [
+              {
+                "type": "number",
+                "exclusiveMinimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Hole Diameter"
+          },
+          "min_bond_length": {
+            "anyOf": [
+              {
+                "type": "number",
+                "exclusiveMinimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Min Bond Length"
+          },
+          "max_bond_length": {
+            "anyOf": [
+              {
+                "type": "number",
+                "exclusiveMinimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max Bond Length"
+          },
+          "min_free_length": {
+            "anyOf": [
+              {
+                "type": "number",
+                "exclusiveMinimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Min Free Length"
+          },
+          "beyond_wedge": {
+            "anyOf": [
+              {
+                "type": "number",
+                "exclusiveMinimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Beyond Wedge"
+          },
+          "wedge_origin_below_base": {
+            "type": "number",
+            "minimum": 0.0,
+            "title": "Wedge Origin Below Base",
+            "default": 0.0
+          },
+          "tendon": {
+            "$ref": "#/components/schemas/TendonSpec"
+          },
+          "lock_off_ratio": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 1.5,
+                "exclusiveMinimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lock Off Ratio"
+          },
+          "test_factor": {
+            "type": "number",
+            "exclusiveMinimum": 1.0,
+            "title": "Test Factor",
+            "default": 1.33
+          },
+          "design_limit": {
+            "type": "number",
+            "maximum": 1.0,
+            "exclusiveMinimum": 0.0,
+            "title": "Design Limit",
+            "default": 0.6
+          },
+          "lock_off_limit": {
+            "type": "number",
+            "maximum": 1.0,
+            "exclusiveMinimum": 0.0,
+            "title": "Lock Off Limit",
+            "default": 0.7
+          },
+          "test_limit": {
+            "type": "number",
+            "maximum": 1.0,
+            "exclusiveMinimum": 0.0,
+            "title": "Test Limit",
+            "default": 0.8
+          },
+          "min_overburden": {
+            "type": "number",
+            "minimum": 0.0,
+            "title": "Min Overburden",
+            "default": 4.5
+          },
+          "ground": {
+            "type": "string",
+            "enum": [
+              "soil",
+              "rock"
+            ],
+            "title": "Ground",
+            "default": "soil"
+          },
+          "transfer_load_ref": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 120
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Transfer Load Ref"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "tendon"
+        ],
+        "title": "AnchorDesignCommon",
+        "description": "Anchor design inputs shared by every level; geometry and load come from the analysis.\n\nSame meaning and rules as ``AnchorDesignInputs``; nothing is assumed when left out."
       },
       "AnchorDesignInputs": {
         "properties": {
@@ -9515,6 +10033,35 @@
         ],
         "title": "AnchorDesignResult"
       },
+      "AnchorLevel": {
+        "properties": {
+          "depth": {
+            "type": "number",
+            "minimum": 0.0,
+            "title": "Depth"
+          },
+          "spacing": {
+            "type": "number",
+            "exclusiveMinimum": 0.0,
+            "title": "Spacing"
+          },
+          "inclination_deg": {
+            "type": "number",
+            "exclusiveMaximum": 60.0,
+            "minimum": 0.0,
+            "title": "Inclination Deg",
+            "default": 0.0
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "depth",
+          "spacing"
+        ],
+        "title": "AnchorLevel",
+        "description": "One anchor row of the wall; loads are per metre of wall, anchors repeat at ``spacing``."
+      },
       "AnchorRecord": {
         "properties": {
           "inputs": {
@@ -9588,12 +10135,176 @@
         "title": "AnchorReference",
         "description": "Source-labelled library for the UI; presumptive values are never applied silently."
       },
+      "AnchoredWallAnalysisInputs": {
+        "properties": {
+          "wall_type": {
+            "type": "string",
+            "enum": [
+              "sheet_pile",
+              "soldier_pile"
+            ],
+            "title": "Wall Type",
+            "default": "sheet_pile"
+          },
+          "excavation_height": {
+            "type": "number",
+            "maximum": 30.0,
+            "exclusiveMinimum": 0.5,
+            "title": "Excavation Height"
+          },
+          "soil": {
+            "$ref": "#/components/schemas/StructureSoilModel"
+          },
+          "levels": {
+            "items": {
+              "$ref": "#/components/schemas/AnchorLevel"
+            },
+            "type": "array",
+            "maxItems": 6,
+            "minItems": 1,
+            "title": "Levels"
+          },
+          "drainage": {
+            "type": "string",
+            "enum": [
+              "drained",
+              "undrained"
+            ],
+            "title": "Drainage",
+            "default": "drained"
+          },
+          "backfill_slope": {
+            "type": "number",
+            "exclusiveMaximum": 45.0,
+            "minimum": 0.0,
+            "title": "Backfill Slope",
+            "default": 0.0
+          },
+          "surcharge": {
+            "type": "number",
+            "minimum": 0.0,
+            "title": "Surcharge",
+            "default": 0.0
+          },
+          "surcharge_basis": {
+            "type": "string",
+            "enum": [
+              "horizontal",
+              "inclined"
+            ],
+            "title": "Surcharge Basis",
+            "description": "horizontal: the surcharge is a vertical load per horizontal projected area; inclined: per area of the inclined ground surface (q / cos(beta) per horizontal area)",
+            "default": "horizontal"
+          },
+          "passive_factor": {
+            "type": "number",
+            "minimum": 1.0,
+            "title": "Passive Factor",
+            "default": 1.0
+          },
+          "depth_increase": {
+            "anyOf": [
+              {
+                "type": "number",
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Depth Increase"
+          },
+          "front_water_depth": {
+            "anyOf": [
+              {
+                "type": "number",
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Front Water Depth"
+          },
+          "load_method": {
+            "type": "string",
+            "enum": [
+              "hinge",
+              "tributary"
+            ],
+            "title": "Load Method",
+            "default": "hinge"
+          },
+          "stiff_clay_coefficient": {
+            "type": "number",
+            "maximum": 0.4,
+            "minimum": 0.2,
+            "title": "Stiff Clay Coefficient",
+            "default": 0.3
+          },
+          "pile_spacing": {
+            "anyOf": [
+              {
+                "type": "number",
+                "exclusiveMinimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Pile Spacing"
+          },
+          "passive_width": {
+            "anyOf": [
+              {
+                "type": "number",
+                "exclusiveMinimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Passive Width"
+          },
+          "section": {
+            "$ref": "#/components/schemas/WallSection"
+          },
+          "anchor_design": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AnchorDesignCommon"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "excavation_height",
+          "soil",
+          "levels"
+        ],
+        "title": "AnchoredWallAnalysisInputs"
+      },
       "AnchoredWallState": {
         "properties": {
           "anchor": {
             "anyOf": [
               {
                 "$ref": "#/components/schemas/AnchorRecord"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "analysis": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AnalysisRecord"
               },
               {
                 "type": "null"
@@ -10601,6 +11312,92 @@
         "title": "DesignParameters",
         "description": "Characteristic values confirmed by the engineer; Module 2 reads these."
       },
+      "EnvelopeResult": {
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": [
+              "sand",
+              "soft_clay",
+              "stiff_clay"
+            ],
+            "title": "Kind"
+          },
+          "p_max": {
+            "type": "number",
+            "title": "P Max"
+          },
+          "total_thrust": {
+            "type": "number",
+            "title": "Total Thrust"
+          },
+          "gamma": {
+            "type": "number",
+            "title": "Gamma"
+          },
+          "phi_deg": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Phi Deg"
+          },
+          "su": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Su"
+          },
+          "ka": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ka"
+          },
+          "z": {
+            "items": {
+              "type": "number"
+            },
+            "type": "array",
+            "title": "Z"
+          },
+          "p": {
+            "items": {
+              "type": "number"
+            },
+            "type": "array",
+            "title": "P"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "kind",
+          "p_max",
+          "total_thrust",
+          "gamma",
+          "phi_deg",
+          "su",
+          "ka",
+          "z",
+          "p"
+        ],
+        "title": "EnvelopeResult"
+      },
       "ExportRequest": {
         "properties": {
           "dest": {
@@ -11320,6 +12117,78 @@
         ],
         "title": "LayeringSettings",
         "description": "Automatic layering options, stored with the profile so the result can be reproduced.\n\nDefaults are algorithm settings (not code or correlation coefficients) and are editable."
+      },
+      "LevelResult": {
+        "properties": {
+          "depth": {
+            "type": "number",
+            "title": "Depth"
+          },
+          "inclination_deg": {
+            "type": "number",
+            "title": "Inclination Deg"
+          },
+          "spacing": {
+            "type": "number",
+            "title": "Spacing"
+          },
+          "horizontal_load_per_m": {
+            "type": "number",
+            "title": "Horizontal Load Per M"
+          },
+          "horizontal_load_per_anchor": {
+            "type": "number",
+            "title": "Horizontal Load Per Anchor"
+          },
+          "axial_load_per_anchor": {
+            "type": "number",
+            "title": "Axial Load Per Anchor"
+          },
+          "vertical_load_per_m": {
+            "type": "number",
+            "title": "Vertical Load Per M"
+          },
+          "design": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AnchorDesignResult"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "design_missing": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Design Missing"
+          },
+          "design_error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Design Error"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "depth",
+          "inclination_deg",
+          "spacing",
+          "horizontal_load_per_m",
+          "horizontal_load_per_anchor",
+          "axial_load_per_anchor",
+          "vertical_load_per_m"
+        ],
+        "title": "LevelResult"
       },
       "LibraryEntryDTO": {
         "properties": {
@@ -14540,6 +15409,16 @@
           "anchor_result_stale": {
             "type": "boolean",
             "title": "Anchor Result Stale"
+          },
+          "analysis_result_stale": {
+            "type": "boolean",
+            "title": "Analysis Result Stale",
+            "default": false
+          },
+          "analysis_soil_stale": {
+            "type": "boolean",
+            "title": "Analysis Soil Stale",
+            "default": false
           }
         },
         "additionalProperties": false,
@@ -15555,6 +16434,50 @@
         ],
         "title": "WallResultDTO",
         "description": "Wall sizing or checking result, with proposed geometry and traceable evidence."
+      },
+      "WallSection": {
+        "properties": {
+          "w_cm3": {
+            "anyOf": [
+              {
+                "type": "number",
+                "exclusiveMinimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "W Cm3"
+          },
+          "allowable_stress_mpa": {
+            "anyOf": [
+              {
+                "type": "number",
+                "exclusiveMinimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Allowable Stress Mpa"
+          },
+          "ei_knm2": {
+            "anyOf": [
+              {
+                "type": "number",
+                "exclusiveMinimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ei Knm2"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "WallSection",
+        "description": "Generic wall section: strength check only, no steel or concrete design."
       },
       "WallSettings": {
         "properties": {

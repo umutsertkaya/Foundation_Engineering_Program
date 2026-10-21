@@ -122,6 +122,7 @@ REQUESTS = [
     ("GET", "/api/m/anchored_wall/state", None),
     ("PUT", "/api/m/anchored_wall/state", {"anchor": None}),
     ("POST", "/api/m/anchored_wall/anchor/design", {}),
+    ("POST", "/api/m/anchored_wall/analysis/run", {}),
     ("GET", "/api/m/anchored_wall/anchor/reference", None),
     ("POST", "/api/m/liquefaction/run", {
         "method": "bi2014", "amax_g": 0.3, "mw": 7.5, "target_fs": 1.1,
@@ -169,7 +170,7 @@ IMPLEMENTED = {
         "/api/jobs/{job_id}", "/api/m/walls/wall-types",
         "/api/m/walls/structures/{id}/required-factors", "/api/m/walls/structures/{id}/size",
         "/api/m/walls/structures/{id}/check", "/api/m/sheet_pile/structures/{id}/design",
-        "/api/m/anchored_wall/state", "/api/m/anchored_wall/anchor/design",
+        "/api/m/anchored_wall/state", "/api/m/anchored_wall/anchor/design", "/api/m/anchored_wall/analysis/run",
         "/api/m/anchored_wall/anchor/reference", "/api/m/liquefaction/run", "/api/m/liquefaction/result", "/api/m/report/sections",
         "/api/m/report/docx",
     } or path.startswith("/api/library/{file}")

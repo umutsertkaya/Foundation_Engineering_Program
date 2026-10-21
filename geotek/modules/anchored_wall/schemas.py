@@ -11,6 +11,9 @@ class StateResponse(DTO):
 
     state: AnchoredWallState
     anchor_result_stale: bool
+    analysis_result_stale: bool = False
+    analysis_soil_stale: bool = False
+    """The project profile the analysis soil was copied from has changed or is gone."""
 
 
 class TendonInfo(DTO):

@@ -45,6 +45,7 @@ graph LR
   geotek_core_models["geotek.core.models"]
   geotek_engine["geotek.engine"]
   geotek_engine_anchor_tables["geotek.engine.anchor_tables"]
+  geotek_engine_anchored_wall["geotek.engine.anchored_wall"]
   geotek_engine_anchors["geotek.engine.anchors"]
   geotek_engine_bearing["geotek.engine.bearing"]
   geotek_engine_classification["geotek.engine.classification"]
@@ -85,6 +86,11 @@ graph LR
   geotek_core_models -->|2| geotek_config
   geotek_core_models -->|4| geotek_core
   geotek_core_models -->|1| geotek_engine_stresses
+  geotek_engine_anchored_wall -->|2| geotek_core
+  geotek_engine_anchored_wall -->|2| geotek_core_models
+  geotek_engine_anchored_wall -->|1| geotek_engine_anchors
+  geotek_engine_anchored_wall -->|1| geotek_engine_earth_pressure
+  geotek_engine_anchored_wall -->|1| geotek_engine_sheet_pile
   geotek_engine_anchors -->|1| geotek_core
   geotek_engine_anchors -->|1| geotek_core_models
   geotek_engine_anchors -->|1| geotek_engine
@@ -143,6 +149,7 @@ graph LR
   geotek_modules_anchored_wall -->|3| geotek_core_models
   geotek_modules_anchored_wall -->|1| geotek_engine
   geotek_modules_anchored_wall -->|1| geotek_engine_anchor_tables
+  geotek_modules_anchored_wall -->|1| geotek_engine_anchored_wall
   geotek_modules_anchored_wall -->|1| geotek_engine_anchors
   geotek_modules_liquefaction -->|8| geotek_api
   geotek_modules_liquefaction -->|1| geotek_core
@@ -190,6 +197,7 @@ graph LR
 | `geotek.core.models` | 8 | `geotek.config`, `geotek.core`, `geotek.engine.stresses` |
 | `geotek.engine` | 1 | — |
 | `geotek.engine.anchor_tables` | 1 | — |
+| `geotek.engine.anchored_wall` | 1 | `geotek.core`, `geotek.core.models`, `geotek.engine.anchors`, `geotek.engine.earth_pressure`, `geotek.engine.sheet_pile` |
 | `geotek.engine.anchors` | 1 | `geotek.core`, `geotek.core.models`, `geotek.engine`, `geotek.engine.anchor_tables` |
 | `geotek.engine.bearing` | 1 | `geotek.core` |
 | `geotek.engine.classification` | 4 | `geotek.core.models` |
@@ -208,7 +216,7 @@ graph LR
 | `geotek.launcher` | 1 | `geotek.api` |
 | `geotek.library` | 3 | `geotek.core`, `geotek.core.models`, `geotek.io` |
 | `geotek.modules` | 2 | — |
-| `geotek.modules.anchored_wall` | 3 | `geotek.api`, `geotek.core`, `geotek.core.models`, `geotek.engine`, `geotek.engine.anchor_tables`, `geotek.engine.anchors` |
+| `geotek.modules.anchored_wall` | 3 | `geotek.api`, `geotek.core`, `geotek.core.models`, `geotek.engine`, `geotek.engine.anchor_tables`, `geotek.engine.anchored_wall`, `geotek.engine.anchors` |
 | `geotek.modules.liquefaction` | 3 | `geotek.api`, `geotek.core`, `geotek.core.models`, `geotek.services` |
 | `geotek.modules.report` | 3 | `geotek.api`, `geotek.core`, `geotek.services` |
 | `geotek.modules.sheet_pile` | 2 | `geotek.api`, `geotek.core` |
@@ -240,10 +248,11 @@ Yer sütunu işleyicinin `def` satırıdır; çok satırlı dekoratörler AST il
 | POST | `/api/library/{file}/export` | `geotek/api/library_routes.py:218` | `export_library_project` | `web/src/shared/api/core.ts` |
 | POST | `/api/library/{file}/open` | `geotek/api/library_routes.py:181` | `open_library_project` | `web/src/shared/api/core.ts` |
 | POST | `/api/library/{file}/rename` | `geotek/api/library_routes.py:203` | `rename_library_project` | `web/src/shared/api/core.ts` |
-| POST | `/api/m/anchored_wall/anchor/design` | `geotek/modules/anchored_wall/api.py:78` | `design_ground_anchor` | — |
-| GET | `/api/m/anchored_wall/anchor/reference` | `geotek/modules/anchored_wall/api.py:97` | `anchor_reference` | — |
-| GET | `/api/m/anchored_wall/state` | `geotek/modules/anchored_wall/api.py:55` | `get_module_state` | — |
-| PUT | `/api/m/anchored_wall/state` | `geotek/modules/anchored_wall/api.py:66` | `put_module_state` | — |
+| POST | `/api/m/anchored_wall/analysis/run` | `geotek/modules/anchored_wall/api.py:127` | `run_wall_analysis` | — |
+| POST | `/api/m/anchored_wall/anchor/design` | `geotek/modules/anchored_wall/api.py:108` | `design_ground_anchor` | — |
+| GET | `/api/m/anchored_wall/anchor/reference` | `geotek/modules/anchored_wall/api.py:152` | `anchor_reference` | — |
+| GET | `/api/m/anchored_wall/state` | `geotek/modules/anchored_wall/api.py:83` | `get_module_state` | — |
+| PUT | `/api/m/anchored_wall/state` | `geotek/modules/anchored_wall/api.py:94` | `put_module_state` | — |
 | GET | `/api/m/liquefaction/result` | `geotek/modules/liquefaction/api.py:93` | `get_liquefaction_result` | `web/src/modules/liquefaction/api.ts` |
 | POST | `/api/m/liquefaction/run` | `geotek/modules/liquefaction/api.py:31` | `run_liquefaction` | `web/src/modules/liquefaction/api.ts` |
 | POST | `/api/m/report/docx` | `geotek/modules/report/api.py:45` | `build_docx` | — |
@@ -339,8 +348,8 @@ Test sütunu: o dosyayı doğrudan import eden `tests/` dosyaları (yoksa `—`)
 | Dosya | Satır | Bağımlı olduğu | Kullanan | Test |
 |---|---:|---|---|---|
 | `core/__init__.py` | 1 | — | — | — |
-| `core/constants.py` | 13 | — | `core.models.investigations`, `core.models.profile`, `core.models.structures`, `engine.correlations.physical`, `engine.correlations.stiffness`, `engine.correlations.strength` +14 | `unit/test_earth_pressure.py`, `unit/test_layering_spt.py`, `unit/test_stresses.py` +5 |
-| `core/errors.py` | 89 | `services.walls_advanced` | `api.app`, `api.calculation_jobs`, `api.jobs`, `api.library_routes`, `api.registry`, `config.codes` +26 | `api/test_jobs_api.py`, `unit/test_anchors.py`, `unit/test_bearing.py` +23 |
+| `core/constants.py` | 13 | — | `core.models.investigations`, `core.models.profile`, `core.models.structures`, `engine.anchored_wall`, `engine.correlations.physical`, `engine.correlations.stiffness` +15 | `unit/test_earth_pressure.py`, `unit/test_layering_spt.py`, `unit/test_stresses.py` +5 |
+| `core/errors.py` | 89 | `services.walls_advanced` | `api.app`, `api.calculation_jobs`, `api.jobs`, `api.library_routes`, `api.registry`, `config.codes` +27 | `api/test_jobs_api.py`, `unit/test_anchored_wall.py`, `unit/test_anchors.py` +24 |
 | `core/module_state.py` | 54 | `core.errors`, `core.models.project` | `modules.anchored_wall.api` | `api/test_anchored_wall_api.py`, `unit/test_project_io_13.py` |
 | `core/modules.py` | 76 | `core.errors` | `api.registry`, `modules.anchored_wall`, `modules.liquefaction`, `modules.report`, `modules.sheet_pile`, `modules.soil` +1 | `unit/test_module_registry.py`, `unit/test_module_report_hook.py`, `unit/test_new_module.py` |
 | `core/units.py` | 79 | `core.errors` | `io.tabular` | `unit/test_units.py` |
@@ -350,13 +359,13 @@ Test sütunu: o dosyayı doğrudan import eden `tests/` dosyaları (yoksa `—`)
 
 | Dosya | Satır | Bağımlı olduğu | Kullanan | Test |
 |---|---:|---|---|---|
-| `core/models/__init__.py` | 51 | `core.models.investigations`, `core.models.parameters`, `core.models.profile`, `core.models.project`, `core.models.structures` | — | `conftest.py`, `unit/test_cpt.py`, `unit/test_earth_pressure.py` +18 |
-| `core/models/anchors.py` | 204 | — | `engine.anchors`, `modules.anchored_wall`, `modules.anchored_wall.api`, `modules.anchored_wall.schemas` | `api/test_anchored_wall_api.py`, `unit/test_anchors.py` |
+| `core/models/__init__.py` | 51 | `core.models.investigations`, `core.models.parameters`, `core.models.profile`, `core.models.project`, `core.models.structures` | — | `conftest.py`, `unit/test_anchored_wall.py`, `unit/test_cpt.py` +19 |
+| `core/models/anchors.py` | 364 | `core.models.structures` | `engine.anchored_wall`, `engine.anchors`, `modules.anchored_wall`, `modules.anchored_wall.api`, `modules.anchored_wall.schemas` | `api/test_anchored_wall_api.py`, `unit/test_anchored_wall.py`, `unit/test_anchors.py` |
 | `core/models/investigations.py` | 161 | `core.constants` | `core.models`, `core.models.project`, `engine.classification.uscs`, `engine.insitu.cpt`, `engine.insitu.spt`, `engine.layering.spt` +5 | `api/test_liquefaction_api.py`, `api/test_report_api.py`, `unit/test_layering_cpt.py` +2 |
 | `core/models/parameters.py` | 76 | — | `core.models`, `core.models.profile`, `engine.correlations.registry`, `modules.soil.api`, `modules.soil.schemas`, `modules.soil.service` +1 | `unit/test_parameters_service.py` |
-| `core/models/profile.py` | 159 | `core.constants`, `core.errors`, `core.models.parameters`, `engine.stresses` | `api.schemas`, `core.models`, `core.models.project`, `core.models.structures`, `engine.earth_pressure.distribution`, `engine.insitu.cpt` +21 | `api/job_helpers.py`, `api/test_system_check_api.py`, `unit/test_layering_conversion.py` +7 |
+| `core/models/profile.py` | 159 | `core.constants`, `core.errors`, `core.models.parameters`, `engine.stresses` | `api.schemas`, `core.models`, `core.models.project`, `core.models.structures`, `engine.anchored_wall`, `engine.earth_pressure.distribution` +22 | `api/job_helpers.py`, `api/test_system_check_api.py`, `unit/test_layering_conversion.py` +7 |
 | `core/models/project.py` | 113 | `config.codes`, `core.models.investigations`, `core.models.profile`, `core.models.structures` | `api.app`, `api.library_routes`, `api.schemas`, `api.session`, `core.models`, `core.module_state` +9 | `api/job_helpers.py`, `api/test_anchored_wall_api.py`, `api/test_contract.py` +14 |
-| `core/models/structures.py` | 228 | `core.constants`, `core.models.profile`, `core.models.walls` | `api.app`, `api.schemas`, `core.models`, `core.models.project`, `engine.walls.layered`, `services.structures` | `api/job_helpers.py`, `api/test_report_api.py`, `api/test_soil_api.py` +5 |
+| `core/models/structures.py` | 228 | `core.constants`, `core.models.profile`, `core.models.walls` | `api.app`, `api.schemas`, `core.models`, `core.models.anchors`, `core.models.project`, `engine.walls.layered` +1 | `api/job_helpers.py`, `api/test_report_api.py`, `api/test_soil_api.py` +6 |
 | `core/models/walls.py` | 137 | `config.codes` | `api.schemas`, `core.models.structures`, `engine.limit_state`, `engine.walls.base`, `engine.walls.global_stability`, `engine.walls.layered` +4 | `api/job_helpers.py`, `unit/test_levels.py`, `unit/test_limit_state.py` +7 |
 
 #### `geotek.engine`
@@ -371,11 +380,17 @@ Test sütunu: o dosyayı doğrudan import eden `tests/` dosyaları (yoksa `—`)
 |---|---:|---|---|---|
 | `engine/anchor_tables.py` | 100 | — | `engine.anchors`, `modules.anchored_wall.api` | `unit/test_anchors.py` |
 
+#### `geotek.engine.anchored_wall`
+
+| Dosya | Satır | Bağımlı olduğu | Kullanan | Test |
+|---|---:|---|---|---|
+| `engine/anchored_wall.py` | 380 | `core.constants`, `core.errors`, `core.models.anchors`, `core.models.profile`, `engine.anchors`, `engine.earth_pressure.coefficients`, `engine.sheet_pile` | `modules.anchored_wall.api` | `unit/test_anchored_wall.py` |
+
 #### `geotek.engine.anchors`
 
 | Dosya | Satır | Bağımlı olduğu | Kullanan | Test |
 |---|---:|---|---|---|
-| `engine/anchors.py` | 280 | `core.errors`, `core.models.anchors`, `engine`, `engine.anchor_tables` | `modules.anchored_wall.api` | `unit/test_anchors.py` |
+| `engine/anchors.py` | 280 | `core.errors`, `core.models.anchors`, `engine`, `engine.anchor_tables` | `engine.anchored_wall`, `modules.anchored_wall.api` | `unit/test_anchors.py` |
 
 #### `geotek.engine.bearing`
 
@@ -408,7 +423,7 @@ Test sütunu: o dosyayı doğrudan import eden `tests/` dosyaları (yoksa `—`)
 | Dosya | Satır | Bağımlı olduğu | Kullanan | Test |
 |---|---:|---|---|---|
 | `engine/earth_pressure/__init__.py` | 0 | — | — | — |
-| `engine/earth_pressure/coefficients.py` | 196 | `core.errors` | `engine.earth_pressure.distribution`, `engine.walls.base`, `services.structures`, `services.walls_basic` | `unit/test_earth_pressure.py`, `unit/test_earth_pressure_crosscheck.py`, `unit/test_levels.py` +7 |
+| `engine/earth_pressure/coefficients.py` | 196 | `core.errors` | `engine.anchored_wall`, `engine.earth_pressure.distribution`, `engine.walls.base`, `services.structures`, `services.walls_basic` | `unit/test_anchored_wall.py`, `unit/test_earth_pressure.py`, `unit/test_earth_pressure_crosscheck.py` +8 |
 | `engine/earth_pressure/distribution.py` | 283 | `core.constants`, `core.errors`, `core.models.profile`, `engine.earth_pressure.coefficients`, `engine.earth_pressure.log_spiral` | `engine.sheet_pile`, `engine.walls.layered`, `services.structures` | `unit/test_earth_pressure.py`, `unit/test_sheet_pile_slope.py`, `unit/test_structures_service.py` +1 |
 | `engine/earth_pressure/log_spiral.py` | 110 | `core.errors` | `engine.earth_pressure.distribution` | `unit/test_earth_pressure.py`, `verification/test_earth_pressure_textbook.py` |
 | `engine/earth_pressure/wedge.py` | 109 | `core.errors` | `engine.walls.base` | `unit/test_earth_pressure_crosscheck.py`, `unit/test_sheet_pile_slope.py`, `unit/test_walls_layered.py` |
@@ -450,7 +465,7 @@ Test sütunu: o dosyayı doğrudan import eden `tests/` dosyaları (yoksa `—`)
 
 | Dosya | Satır | Bağımlı olduğu | Kullanan | Test |
 |---|---:|---|---|---|
-| `engine/sheet_pile.py` | 295 | `core.constants`, `core.errors`, `core.models.profile`, `engine.earth_pressure.distribution` | `engine.limit_state`, `engine.walls.layered`, `services.structures`, `services.walls_basic` | `api/test_contract.py`, `unit/test_limit_state.py`, `unit/test_sheet_pile.py` +4 |
+| `engine/sheet_pile.py` | 307 | `core.constants`, `core.errors`, `core.models.profile`, `engine.earth_pressure.distribution` | `engine.anchored_wall`, `engine.limit_state`, `engine.walls.layered`, `services.structures`, `services.walls_basic` | `api/test_contract.py`, `unit/test_anchored_wall.py`, `unit/test_limit_state.py` +5 |
 
 #### `geotek.engine.stability`
 
@@ -514,8 +529,8 @@ Test sütunu: o dosyayı doğrudan import eden `tests/` dosyaları (yoksa `—`)
 | Dosya | Satır | Bağımlı olduğu | Kullanan | Test |
 |---|---:|---|---|---|
 | `modules/anchored_wall/__init__.py` | 20 | `core.models.anchors`, `core.modules`, `modules.anchored_wall.api` | — | — |
-| `modules/anchored_wall/api.py` | 116 | `api.calculation_jobs`, `api.common`, `api.jobs`, `api.session`, `core.errors`, `core.models.anchors`, `core.module_state`, `engine`, `engine.anchor_tables`, `engine.anchors`, `modules.anchored_wall.schemas` | `modules.anchored_wall` | — |
-| `modules/anchored_wall/schemas.py` | 60 | `api.schemas`, `core.models.anchors` | `modules.anchored_wall.api` | — |
+| `modules/anchored_wall/api.py` | 171 | `api.calculation_jobs`, `api.common`, `api.jobs`, `api.session`, `core.errors`, `core.models.anchors`, `core.module_state`, `engine`, `engine.anchor_tables`, `engine.anchored_wall`, `engine.anchors`, `modules.anchored_wall.schemas` | `modules.anchored_wall` | — |
+| `modules/anchored_wall/schemas.py` | 63 | `api.schemas`, `core.models.anchors` | `modules.anchored_wall.api` | — |
 
 #### `geotek.modules.liquefaction`
 
@@ -761,7 +776,7 @@ Testler yalnız **Kullanan** sütununda görünür; “Test” sütunu o dosyay�
 | `shared/api/mock/hash.ts` | 36 | `shared/api/types.ts` | `shared/api/mock/coreRoutes.ts`, `shared/api/mock/store.ts` | — |
 | `shared/api/mock/index.ts` | 26 | `shared/api/mock/core.ts`, `shared/api/mock/coreRoutes.ts`, `shared/api/mock/dispatcher.ts`, `shared/api/mock/store.ts` | `shared/api/http.ts` | `modules/liquefaction/__tests__/liquefaction.test.tsx`, `modules/sheet_pile/__tests__/sheet_pile.test.tsx`, `modules/soil/__tests__/classification.test.tsx` +15 |
 | `shared/api/mock/store.ts` | 149 | `shared/api/mock/data.ts`, `shared/api/mock/hash.ts`, `shared/api/types.ts` | `modules/liquefaction/mock.ts`, `modules/sheet_pile/mock.ts`, `modules/soil/mock.ts`, `modules/walls/mock.ts`, `shared/api/mock/core.ts` +2 | `modules/liquefaction/__tests__/liquefaction.test.tsx`, `modules/sheet_pile/__tests__/sheet_pile.test.tsx`, `modules/soil/__tests__/soil_mock.test.ts` +3 |
-| `shared/api/schema.d.ts` | 11124 | — | — | — |
+| `shared/api/schema.d.ts` | 11515 | — | — | — |
 | `shared/api/types.ts` | 775 | — | `app/ModuleShell.tsx`, `app/ProjectProvider.tsx`, `app/i18n.ts`, `app/pages/LauncherPage.tsx`, `app/pages/SettingsPage.tsx` +59 | `modules/liquefaction/__tests__/liquefaction.test.tsx`, `modules/liquefaction/__tests__/results.test.tsx`, `modules/sheet_pile/__tests__/result-contract.test.tsx` +14 |
 | `shared/components/EmptyState.tsx` | 26 | — | `app/ModuleShell.tsx`, `app/pages/LauncherPage.tsx`, `app/pages/StartPage.tsx`, `modules/liquefaction/pages/ResultsPage.tsx`, `modules/report/pages/HomePage.tsx` +9 | — |
 | `shared/components/ErrorAlert.tsx` | 36 | `shared/api/errorMessage.ts` | `app/ModuleShell.tsx`, `app/RequireProject.tsx`, `app/pages/LauncherPage.tsx`, `app/pages/SettingsPage.tsx`, `app/pages/StartPage.tsx` +10 | `test/error_alert.test.tsx` |

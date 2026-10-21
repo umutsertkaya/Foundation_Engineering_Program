@@ -14,10 +14,14 @@ from geotek.core.models.anchors import (
     AnchorDesignInputs,
     AnchorDesignResult,
     AnchoredWallState,
+    AnalysisRecord,
+    AnalysisResult,
+    AnchoredWallAnalysisInputs,
     AnchorRecord,
 )
 from geotek.core.module_state import get_state, set_state
 from geotek.engine import anchor_tables as tables
+from geotek.engine import anchored_wall as analysis_engine
 from geotek.engine.anchors import MissingAnchorInputsError, design_anchor, inputs_hash
 from geotek.modules.anchored_wall.schemas import (
     AnchorDefaults,
@@ -36,6 +40,30 @@ def _stale(state: AnchoredWallState) -> bool:
     if record is None or record.result is None:
         return False
     return record.result_hash != inputs_hash(record.inputs)
+
+
+def _analysis_stale(state: AnchoredWallState) -> bool:
+    record = state.analysis
+    if record is None or record.result is None:
+        return False
+    return record.result_hash != analysis_engine.inputs_hash(record.inputs)
+
+
+def _soil_stale(project, state: AnchoredWallState) -> bool:
+    record = state.analysis
+    if record is None:
+        return False
+    soil = record.inputs.soil
+    source = None
+    if soil.source_profile_id is not None:
+        source = next((p for p in project.soil_profiles if p.id == soil.source_profile_id), None)
+    return soil.is_stale(source)
+
+
+def _response(project, state: AnchoredWallState) -> StateResponse:
+    return StateResponse(state=state, anchor_result_stale=_stale(state),
+                         analysis_result_stale=_analysis_stale(state),
+                         analysis_soil_stale=_soil_stale(project, state))
 
 
 def _run(inputs: AnchorDesignInputs) -> AnchorDesignResult:
@@ -60,18 +88,20 @@ def router() -> APIRouter:
                 state = get_state(project, MODULE_ID, AnchoredWallState, ANCHOR_STATE_VERSION)
             except Exception as exc:
                 raise_service_error(exc)
-            return StateResponse(state=state, anchor_result_stale=_stale(state))
+            return _response(project, state)
 
     @api.put("/state", response_model=StateResponse, operation_id="anchored_wall_put_state")
     def put_module_state(body: AnchoredWallState, session: SessionDep) -> StateResponse:
         """Replace the module state; a stored result must match its inputs."""
         if _stale(body):
             api_error(422, "validation", "Stored anchor result does not match its inputs.")
+        if _analysis_stale(body):
+            api_error(422, "validation", "Stored analysis result does not match its inputs.")
         with session.lock:
             project = session.require_project()
             set_state(project, MODULE_ID, body, ANCHOR_STATE_VERSION)
             session.mark_dirty()
-            return StateResponse(state=body, anchor_result_stale=False)
+            return _response(project, body)
 
     @api.post("/anchor/design", response_model=AnchorDesignResult,
               operation_id="anchored_wall_design_anchor")
@@ -88,6 +118,31 @@ def router() -> APIRouter:
                 except Exception as exc:
                     raise_service_error(exc)
                 state.anchor = AnchorRecord(inputs=body, result=result, result_hash=inputs_hash(body))
+                set_state(project, MODULE_ID, state, ANCHOR_STATE_VERSION)
+                session.mark_dirty()
+        return result
+
+    @api.post("/analysis/run", response_model=AnalysisResult,
+              operation_id="anchored_wall_run_analysis")
+    def run_wall_analysis(
+        body: AnchoredWallAnalysisInputs, session: SessionDep, save: bool = False,
+    ) -> AnalysisResult:
+        """Analyse the anchored wall; with ``save`` store inputs and result in the open project."""
+        try:
+            result = analysis_engine.run_analysis(body)
+        except analysis_engine.AnchoredWallStop as exc:
+            api_error(422, "calculation_stopped", str(exc), stop_code=exc.code, params=exc.params)
+        except GeoTekError as exc:
+            api_error(422, "validation", str(exc))
+        if save:
+            with session.lock:
+                project = session.require_project()
+                try:
+                    state = get_state(project, MODULE_ID, AnchoredWallState, ANCHOR_STATE_VERSION)
+                except Exception as exc:
+                    raise_service_error(exc)
+                state.analysis = AnalysisRecord(inputs=body, result=result,
+                                                result_hash=analysis_engine.inputs_hash(body))
                 set_state(project, MODULE_ID, state, ANCHOR_STATE_VERSION)
                 session.mark_dirty()
         return result
