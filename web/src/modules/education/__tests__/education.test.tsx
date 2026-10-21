@@ -47,7 +47,7 @@ describe("education module", () => {
 
   it.each(TOPICS.map((t) => [t.id, t.title.tr]))("renders topic %s with its figures", (id, title) => {
     const { container } = renderAt(`/topic/${id}`);
-    expect(screen.getByRole("heading", { name: title })).toBeInTheDocument();
+    expect(container.querySelector("h2")?.textContent).toBe(title);
     const tp = TOPICS.find((t) => t.id === id)!;
     const n = [...tp.blocks, ...(tp.student ?? [])].filter((b) => b.type === "figure").length;
     expect(container.querySelectorAll("figure svg").length).toBe(n);
