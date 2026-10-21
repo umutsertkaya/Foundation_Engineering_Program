@@ -90,6 +90,10 @@ class AnchorDesignInputs(_Model):
     """Maximum test load limit as a fraction of SMTS (GEC-4: 0.80)."""
     min_overburden: float = Field(4.5, ge=0)
     """Minimum soil cover over the centre of the bond zone [m] (GEC-4: 4.5)."""
+    ground: Literal["soil", "rock"] = "soil"
+    """Bond ground; the cover requirement is GEC-4's for soil anchors and not checked in rock."""
+    transfer_load_ref: str | None = Field(None, max_length=120)
+    """Where the transfer load / bond stress came from, e.g. a library row id; echoed in the result."""
 
     @model_validator(mode="after")
     def _consistent(self) -> AnchorDesignInputs:
@@ -104,6 +108,8 @@ class AnchorDesignInputs(_Model):
             raise ValueError("spacing applies only with horizontal_load_per_m")
         if (self.ultimate_transfer_load is not None) and (self.ultimate_bond_stress is not None):
             raise ValueError("give ultimate_transfer_load or ultimate_bond_stress, not both")
+        if not self.design_limit <= self.lock_off_limit <= self.test_limit:
+            raise ValueError("limits must satisfy design_limit <= lock_off_limit <= test_limit")
         if (self.min_bond_length and self.max_bond_length
                 and self.min_bond_length > self.max_bond_length):
             raise ValueError("min_bond_length exceeds max_bond_length")
@@ -118,6 +124,8 @@ class Notice(_Model):
 
 
 class AnchorCheck(_Model):
+    """``ok`` when demand <= limit; for ``overburden`` demand is the required cover, limit the available."""
+
     id: str
     demand: float
     limit: float
@@ -170,6 +178,7 @@ class AnchorDesignResult(_Model):
     bond_length_calculated: float
     bond_length: float
     bond_length_governing: Literal["calculated", "minimum"]
+    transfer_load_ref: str | None
     bond_capacity: float
     """Allowable bond capacity q_u L_b / FS [kN]."""
     total_length: float

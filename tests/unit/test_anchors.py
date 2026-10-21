@@ -100,9 +100,11 @@ def test_min_bond_length_and_warnings():
     r = design_anchor(make(min_bond_length=10.0))
     assert r.bond_length == 10.0 and r.bond_length_governing == "minimum"
     assert r.bond_capacity == pytest.approx(10 * 100 / 2)
+    assert "bond_capacity" not in {c.id for c in r.checks}
     long = design_anchor(make(ultimate_transfer_load=30.0, max_bond_length=10.0))
     codes = {w.code for w in long.warnings}
-    assert {"bond_length_exceeds_typical", "bond_length_exceeds_limit"} <= codes
+    assert "bond_length_exceeds_typical" in codes
+    assert not next(c for c in long.checks if c.id == "bond_length_limit").ok
     steep = design_anchor(make(inclination_deg=50.0))
     assert "inclination_outside_range" in {w.code for w in steep.warnings}
 
@@ -128,7 +130,7 @@ def test_strand_count_follows_the_governing_limit():
     assert r.tendon.count == 2 and r.tendon.count_governing == "test"
     # lock-off above the design load (e.g. landslide stabilisation) can govern
     r = design_anchor(make(horizontal_load_per_m=None, spacing=None, axial_load=100.0,
-                           lock_off_ratio=1.5, lock_off_limit=0.5, test_limit=0.9, design_limit=0.9))
+                           lock_off_ratio=1.5, lock_off_limit=0.5, test_limit=0.9, design_limit=0.4))
     assert r.tendon.count == 2 and r.tendon.count_governing == "lock_off"
     assert r.lock_off_load == pytest.approx(150.0)
 
@@ -149,7 +151,7 @@ def test_tendon_selection_errors_and_custom():
     assert custom.tendon.type == "custom" and custom.tendon.source == "user input"
     assert custom.tendon.smts_total == 900.0 and custom.tendon.count == 1
     big = design_anchor(make(horizontal_load_per_m=3000.0, spacing=2.5, ultimate_transfer_load=1000.0))
-    assert big.tendon.count > 19 and "strand_count_beyond_table" in {w.code for w in big.warnings}
+    assert big.tendon.count > 19 and "strand_count_not_in_table" in {w.code for w in big.warnings}
 
 
 def test_missing_engineering_inputs_are_listed_not_assumed():
@@ -210,3 +212,30 @@ def test_library_tables_match_gec4():
     assert all(t.source.startswith("FHWA GEC-4") for t in tables.TRANSFER_LOADS)
     assert tables.TENDON_BY_ID["bar_150_32"].smts_kn == 835.0
     assert next(t for t in tables.TRANSFER_LOADS if t.id == "sand_loose").q_u_kn_per_m == 100
+
+
+def test_float_edge_count_and_check_agree():
+    limit = 0.6 * 260.7
+    for load in (limit, limit * (1 + 1e-10), limit * (1 + 1e-6)):
+        r = design_anchor(make(horizontal_load_per_m=None, spacing=None, axial_load=load, lock_off_ratio=0.5))
+        assert all(c.ok for c in r.checks if c.id.startswith("tendon"))
+
+
+def test_relaxations_and_defaults_are_visible():
+    r = design_anchor(make(safety_factor=1.5, test_factor=1.2, design_limit=0.65, lock_off_limit=0.7,
+                           test_limit=0.85, min_free_length=1.0, tendon={"type": "strand", "count": 4}))
+    codes = {w.code for w in r.warnings}
+    assert {"safety_factor_below_guidance", "test_factor_below_gec4", "limit_above_gec4",
+            "min_free_length_below_gec4", "transfer_load_unreferenced"} <= codes
+    base = design_anchor(make(transfer_load_ref="sand_loose, GEC-4 Table 6"))
+    assert {"gec4_test_factor", "gec4_tendon_limits", "transfer_load_ref"} <= {a.code for a in base.assumptions}
+    assert base.transfer_load_ref == "sand_loose, GEC-4 Table 6"
+    with pytest.raises(ValidationError):
+        make(design_limit=0.8, test_limit=0.6)
+
+
+def test_rock_anchor_skips_the_soil_cover_check():
+    r = design_anchor(make(excavation_height=3.0, head_depth=0.5, inclination_deg=10.0, ground="rock",
+                           horizontal_load_per_m=20.0, ultimate_transfer_load=200.0))
+    assert "overburden" not in {c.id for c in r.checks}
+    assert "overburden_not_checked_rock" in {a.code for a in r.assumptions}

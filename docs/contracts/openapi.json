@@ -9008,7 +9008,8 @@
           "limit",
           "ok"
         ],
-        "title": "AnchorCheck"
+        "title": "AnchorCheck",
+        "description": "``ok`` when demand <= limit; for ``overburden`` demand is the required cover, limit the available."
       },
       "AnchorDefaults": {
         "properties": {
@@ -9280,6 +9281,27 @@
             "minimum": 0.0,
             "title": "Min Overburden",
             "default": 4.5
+          },
+          "ground": {
+            "type": "string",
+            "enum": [
+              "soil",
+              "rock"
+            ],
+            "title": "Ground",
+            "default": "soil"
+          },
+          "transfer_load_ref": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 120
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Transfer Load Ref"
           }
         },
         "additionalProperties": false,
@@ -9402,6 +9424,17 @@
             ],
             "title": "Bond Length Governing"
           },
+          "transfer_load_ref": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Transfer Load Ref"
+          },
           "bond_capacity": {
             "type": "number",
             "title": "Bond Capacity"
@@ -9470,6 +9503,7 @@
           "bond_length_calculated",
           "bond_length",
           "bond_length_governing",
+          "transfer_load_ref",
           "bond_capacity",
           "total_length",
           "bond_centre_depth",

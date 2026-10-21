@@ -35,6 +35,13 @@ from geotek.core.models.anchors import (
 from geotek.engine import anchor_tables as tables
 
 _EPS = 1e-9
+ENGINE_VERSION = "1"
+"""Part of the inputs hash: bump when a formula or table value changes."""
+
+
+def _within(load: float, limit: float) -> bool:
+    """One tolerance for counting tendons and for the checks."""
+    return load <= limit * (1.0 + _EPS)
 
 
 class MissingAnchorInputsError(GeoTekError):
@@ -47,7 +54,8 @@ class MissingAnchorInputsError(GeoTekError):
 
 def inputs_hash(inputs: AnchorDesignInputs) -> str:
     """Stable digest of the inputs, used to mark a stored result as out of date."""
-    payload = json.dumps(inputs.model_dump(mode="json"), sort_keys=True, separators=(",", ":"))
+    payload = json.dumps([ENGINE_VERSION, inputs.model_dump(mode="json")], sort_keys=True,
+                         separators=(",", ":"))
     return hashlib.sha256(payload.encode("utf-8")).hexdigest()
 
 
@@ -97,7 +105,7 @@ def _select_tendon(inputs: AnchorDesignInputs, design: float, lock_off: float, t
         else:  # bar, automatic: smallest library bar meeting every limit
             bars = sorted((t for t in tables.TENDONS if t.type == "bar"), key=lambda t: t.smts_kn)
             for section in bars:
-                if all(load <= ratio * section.smts_kn + _EPS for load, ratio in limits.values()):
+                if all(_within(load, ratio * section.smts_kn) for load, ratio in limits.values()):
                     break
             else:
                 raise GeoTekError(
@@ -108,7 +116,7 @@ def _select_tendon(inputs: AnchorDesignInputs, design: float, lock_off: float, t
 
     governing = "user"
     if spec.type == "strand":
-        needed = {name: math.ceil(load / (ratio * smts) - _EPS) for name, (load, ratio) in limits.items()}
+        needed = {name: math.ceil(load / (ratio * smts) / (1.0 + _EPS)) for name, (load, ratio) in limits.items()}
         required = max(1, *needed.values())
         governing = max(needed, key=lambda n: (needed[n], n == "design"))
         count = spec.count if spec.count is not None else required
@@ -117,12 +125,12 @@ def _select_tendon(inputs: AnchorDesignInputs, design: float, lock_off: float, t
             if count < required:
                 raise GeoTekError(
                     f"{count} strand(s) exceed a tendon load limit; at least {required} are required")
-        if count > 19:
-            warnings.append(Notice(code="strand_count_beyond_table", params={"count": count}))
+        if spec.custom_smts_kn is None and count not in (1, 3, 4, 5, 7, 9, 12, 15, 19):
+            warnings.append(Notice(code="strand_count_not_in_table", params={"count": count}))
     else:
         count = 1
         for name, (load, ratio) in limits.items():
-            if load > ratio * smts + _EPS:
+            if not _within(load, ratio * smts):
                 raise GeoTekError(
                     f"The selected bar exceeds the {name} load limit ({load:.0f} kN > "
                     f"{ratio * smts:.0f} kN)")
@@ -180,6 +188,31 @@ def design_anchor(inputs: AnchorDesignInputs) -> AnchorDesignResult:
         assumptions.append(Notice(code="wedge_origin_at_corner"))
     assumptions.append(Notice(code="level_ground_vertical_wall"))
 
+    # Defaults and relaxations are always visible
+    defaults = AnchorDesignInputs.model_fields
+    if inputs.test_factor == defaults["test_factor"].default:
+        assumptions.append(Notice(code="gec4_test_factor", params={"value": inputs.test_factor}))
+    elif inputs.test_factor < defaults["test_factor"].default:
+        warnings.append(Notice(code="test_factor_below_gec4", params={"value": inputs.test_factor}))
+    for name, code in (("design_limit", "design"), ("lock_off_limit", "lock_off"), ("test_limit", "test")):
+        value = getattr(inputs, name)
+        if value > defaults[name].default:
+            warnings.append(Notice(code="limit_above_gec4", params={"limit": code, "value": value}))
+    if (inputs.design_limit, inputs.lock_off_limit, inputs.test_limit) == (0.6, 0.7, 0.8):
+        assumptions.append(Notice(code="gec4_tendon_limits"))
+    if inputs.min_free_length is not None and inputs.min_free_length < tables.MIN_FREE_LENGTH[inputs.tendon.type]:
+        warnings.append(Notice(code="min_free_length_below_gec4",
+                               params={"value": inputs.min_free_length,
+                                       "gec4": tables.MIN_FREE_LENGTH[inputs.tendon.type]}))
+    guidance = min(v for _, v, _ in tables.SAFETY_FACTOR_GUIDANCE)
+    if inputs.safety_factor < guidance:
+        warnings.append(Notice(code="safety_factor_below_guidance",
+                               params={"value": inputs.safety_factor, "guidance": guidance}))
+    if inputs.transfer_load_ref is None:
+        warnings.append(Notice(code="transfer_load_unreferenced"))
+    else:
+        assumptions.append(Notice(code="transfer_load_ref", params={"ref": inputs.transfer_load_ref}))
+
     # Bond length
     if inputs.ultimate_transfer_load is not None:
         q_u, q_source = inputs.ultimate_transfer_load, "direct"
@@ -195,9 +228,6 @@ def design_anchor(inputs: AnchorDesignInputs) -> AnchorDesignResult:
     if l_b > tables.TYPICAL_BOND_LENGTH_MAX:
         warnings.append(Notice(code="bond_length_exceeds_typical",
                                params={"bond_length": round(l_b, 2), "typical_max": tables.TYPICAL_BOND_LENGTH_MAX}))
-    if inputs.max_bond_length is not None and l_b > inputs.max_bond_length + _EPS:
-        warnings.append(Notice(code="bond_length_exceeds_limit",
-                               params={"bond_length": round(l_b, 2), "limit": inputs.max_bond_length}))
     capacity = q_u * l_b / fs
 
     tendon = _select_tendon(inputs, design, lock_off, test, warnings)
@@ -209,19 +239,25 @@ def design_anchor(inputs: AnchorDesignInputs) -> AnchorDesignResult:
                                params={"inclination": inputs.inclination_deg, "min": lo, "max": hi}))
     centre_depth = inputs.head_depth + (l_free + l_b / 2.0) * math.sin(alpha)
     checks = [
-        AnchorCheck(id="bond_capacity", demand=design, limit=capacity, ok=capacity + _EPS >= design),
         AnchorCheck(id="tendon_design", demand=design, limit=inputs.design_limit * tendon.smts_total,
-                    ok=design <= inputs.design_limit * tendon.smts_total + _EPS),
+                    ok=_within(design, inputs.design_limit * tendon.smts_total)),
         AnchorCheck(id="tendon_lock_off", demand=lock_off, limit=inputs.lock_off_limit * tendon.smts_total,
-                    ok=lock_off <= inputs.lock_off_limit * tendon.smts_total + _EPS),
+                    ok=_within(lock_off, inputs.lock_off_limit * tendon.smts_total)),
         AnchorCheck(id="tendon_test", demand=test, limit=inputs.test_limit * tendon.smts_total,
-                    ok=test <= inputs.test_limit * tendon.smts_total + _EPS),
-        AnchorCheck(id="overburden", demand=inputs.min_overburden, limit=centre_depth,
-                    ok=centre_depth + _EPS >= inputs.min_overburden),
+                    ok=_within(test, inputs.test_limit * tendon.smts_total)),
     ]
-    if not checks[-1].ok:
-        warnings.append(Notice(code="overburden_low",
-                               params={"depth": round(centre_depth, 2), "required": inputs.min_overburden}))
+    if inputs.max_bond_length is not None:
+        checks.append(AnchorCheck(id="bond_length_limit", demand=l_b, limit=inputs.max_bond_length,
+                                  ok=_within(l_b, inputs.max_bond_length)))
+    if inputs.ground == "soil":
+        row = AnchorCheck(id="overburden", demand=inputs.min_overburden, limit=centre_depth,
+                          ok=centre_depth * (1.0 + _EPS) >= inputs.min_overburden)
+        checks.append(row)
+        if not row.ok:
+            warnings.append(Notice(code="overburden_low",
+                                   params={"depth": round(centre_depth, 2), "required": inputs.min_overburden}))
+    else:
+        assumptions.append(Notice(code="overburden_not_checked_rock"))
     if inputs.phi_deg == 0:
         warnings.append(Notice(code="phi_zero_wedge"))
 
@@ -239,6 +275,6 @@ def design_anchor(inputs: AnchorDesignInputs) -> AnchorDesignResult:
         free_length=l_free, free_length_governing=free_governing,
         transfer_load=q_u, transfer_load_source=q_source, safety_factor=fs,
         bond_length_calculated=l_b_calc, bond_length=l_b, bond_length_governing=bond_governing,
-        bond_capacity=capacity, total_length=l_free + l_b, bond_centre_depth=centre_depth,
+        transfer_load_ref=inputs.transfer_load_ref, bond_capacity=capacity, total_length=l_free + l_b, bond_centre_depth=centre_depth,
         tendon=tendon, checks=checks, warnings=warnings, assumptions=assumptions, sources=sources,
     )

@@ -1381,7 +1381,10 @@ export interface components {
             /** Profile Id */
             profile_id: string | null;
         };
-        /** AnchorCheck */
+        /**
+         * AnchorCheck
+         * @description ``ok`` when demand <= limit; for ``overburden`` demand is the required cover, limit the available.
+         */
         AnchorCheck: {
             /** Id */
             id: string;
@@ -1483,6 +1486,14 @@ export interface components {
              * @default 4.5
              */
             min_overburden: number;
+            /**
+             * Ground
+             * @default soil
+             * @enum {string}
+             */
+            ground: "soil" | "rock";
+            /** Transfer Load Ref */
+            transfer_load_ref?: string | null;
         };
         /** AnchorDesignResult */
         AnchorDesignResult: {
@@ -1540,6 +1551,8 @@ export interface components {
              * @enum {string}
              */
             bond_length_governing: "calculated" | "minimum";
+            /** Transfer Load Ref */
+            transfer_load_ref: string | null;
             /** Bond Capacity */
             bond_capacity: number;
             /** Total Length */
