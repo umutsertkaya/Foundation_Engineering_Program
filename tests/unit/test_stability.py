@@ -75,3 +75,13 @@ def test_flat_ground_has_no_driving_moment():
     assert bishop(model, 20, 16, 8) is None
     with pytest.raises(GeoTekError):
         search_critical_circle(model, x_range=(10, 30), y_range=(11, 20), tangent_range=(0, 8))
+
+
+def test_reversed_slope_gives_explicit_direction_error():
+    bands = [SoilBand(top=20, gamma=18, c=15, phi=20)]
+    normal = SlopeModel(surface=[(0, 0), (10, 0), (20, 10), (40, 10)], layers=bands)
+    reversed_ = SlopeModel(surface=[(0, 10), (20, 10), (30, 0), (40, 0)], layers=bands)
+    domain = dict(x_range=(0, 40), y_range=(12, 30), tangent_range=(-8, 0))
+    assert search_critical_circle(normal, **domain).fs > 1.0
+    with pytest.raises(GeoTekError, match="mirror the x coordinates"):
+        search_critical_circle(reversed_, **domain)

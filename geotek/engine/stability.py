@@ -67,6 +67,12 @@ class SlopeModel:
         self._sx = np.array(xs, dtype=float)
         self._sy = np.array([p[1] for p in self.surface], dtype=float)
 
+    @property
+    def descends_toward_positive_x(self) -> bool:
+        """True when the ground ends lower than it starts. The solver assumes the sliding mass
+        moves toward -x (toe on the left, crest on the right); a mirrored model must be reflected."""
+        return bool(self._sy[0] > self._sy[-1] + 1e-9)
+
     def surface_y(self, x):
         return np.interp(x, self._sx, self._sy)
 
@@ -221,6 +227,10 @@ def search_critical_circle(
                 if r is not None and (best is None or r.fs < best.fs):
                     best = r
     if best is None:
+        if model.descends_toward_positive_x:
+            raise GeoTekError(
+                "No admissible slip circle found: the ground surface descends toward +x, but the solver "
+                "assumes the slope face falls toward -x (toe on the left); mirror the x coordinates")
         raise GeoTekError("No admissible slip circle found in the search domain")
     if refine:
         lo_t, hi_t = min(tangent_range), max(tangent_range)
