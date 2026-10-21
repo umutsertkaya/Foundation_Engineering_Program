@@ -3,7 +3,7 @@ import {
   BearFactorTrend, ClassFcFromIc, ClassIcChart, ClassUscsPlasticity, LiqCsrCrr, LiqFsProfile, LiqRdDepth,
 } from "./dataFigures";
 import {
-  AnchorTieForce, BearFailureWedge, EpActivePassive, SlopeBishopSlice, SlopeSearchDomain, SpAnchoredMoment,
+  AnchorTieForce, BearFailureWedge, AnchorBondFreeLength, AnchoredWallEnvelopes, AnchoredWallHeave, ShearKeyPlanes, SlopeSurchargeWedge, EpActivePassive, SlopeBishopSlice, SlopeSearchDomain, SpAnchoredMoment,
   SpCantilever, SpNetDiagram, SpPassiveFactor, WallStabilityChecks,
 } from "./schematicFigures";
 
@@ -24,6 +24,11 @@ export const FIGURES: Record<string, ComponentType> = {
   "sp-passive-factor": SpPassiveFactor,
   "slope-bishop-slice": SlopeBishopSlice,
   "slope-search-domain": SlopeSearchDomain,
+  "shear-key-planes": ShearKeyPlanes,
+  "slope-surcharge-wedge": SlopeSurchargeWedge,
+  "anchor-bond-free-length": AnchorBondFreeLength,
+  "anchored-wall-envelopes": AnchoredWallEnvelopes,
+  "anchored-wall-heave": AnchoredWallHeave,
   "anchor-tie-force": AnchorTieForce,
   "sp-anchored-moment": SpAnchoredMoment,
 };

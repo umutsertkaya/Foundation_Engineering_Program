@@ -20,7 +20,7 @@ export const topic: Topic = {
   sources: [
     "Serbest zemin destegi (free earth support) yontemi: USACE (1994), EM 1110-2-2504, Design of Sheet Pile Walls; sheet_pile.py docstring'i yontemi anar.",
     "Rankine, W.J.M. (1857). On the stability of loose earth. Phil. Trans. Royal Society.",
-    "Program ankraj kapasitesini hesaplamaz. Ayri bir kaynak olarak: Sabatini, P.J., Pass, D.G., Bachus, R.C. (1999). Ground Anchors and Anchored Systems. FHWA Geotechnical Engineering Circular No. 4, FHWA-IF-99-015 (kodda atif yoktur, okuyucu icin onerilir).",
+    "Ankraj kapasitesi icin bkz. ground-anchors konusu: Sabatini, P.J., Pass, D.G., Bachus, R.C. (1999). Ground Anchors and Anchored Systems. FHWA GEC-4, FHWA-IF-99-015.",
   ],
   blocks: [
     {
@@ -30,7 +30,7 @@ export const topic: Topic = {
     {
       type: "p",
       text: {
-        tr: "Programdaki 'ankraj' hesabı, tek seviyeli bir ankrajı olan palplanşta serbest zemin desteği (free earth support) varsayımıyla gömülme, ankraj kuvveti ve maksimum momenti hesaplar. Ankraj bağlı noktasında yatay bir tekil kuvvettir. Ankrajın çekme kapasitesi, serbest boy, kök bölgesi (bond zone) veya kayma yüzeyi kontrolü bu modülde yoktur.",
+        tr: "Programdaki 'ankraj' hesabı, tek seviyeli bir ankrajı olan palplanşta serbest zemin desteği (free earth support) varsayımıyla gömülme, ankraj kuvveti ve maksimum momenti hesaplar. Ankraj bağlı noktasında yatay bir tekil kuvvettir. Ankrajın çekme kapasitesi, serbest boy, kök bölgesi (bond zone) veya kayma yüzeyi kontrolü bu modülde yoktur; ankraj tasarımı için bkz. ground-anchors, ankrajlı iksa için bkz. anchored-wall.",
         en: "The anchor calculation in the program covers a single-level anchored sheet pile with free earth support: embedment, anchor force and maximum moment. The anchor is a point horizontal force. Anchor pull-out capacity, free length, bond zone and global checks are not in this module.",
       },
     },
@@ -155,8 +155,8 @@ export const topic: Topic = {
     {
       type: "warn",
       text: {
-        tr: "Kodda FHWA GEC-4 ankraj kapasitesi (kök bölgesi, serbest boy, çekme/kayma kontrolü, ankraj kuvvetinin kök dayanımına karşılaştırılması) yoktur. Ayrıca repodaki 'ankraj-muhendislik-kontrolu' ve 'G9-muhendislik-incelemesi' QA dosyaları docs/qa altında bulunamadı; bu konu bu dosyalara dayanmaz. Ankraj kapasitesi için ayrı mühendislik kontrolü gerekir.",
-        en: "No GEC-4 anchor capacity checks exist in the code. The QA files named for anchors were not found under docs/qa; this topic does not rely on them. Separate anchor capacity design is required.",
+        tr: "Bu modelde ankraj kapasitesi (kök boyu, serbest boy, tendon) kontrol edilmez. Bu kontroller ground-anchors konusundaki FHWA GEC-4 ankraj tasarımında yapılır. Ankrajlı iksa için bkz. anchored-wall konusu.",
+        en: "This model does not check anchor capacity (bond length, free length, tendon). Those checks are in the ground-anchors topic (FHWA GEC-4). See anchored-wall for the retaining wall.",
       },
     },
     {

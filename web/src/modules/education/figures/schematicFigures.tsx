@@ -158,3 +158,85 @@ export function SpAnchoredMoment() {
     </Svg>
   );
 }
+
+export function ShearKeyPlanes() {
+  return (
+    <Svg label="Shear key sliding planes">
+      <Arrow /><Ground y={170} />
+      <polygon points="120,40 160,40 200,170 90,170" fill={C.wall} opacity={0.8} />
+      <rect x={90} y={170} width={110} height={20} fill={C.wall} />
+      <rect x={90} y={190} width={30} height={30} fill={C.wall} />
+      <rect x={200} y={40} width={180} height={130} fill={C.soil} opacity={0.6} />
+      <rect x={200} y={170} width={180} height={50} fill={C.soil} opacity={0.6} />
+      <Line x1={60} y1={170} x2={230} y2={170} color={C.a} dash="5 3" /><T x={232} y={174} color={C.a}>1</T>
+      <Line x1={60} y1={220} x2={230} y2={220} color={C.b} dash="5 3" /><T x={232} y={224} color={C.b}>2</T>
+      <Line x1={300} y1={120} x2={206} y2={120} arrow color={C.b} /><T x={304} y={124}>Pa</T>
+      <Line x1={300} y1={195} x2={206} y2={195} arrow color={C.d} /><T x={304} y={199}>ΔH diş</T>
+      <Line x1={60} y1={205} x2={88} y2={205} arrow color={C.c} /><T x={20} y={209}>Pp</T>
+    </Svg>
+  );
+}
+
+export function SlopeSurchargeWedge() {
+  return (
+    <Svg label="Sloping backfill and surcharge wedge">
+      <Arrow />
+      <rect x={20} y={200} width={360} height={40} fill={C.soil} opacity={0.6} />
+      <polygon points="150,200 150,60 380,10 380,200" fill={C.soil} opacity={0.6} />
+      <rect x={136} y={60} width={14} height={180} fill={C.wall} />
+      {[190, 230, 270, 310, 350].map((x) => <Line key={x} x1={x} y1={52 - (x - 190) * 0.22 - 22} x2={x} y2={52 - (x - 190) * 0.22} arrow color={C.a} />)}
+      <T x={200} y={22} color={C.a}>q</T>
+      <polygon points="150,200 150,60 300,200" fill={C.d} opacity={0.3} stroke={C.d} />
+      <path d="M150 60 L230 40" fill="none" stroke="none" /><T x={260} y={190} color={C.d}>ψ</T>
+      <T x={200} y={72}>β</T>
+      <Line x1={118} y1={130} x2={148} y2={130} arrow color={C.b} /><T x={90} y={134}>Pa</T>
+    </Svg>
+  );
+}
+
+export function AnchorBondFreeLength() {
+  return (
+    <Svg label="Ground anchor free and bond length">
+      <Arrow />
+      <rect x={20} y={20} width={360} height={220} fill={C.soil} opacity={0.6} />
+      <rect x={60} y={20} width={10} height={220} fill={C.wall} />
+      <line x1={70} y1={60} x2={310} y2={140} stroke={C.grid} strokeWidth={1.5} />
+      <line x1={70} y1={60} x2={230} y2={113} stroke="currentColor" strokeWidth={2} />
+      <line x1={230} y1={113} x2={330} y2={146} stroke={C.b} strokeWidth={7} />
+      <line x1={70} y1={240} x2={230} y2={20} stroke={C.d} strokeDasharray="5 3" />
+      <T x={110} y={78}>L serbest</T><T x={250} y={132} color={C.b}>L kök</T>
+      <T x={200} y={36} color={C.d}>45° + φ′/2</T><T x={74} y={52}>θ</T>
+    </Svg>
+  );
+}
+
+export function AnchoredWallEnvelopes() {
+  return (
+    <Svg label="Apparent pressure envelopes for anchored walls">
+      <rect x={30} y={30} width={8} height={200} fill={C.wall} />
+      {[70, 120, 170].map((y) => <g key={y}><circle cx={38} cy={y} r={4} fill={C.a} /></g>)}
+      <polygon points="38,30 150,30 150,200 38,230" fill={C.b} opacity={0.25} stroke={C.b} />
+      <polygon points="230,30 360,30 360,230 230,230 " fill="none" />
+      <polygon points="230,30 300,30 300,200 230,230" fill={C.c} opacity={0.25} stroke={C.c} />
+      <polygon points="230,30 340,70 340,200 230,230" fill={C.d} opacity={0.25} stroke={C.d} />
+      <T x={94} y={246} anchor="middle" color={C.b}>kum: trapez</T><T x={290} y={246} anchor="middle">kil: yumuşak / sert</T>
+      <T x={160} y={110}>p</T>
+    </Svg>
+  );
+}
+
+export function AnchoredWallHeave() {
+  return (
+    <Svg label="Base heave in clay">
+      <Arrow />
+      <rect x={20} y={20} width={110} height={90} fill={C.soil} opacity={0.6} />
+      <rect x={270} y={20} width={110} height={90} fill={C.soil} opacity={0.6} />
+      <rect x={20} y={110} width={360} height={130} fill={C.soil} opacity={0.9} />
+      <rect x={126} y={20} width={8} height={130} fill={C.wall} /><rect x={266} y={20} width={8} height={130} fill={C.wall} />
+      <Line x1={140} y1={116} x2={260} y2={116} dash="3 3" /><T x={200} y={106} anchor="middle">B</T>
+      <path d="M140 116 Q200 220 260 116" fill="none" stroke={C.b} strokeWidth={2} />
+      <Line x1={200} y1={150} x2={200} y2={118} arrow color={C.b} /><T x={206} y={140}>FS = Nc·Su,b / (γH + q)</T>
+      <T x={30} y={60}>H</T><T x={290} y={200}>Su,b</T>
+    </Svg>
+  );
+}
