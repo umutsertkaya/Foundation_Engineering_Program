@@ -11,7 +11,9 @@ import socket
 import sys
 import threading
 import time
+import urllib.request
 import webbrowser
+from collections.abc import Callable
 from pathlib import Path
 
 from fastapi import FastAPI, HTTPException
@@ -52,11 +54,26 @@ def mount_web(app: FastAPI, dist: Path) -> None:
         return FileResponse(index)
 
 
-def build_app(dist: Path | None = None) -> FastAPI:
-    """The API app with the web UI mounted behind it."""
+def add_launcher_routes(app: FastAPI, shutdown: Callable[[], None]) -> None:
+    """Routes that exist only when GeoTek runs as the local program (not in the plain API)."""
+
+    @app.get("/api/launcher", include_in_schema=False)
+    def launcher_info() -> dict[str, bool]:
+        return {"shutdown": True}
+
+    @app.post("/api/launcher/shutdown", include_in_schema=False)
+    def launcher_shutdown() -> dict[str, bool]:
+        shutdown()
+        return {"stopping": True}
+
+
+def build_app(dist: Path | None = None, shutdown: Callable[[], None] | None = None) -> FastAPI:
+    """The API app with the web UI mounted behind it; ``shutdown`` enables the quit route."""
     from geotek.api.app import create_app
 
     app = create_app()
+    if shutdown is not None:
+        add_launcher_routes(app, shutdown)
     mount_web(app, dist if dist is not None else web_dist_dir())
     return app
 
@@ -73,12 +90,32 @@ def pick_port(preferred: int = DEFAULT_PORT) -> int:
     raise OSError("No free local port.")
 
 
+def already_running(port: int = DEFAULT_PORT) -> bool:
+    """True when a GeoTek server already answers on ``port`` (a second start reuses it)."""
+    try:
+        with urllib.request.urlopen(f"http://{HOST}:{port}/api/launcher", timeout=1) as reply:
+            return reply.status == 200
+    except OSError:
+        return False
+
+
 def main() -> int:
     import uvicorn
 
+    if already_running():
+        webbrowser.open(f"http://{HOST}:{DEFAULT_PORT}")
+        print(f"GeoTek zaten çalışıyor: http://{HOST}:{DEFAULT_PORT}")
+        return 0
     port = pick_port()
     url = f"http://{HOST}:{port}"
-    server = uvicorn.Server(uvicorn.Config(build_app(), host=HOST, port=port, log_level="warning"))
+    holder: dict[str, uvicorn.Server] = {}
+
+    def stop() -> None:
+        holder["server"].should_exit = True
+
+    server = uvicorn.Server(
+        uvicorn.Config(build_app(shutdown=stop), host=HOST, port=port, log_level="warning"))
+    holder["server"] = server
 
     def open_when_ready() -> None:
         while not server.started and not server.should_exit:

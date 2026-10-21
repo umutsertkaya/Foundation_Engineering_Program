@@ -1,4 +1,5 @@
 import { Navigate, Route, Routes } from "react-router-dom";
+import { AppChrome } from "./AppChrome";
 import { ModuleRegistryContext, useModules } from "./moduleRegistry";
 import { ModuleShell } from "./ModuleShell";
 import { ProjectProvider } from "./ProjectProvider";
@@ -12,6 +13,7 @@ export function App() {
   return (
     <ModuleRegistryContext.Provider value={modules}>
       <ProjectProvider>
+        <AppChrome />
         <Routes>
           <Route path="/" element={<Navigate to="/start" replace />} />
           <Route path="/start" element={<StartPage />} />
