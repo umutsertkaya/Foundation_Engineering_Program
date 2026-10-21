@@ -1,14 +1,18 @@
+import { lazy } from "react";
 import { IconAnchor } from "@tabler/icons-react";
 import type { WebModuleManifest } from "../../shared/moduleTypes";
-import Root from "./Root";
+const Root = lazy(() => import("./Root"));
 
 export const manifest: WebModuleManifest = {
   id: "anchored_wall",
-  version: "0.1.0",
+  version: "0.2.0",
   titleKey: "anchored_wall.title",
   descriptionKey: "anchored_wall.description",
   icon: IconAnchor,
   order: 45,
   Root,
-  nav: [{ path: "", labelKey: "anchored_wall.nav.home", end: true }],
+  nav: [
+    { path: "", labelKey: "anchored_wall.nav.analysis", end: true },
+    { path: "anchor", labelKey: "anchored_wall.nav.anchor" },
+  ],
 };

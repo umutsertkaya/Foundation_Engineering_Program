@@ -124,6 +124,7 @@ REQUESTS = [
     ("POST", "/api/m/anchored_wall/anchor/design", {}),
     ("POST", "/api/m/anchored_wall/analysis/run", {}),
     ("GET", "/api/m/anchored_wall/anchor/reference", None),
+    ("GET", "/api/m/anchored_wall/soil/{profile_id}", None),
     ("POST", "/api/m/liquefaction/run", {
         "method": "bi2014", "amax_g": 0.3, "mw": 7.5, "target_fs": 1.1,
         "gwt_seismic": None, "default_fc": None, "c_fc": 0, "ic_cutoff": 2.6,
@@ -171,7 +172,8 @@ IMPLEMENTED = {
         "/api/m/walls/structures/{id}/required-factors", "/api/m/walls/structures/{id}/size",
         "/api/m/walls/structures/{id}/check", "/api/m/sheet_pile/structures/{id}/design",
         "/api/m/anchored_wall/state", "/api/m/anchored_wall/anchor/design", "/api/m/anchored_wall/analysis/run",
-        "/api/m/anchored_wall/anchor/reference", "/api/m/liquefaction/run", "/api/m/liquefaction/result", "/api/m/report/sections",
+        "/api/m/anchored_wall/anchor/reference", "/api/m/anchored_wall/soil/{profile_id}",
+        "/api/m/liquefaction/run", "/api/m/liquefaction/result", "/api/m/report/sections",
         "/api/m/report/docx",
     } or path.startswith("/api/library/{file}")
 }

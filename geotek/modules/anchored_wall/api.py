@@ -19,6 +19,7 @@ from geotek.core.models.anchors import (
     AnchoredWallAnalysisInputs,
     AnchorRecord,
 )
+from geotek.core.models.structures import StructureSoilModel
 from geotek.core.module_state import get_state, set_state
 from geotek.engine import anchor_tables as tables
 from geotek.engine import anchored_wall as analysis_engine
@@ -146,6 +147,19 @@ def router() -> APIRouter:
                 set_state(project, MODULE_ID, state, ANCHOR_STATE_VERSION)
                 session.mark_dirty()
         return result
+
+    @api.get("/soil/{profile_id}", response_model=StructureSoilModel,
+             operation_id="anchored_wall_soil_from_profile")
+    def soil_from_profile(profile_id: str, session: SessionDep) -> StructureSoilModel:
+        """Copy of a project soil profile for the analysis, with the source id and hash."""
+        with session.lock:
+            project = session.require_project()
+            try:
+                source = project.profile(profile_id)
+            except KeyError:
+                api_error(404, "not_found", f"Profile not found: {profile_id}")
+            return StructureSoilModel(source_profile_id=source.id, source_hash=source.content_hash(),
+                                      profile=source.model_copy(deep=True))
 
     @api.get("/anchor/reference", response_model=AnchorReference,
              operation_id="anchored_wall_anchor_reference")
