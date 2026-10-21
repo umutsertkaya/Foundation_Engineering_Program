@@ -1,8 +1,12 @@
 import { Alert, Badge, Card, Group, List, SimpleGrid, Stack, Table, Text, Title } from "@mantine/core";
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { list_codes } from "../../../shared/api/client";
+import type { DesignCodeSummary } from "../../../shared/api/types";
 import i18n from "../../../app/i18n";
 import type { SheetPileResultDTO } from "../../../shared/api/types";
 import { decimateSheetPileSeries } from "../series";
+import { PileDiagrams } from "./PileDiagrams";
 
 const MOCK_WARNING = "mock_result_not_a_calculation";
 
@@ -12,7 +16,7 @@ function fmt(v: number | null | undefined, digits = 2): string {
     : "—";
 }
 
-function Stat({ label, value, unit }: { label: string; value: number | null; unit: string }) {
+function Stat({ label, value, unit, hint }: { label: string; value: number | null; unit: string; hint?: string }) {
   return (
     <Card withBorder padding="xs" radius="sm">
       <Text size="xs" c="dimmed">
@@ -21,12 +25,18 @@ function Stat({ label, value, unit }: { label: string; value: number | null; uni
       <Text fw={700}>
         {fmt(value)} {value != null && <Text span size="xs" c="dimmed">{unit}</Text>}
       </Text>
+      {hint && <Text size="xs" c="dimmed">{hint}</Text>}
     </Card>
   );
 }
 
 export function ResultPanel({ result, structure }: { result: SheetPileResultDTO; structure?: { design_code?: string; approach?: string | null; analysis_level?: "basic" | "advanced"; depth_increase?: number | null; support?: "cantilever" | "anchored"; front_water_depth?: number | null } }) {
   const { t } = useTranslation();
+  const [codes, setCodes] = useState<DesignCodeSummary[]>([]);
+  useEffect(() => {
+    void list_codes().then(setCodes).catch(() => undefined);
+  }, []);
+  const codeName = (id?: string) => (id ? codes.find((c) => c.id === id)?.name ?? id : "—");
   const isMock = result.warnings.includes(MOCK_WARNING);
   const warnings = result.warning_items
     ? result.warning_items.filter((w) => w.code !== MOCK_WARNING).map((w) =>
@@ -62,9 +72,9 @@ export function ResultPanel({ result, structure }: { result: SheetPileResultDTO;
 
       {structure && <Card withBorder padding="xs" radius="sm" data-testid="design-basis">
         <Text fw={600} size="sm">{t("sheet_pile.result.design_basis")}</Text>
-        <Text size="xs">{t("sheet_pile.result.design_code")}: {structure.design_code ?? "—"}</Text>
+        <Text size="xs">{t("sheet_pile.result.design_code")}: {codeName(structure.design_code)}</Text>
         <Text size="xs">{t("sheet_pile.result.approach")}: {structure.approach || t("sheet_pile.inputs.service_default")}</Text>
-        <Text size="xs">{t("sheet_pile.result.analysis_level")}: {structure.analysis_level ?? "—"}</Text>
+        <Text size="xs">{t("sheet_pile.result.analysis_level")}: {structure.analysis_level ? t(structure.analysis_level === "advanced" ? "sheet_pile.inputs.advanced_analysis" : "sheet_pile.inputs.basic") : "—"}</Text>
         <Text size="xs">{t("sheet_pile.result.depth_increase")}: {fmt((structure.depth_increase ?? (structure.support === "anchored" ? 0 : 0.2)) * 100, 1)}%</Text>
         {structure.front_water_depth != null && <Text size="xs">{t("sheet_pile.result.front_water_depth")}: {fmt(structure.front_water_depth)} m</Text>}
       </Card>}
@@ -85,7 +95,7 @@ export function ResultPanel({ result, structure }: { result: SheetPileResultDTO;
       <SimpleGrid cols={{ base: 2, sm: 4 }} spacing="xs">
         <Stat label={t("sheet_pile.result.M_max_abs")} value={result.M_max} unit="kNm/m" />
         <Stat label={t("sheet_pile.result.z_M_max")} value={result.z_M_max} unit="m" />
-        {result.toe_force != null && <Stat label={t("sheet_pile.result.toe_force")} value={result.toe_force} unit="kN/m" />}
+        {result.toe_force != null && <Stat label={t("sheet_pile.result.toe_force")} value={Math.abs(result.toe_force)} unit="kN/m" hint={t("sheet_pile.result.toe_force_hint")} />}
         <Stat label={t("sheet_pile.result.section_modulus")} value={result.section_modulus_cm3} unit="cm³/m" />
       </SimpleGrid>
       {result.section_modulus_cm3 == null && (
@@ -115,6 +125,11 @@ export function ResultPanel({ result, structure }: { result: SheetPileResultDTO;
 
       {rows.length > 0 && (
         <>
+        <PileDiagrams
+          rows={allRows}
+          retainedHeight={result.H}
+          anchorDepth={anchored ? result.anchor_depth : null}
+        />
         <Text size="xs" c="dimmed">{t("sheet_pile.result.series_toe_note")}</Text>
         {rows.length < allRows.length && (
           <Text size="xs" c="dimmed">{t("sheet_pile.result.series_points_shown", { shown: rows.length, total: allRows.length })}</Text>

@@ -94,12 +94,15 @@ export function SiteDataPage() {
     setBusy(true);
     setImportError(null);
     try {
+      let imported: EditTarget;
       if (importKind === "cpt") {
-        await import_cpt({ file, sounding_id: id, qc_unit: qcUnit, delimiter, decimal });
+        imported = { kind: "cpt", value: await import_cpt({ file, sounding_id: id, qc_unit: qcUnit, delimiter, decimal }) };
       } else {
-        await import_spt(file, id);
+        imported = { kind: "borehole", isNew: false, value: await import_spt(file, id) };
       }
       setImportKind(null);
+      // The file carries no groundwater level; ask for it right away (classification needs it).
+      setEditTarget(imported);
       notifications.show({ message: t("web.site.import_done", { id }), color: "green" });
       await loadInvestigations();
     } catch (err) {

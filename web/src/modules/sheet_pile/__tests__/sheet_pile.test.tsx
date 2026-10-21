@@ -122,7 +122,7 @@ describe("sheet_pile shell (mock)", () => {
     expect(await screen.findByTestId("job-progress")).toBeInTheDocument();
     expect(await screen.findByTestId("sheet-pile-result", {}, { timeout: 5000 })).toBeInTheDocument();
     expect(screen.getByText("MOCK")).toBeInTheDocument();
-    expect(screen.getByText("kNm/m")).toBeInTheDocument();
+    expect(screen.getAllByText("kNm/m").length).toBeGreaterThan(0);
     expect(screen.getAllByText("kN/m").length).toBeGreaterThan(0);
     expect(screen.getByText("Ankraj kuvveti")).toBeInTheDocument();
     expect(screen.getByText("cm³/m")).toBeInTheDocument();

@@ -9,6 +9,7 @@ from geotek.core.models.investigations import (
     Borehole, CPTSounding, Investigations, LabRecord, SPTRecord)
 from geotek.core.models.project import ProjectMeta
 from geotek.core.models.structures import RetainingWallStructure
+from geotek.core.models.walls import ShearKey
 
 from .job_helpers import poll_job, sheet_project, submit, wall_project
 
@@ -226,3 +227,22 @@ def test_slope_and_surcharge_basis_are_reported(shell, open_project, lang, slope
     assert slope_label in text and basis in text
     assert text.count(assumption) == 2
     assert "report.assumption" not in text and "sheet_pile.assumption" not in text
+
+
+@pytest.mark.parametrize("lang, labels", [
+    ("en", ("Overturning", "Sliding", "Static", "Stem height", "Shear key results", "Under heel")),
+    ("tr", ("Devrilme", "Kayma", "Statik", "Gövde yüksekliği", "Kayma dişi sonuçları", "Topuk altı")),
+])
+def test_wall_report_uses_labels_and_lists_shear_key(shell, open_project, lang, labels):
+    wall = open_project.structures[0]
+    wall.geometry.key = ShearKey(position="heel", width=0.4, depth=0.5)
+    shell.app.state.session.open_project(open_project)
+    assert poll_job(shell, submit(shell, "/api/m/walls/structures/wall/check"))["status"] == "done"
+    response = shell.post(f"{BASE}/docx", json={"language": lang})
+    assert response.status_code == 200, response.text
+    text = _text(response)
+    for label in labels:
+        assert label in text, label
+    cells = [c.text for line in Document(io.BytesIO(response.content)).tables for row in line.rows for c in row.cells]
+    for raw in ("stem_height", "overturning", "static", "global_stability"):
+        assert raw not in cells, raw

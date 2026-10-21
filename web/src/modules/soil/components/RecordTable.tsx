@@ -27,7 +27,7 @@ export function RecordTable<T extends object>({ columns, rows, onChange, blank, 
 
   return (
     <>
-      <ScrollArea>
+      <ScrollArea type="auto" offsetScrollbars="x">
         <Table withTableBorder withColumnBorders verticalSpacing={2} miw={columns.length * 90}>
           <Table.Thead>
             <Table.Tr>

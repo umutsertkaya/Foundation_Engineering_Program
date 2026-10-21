@@ -119,6 +119,30 @@ export interface CPTSounding {
   u2?: number[] | null;
 }
 
+export interface ShearKey {
+  position: "toe" | "middle" | "heel";
+  width: number;
+  depth: number;
+}
+
+export interface ShearKeyResultDTO {
+  case: string;
+  position: "toe" | "middle" | "heel";
+  width: number | null;
+  depth: number | null;
+  passive_full: number | null;
+  passive_used: number | null;
+  reduction: number | null;
+  arm: number | null;
+  fs_base_surface: number | null;
+  fs_deep_surface: number | null;
+  fs_with_key: number | null;
+  fs_without_key: number | null;
+  governing: "base" | "deep";
+  demand_v: number | null;
+  demand_m: number | null;
+}
+
 export interface CantileverGeometry {
   stem_height: number;
   stem_top: number;
@@ -127,6 +151,7 @@ export interface CantileverGeometry {
   heel: number;
   base_thickness: number;
   embedment?: number;
+  key?: ShearKey | null;
 }
 
 export interface GravityGeometry {
@@ -135,6 +160,7 @@ export interface GravityGeometry {
   top_width: number;
   back_offset?: number;
   embedment?: number;
+  key?: ShearKey | null;
 }
 
 export interface CheckDTO {
@@ -610,6 +636,7 @@ export interface WallResultDTO {
   /** Sizing succeeded at the smallest allowed width: no check governed the width. */
   minimum_width_governs?: boolean;
   checks: CheckDTO[];
+  shear_key?: ShearKeyResultDTO[];
   forces: Record<string, ForceDTO[]>;
   pressures: PressureDiagramDTO[];
   slip_circles: SlipCircleDTO[];

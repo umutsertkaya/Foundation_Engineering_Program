@@ -48,6 +48,7 @@ import { validateGwt, validateStructureSoil } from "../../../shared/soil/layerOp
 import type { GwtCase } from "../../../shared/soil/zones";
 import { StructureSoilStep, type SoilStepValidation } from "../../../shared/structureSoil/StructureSoilStep";
 import { AnalysisOptionsForm } from "../components/AnalysisOptionsForm";
+import { ShearKeyFields } from "../components/ShearKeyFields";
 import { PermeabilityEditor } from "../components/PermeabilityEditor";
 import { WallCheckCards } from "../components/WallCheckCards";
 import { WallCrossSection } from "../components/WallCrossSection";
@@ -631,6 +632,19 @@ export function WallWizardPage() {
                     />
                   </SimpleGrid>
                 )}
+                <ShearKeyFields
+                  value={wallType === "cantilever" ? cantileverGeo.key : gravityGeo.key}
+                  baseWidth={
+                    wallType === "cantilever"
+                      ? cantileverGeo.toe + cantileverGeo.stem_bottom + cantileverGeo.heel
+                      : gravityGeo.base_width
+                  }
+                  onChange={(key) => {
+                    if (wallType === "cantilever") setCantileverGeo((prev) => ({ ...prev, key }));
+                    else setGravityGeo((prev) => ({ ...prev, key }));
+                    setGeometrySource("user");
+                  }}
+                />
               </Stack>
             </Card>
             </Grid.Col>
