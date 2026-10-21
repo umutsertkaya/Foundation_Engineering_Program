@@ -40,7 +40,7 @@ from geotek.engine.walls.layered import (
 from geotek.services.walls_advanced import MissingFactor
 from geotek.services.walls_basic import (
     STEP, Assumption, BasicSheetPileResult, BasicWallResult, SRC_SIZING, SRC_TBDY_BASE,
-    SRC_TBDY_DELTA, SRC_TBDY_SEISMIC, _ceil, proportion_for,
+    SRC_TBDY_DELTA, SRC_TBDY_SEISMIC, _ceil, key_assumptions, proportion_for,
 )
 
 ProgressFn = Callable[[float, str], None]
@@ -101,6 +101,8 @@ def _fingerprint(project, structure, code_id):
         del holder["surcharge_basis"]
     if sheet and dumped["backfill_slope"] == 0:
         del dumped["backfill_slope"]
+    if not sheet and dumped.get("geometry") and dumped["geometry"].get("key") is None:
+        del dumped["geometry"]["key"]
     payload = {
         # The display name is not a calculation input; renaming must not stale the result.
         "structure": dumped,
@@ -234,6 +236,8 @@ def _assumptions(structure, settings, D):
         out.append(Assumption(
             text=f"Pasif azaltma katsayısı = {settings.passive_reduction:g} — mühendis seçimi (yayımlanmış kaynak gösterilmedi)",
             source="Kullanıcı girdisi"))
+    out += key_assumptions(structure.geometry.key if structure.geometry is not None else None,
+                           settings.passive_reduction)
     out.append(Assumption(text="Ön ayak üzerindeki doğal zemin ağırlığı " +
                                ("dahil" if settings.include_toe_soil else "ihmal edildi"), source="WallSettings"))
     if structure.inputs.surcharge and structure.inputs.surcharge_basis == "inclined" and structure.backfill_slope:
@@ -345,11 +349,13 @@ def _evaluate_wall(structure, geometry, settings, loads, reporter, start, span, 
                 name: replace(check, kv_sign=sign) for name, check in governing.checks.items()
             })
             continue
-        checks = {}
+        checks, shear_key = {}, governing.shear_key
         for name in governing.checks:
             analysis, signed_loads = min(candidates, key=lambda item: _capacity_ratio(item[0].checks[name]))
             checks[name] = _kv_detail(analysis.checks[name], signed_loads)
-        analyses[key] = replace(governing, checks=checks)
+            if name == "sliding":
+                shear_key = analysis.shear_key  # key rows must describe the sliding check shown
+        analyses[key] = replace(governing, checks=checks, shear_key=shear_key)
     if structure.inputs.include_global_stability and (not sizing or all(a.passed for a in analyses.values())):
         reporter.emit(start + span * 0.70, "job.step.global_stability")
         for seismic in states:
@@ -477,11 +483,12 @@ def size_structure(project: Project, structure_id: str, progress: ProgressFn | N
         raise GeoTekError("Embedment must be less than wall height")
     reporter = _Progress(progress)
     reporter.emit(0.0, "job.step.sizing")
+    key = structure.geometry.key if structure.geometry is not None else None
     B = max(_ceil(0.3 * H), 0.9)
     count = int(round((1.2 * H - B) / STEP)) + 1
     best, last_fail, last_error, iterations, slot = None, [], None, 0, 0
     while B <= 1.2 * H + 1e-9:
-        geometry = proportion_for(structure.wall_type, H, B, D)
+        geometry = proportion_for(structure.wall_type, H, B, D, key=key)
         if geometry is not None:
             iterations += 1
             try:

@@ -53,6 +53,31 @@ class FoundationSoil(BaseModel):
         return self
 
 
+class ShearKey(BaseModel):
+    """Concrete shear key (kayma dişi) cast under the base slab; a full-length strip, per metre of wall.
+
+    ``position`` places the key under the toe, the middle of the base or the heel; ``width`` is its
+    horizontal size and ``depth`` how far it projects below the base bottom.
+    """
+
+    position: Literal["toe", "middle", "heel"] = "heel"
+    width: float = Field(gt=0, description="Horizontal size of the key [m]")
+    depth: float = Field(gt=0, lt=10, description="Projection below the base bottom [m]")
+
+    def span(self, base_width: float) -> tuple[float, float]:
+        """(x_front, x_back) of the key in the wall frame (origin at the toe)."""
+        if self.position == "toe":
+            return 0.0, self.width
+        if self.position == "heel":
+            return base_width - self.width, base_width
+        return (base_width - self.width) / 2, (base_width + self.width) / 2
+
+
+def _check_key(key: ShearKey | None, width: float) -> None:
+    if key is not None and key.width > width + 1e-9:
+        raise ValueError("Shear key width cannot exceed the base width")
+
+
 class CantileverGeometry(BaseModel):
     """Reinforced concrete cantilever wall; stem back face vertical, front face battered."""
 
@@ -63,11 +88,13 @@ class CantileverGeometry(BaseModel):
     heel: float = Field(gt=0, description="Heel projection behind the stem")
     base_thickness: float = Field(gt=0)
     embedment: float = Field(0.0, ge=0, description="Front soil level above base bottom (D)")
+    key: ShearKey | None = None
 
     @model_validator(mode="after")
     def _check(self) -> CantileverGeometry:
         if self.stem_top > self.stem_bottom:
             raise ValueError("stem_top must not exceed stem_bottom")
+        _check_key(self.key, self.width)
         return self
 
     @property
@@ -91,11 +118,13 @@ class GravityGeometry(BaseModel):
     top_width: float = Field(gt=0)
     back_offset: float = Field(0.0, ge=0, description="Horizontal set-back of the back face top from the heel")
     embedment: float = Field(0.0, ge=0)
+    key: ShearKey | None = None
 
     @model_validator(mode="after")
     def _check(self) -> GravityGeometry:
         if self.top_width + self.back_offset > self.base_width + 1e-9:
             raise ValueError("Front face would overhang the toe (top_width + back_offset > base_width)")
+        _check_key(self.key, self.base_width)
         return self
 
     @property
