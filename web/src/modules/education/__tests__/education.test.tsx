@@ -33,7 +33,15 @@ describe("education module", () => {
     for (const tp of TOPICS) {
       expect(tp.sources.length).toBeGreaterThan(0);
       expect(tp.codeRefs.length).toBeGreaterThan(0);
-      for (const b of tp.blocks) if (b.type === "figure") expect(FIGURES[b.id], b.id).toBeDefined();
+      for (const b of [...tp.blocks, ...(tp.student ?? [])]) if (b.type === "figure") expect(FIGURES[b.id], b.id).toBeDefined();
+    }
+  });
+
+  it("student layers carry worked examples checked against the program, quiz and glossary", () => {
+    for (const tp of TOPICS.filter((t) => t.student)) {
+      const kinds = new Set(tp.student!.map((b) => b.type));
+      for (const k of ["worked", "quiz", "mistakes", "glossary", "reading"]) expect(kinds.has(k as never), `${tp.id}:${k}`).toBe(true);
+      for (const b of tp.student!) if (b.type === "worked") expect(b.program.output.length).toBeGreaterThan(0);
     }
   });
 
@@ -41,7 +49,7 @@ describe("education module", () => {
     const { container } = renderAt(`/topic/${id}`);
     expect(screen.getByRole("heading", { name: title })).toBeInTheDocument();
     const tp = TOPICS.find((t) => t.id === id)!;
-    const n = tp.blocks.filter((b) => b.type === "figure").length;
+    const n = [...tp.blocks, ...(tp.student ?? [])].filter((b) => b.type === "figure").length;
     expect(container.querySelectorAll("figure svg").length).toBe(n);
   });
 });

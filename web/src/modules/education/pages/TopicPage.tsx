@@ -1,4 +1,4 @@
-import { Alert, Anchor, Badge, Box, Card, Code, Group, List, Stack, Text, Title } from "@mantine/core";
+import { Alert, Anchor, Badge, Box, Card, Code, Group, List, Stack, Table, Tabs, Text, Title } from "@mantine/core";
 import { Link, Navigate, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { TOPICS, loc } from "../content";
@@ -49,6 +49,79 @@ function BlockView({ b, lang }: { b: Block; lang: string }) {
           <Text size="sm" style={{ whiteSpace: "pre-wrap" }}>{loc(b.text, lang)}</Text>
         </Alert>
       );
+    case "derivation":
+      return (
+        <Box>
+          <Title order={5}>{loc(b.title, lang)}</Title>
+          <Stack gap="xs" mt="xs">
+            {b.steps.map((st, i) => (
+              <Box key={i}>
+                <Text size="sm">{i + 1}. {loc(st.text, lang)}</Text>
+                {st.expr && <Code block>{st.expr}</Code>}
+              </Box>
+            ))}
+          </Stack>
+        </Box>
+      );
+    case "worked":
+      return (
+        <Card withBorder data-worked>
+          <Title order={5}>{t("education.worked")}: {loc(b.title, lang)}</Title>
+          <List size="sm" mt="xs">{b.given.map((g, i) => <List.Item key={i}>{loc(g, lang)}</List.Item>)}</List>
+          <Table mt="sm" withTableBorder>
+            <Table.Tbody>
+              {b.steps.map((st, i) => (
+                <Table.Tr key={i}>
+                  <Table.Td w="30%"><Text size="sm">{loc(st.label, lang)}</Text></Table.Td>
+                  <Table.Td><Code>{st.expr}</Code></Table.Td>
+                  <Table.Td><Text size="sm" fw={600}>{st.result}</Text></Table.Td>
+                </Table.Tr>
+              ))}
+            </Table.Tbody>
+          </Table>
+          <Alert color="blue" mt="sm" title={t("education.program_result")}>
+            <Text size="sm">{b.program.input}</Text>
+            <Code block>{b.program.output}</Code>
+            {b.program.note && <Text size="sm">{loc(b.program.note, lang)}</Text>}
+          </Alert>
+        </Card>
+      );
+    case "quiz":
+      return (
+        <Box>
+          <Title order={5}>{t("education.quiz")}</Title>
+          <Stack gap="xs" mt="xs">
+            {b.items.map((it, i) => (
+              <details key={i}>
+                <summary>{i + 1}. {loc(it.q, lang)}</summary>
+                <Text size="sm" c="dimmed" mt={4}>{loc(it.a, lang)}</Text>
+              </details>
+            ))}
+          </Stack>
+        </Box>
+      );
+    case "mistakes":
+      return (
+        <Alert color="red" title={t("education.mistakes")}>
+          <List size="sm">{b.items.map((it, i) => <List.Item key={i}>{loc(it, lang)}</List.Item>)}</List>
+        </Alert>
+      );
+    case "glossary":
+      return (
+        <Box>
+          <Title order={5}>{t("education.glossary")}</Title>
+          <List size="sm" mt="xs" listStyleType="none">
+            {b.items.map((it, i) => <List.Item key={i}><b>{loc(it.term, lang)}</b>: {loc(it.def, lang)}</List.Item>)}
+          </List>
+        </Box>
+      );
+    case "reading":
+      return (
+        <Box>
+          <Title order={5}>{t("education.reading")}</Title>
+          <List size="sm" mt="xs">{b.items.map((it, i) => <List.Item key={i}>{it}</List.Item>)}</List>
+        </Box>
+      );
     case "warn":
       return <Alert color="orange" title={t("education.warning")}>{loc(b.text, lang)}</Alert>;
   }
@@ -60,6 +133,15 @@ export function TopicPage() {
   const topic = TOPICS.find((x) => x.id === id);
   if (!topic) return <Navigate to=".." replace />;
   const lang = i18n.language;
+  const engineer = (
+    <Stack gap="md">
+      {topic.blocks.map((b, i) => <BlockView key={i} b={b} lang={lang} />)}
+      <Title order={4} mt="lg">{t("education.sources")}</Title>
+      <List size="sm">{topic.sources.map((s, i) => <List.Item key={i}>{s}</List.Item>)}</List>
+      <Title order={5}>{t("education.code_refs")}</Title>
+      <Group gap="xs">{topic.codeRefs.map((c) => <Code key={c}>{c}</Code>)}</Group>
+    </Stack>
+  );
   return (
     <Stack gap="md" maw={820}>
       <Anchor component={Link} to=".." relative="path" size="sm">← {t("education.back")}</Anchor>
@@ -68,11 +150,20 @@ export function TopicPage() {
         <Badge variant="light">{t(`education.level.${topic.level}`)}</Badge>
       </Group>
       <Text c="dimmed">{loc(topic.summary, lang)}</Text>
-      {topic.blocks.map((b, i) => <BlockView key={i} b={b} lang={lang} />)}
-      <Title order={4} mt="lg">{t("education.sources")}</Title>
-      <List size="sm">{topic.sources.map((s, i) => <List.Item key={i}>{s}</List.Item>)}</List>
-      <Title order={5}>{t("education.code_refs")}</Title>
-      <Group gap="xs">{topic.codeRefs.map((c) => <Code key={c}>{c}</Code>)}</Group>
+      {topic.student ? (
+        <Tabs defaultValue="student">
+          <Tabs.List>
+            <Tabs.Tab value="student">{t("education.tab.student")}</Tabs.Tab>
+            <Tabs.Tab value="engineer">{t("education.tab.engineer")}</Tabs.Tab>
+          </Tabs.List>
+          <Tabs.Panel value="student" pt="md">
+            <Stack gap="md">{topic.student.map((b, i) => <BlockView key={i} b={b} lang={lang} />)}</Stack>
+          </Tabs.Panel>
+          <Tabs.Panel value="engineer" pt="md">{engineer}</Tabs.Panel>
+        </Tabs>
+      ) : (
+        engineer
+      )}
     </Stack>
   );
 }

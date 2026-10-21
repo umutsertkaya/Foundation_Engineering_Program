@@ -3,6 +3,10 @@ import {
   BearFactorTrend, ClassFcFromIc, ClassIcChart, ClassUscsPlasticity, LiqCsrCrr, LiqFsProfile, LiqRdDepth,
 } from "./dataFigures";
 import {
+  EpCohesiveCrack, EpCoulombWedge, EpKaPhi, EpLayeredWater, EpMohrRankine, EpRankineDiagram, EpSeismicWedge,
+  EpStatesMovement, EpWallForces,
+} from "./epFigures";
+import {
   AnchorTieForce, BearFailureWedge, AnchorBondFreeLength, AnchoredWallEnvelopes, AnchoredWallHeave, ShearKeyPlanes, SlopeSurchargeWedge, EpActivePassive, SlopeBishopSlice, SlopeSearchDomain, SpAnchoredMoment,
   SpCantilever, SpNetDiagram, SpPassiveFactor, WallStabilityChecks,
 } from "./schematicFigures";
@@ -29,6 +33,15 @@ export const FIGURES: Record<string, ComponentType> = {
   "anchor-bond-free-length": AnchorBondFreeLength,
   "anchored-wall-envelopes": AnchoredWallEnvelopes,
   "anchored-wall-heave": AnchoredWallHeave,
+  "ep-states-movement": EpStatesMovement,
+  "ep-mohr-rankine": EpMohrRankine,
+  "ep-rankine-diagram": EpRankineDiagram,
+  "ep-cohesive-crack": EpCohesiveCrack,
+  "ep-layered-water": EpLayeredWater,
+  "ep-coulomb-wedge": EpCoulombWedge,
+  "ep-ka-phi": EpKaPhi,
+  "ep-seismic-wedge": EpSeismicWedge,
+  "ep-wall-forces": EpWallForces,
   "anchor-tie-force": AnchorTieForce,
   "sp-anchored-moment": SpAnchoredMoment,
 };

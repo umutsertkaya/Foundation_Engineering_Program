@@ -130,3 +130,5 @@ Yalnız bu sayfayı güncelle: biten görev + kanıtı, sıradaki kart, açık k
 
 ## Eğitim modülü (2026-10-21)
 `education` modülü eklendi (yalnız web, API rotası yok): 11 konu (sınıflandırma, yanal basınç/istinat, taşıma gücü, sıvılaşma, palplanş, ankrajlı palplanş, ankraj tasarımı GEC-4, ankrajlı iksa, kayma dişi, eğimli zemin ve sürşarj, şev), 22 statik SVG şema; origin/main (#27) üzerine alındı. İçerik koddan türetildi; yönteme dayalı el örnekleri Haiku ile üretildi ve henüz bağımsız mühendis incelemesinden geçmedi. Kaynak künyeleri Gemini ile doğrulandı; GEC-3 bölüm numarası ve USS manual doğrulanamadı. Test (2026-10-21, cihaz, Windows): pytest 2002 geçti, 1 atlandı; vitest 357 geçti; tsc temiz. Tarayıcıda gözle kontrol yapılamadı.
+
+Eğitim pilotu (2026-10-21): yanal basınç/istinat konusu iki katmanlı: öğrenci anlatımı (kavram, türetim, 3 çözümlü örnek programla karşılaştırılmış, sık hatalar, sınama, sözlük, okuma) ve mühendis paneli. 9 yeni etiketli şekil. Örnek sayıları elle ve `distribution`/`walls` fonksiyonlarıyla doğrulandı; Gemini ile bağımsız doğrulama bu oturumda headless izin hatası nedeniyle yapılamadı. Diğer 10 konu henüz eski (sığ) biçimde.
