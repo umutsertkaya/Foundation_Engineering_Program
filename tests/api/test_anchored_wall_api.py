@@ -157,3 +157,16 @@ def test_analysis_save_state_and_stale(shell, open_project):
     # a stored result that no longer matches its inputs is rejected
     state["state"]["analysis"]["inputs"]["excavation_height"] = 11.0
     assert shell.put(f"{BASE}/state", json=state["state"]).status_code == 422
+
+
+def test_soil_copy_from_project_profile(shell, open_project):
+    from geotek.core.models import DesignParameters, GroundwaterCondition, SoilLayer, SoilProfile
+
+    profile = SoilProfile(id="P1", name="Sand", gwt=GroundwaterCondition(depth_insitu=50.0), layers=[
+        SoilLayer(id="S", top=0, bottom=20, gamma=18.0, design=DesignParameters(phi_eff=30.0))])
+    open_project.soil_profiles.append(profile)
+    data = shell.get(f"{BASE}/soil/P1").json()
+    assert data["source_profile_id"] == "P1"
+    assert data["source_hash"] == profile.content_hash()
+    assert data["profile"]["layers"][0]["design"]["phi_eff"] == 30.0
+    assert shell.get(f"{BASE}/soil/nope").status_code == 404

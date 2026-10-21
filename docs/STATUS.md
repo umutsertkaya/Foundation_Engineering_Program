@@ -91,6 +91,12 @@ Kaynak: Umut'un cihazındaki tam metin md dönüşümü (`docs/research/Youd.et.
   El hesabı 3 seviyeli kum (H=10, Ka=1/3: 131,625/102,375/107,25 kN/m, R_B 48,75) ve kil ordinatları; iki bağımsız salt okuma inceleme:
   işaret tutarsızlığı, negatif menteşe yükü, taban uç kesmesi, drenaj/katman uyumsuzluğu bulguları düzeltildi.
   Kapsam dışı: Kranz derin stabilite, aşamalı kazı, yaylı kiriş, sehim (EI saklanır, kullanılmaz), betonarme/çelik kesit tasarımı.
+- 2026-10-21, G7 ankraj web arayüzü ve rapor dalı (Linux bulut, kip: cloud): `/m/anchored_wall` iki sayfa (ankrajlı duvar analizi, tek ankraj),
+  proje zemin profilinden kopya (`GET /api/m/anchored_wall/soil/{profile_id}`, kaynak kimliği ve hash ile), seviye tablosu, GEC-4 referans
+  değerleri yalnız öneri (Kullan düğmesi), eksik girdi listesi, kodlu durdurma/uyarı/varsayım çevirisi TR/EN, güncel/eski/sonuç yok rozeti,
+  ölçekli kesit çizimi (serbest/kök boyu) ve moment/kesme grafikleri. Rapor: `anchored_wall:analysis` ve `anchored_wall:anchor` bölümleri
+  (`report_entries`/`report_writer`, stale ise rapor reddedilir). Gerçek API ile elle gözle kontrol yapılmadı; ekran testleri mock üzerinde.
+  Test (2026-10-21): pytest tam 1963 geçti (1 test sabiti güncellendikten sonra ilgili dosyalar yeniden koşuldu); Vitest 343 geçti; tsc ve `npm run build` başarılı; `gen_code_map.py --check` 0. Sıradaki: G8 entegrasyon.
 
 Her kayıt tarih, kapsam ve gerçek sonuç taşır; eski sayı güncel başarı diye kullanılmaz.
 

@@ -75,3 +75,75 @@ def test_pyinstaller_helper_covers_every_module():
     for id in registry.module_ids():
         assert f"geotek.modules.{id}" in hidden
     assert "geotek.modules._index" in hidden
+
+
+def _anchored_project(*, analysis=True, anchor=True):
+    from geotek.core.models import (
+        DesignParameters, GroundwaterCondition, Project, ProjectMeta, SoilLayer, SoilProfile)
+    from geotek.core.models.anchors import (
+        AnalysisRecord, AnchoredWallAnalysisInputs, AnchoredWallState, AnchorDesignCommon,
+        AnchorDesignInputs, AnchorLevel, AnchorRecord, TendonSpec)
+    from geotek.core.models.structures import StructureSoilModel
+    from geotek.core.module_state import set_state
+    from geotek.engine import anchored_wall as engine
+    from geotek.engine.anchors import design_anchor, inputs_hash
+
+    project = Project(meta=ProjectMeta(name="Anchors", language="tr"))
+    soil = StructureSoilModel(profile=SoilProfile(
+        id="SP", gwt=GroundwaterCondition(depth_insitu=100.0), layers=[
+            SoilLayer(id="S", top=0, bottom=40, gamma=18.0, gamma_sat=20.0,
+                      design=DesignParameters(phi_eff=30.0))]))
+    common = AnchorDesignCommon(
+        safety_factor=2.0, ultimate_transfer_load=100.0, lock_off_ratio=1.0,
+        tendon=TendonSpec(type="strand"))
+    state = AnchoredWallState()
+    if analysis:
+        inputs = AnchoredWallAnalysisInputs(
+            excavation_height=10.0, soil=soil, passive_factor=1.5, anchor_design=common,
+            levels=[AnchorLevel(depth=d, spacing=2.5, inclination_deg=15.0) for d in (1.5, 4.5, 7.5)])
+        state.analysis = AnalysisRecord(inputs=inputs, result=engine.run_analysis(inputs),
+                                        result_hash=engine.inputs_hash(inputs))
+    if anchor:
+        design = AnchorDesignInputs(
+            excavation_height=10.0, head_depth=6.25, inclination_deg=15.0, phi_deg=33.0,
+            horizontal_load_per_m=172.0, spacing=2.5, **common.model_dump())
+        state.anchor = AnchorRecord(inputs=design, result=design_anchor(design),
+                                    result_hash=inputs_hash(design))
+    set_state(project, "anchored_wall", state, 1)
+    return project
+
+
+def test_anchored_wall_report_entries_follow_the_stored_results():
+    from geotek.core.models import Project, ProjectMeta
+    from geotek.services import report
+
+    entries = {s.id: s.status for s in report.list_sections(Project(meta=ProjectMeta(name="E")))}
+    assert entries["anchored_wall:analysis"] == "no_result"
+    assert entries["anchored_wall:anchor"] == "no_result"
+    project = _anchored_project()
+    entries = {s.id: s.status for s in report.list_sections(project)}
+    assert entries["anchored_wall:analysis"] == entries["anchored_wall:anchor"] == "ready"
+    project.modules["anchored_wall"].data["analysis"]["inputs"]["excavation_height"] = 11.0
+    entries = {s.id: s.status for s in report.list_sections(project)}
+    assert entries["anchored_wall:analysis"] == "stale"
+    assert entries["anchored_wall:anchor"] == "ready"
+    with pytest.raises(report.ReportError):
+        report.build_docx(project, ["anchored_wall:analysis"])
+
+
+@pytest.mark.parametrize("language,heading", [("tr", "Ankrajlı duvar analizi"),
+                                              ("en", "Anchored wall analysis")])
+def test_anchored_wall_report_is_written_in_both_languages(language, heading):
+    from geotek.services import report
+
+    project = _anchored_project()
+    data = report.build_docx(project, ["anchored_wall:analysis", "anchored_wall:anchor"],
+                             language=language)
+    doc = Document(io.BytesIO(data))
+    headings = [p.text for p in doc.paragraphs if p.style.name.startswith("Heading")]
+    assert heading in headings
+    cells = {c.text for table in doc.tables for row in table.rows for c in row.cells}
+    # three anchor levels with their design loads and tendon counts appear in the levels table
+    assert any("×" in text for text in cells)
+    text = "\n".join(p.text for p in doc.paragraphs)
+    assert "anchored_wall." not in text and not any("anchored_wall." in c for c in cells)
