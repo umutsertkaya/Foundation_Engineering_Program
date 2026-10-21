@@ -4,6 +4,7 @@ from __future__ import annotations
 
 MODULE_IDS: tuple[str, ...] = (
     'anchored_wall',
+    'education',
     'liquefaction',
     'report',
     'sheet_pile',
