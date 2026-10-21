@@ -1262,6 +1262,70 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/m/anchored_wall/state": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Module State
+         * @description Return the module state stored in the open project (defaults when absent).
+         */
+        get: operations["anchored_wall_get_state"];
+        /**
+         * Put Module State
+         * @description Replace the module state; a stored result must match its inputs.
+         */
+        put: operations["anchored_wall_put_state"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/m/anchored_wall/anchor/design": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Design Ground Anchor
+         * @description Design one ground anchor; with ``save`` store inputs and result in the open project.
+         */
+        post: operations["anchored_wall_design_anchor"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/m/anchored_wall/anchor/reference": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Anchor Reference
+         * @description Source-labelled tendon and presumptive load-transfer tables and engine defaults.
+         */
+        get: operations["anchored_wall_anchor_reference"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/m/report/sections": {
         parameters: {
             query?: never;
@@ -1316,6 +1380,224 @@ export interface components {
         ActiveProfileUpdate: {
             /** Profile Id */
             profile_id: string | null;
+        };
+        /**
+         * AnchorCheck
+         * @description ``ok`` when demand <= limit; for ``overburden`` demand is the required cover, limit the available.
+         */
+        AnchorCheck: {
+            /** Id */
+            id: string;
+            /** Demand */
+            demand: number;
+            /** Limit */
+            limit: number;
+            /** Ok */
+            ok: boolean;
+        };
+        /**
+         * AnchorDefaults
+         * @description Defaults the engine applies when the input is left out, each with its source.
+         */
+        AnchorDefaults: {
+            /** Min Free Length Strand */
+            min_free_length_strand: number;
+            /** Min Free Length Bar */
+            min_free_length_bar: number;
+            /** Min Free Length Source */
+            min_free_length_source: string;
+            /** Test Factor */
+            test_factor: number;
+            /** Design Limit */
+            design_limit: number;
+            /** Lock Off Limit */
+            lock_off_limit: number;
+            /** Test Limit */
+            test_limit: number;
+            /** Min Overburden */
+            min_overburden: number;
+            /** Beyond Wedge Rule */
+            beyond_wedge_rule: string;
+            /** Source */
+            source: string;
+        };
+        /** AnchorDesignInputs */
+        AnchorDesignInputs: {
+            /** Excavation Height */
+            excavation_height: number;
+            /** Head Depth */
+            head_depth: number;
+            /** Inclination Deg */
+            inclination_deg: number;
+            /** Phi Deg */
+            phi_deg: number;
+            /**
+             * Wedge Origin Below Base
+             * @default 0
+             */
+            wedge_origin_below_base: number;
+            /** Beyond Wedge */
+            beyond_wedge?: number | null;
+            /** Horizontal Load Per M */
+            horizontal_load_per_m?: number | null;
+            /** Spacing */
+            spacing?: number | null;
+            /** Axial Load */
+            axial_load?: number | null;
+            /** Safety Factor */
+            safety_factor?: number | null;
+            /** Ultimate Transfer Load */
+            ultimate_transfer_load?: number | null;
+            /** Ultimate Bond Stress */
+            ultimate_bond_stress?: number | null;
+            /** Hole Diameter */
+            hole_diameter?: number | null;
+            /** Min Bond Length */
+            min_bond_length?: number | null;
+            /** Max Bond Length */
+            max_bond_length?: number | null;
+            /** Min Free Length */
+            min_free_length?: number | null;
+            tendon: components["schemas"]["TendonSpec"];
+            /** Lock Off Ratio */
+            lock_off_ratio?: number | null;
+            /**
+             * Test Factor
+             * @default 1.33
+             */
+            test_factor: number;
+            /**
+             * Design Limit
+             * @default 0.6
+             */
+            design_limit: number;
+            /**
+             * Lock Off Limit
+             * @default 0.7
+             */
+            lock_off_limit: number;
+            /**
+             * Test Limit
+             * @default 0.8
+             */
+            test_limit: number;
+            /**
+             * Min Overburden
+             * @default 4.5
+             */
+            min_overburden: number;
+            /**
+             * Ground
+             * @default soil
+             * @enum {string}
+             */
+            ground: "soil" | "rock";
+            /** Transfer Load Ref */
+            transfer_load_ref?: string | null;
+        };
+        /** AnchorDesignResult */
+        AnchorDesignResult: {
+            /**
+             * Load Source
+             * @enum {string}
+             */
+            load_source: "horizontal_per_m" | "axial";
+            /** Horizontal Load Per Anchor */
+            horizontal_load_per_anchor: number;
+            /** Design Load */
+            design_load: number;
+            /** Vertical Load Per Anchor */
+            vertical_load_per_anchor: number;
+            /** Vertical Load Per M */
+            vertical_load_per_m: number | null;
+            /** Lock Off Load */
+            lock_off_load: number;
+            /** Test Load */
+            test_load: number;
+            /** Wedge Angle Deg */
+            wedge_angle_deg: number;
+            /** Wedge Distance */
+            wedge_distance: number;
+            /** Wedge Length */
+            wedge_length: number;
+            /** Beyond Wedge */
+            beyond_wedge: number;
+            /** Free Length Required */
+            free_length_required: number;
+            /** Free Length Minimum */
+            free_length_minimum: number;
+            /** Free Length */
+            free_length: number;
+            /**
+             * Free Length Governing
+             * @enum {string}
+             */
+            free_length_governing: "wedge" | "minimum";
+            /** Transfer Load */
+            transfer_load: number;
+            /**
+             * Transfer Load Source
+             * @enum {string}
+             */
+            transfer_load_source: "direct" | "bond_stress";
+            /** Safety Factor */
+            safety_factor: number;
+            /** Bond Length Calculated */
+            bond_length_calculated: number;
+            /** Bond Length */
+            bond_length: number;
+            /**
+             * Bond Length Governing
+             * @enum {string}
+             */
+            bond_length_governing: "calculated" | "minimum";
+            /** Transfer Load Ref */
+            transfer_load_ref: string | null;
+            /** Bond Capacity */
+            bond_capacity: number;
+            /** Total Length */
+            total_length: number;
+            /** Bond Centre Depth */
+            bond_centre_depth: number;
+            tendon: components["schemas"]["TendonResult"];
+            /** Checks */
+            checks: components["schemas"]["AnchorCheck"][];
+            /** Warnings */
+            warnings: components["schemas"]["Notice"][];
+            /** Assumptions */
+            assumptions: components["schemas"]["Notice"][];
+            /** Sources */
+            sources: string[];
+        };
+        /**
+         * AnchorRecord
+         * @description Stored anchor design: the inputs, the last result and the hash of its inputs.
+         */
+        AnchorRecord: {
+            inputs: components["schemas"]["AnchorDesignInputs"];
+            result?: components["schemas"]["AnchorDesignResult"] | null;
+            /** Result Hash */
+            result_hash?: string | null;
+        };
+        /**
+         * AnchorReference
+         * @description Source-labelled library for the UI; presumptive values are never applied silently.
+         */
+        AnchorReference: {
+            /** Tendons */
+            tendons: components["schemas"]["TendonInfo"][];
+            /** Transfer Loads */
+            transfer_loads: components["schemas"]["TransferLoadInfo"][];
+            /** Safety Factor Guidance */
+            safety_factor_guidance: components["schemas"]["SafetyFactorGuidance"][];
+            defaults: components["schemas"]["AnchorDefaults"];
+        };
+        /**
+         * AnchoredWallState
+         * @description ``Project.modules["anchored_wall"]``; later phases add fields with defaults.
+         */
+        AnchoredWallState: {
+            anchor?: components["schemas"]["AnchorRecord"] | null;
         };
         /**
          * ApiError
@@ -2133,6 +2415,18 @@ export interface components {
             design_code?: string | null;
         };
         /**
+         * Notice
+         * @description A translatable message: ``anchored_wall.warning.<code>`` / ``.assumption.<code>``.
+         */
+        Notice: {
+            /** Code */
+            code: string;
+            /** Params */
+            params?: {
+                [key: string]: number | string;
+            };
+        };
+        /**
          * ParameterApproval
          * @description Design quantities the engineer explicitly approves.
          */
@@ -2687,6 +2981,15 @@ export interface components {
              */
             notes: string;
         };
+        /** SafetyFactorGuidance */
+        SafetyFactorGuidance: {
+            /** Ground */
+            ground: string;
+            /** Value */
+            value: number;
+            /** Source */
+            source: string;
+        };
         /**
          * SelectionUpdate
          * @description Selection inputs only; server resolves candidates and leaves approval separate.
@@ -3070,6 +3373,15 @@ export interface components {
             warnings: string[];
         };
         /**
+         * StateResponse
+         * @description Stored module state plus whether the stored anchor result still matches its inputs.
+         */
+        StateResponse: {
+            state: components["schemas"]["AnchoredWallState"];
+            /** Anchor Result Stale */
+            anchor_result_stale: boolean;
+        };
+        /**
          * StoredLiquefactionDTO
          * @description The liquefaction result saved in the project, with the settings it was computed with.
          */
@@ -3113,6 +3425,84 @@ export interface components {
             stale: boolean;
             /** Has Result */
             has_result: boolean;
+        };
+        /** TendonInfo */
+        TendonInfo: {
+            /** Id */
+            id: string;
+            /** Type */
+            type: string;
+            /** Label */
+            label: string;
+            /** Smts Kn */
+            smts_kn: number;
+            /** Area Mm2 */
+            area_mm2: number;
+            /** Source */
+            source: string;
+        };
+        /** TendonResult */
+        TendonResult: {
+            /**
+             * Type
+             * @enum {string}
+             */
+            type: "strand" | "bar" | "custom";
+            /** Label */
+            label: string;
+            /** Source */
+            source: string;
+            /** Count */
+            count: number;
+            /** Smts Each */
+            smts_each: number;
+            /** Smts Total */
+            smts_total: number;
+            /** Area Total Mm2 */
+            area_total_mm2: number | null;
+            /** Design Utilisation */
+            design_utilisation: number;
+            /** Lock Off Utilisation */
+            lock_off_utilisation: number;
+            /** Test Utilisation */
+            test_utilisation: number;
+            /**
+             * Count Governing
+             * @enum {string}
+             */
+            count_governing: "design" | "lock_off" | "test" | "user";
+        };
+        /**
+         * TendonSpec
+         * @description Prestressing steel selection; ``None`` library id / count means choose automatically.
+         */
+        TendonSpec: {
+            /**
+             * Type
+             * @enum {string}
+             */
+            type: "strand" | "bar";
+            /** Library Id */
+            library_id?: string | null;
+            /** Count */
+            count?: number | null;
+            /** Custom Smts Kn */
+            custom_smts_kn?: number | null;
+            /** Custom Area Mm2 */
+            custom_area_mm2?: number | null;
+        };
+        /** TransferLoadInfo */
+        TransferLoadInfo: {
+            /** Id */
+            id: string;
+            /** Ground */
+            ground: string;
+            /** Condition */
+            condition: string;
+            /** Q U Kn Per M */
+            q_u_kn_per_m: number;
+            /** Source */
+            source: string;
         };
         /**
          * TrashResponse
@@ -10089,6 +10479,384 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["JobRef"];
+                };
+            };
+            /** @description Invalid operation or input file */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Resource not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Conflicting or stale structure state */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Validation error or missing_factors */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Engine or server error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Contract stub; not implemented */
+            501: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Other client error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Other server error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    anchored_wall_get_state: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StateResponse"];
+                };
+            };
+            /** @description Invalid operation or input file */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Resource not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Conflicting or stale structure state */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Validation error or missing_factors */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Engine or server error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Contract stub; not implemented */
+            501: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Other client error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Other server error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    anchored_wall_put_state: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AnchoredWallState"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StateResponse"];
+                };
+            };
+            /** @description Invalid operation or input file */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Resource not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Conflicting or stale structure state */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Validation error or missing_factors */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Engine or server error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Contract stub; not implemented */
+            501: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Other client error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Other server error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    anchored_wall_design_anchor: {
+        parameters: {
+            query?: {
+                save?: boolean;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AnchorDesignInputs"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AnchorDesignResult"];
+                };
+            };
+            /** @description Invalid operation or input file */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Resource not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Conflicting or stale structure state */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Validation error or missing_factors */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Engine or server error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Contract stub; not implemented */
+            501: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Other client error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Other server error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    anchored_wall_anchor_reference: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AnchorReference"];
                 };
             };
             /** @description Invalid operation or input file */

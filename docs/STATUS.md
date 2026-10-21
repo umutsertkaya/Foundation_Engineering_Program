@@ -75,6 +75,13 @@ Kaynak: Umut'un cihazındaki tam metin md dönüşümü (`docs/research/Youd.et.
   (`report_entries`/`report_writer`) ve `tools/pyinstaller_modules.py` (exe için hidden-import/add-data listesi) eklendi;
   rehber güncellendi. Tam pytest 1874 geçti / 2 atlandı; `tsc --noEmit` temiz; Vitest 37 dosya / 337 test geçti;
   `npm run build` başarılı; `gen_code_map.py --check` 0. Formül/katsayı değişmedi. Sıradaki: exe derlemesi (adım 3).
+- 2026-10-20, G5 ankraj Faz A dalı (Linux bulut, kip: cloud): yeni `anchored_wall` modülü (manifest, `/api/m/anchored_wall`
+  durum al/yaz, `POST /anchor/design`, `GET /anchor/reference`, durum `Project.modules` içinde, `state_version=1`, TR/EN, web iskeleti)
+  ve `geotek/engine/anchors.py` ankraj tasarım motoru (serbest boy, kök boyu, tendon, tasarım/kilitleme/deneme yükü; GEC-4
+  Tablo 6/8/9/10 kaynak etiketli). FS, q_u/τ_ult ve kilitleme oranı zorunlu girdi; eksikse 422 `missing_inputs`.
+  El hesabı: GEC-4 Ek A Örnek 1 (T=445 kN, L_b=8.9 m, 3 halat / 32 mm çubuk) + bağımsız kama kesişim hesabı; iki salt okuma
+  inceleme yapıldı, bulgular düzeltildi. Tam pytest 1933 geçti / 2 atlandı; `tsc --noEmit` temiz; Vitest 38 dosya / 339 test geçti;
+  `npm run build` başarılı; `gen_code_map.py --check` 0; `pyinstaller_modules.py --check` 0. Sıradaki: G6 ankrajlı duvar analizi.
 
 Her kayıt tarih, kapsam ve gerçek sonuç taşır; eski sayı güncel başarı diye kullanılmaz.
 
