@@ -19,6 +19,11 @@ describe("formula typesetting", () => {
     expect(toTexLines("K_a = tan²(45° − φ/2)")[0]).toContain("\operatorname{tan}");
     expect(toTexLines("σ_h = K_a · σ_v − 2c' √K_a")[0]).toContain("\sqrt{");
   });
+  it("keeps decimal commas as plain commas (no escaped braces)", () => {
+    const tex = toTexLines("x = 6,00 + a^1,5 − 0,65·b")[0];
+    expect(tex).not.toContain("\{,\}");
+    expect(tex).toContain("6{,}00");
+  });
   it("renders every formula in every topic without KaTeX errors", () => {
     const bad: string[] = [];
     for (const tp of TOPICS) {

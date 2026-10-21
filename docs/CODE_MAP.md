@@ -708,7 +708,7 @@ Testler yalnız **Kullanan** sütununda görünür; “Test” sütunu o dosyay�
 
 | Dosya | Satır | Bağımlı olduğu | Kullanan | Test |
 |---|---:|---|---|---|
-| `modules/education/Root.tsx` | 13 | `modules/education/pages/HomePage.tsx`, `modules/education/pages/TopicPage.tsx` | `modules/education/manifest.ts` | `modules/education/__tests__/education.test.tsx` |
+| `modules/education/Root.tsx` | 15 | `modules/education/pages/GalleryPage.tsx`, `modules/education/pages/HomePage.tsx`, `modules/education/pages/TopicPage.tsx` | `modules/education/manifest.ts` | `modules/education/__tests__/education.test.tsx` |
 | `modules/education/content/anchored_wall.ts` | 305 | `modules/education/content/types.ts` | `modules/education/content/index.ts` | — |
 | `modules/education/content/anchored_wall_student.ts` | 409 | `modules/education/content/types.ts` | `modules/education/content/index.ts` | — |
 | `modules/education/content/anchors.ts` | 181 | `modules/education/content/types.ts` | `modules/education/content/index.ts` | — |
@@ -734,15 +734,15 @@ Testler yalnız **Kullanan** sütununda görünür; “Test” sütunu o dosyay�
 | `modules/education/content/sloping_surcharge.ts` | 203 | `modules/education/content/types.ts` | `modules/education/content/index.ts` | — |
 | `modules/education/content/sloping_surcharge_student.ts` | 377 | `modules/education/content/types.ts` | `modules/education/content/index.ts` | — |
 | `modules/education/content/types.ts` | 43 | — | `modules/education/content/anchored_wall.ts`, `modules/education/content/anchored_wall_student.ts`, `modules/education/content/anchors.ts`, `modules/education/content/anchors_student.ts`, `modules/education/content/bearing.ts` +20 | `modules/education/__tests__/math.test.tsx` |
-| `modules/education/figures/bearingFigures.tsx` | 82 | `modules/education/figures/plot.tsx` | `modules/education/figures/index.tsx` | — |
-| `modules/education/figures/dataFigures.tsx` | 167 | `modules/education/figures/plot.tsx` | `modules/education/figures/index.tsx` | — |
-| `modules/education/figures/epFigures.tsx` | 201 | `modules/education/figures/plot.tsx` | `modules/education/figures/index.tsx` | — |
-| `modules/education/figures/index.tsx` | 79 | `modules/education/figures/bearingFigures.tsx`, `modules/education/figures/dataFigures.tsx`, `modules/education/figures/epFigures.tsx`, `modules/education/figures/schematicFigures.tsx` | `modules/education/pages/TopicPage.tsx` | `modules/education/__tests__/education.test.tsx` |
-| `modules/education/figures/plot.tsx` | 96 | — | `modules/education/figures/bearingFigures.tsx`, `modules/education/figures/dataFigures.tsx`, `modules/education/figures/epFigures.tsx`, `modules/education/figures/schematicFigures.tsx` | — |
-| `modules/education/figures/schematicFigures.tsx` | 314 | `modules/education/figures/plot.tsx` | `modules/education/figures/index.tsx` | — |
+| `modules/education/figures/bearDraw.tsx` | 357 | `modules/education/figures/kit.tsx` | `modules/education/figures/index.tsx` | — |
+| `modules/education/figures/epDraw.tsx` | 311 | `modules/education/figures/kit.tsx` | `modules/education/figures/index.tsx` | — |
+| `modules/education/figures/index.tsx` | 43 | `modules/education/figures/bearDraw.tsx`, `modules/education/figures/epDraw.tsx`, `modules/education/figures/spDraw.tsx` | `modules/education/pages/GalleryPage.tsx`, `modules/education/pages/TopicPage.tsx` | `modules/education/__tests__/education.test.tsx` |
+| `modules/education/figures/kit.tsx` | 177 | — | `modules/education/figures/bearDraw.tsx`, `modules/education/figures/epDraw.tsx`, `modules/education/figures/spDraw.tsx` | — |
+| `modules/education/figures/spDraw.tsx` | 410 | `modules/education/figures/kit.tsx` | `modules/education/figures/index.tsx` | — |
 | `modules/education/manifest.ts` | 14 | `modules/education/Root.tsx`, `shared/moduleTypes.ts` | — | — |
 | `modules/education/math/Formula.tsx` | 40 | `modules/education/math/toTex.ts` | `modules/education/pages/TopicPage.tsx` | — |
 | `modules/education/math/toTex.ts` | 88 | — | `modules/education/math/Formula.tsx` | `modules/education/__tests__/math.test.tsx` |
+| `modules/education/pages/GalleryPage.tsx` | 19 | `modules/education/figures/index.tsx` | `modules/education/Root.tsx` | — |
 | `modules/education/pages/HomePage.tsx` | 25 | `modules/education/content/index.ts` | `modules/education/Root.tsx` | — |
 | `modules/education/pages/TopicPage.tsx` | 170 | `modules/education/content/index.ts`, `modules/education/content/types.ts`, `modules/education/figures/index.tsx`, `modules/education/math/Formula.tsx` | `modules/education/Root.tsx` | — |
 

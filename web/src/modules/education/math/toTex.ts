@@ -19,24 +19,24 @@ function word(w: string): string {
 }
 
 function inner(src: string): string {
-  let s = src.replace(/(\d),(\d)/g, "$1{,}$2").replace(/<=/g, "≤").replace(/>=/g, "≥");
+  let s = src.replace(/(\d),(\d)/g, "$1\u0001$2").replace(/<=/g, "≤").replace(/>=/g, "≥");
   s = s.replace(new RegExp(`([${GREEK}${LETTER}])̄`, "g"), `${BS}bar{$1}`);
   let out = "";
   const re = new RegExp(
-    `(\\^\\([^)]*\\))|(\\^[0-9.]+(?:\\{,\\}[0-9]+)?)|(_[${LETTER}${GREEK}0-9,]+)|(√)|([${LETTER}]{2,})|(\\s{3,})|([\\s\\S])`,
+    `(\\^\\([^)]*\\))|(\\^[0-9.]+(?:\\u0001[0-9]+)?)|(_[${LETTER}${GREEK}0-9,]+)|(√)|([${LETTER}]{2,})|(\\s{3,})|([\\s\\S])`,
     "g",
   );
   let m: RegExpExecArray | null;
   while ((m = re.exec(s))) {
     if (m[1]) out += `^{${m[1].slice(2, -1)}}`;
-    else if (m[2]) out += `^{${m[2].slice(1)}}`;
+    else if (m[2]) out += `^{${m[2].slice(1).replace(/\u0001/g, "{,}")}}`;
     else if (m[3]) {
       const sub = m[3].slice(1);
       out += /^[A-Za-zÇĞİÖŞÜçğıöşü]{2,}$/.test(sub) ? `_{${BS}mathrm{${sub}}}` : `_{${sub.replace(/,/g, "{,}")}}`;
     } else if (m[4]) out += `${BS}sqrt`;
     else if (m[5]) out += word(m[5]) + " ";
     else if (m[6]) out += `${BS}quad `;
-    else out += SYMBOLS[m[7]] ?? m[7];
+    else out += m[7] === "\u0001" ? "{,}" : SYMBOLS[m[7]] ?? m[7];
   }
   return out;
 }
