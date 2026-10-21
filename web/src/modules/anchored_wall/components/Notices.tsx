@@ -11,7 +11,9 @@ function useNoticeText() {
     if (!i18n.exists(key)) return code;
     const replace: Record<string, string | number> = {};
     for (const [k, v] of Object.entries(params ?? {})) {
-      if (typeof v === "string" || typeof v === "number") replace[k] = v;
+      if (k === "kind" && typeof v === "string" && i18n.exists(`anchored_wall.envelope.${v}`)) {
+        replace[k] = String(t(`anchored_wall.envelope.${v}`)); // envelope type id -> translated name
+      } else if (typeof v === "string" || typeof v === "number") replace[k] = v;
     }
     return String(t(key, { replace }));
   };

@@ -1,6 +1,6 @@
 # GeoTek — güncel durum ve tek iş sırası
 
-Son güncelleme: 2026-10-20 (sistem kontrolü ve temizlik). Bu sayfa **tek güncel durum kaynağıdır**;
+Son güncelleme: 2026-10-21 (G8 kabul: duvar/palplanş eğim+sürşarj, ankrajlı duvar). Bu sayfa **tek güncel durum kaynağıdır**;
 ayrıntılı geçmiş Git günlüğünde ve birleşmiş PR'lardadır. Son kontrol raporu: [sistem kontrolü](qa/sistem-kontrolu.md).
 
 ## Aktif iş
@@ -21,6 +21,7 @@ Compact veya devir öncesi yalnız bu üç satır güncellenir (kural: [WORKFLOW
 | Duvar | Katmanlı motor, öner/kontrol, iş takibi/iptal, analiz seçenekleri, sonuç kartları, SVG kesit. |
 | Sıvılaşma | Motor/API, iş takibi, kayıtlı sonuç, GS ve CSR/CRR grafikleri, ayrıntı tablosu. |
 | Palplanş | Motor/API, oluşturma, tasarım işi, sonuç paneli, çevrilebilir uyarı/varsayım kodları. |
+| Ankraj | `anchored_wall` modülü: ankraj tasarımı (GEC-4), tek/çok seviyeli ankrajlı duvar analizi, web iki sayfa, rapor bölümleri. Kayma dişi (G3/G4) bekliyor. Kabul: [G8-kabul](qa/G8-kabul.md). |
 | Rapor | docx (`POST /api/m/report/docx`); PDF ve grafik yok. |
 | Paket | `geotek/launcher.py` (API + `web/dist`, tarayıcıyı açar), `tools/build_exe.ps1` ve `.github/workflows/build-exe.yml` (windows-latest, PyInstaller, artifact `GeoTek-windows-exe`). Arayüz yalnız web; PySide6 yolu kaldırıldı. |
 
@@ -97,6 +98,11 @@ Kaynak: Umut'un cihazındaki tam metin md dönüşümü (`docs/research/Youd.et.
   ölçekli kesit çizimi (serbest/kök boyu) ve moment/kesme grafikleri. Rapor: `anchored_wall:analysis` ve `anchored_wall:anchor` bölümleri
   (`report_entries`/`report_writer`, stale ise rapor reddedilir). Gerçek API ile elle gözle kontrol yapılmadı; ekran testleri mock üzerinde.
   Test (2026-10-21): pytest tam 1963 geçti (1 test sabiti güncellendikten sonra ilgili dosyalar yeniden koşuldu); Vitest 343 geçti; tsc ve `npm run build` başarılı; `gen_code_map.py --check` 0. Sıradaki: G8 entegrasyon.
+- 2026-10-21, G8 kabul dalı (Linux bulut, kip: cloud): gerçek HTTP ile uçtan uca `docs/qa/g8_e2e.py` (duvar ve palplanş eğim+sürşarj iki tabanda,
+  ankraj tasarımı, ankrajlı duvar tek/çok seviye, kodlu durdurma, docx TR/EN) 0 FAIL; ayrıntı [qa/G8-kabul.md](qa/G8-kabul.md).
+  Düzeltme: ankraj zarf türü varsayım metninde ham kimlik (`sand`) görünüyordu, rapor ve web çeviriyor. Formül/katsayı değişmedi.
+  Test: pytest tam 1963 geçti / 2 atlandı; tsc temiz; Vitest 38 dosya / 343 test geçti; `npm run build` başarılı;
+  `gen_code_map.py --check` 0; `pyinstaller_modules.py --check` 0. Kayma dişi G3 (PR #21) birleşmedi, G4 başlamadı. Web ekranı gerçek API ile elle gözle kontrol edilmedi.
 
 Her kayıt tarih, kapsam ve gerçek sonuç taşır; eski sayı güncel başarı diye kullanılmaz.
 

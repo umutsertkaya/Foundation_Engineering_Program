@@ -147,3 +147,7 @@ def test_anchored_wall_report_is_written_in_both_languages(language, heading):
     assert any("×" in text for text in cells)
     text = "\n".join(p.text for p in doc.paragraphs)
     assert "anchored_wall." not in text and not any("anchored_wall." in c for c in cells)
+    # the envelope type id in assumption texts is translated, never left as a placeholder or raw id
+    assert "{kind}" not in text
+    expected = "(kum)" if language == "tr" else "(sand)"
+    assert f"ampirik görünür basınç zarfı {expected}" in text or f"pressure envelope {expected}" in text
