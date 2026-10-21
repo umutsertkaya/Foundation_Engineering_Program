@@ -197,6 +197,11 @@ def key_assumptions(key: ShearKey | None, reduction: float) -> list[Assumption]:
                  "her durumda tutucu); diş için yalnız kesme ve moment talebi (V = azaltılmamış statik pasif, "
                  "M = V·kol) verilir, betonarme tasarımı yapılmaz",
             source="Koordinatör kararı; tutucu", code="wall.shear_key_demands", params=params),
+        Assumption(
+            text="Genel (global) stabilite diş olmadan hesaplanır: Bishop dairesi taban altından geçer, diş hacmi "
+                 "zemin olarak sayılır. Dayanım tarafı tutucudur (beton zeminden dayanıklı); ihmal edilen "
+                 "beton-zemin ağırlık farkının etkisi küçüktür",
+            source="Koordinatör kararı; tutucu", code="wall.shear_key_global", params=params),
     ]
 
 
