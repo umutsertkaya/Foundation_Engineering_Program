@@ -634,7 +634,7 @@ graph LR
 | `(root)` | 1 | — |
 | `app` | 12 | `shared` |
 | `modules/anchored_wall` | 16 | `app`, `shared` |
-| `modules/education` | 26 | `shared` |
+| `modules/education` | 29 | `shared` |
 | `modules/liquefaction` | 8 | `shared` |
 | `modules/report` | 5 | `shared` |
 | `modules/sheet_pile` | 14 | `app`, `shared` |
@@ -712,23 +712,26 @@ Testler yalnız **Kullanan** sütununda görünür; “Test” sütunu o dosyay�
 | `modules/education/content/anchored_wall.ts` | 305 | `modules/education/content/types.ts` | `modules/education/content/index.ts` | — |
 | `modules/education/content/anchors.ts` | 181 | `modules/education/content/types.ts` | `modules/education/content/index.ts` | — |
 | `modules/education/content/bearing.ts` | 160 | `modules/education/content/types.ts` | `modules/education/content/index.ts` | — |
+| `modules/education/content/bearing_student.ts` | 557 | `modules/education/content/types.ts` | `modules/education/content/index.ts` | — |
 | `modules/education/content/classification.ts` | 151 | `modules/education/content/types.ts` | `modules/education/content/index.ts` | — |
 | `modules/education/content/earth_pressure.ts` | 205 | `modules/education/content/types.ts` | `modules/education/content/index.ts` | — |
 | `modules/education/content/ep_student_a.ts` | 349 | `modules/education/content/types.ts` | `modules/education/content/index.ts` | — |
 | `modules/education/content/ep_student_b.ts` | 314 | `modules/education/content/types.ts` | `modules/education/content/index.ts` | — |
 | `modules/education/content/ground_anchors.ts` | 220 | `modules/education/content/types.ts` | `modules/education/content/index.ts` | — |
-| `modules/education/content/index.ts` | 20 | `modules/education/content/anchored_wall.ts`, `modules/education/content/anchors.ts`, `modules/education/content/bearing.ts`, `modules/education/content/classification.ts`, `modules/education/content/earth_pressure.ts`, `modules/education/content/ep_student_a.ts`, `modules/education/content/ep_student_b.ts`, `modules/education/content/ground_anchors.ts`, `modules/education/content/liquefaction.ts`, `modules/education/content/shear_key.ts`, `modules/education/content/sheet_pile.ts`, `modules/education/content/slope.ts`, `modules/education/content/sloping_surcharge.ts`, `modules/education/content/types.ts` | `modules/education/pages/HomePage.tsx`, `modules/education/pages/TopicPage.tsx` | `modules/education/__tests__/education.test.tsx`, `modules/education/__tests__/math.test.tsx` |
+| `modules/education/content/index.ts` | 26 | `modules/education/content/anchored_wall.ts`, `modules/education/content/anchors.ts`, `modules/education/content/bearing.ts`, `modules/education/content/bearing_student.ts`, `modules/education/content/classification.ts`, `modules/education/content/earth_pressure.ts`, `modules/education/content/ep_student_a.ts`, `modules/education/content/ep_student_b.ts`, `modules/education/content/ground_anchors.ts`, `modules/education/content/liquefaction.ts`, `modules/education/content/liquefaction_student.ts`, `modules/education/content/shear_key.ts`, `modules/education/content/sheet_pile.ts`, `modules/education/content/slope.ts`, `modules/education/content/sloping_surcharge.ts`, `modules/education/content/types.ts` | `modules/education/pages/HomePage.tsx`, `modules/education/pages/TopicPage.tsx` | `modules/education/__tests__/education.test.tsx`, `modules/education/__tests__/math.test.tsx` |
 | `modules/education/content/liquefaction.ts` | 148 | `modules/education/content/types.ts` | `modules/education/content/index.ts` | — |
+| `modules/education/content/liquefaction_student.ts` | 476 | `modules/education/content/types.ts` | `modules/education/content/index.ts` | — |
 | `modules/education/content/shear_key.ts` | 224 | `modules/education/content/types.ts` | `modules/education/content/index.ts` | — |
 | `modules/education/content/sheet_pile.ts` | 228 | `modules/education/content/types.ts` | `modules/education/content/index.ts` | — |
 | `modules/education/content/slope.ts` | 187 | `modules/education/content/types.ts` | `modules/education/content/index.ts` | — |
 | `modules/education/content/sloping_surcharge.ts` | 203 | `modules/education/content/types.ts` | `modules/education/content/index.ts` | — |
-| `modules/education/content/types.ts` | 43 | — | `modules/education/content/anchored_wall.ts`, `modules/education/content/anchors.ts`, `modules/education/content/bearing.ts`, `modules/education/content/classification.ts`, `modules/education/content/earth_pressure.ts` +10 | `modules/education/__tests__/math.test.tsx` |
-| `modules/education/figures/dataFigures.tsx` | 121 | `modules/education/figures/plot.tsx` | `modules/education/figures/index.tsx` | — |
+| `modules/education/content/types.ts` | 43 | — | `modules/education/content/anchored_wall.ts`, `modules/education/content/anchors.ts`, `modules/education/content/bearing.ts`, `modules/education/content/bearing_student.ts`, `modules/education/content/classification.ts` +12 | `modules/education/__tests__/math.test.tsx` |
+| `modules/education/figures/bearingFigures.tsx` | 82 | `modules/education/figures/plot.tsx` | `modules/education/figures/index.tsx` | — |
+| `modules/education/figures/dataFigures.tsx` | 167 | `modules/education/figures/plot.tsx` | `modules/education/figures/index.tsx` | — |
 | `modules/education/figures/epFigures.tsx` | 201 | `modules/education/figures/plot.tsx` | `modules/education/figures/index.tsx` | — |
-| `modules/education/figures/index.tsx` | 47 | `modules/education/figures/dataFigures.tsx`, `modules/education/figures/epFigures.tsx`, `modules/education/figures/schematicFigures.tsx` | `modules/education/pages/TopicPage.tsx` | `modules/education/__tests__/education.test.tsx` |
-| `modules/education/figures/plot.tsx` | 96 | — | `modules/education/figures/dataFigures.tsx`, `modules/education/figures/epFigures.tsx`, `modules/education/figures/schematicFigures.tsx` | — |
-| `modules/education/figures/schematicFigures.tsx` | 242 | `modules/education/figures/plot.tsx` | `modules/education/figures/index.tsx` | — |
+| `modules/education/figures/index.tsx` | 56 | `modules/education/figures/bearingFigures.tsx`, `modules/education/figures/dataFigures.tsx`, `modules/education/figures/epFigures.tsx`, `modules/education/figures/schematicFigures.tsx` | `modules/education/pages/TopicPage.tsx` | `modules/education/__tests__/education.test.tsx` |
+| `modules/education/figures/plot.tsx` | 96 | — | `modules/education/figures/bearingFigures.tsx`, `modules/education/figures/dataFigures.tsx`, `modules/education/figures/epFigures.tsx`, `modules/education/figures/schematicFigures.tsx` | — |
+| `modules/education/figures/schematicFigures.tsx` | 265 | `modules/education/figures/plot.tsx` | `modules/education/figures/index.tsx` | — |
 | `modules/education/manifest.ts` | 14 | `modules/education/Root.tsx`, `shared/moduleTypes.ts` | — | — |
 | `modules/education/math/Formula.tsx` | 40 | `modules/education/math/toTex.ts` | `modules/education/pages/TopicPage.tsx` | — |
 | `modules/education/math/toTex.ts` | 88 | — | `modules/education/math/Formula.tsx` | `modules/education/__tests__/math.test.tsx` |

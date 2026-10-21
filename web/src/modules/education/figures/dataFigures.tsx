@@ -119,3 +119,49 @@ export function ClassUscsPlasticity() {
     />
   );
 }
+
+const crrClean = (n: number) => (n >= 30 ? NaN : 1 / (34 - n) + n / 135 + 50 / (10 * n + 45) ** 2 - 1 / 200);
+const fcShift = (fc: number) => (fc <= 5 ? [0, 1] : fc >= 35 ? [5, 1.2] : [Math.exp(1.76 - 190 / fc ** 2), 0.99 + fc ** 1.5 / 1000]);
+
+export function LiqSptCorrelation() {
+  const n = range(2, 29, 54);
+  const pts = (fc: number) => {
+    const [a, b] = fcShift(fc);
+    return n.map((v) => [v, crrClean(a + b * v)] as [number, number]).filter(([, y]) => Number.isFinite(y) && y < 0.6);
+  };
+  return (
+    <Plot
+      label="CRR versus corrected SPT resistance" xr={[0, 30]} yr={[0, 0.6]} xl="(N1)60" yl="CRR₇.₅"
+      series={[
+        { pts: pts(5), color: C.a, label: "FC ≤ 5 %" },
+        { pts: pts(15), color: C.c, label: "FC = 15 %" },
+        { pts: pts(35), color: C.b, label: "FC ≥ 35 %" },
+      ]}
+      extra={(sx, sy) => (<g><Line x1={sx(30)} y1={sy(0)} x2={sx(30)} y2={sy(0.6)} color={C.d} dash="4 3" /><T x={sx(30) - 4} y={sy(0.03)} anchor="end" color={C.d}>(N1)60cs = 30: sıvılaşmaz</T></g>)}
+    />
+  );
+}
+
+export function LiqMsfCurve() {
+  const m = range(5.5, 8.5, 30);
+  return (
+    <Plot
+      label="Magnitude scaling factor" xr={[5.5, 8.5]} yr={[0.5, 2]} xl="Mw" yl="MSF"
+      series={[
+        { pts: m.map((x) => [x, Math.min(1.8, 6.9 * Math.exp(-x / 4) - 0.058)]), color: C.a, label: "Idriss" },
+        { pts: m.map((x) => [x, Math.min(1.8, (x / 7.5) ** -2.56)]), color: C.b, dash: "5 3", label: "Andrus–Stokoe" },
+      ]}
+      extra={(sx, sy) => (<g><Line x1={sx(7.5)} y1={sy(0.5)} x2={sx(7.5)} y2={sy(2)} color={C.grid} dash="3 3" /><T x={sx(7.5) + 3} y={sy(0.62)}>Mw = 7,5 → MSF = 1</T></g>)}
+    />
+  );
+}
+
+export function LiqLpiWeight() {
+  return (
+    <Plot
+      label="LPI depth weighting" xr={[0, 10]} yr={[0, 20]} flipY xl="w(z)" yl="z (m)"
+      series={[{ pts: [[10, 0], [0, 20]], color: C.a, label: "w = 10 − 0,5 z" }]}
+      extra={(sx, sy) => (<g><T x={sx(5.2)} y={sy(10)}>z = 20 m'de w = 0</T><T x={sx(0.2)} y={sy(1.2)}>LPI = ∫ F·w dz</T></g>)}
+    />
+  );
+}

@@ -1,13 +1,14 @@
 import type { ComponentType } from "react";
 import {
-  BearFactorTrend, ClassFcFromIc, ClassIcChart, ClassUscsPlasticity, LiqCsrCrr, LiqFsProfile, LiqRdDepth,
+  BearFactorTrend, LiqSptCorrelation, LiqMsfCurve, LiqLpiWeight, ClassFcFromIc, ClassIcChart, ClassUscsPlasticity, LiqCsrCrr, LiqFsProfile, LiqRdDepth,
 } from "./dataFigures";
+import { BearEccentricWidth, BearFactorTables, BearTerzaghiZones, BearWaterCases } from "./bearingFigures";
 import {
   EpCohesiveCrack, EpCoulombWedge, EpKaPhi, EpLayeredWater, EpMohrRankine, EpRankineDiagram, EpSeismicWedge,
   EpStatesMovement, EpWallForces,
 } from "./epFigures";
 import {
-  AnchorTieForce, BearFailureWedge, AnchorBondFreeLength, AnchoredWallEnvelopes, AnchoredWallHeave, ShearKeyPlanes, SlopeSurchargeWedge, EpActivePassive, SlopeBishopSlice, SlopeSearchDomain, SpAnchoredMoment,
+  LiqMechanism, AnchorTieForce, BearFailureWedge, AnchorBondFreeLength, AnchoredWallEnvelopes, AnchoredWallHeave, ShearKeyPlanes, SlopeSurchargeWedge, EpActivePassive, SlopeBishopSlice, SlopeSearchDomain, SpAnchoredMoment,
   SpCantilever, SpNetDiagram, SpPassiveFactor, WallStabilityChecks,
 } from "./schematicFigures";
 
@@ -42,6 +43,14 @@ export const FIGURES: Record<string, ComponentType> = {
   "ep-ka-phi": EpKaPhi,
   "ep-seismic-wedge": EpSeismicWedge,
   "ep-wall-forces": EpWallForces,
+  "bear-terzaghi-zones": BearTerzaghiZones,
+  "bear-eccentric-width": BearEccentricWidth,
+  "bear-water-cases": BearWaterCases,
+  "bear-factor-tables": BearFactorTables,
+  "liq-mechanism": LiqMechanism,
+  "liq-spt-correlation": LiqSptCorrelation,
+  "liq-msf-curve": LiqMsfCurve,
+  "liq-lpi-weight": LiqLpiWeight,
   "anchor-tie-force": AnchorTieForce,
   "sp-anchored-moment": SpAnchoredMoment,
 };

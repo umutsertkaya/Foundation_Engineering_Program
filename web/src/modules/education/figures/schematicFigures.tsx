@@ -240,3 +240,26 @@ export function AnchoredWallHeave() {
     </Svg>
   );
 }
+
+export function LiqMechanism() {
+  const grain = (cx: number, cy: number, k: number) => <circle key={`${cx}${cy}`} cx={cx} cy={cy} r={9} fill={C.soil} stroke={C.wall} opacity={k} />;
+  const stage = (x: number, label: string, gap: number, bar: number, c: string) => (
+    <g key={label}>
+      <rect x={x} y={40} width={110} height={110} fill="none" stroke={C.grid} />
+      {[0, 1, 2, 3].flatMap((r) => [0, 1, 2, 3].map((q) => grain(x + 18 + q * (22 + gap), 58 + r * (22 + gap), 1)))}
+      <rect x={x + 20} y={200 - bar * 0.45} width={70} height={bar * 0.45} fill={c} opacity={0.6} />
+      <line x1={x + 20} y1={200} x2={x + 90} y2={200} stroke="currentColor" />
+      <T x={x + 55} y={213} anchor="middle">u</T>
+      <T x={x + 55} y={32} anchor="middle">{label}</T>
+    </g>
+  );
+  return (
+    <Svg label="Liquefaction mechanism in three stages">
+      {stage(10, "1: yükleme öncesi", 0, 8, C.a)}
+      {stage(145, "2: deprem sarsıntısı", 2, 45, C.d)}
+      {stage(280, "3: u = σ′v → sıvılaşma", 5, 80, C.b)}
+      <T x={20} y={232}>σ′ = σ − u ↓ 0: </T>
+      <T x={120} y={232}>efektif gerilme sıfırlanınca taneler birbirini taşımaz</T>
+    </Svg>
+  );
+}
