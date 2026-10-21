@@ -281,7 +281,7 @@ export function ParameterKeyCard({ selection, busy, onApply, onApprove, onDirtyC
           )}
           {draft.pick === null && (
             <Text size="xs" c="dimmed">
-              {t("soil.params.pick_needed")}
+              {!hasSuggestion && candidates.length === 0 ? t("soil.params.manual_only_hint") : t("soil.params.pick_needed")}
             </Text>
           )}
         </Stack>

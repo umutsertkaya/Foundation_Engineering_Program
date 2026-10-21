@@ -110,6 +110,8 @@
   "soil.params.apply": "Seçimi uygula",
   "soil.params.unapplied": "Uygulanmamış değişiklik var: onaylamadan önce seçimi uygulayın.",
   "soil.params.pick_needed": "Değerin nasıl seçileceğini belirleyin.",
+  "soil.params.no_data_banner": "Bu tabaka için kullanılabilir SPT, CPT veya laboratuvar verisi yok. Bu yüzden Öneri, Yöntem ve İstatistik seçenekleri kapalı. Profilin kaynak sondajlarına veri ekleyin (Saha verisi) ya da değerleri Elle girin.",
+  "soil.params.manual_only_hint": "Bu değer için veri yok; yalnızca Elle giriş kullanılabilir.",
   "soil.error.unexpected": "Beklenmeyen hata",
   "soil.params.layer_range": "{top}–{bottom} m",
   "soil.params.reapply_needed": "Önceki onay geçerli değil. Seçimi yeniden uygulayın (güncel adaylar üzerinde yeniden hesaplanır) ve onaylamadan önce değeri kontrol edin.",

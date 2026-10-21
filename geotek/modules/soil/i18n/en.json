@@ -110,6 +110,8 @@
   "soil.params.apply": "Apply selection",
   "soil.params.unapplied": "Unapplied changes: apply the selection before approving.",
   "soil.params.pick_needed": "Choose how to select a value.",
+  "soil.params.no_data_banner": "This layer has no usable SPT, CPT or laboratory data, so the Suggested, Method and Statistic options are disabled. Add data to the profile's source boreholes (Site data) or enter the values manually.",
+  "soil.params.manual_only_hint": "No data for this value; only manual entry is available.",
   "soil.error.unexpected": "Unexpected error",
   "soil.params.layer_range": "{top}–{bottom} m",
   "soil.params.reapply_needed": "The earlier approval no longer holds. Apply the selection again (it is re-evaluated on the current candidates) and check the value before approving.",

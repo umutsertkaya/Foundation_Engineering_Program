@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Badge, Button, Card, Group, Modal, NativeSelect, Paper, Stack, Text, Title, Tooltip, UnstyledButton } from "@mantine/core";
+import { Alert, Badge, Button, Card, Group, Modal, NativeSelect, Paper, Stack, Text, Title, Tooltip, UnstyledButton } from "@mantine/core";
 import { IconWand } from "@tabler/icons-react";
 import { useTranslation } from "react-i18next";
 import { get_project } from "../../../shared/api/client";
@@ -262,6 +262,11 @@ export function ParametersPage() {
                   </Tooltip>
                 </Group>
               </Card>
+              {selections.length > 0 && selections.every((s) => !s.suggested && (s.candidates ?? []).length === 0) && (
+                <Alert color="orange" variant="light" data-testid="params-no-data">
+                  {t("soil.params.no_data_banner")}
+                </Alert>
+              )}
               {selections.map((selection) => (
                 <ParameterKeyCard
                   key={`${profileId}-${layerId}-${selection.parameter}`}

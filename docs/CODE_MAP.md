@@ -519,7 +519,7 @@ Test sütunu: o dosyayı doğrudan import eden `tests/` dosyaları (yoksa `—`)
 
 | Dosya | Satır | Bağımlı olduğu | Kullanan | Test |
 |---|---:|---|---|---|
-| `launcher.py` | 133 | `api.app` | — | `unit/test_launcher.py` |
+| `launcher.py` | 136 | `api.app` | — | `unit/test_launcher.py` |
 
 #### `geotek.library`
 
@@ -680,13 +680,13 @@ Testler yalnız **Kullanan** sütununda görünür; “Test” sütunu o dosyay�
 | `app/ProjectProvider.tsx` | 120 | `shared/api/client.ts`, `shared/api/core.ts`, `shared/api/http.ts`, `shared/api/types.ts` | `app/App.tsx`, `app/ModuleShell.tsx`, `app/RequireProject.tsx`, `app/pages/LauncherPage.tsx`, `app/pages/StartPage.tsx` | `test/shell.test.tsx` |
 | `app/RequireProject.tsx` | 13 | `app/ProjectProvider.tsx`, `shared/components/ErrorAlert.tsx` | `app/App.tsx` | — |
 | `app/ThemeToggle.tsx` | 19 | — | `app/ModuleShell.tsx`, `app/pages/LauncherPage.tsx`, `app/pages/StartPage.tsx` | — |
-| `app/i18n.ts` | 60 | `shared/api/client.ts`, `shared/api/types.ts` | `app/ModuleShell.tsx`, `app/main.tsx`, `app/pages/LauncherPage.tsx`, `app/pages/SettingsPage.tsx`, `app/pages/StartPage.tsx` +2 | `modules/anchored_wall/__tests__/anchored_wall.test.tsx`, `modules/education/__tests__/education.test.tsx`, `modules/liquefaction/__tests__/liquefaction.test.tsx` +23 |
+| `app/i18n.ts` | 60 | `shared/api/client.ts`, `shared/api/types.ts` | `app/ModuleShell.tsx`, `app/main.tsx`, `app/pages/LauncherPage.tsx`, `app/pages/SettingsPage.tsx`, `app/pages/StartPage.tsx` +2 | `modules/anchored_wall/__tests__/anchored_wall.test.tsx`, `modules/education/__tests__/education.test.tsx`, `modules/liquefaction/__tests__/liquefaction.test.tsx` +24 |
 | `app/main.tsx` | 42 | `app/App.tsx`, `app/i18n.ts`, `app/theme.ts` | — | — |
 | `app/moduleRegistry.ts` | 29 | `shared/moduleTypes.ts` | `app/App.tsx`, `app/ModuleShell.tsx`, `app/pages/LauncherPage.tsx` | `test/module_paths.test.ts`, `test/shell.test.tsx` |
 | `app/pages/LauncherPage.tsx` | 622 | `app/ProjectProvider.tsx`, `app/ThemeToggle.tsx`, `app/i18n.ts`, `app/moduleRegistry.ts`, `shared/api/client.ts`, `shared/api/types.ts`, `shared/components/EmptyState.tsx`, `shared/components/ErrorAlert.tsx` | `app/App.tsx` | — |
 | `app/pages/SettingsPage.tsx` | 152 | `app/i18n.ts`, `shared/api/core.ts`, `shared/api/types.ts`, `shared/components/ErrorAlert.tsx` | `app/App.tsx` | — |
 | `app/pages/StartPage.tsx` | 793 | `app/ProjectProvider.tsx`, `app/ThemeToggle.tsx`, `app/i18n.ts`, `shared/api/client.ts`, `shared/api/core.ts`, `shared/api/types.ts`, `shared/components/EmptyState.tsx`, `shared/components/ErrorAlert.tsx` | `app/App.tsx` | — |
-| `app/theme.ts` | 31 | — | `app/main.tsx` | `modules/liquefaction/__tests__/liquefaction.test.tsx`, `modules/liquefaction/__tests__/results.test.tsx`, `modules/sheet_pile/__tests__/sheet_pile.test.tsx` +16 |
+| `app/theme.ts` | 31 | — | `app/main.tsx` | `modules/liquefaction/__tests__/liquefaction.test.tsx`, `modules/liquefaction/__tests__/results.test.tsx`, `modules/sheet_pile/__tests__/sheet_pile.test.tsx` +17 |
 
 #### `modules/anchored_wall`
 
@@ -809,14 +809,14 @@ Testler yalnız **Kullanan** sütununda görünür; “Test” sütunu o dosyay�
 | `modules/soil/components/ErrorAlert.tsx` | 37 | `shared/api/client.ts`, `shared/api/errorMessage.ts` | `modules/soil/components/LayeringModal.tsx`, `modules/soil/pages/ClassificationPage.tsx`, `modules/soil/pages/ParametersPage.tsx` | `test/error_alert.test.tsx` |
 | `modules/soil/components/InvestigationEditor.tsx` | 215 | `modules/soil/api.ts`, `modules/soil/components/RecordTable.tsx`, `shared/api/types.ts`, `shared/components/ErrorAlert.tsx`, `shared/soil/uscs.ts` | `modules/soil/pages/SiteDataPage.tsx` | — |
 | `modules/soil/components/LayeringModal.tsx` | 424 | `modules/soil/api.ts`, `modules/soil/components/ErrorAlert.tsx`, `modules/soil/components/WarningList.tsx`, `modules/soil/latest.ts`, `modules/soil/types.ts`, `shared/api/types.ts` | `modules/soil/pages/ProfilesPage.tsx` | `modules/soil/__tests__/soil_layering_params_ui.test.tsx` |
-| `modules/soil/components/ParameterKeyCard.tsx` | 321 | `modules/soil/components/WarningList.tsx`, `modules/soil/parameterState.ts`, `modules/soil/units.ts`, `shared/api/types.ts` | `modules/soil/pages/ParametersPage.tsx` | — |
+| `modules/soil/components/ParameterKeyCard.tsx` | 321 | `modules/soil/components/WarningList.tsx`, `modules/soil/parameterState.ts`, `modules/soil/units.ts`, `shared/api/types.ts` | `modules/soil/pages/ParametersPage.tsx` | `modules/soil/__tests__/parameters_no_data.test.tsx` |
 | `modules/soil/components/RecordTable.tsx` | 107 | — | `modules/soil/components/InvestigationEditor.tsx` | — |
 | `modules/soil/components/WarningList.tsx` | 19 | `modules/soil/useWarningText.ts` | `modules/soil/components/LayeringModal.tsx`, `modules/soil/components/ParameterKeyCard.tsx`, `modules/soil/pages/ClassificationPage.tsx` | — |
 | `modules/soil/latest.ts` | 21 | — | `modules/soil/components/LayeringModal.tsx`, `modules/soil/pages/ParametersPage.tsx` | `modules/soil/__tests__/parameters_consistency.test.tsx` |
 | `modules/soil/manifest.ts` | 20 | `modules/soil/Root.tsx`, `shared/moduleTypes.ts` | — | — |
 | `modules/soil/mock.ts` | 736 | `modules/soil/types.ts`, `shared/api/mock/data.ts`, `shared/api/mock/dispatcher.ts`, `shared/api/mock/store.ts`, `shared/api/types.ts`, `shared/soil/layerOps.ts` | — | `modules/soil/__tests__/soil_mock.test.ts` |
 | `modules/soil/pages/ClassificationPage.tsx` | 472 | `modules/soil/api.ts`, `modules/soil/classification/PlasticityChart.tsx`, `modules/soil/classification/SbtnChart.tsx`, `modules/soil/classification/geometry.ts`, `modules/soil/components/ErrorAlert.tsx`, `modules/soil/components/WarningList.tsx`, `modules/soil/types.ts`, `shared/components/EmptyState.tsx` | `modules/soil/Root.tsx` | `modules/soil/__tests__/classification.test.tsx` |
-| `modules/soil/pages/ParametersPage.tsx` | 319 | `modules/soil/api.ts`, `modules/soil/components/ErrorAlert.tsx`, `modules/soil/components/ParameterKeyCard.tsx`, `modules/soil/latest.ts`, `modules/soil/parameterState.ts`, `modules/soil/units.ts`, `shared/api/client.ts`, `shared/api/types.ts`, `shared/components/EmptyState.tsx` | `modules/soil/Root.tsx` | `modules/soil/__tests__/parameters_consistency.test.tsx`, `modules/soil/__tests__/soil_layering_params_ui.test.tsx` |
+| `modules/soil/pages/ParametersPage.tsx` | 324 | `modules/soil/api.ts`, `modules/soil/components/ErrorAlert.tsx`, `modules/soil/components/ParameterKeyCard.tsx`, `modules/soil/latest.ts`, `modules/soil/parameterState.ts`, `modules/soil/units.ts`, `shared/api/client.ts`, `shared/api/types.ts`, `shared/components/EmptyState.tsx` | `modules/soil/Root.tsx` | `modules/soil/__tests__/parameters_consistency.test.tsx`, `modules/soil/__tests__/soil_layering_params_ui.test.tsx` |
 | `modules/soil/pages/ProfilesPage.tsx` | 562 | `modules/soil/api.ts`, `modules/soil/components/LayeringModal.tsx`, `shared/api/client.ts`, `shared/api/types.ts`, `shared/components/EmptyState.tsx`, `shared/hooks/useUndoable.ts`, `shared/soil/CommitInputs.tsx`, `shared/soil/GwtEditor.tsx`, `shared/soil/LayerEditor.tsx`, `shared/soil/LayerLegend.tsx`, `shared/soil/SoilColumn.tsx`, `shared/soil/layerOps.ts` | `modules/soil/Root.tsx` | `modules/soil/__tests__/soil.test.tsx` |
 | `modules/soil/pages/SiteDataPage.tsx` | 394 | `modules/soil/api.ts`, `modules/soil/components/InvestigationEditor.tsx`, `modules/soil/types.ts`, `shared/api/client.ts`, `shared/components/EmptyState.tsx`, `shared/components/ErrorAlert.tsx` | `modules/soil/Root.tsx` | `modules/soil/__tests__/site_import.test.tsx` |
 | `modules/soil/parameterState.ts` | 171 | `shared/api/types.ts` | `modules/soil/components/ParameterKeyCard.tsx`, `modules/soil/pages/ParametersPage.tsx` | `modules/soil/__tests__/parameterState.test.ts` |
@@ -865,7 +865,7 @@ Testler yalnız **Kullanan** sütununda görünür; “Test” sütunu o dosyay�
 | `shared/api/mock/index.ts` | 26 | `shared/api/mock/core.ts`, `shared/api/mock/coreRoutes.ts`, `shared/api/mock/dispatcher.ts`, `shared/api/mock/store.ts` | `shared/api/http.ts` | `modules/anchored_wall/__tests__/anchored_wall.test.tsx`, `modules/liquefaction/__tests__/liquefaction.test.tsx`, `modules/sheet_pile/__tests__/sheet_pile.test.tsx` +16 |
 | `shared/api/mock/store.ts` | 149 | `shared/api/mock/data.ts`, `shared/api/mock/hash.ts`, `shared/api/types.ts` | `modules/anchored_wall/mock.ts`, `modules/liquefaction/mock.ts`, `modules/sheet_pile/mock.ts`, `modules/soil/mock.ts`, `modules/walls/mock.ts` +3 | `modules/liquefaction/__tests__/liquefaction.test.tsx`, `modules/sheet_pile/__tests__/sheet_pile.test.tsx`, `modules/soil/__tests__/soil_mock.test.ts` +3 |
 | `shared/api/schema.d.ts` | 12089 | — | — | — |
-| `shared/api/types.ts` | 802 | — | `app/ModuleShell.tsx`, `app/ProjectProvider.tsx`, `app/i18n.ts`, `app/pages/LauncherPage.tsx`, `app/pages/SettingsPage.tsx` +64 | `modules/liquefaction/__tests__/liquefaction.test.tsx`, `modules/liquefaction/__tests__/results.test.tsx`, `modules/sheet_pile/__tests__/result-contract.test.tsx` +15 |
+| `shared/api/types.ts` | 802 | — | `app/ModuleShell.tsx`, `app/ProjectProvider.tsx`, `app/i18n.ts`, `app/pages/LauncherPage.tsx`, `app/pages/SettingsPage.tsx` +64 | `modules/liquefaction/__tests__/liquefaction.test.tsx`, `modules/liquefaction/__tests__/results.test.tsx`, `modules/sheet_pile/__tests__/result-contract.test.tsx` +16 |
 | `shared/components/EmptyState.tsx` | 26 | — | `app/ModuleShell.tsx`, `app/pages/LauncherPage.tsx`, `app/pages/StartPage.tsx`, `modules/liquefaction/pages/ResultsPage.tsx`, `modules/report/pages/HomePage.tsx` +9 | — |
 | `shared/components/ErrorAlert.tsx` | 36 | `shared/api/errorMessage.ts` | `app/ModuleShell.tsx`, `app/RequireProject.tsx`, `app/pages/LauncherPage.tsx`, `app/pages/SettingsPage.tsx`, `app/pages/StartPage.tsx` +15 | `test/error_alert.test.tsx` |
 | `shared/components/MissingFactorsForm.tsx` | 116 | `shared/api/types.ts` | `modules/walls/pages/WallWizardPage.tsx` | `test/missing_factors_form.test.tsx` |
