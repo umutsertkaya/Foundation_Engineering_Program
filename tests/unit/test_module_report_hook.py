@@ -150,4 +150,4 @@ def test_anchored_wall_report_is_written_in_both_languages(language, heading):
     # the envelope type id in assumption texts is translated, never left as a placeholder or raw id
     assert "{kind}" not in text
     expected = "(kum)" if language == "tr" else "(sand)"
-    assert f"ampirik görünür basınç zarfı {expected}" in text or f"pressure envelope {expected}" in text
+    assert f"Görünür basınç zarfı {expected}" in text or f"pressure envelope {expected}" in text

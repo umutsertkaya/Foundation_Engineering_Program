@@ -56,7 +56,8 @@ export function AnalysisFormView({ value, onChange, reference, soilStale }: Prop
 
   const setLevel = (i: number, patch: Partial<AnalysisForm["levels"][number]>) =>
     set({ levels: value.levels.map((lv, j) => (j === i ? { ...lv, ...patch } : lv)) });
-  const gaps = soilGaps(value.soil, value.drainage, value.excavation_height);
+  const gaps = soilGaps(value.soil, value.drainage);
+  const clay = value.drainage === "undrained";
 
   return (
     <Stack gap="md">
@@ -85,10 +86,9 @@ export function AnalysisFormView({ value, onChange, reference, soilStale }: Prop
         />
         <NumField
           label={t("anchored_wall.input.backfill_slope")}
-          description={multi ? t("anchored_wall.input.backfill_slope_single_only") : undefined}
+          description={t("anchored_wall.input.backfill_slope_single_only")}
           value={value.backfill_slope}
           onChange={(v) => set({ backfill_slope: v })}
-          disabled={multi}
           min={0}
           max={45}
           decimalScale={1}
@@ -118,10 +118,30 @@ export function AnalysisFormView({ value, onChange, reference, soilStale }: Prop
             onChange={(v) => set({ load_method: (v as AnalysisForm["load_method"]) ?? "hinge" })}
           />
         )}
-        {multi && value.drainage === "undrained" && (
-          <NumField label={t("anchored_wall.input.stiff_clay_coefficient")} value={value.stiff_clay_coefficient} onChange={(v) => set({ stiff_clay_coefficient: v })} min={0.2} max={0.4} decimalScale={2} />
-        )}
       </SimpleGrid>
+      {clay && (
+        <>
+          <Title order={6}>{t("anchored_wall.section.clay")}</Title>
+          <Text size="xs" c="dimmed">{t("anchored_wall.input.clay_hint")}</Text>
+          <SimpleGrid cols={{ base: 1, sm: 3 }}>
+            <Select
+              label={t("anchored_wall.input.service")}
+              placeholder={t("anchored_wall.input.service_placeholder")}
+              data={[
+                { value: "temporary", label: t("anchored_wall.service.temporary") },
+                { value: "permanent", label: t("anchored_wall.service.permanent") },
+              ]}
+              value={value.service}
+              onChange={(v) => set({ service: (v as AnalysisForm["service"]) ?? null })}
+            />
+            <NumField label={t("anchored_wall.input.excavation_width")} value={value.excavation_width} onChange={(v) => set({ excavation_width: v })} min={0} decimalScale={2} />
+            <NumField label={t("anchored_wall.input.excavation_length")} description={t("anchored_wall.input.excavation_length_hint")} value={value.excavation_length} onChange={(v) => set({ excavation_length: v })} min={0} decimalScale={2} />
+            <NumField label={t("anchored_wall.input.stiff_layer_depth")} description={t("anchored_wall.input.stiff_layer_depth_hint")} value={value.stiff_layer_depth} onChange={(v) => set({ stiff_layer_depth: v })} min={0} decimalScale={2} />
+            <NumField label={t("anchored_wall.input.henkel_depth")} description={t("anchored_wall.input.henkel_depth_hint")} value={value.henkel_depth} onChange={(v) => set({ henkel_depth: v })} min={0} decimalScale={2} />
+            <NumField label={t("anchored_wall.input.stiff_clay_coefficient")} description={t("anchored_wall.input.stiff_clay_coefficient_hint")} value={value.stiff_clay_coefficient} onChange={(v) => set({ stiff_clay_coefficient: v })} min={0.2} max={0.4} decimalScale={2} />
+          </SimpleGrid>
+        </>
+      )}
       {soldier && (
         <SimpleGrid cols={{ base: 1, sm: 3 }}>
           <NumField label={t("anchored_wall.input.pile_spacing")} value={value.pile_spacing} onChange={(v) => set({ pile_spacing: v })} min={0} decimalScale={2} />

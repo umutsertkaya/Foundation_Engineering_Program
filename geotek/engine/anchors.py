@@ -8,9 +8,12 @@ quantities with its own partial factors, which are not applied here):
   horizontal (section 5.3.2). With ``k = tan(45° - φ'/2)`` and a head at depth ``z_h``
   the horizontal distance to the surface along the anchor line is
   ``x = (H + e - z_h) k / (1 + k tan α)``; the anchor length to it is ``x / cos α``.
-* Unbonded length ``L_free = max(L_wedge + max(1.5 m, 0.2 H), L_min)`` with
+* Clearance ``chi = max(1.5 m, 0.2 H)`` is measured normal to the failure surface (figure 37a);
+  along the anchor it is ``chi / sin(45° + φ'/2 + α)``.
+* Unbonded length ``L_free = max(L_wedge + chi / sin(45° + φ'/2 + α), L_min)`` with
   ``L_min`` 4.5 m (strand) / 3 m (bar) (section 5.3.4).
-* Bond length ``L_b = T FS / q_u`` with ``q_u = π d_h τ_ult`` when given as bond stress.
+* Bond length ``L_b = max(T FS / q_u, L_b,min)`` with ``q_u = π d_h τ_ult`` when given as bond
+  stress; ``L_b,min`` 4.5 m in soil, 4.5 m strand / 3 m bar in rock (appendix E part 3B).
 * Tendon: design load <= 0.60 SMTS, lock-off <= 0.70 SMTS, test load <= 0.80 SMTS
   (section 5.3.8); strand count is the smallest integer meeting all three.
 
@@ -35,7 +38,7 @@ from geotek.core.models.anchors import (
 from geotek.engine import anchor_tables as tables
 
 _EPS = 1e-9
-ENGINE_VERSION = "1"
+ENGINE_VERSION = "2"
 """Part of the inputs hash: bump when a formula or table value changes."""
 
 
@@ -175,7 +178,11 @@ def design_anchor(inputs: AnchorDesignInputs) -> AnchorDesignResult:
         assumptions.append(Notice(code="beyond_wedge_default", params={"value": round(beyond, 3)}))
     else:
         beyond = inputs.beyond_wedge
-    l_required = l_wedge + beyond
+    # chi is normal to the failure surface (GEC-4 fig. 37a); the surface rises at theta from the
+    # horizontal and the anchor dips at alpha, so they meet at theta + alpha.
+    theta = math.radians(45.0 + inputs.phi_deg / 2.0)
+    beyond_axis = beyond / math.sin(theta + alpha)
+    l_required = l_wedge + beyond_axis
     if inputs.min_free_length is not None:
         l_min = inputs.min_free_length
     else:
@@ -204,7 +211,7 @@ def design_anchor(inputs: AnchorDesignInputs) -> AnchorDesignResult:
         warnings.append(Notice(code="min_free_length_below_gec4",
                                params={"value": inputs.min_free_length,
                                        "gec4": tables.MIN_FREE_LENGTH[inputs.tendon.type]}))
-    guidance = min(v for _, v, _ in tables.SAFETY_FACTOR_GUIDANCE)
+    guidance = next(v for g, v, _ in tables.SAFETY_FACTOR_GUIDANCE if g == inputs.ground)
     if inputs.safety_factor < guidance:
         warnings.append(Notice(code="safety_factor_below_guidance",
                                params={"value": inputs.safety_factor, "guidance": guidance}))
@@ -223,11 +230,26 @@ def design_anchor(inputs: AnchorDesignInputs) -> AnchorDesignResult:
     l_b_calc = design * fs / q_u
     l_b = l_b_calc
     bond_governing = "calculated"
-    if inputs.min_bond_length is not None and inputs.min_bond_length > l_b_calc:
-        l_b, bond_governing = inputs.min_bond_length, "minimum"
-    if l_b > tables.TYPICAL_BOND_LENGTH_MAX:
+    gec4_min_bond = tables.MIN_BOND_LENGTH[(inputs.ground, inputs.tendon.type)]
+    if inputs.min_bond_length is None:
+        min_bond = gec4_min_bond
+        assumptions.append(Notice(code="min_bond_length_default",
+                                  params={"value": min_bond, "ground": inputs.ground,
+                                          "tendon": inputs.tendon.type}))
+    else:
+        min_bond = inputs.min_bond_length
+        if min_bond < gec4_min_bond:
+            warnings.append(Notice(code="min_bond_length_below_gec4",
+                                   params={"value": min_bond, "gec4": gec4_min_bond}))
+    if min_bond > l_b_calc:
+        l_b, bond_governing = min_bond, "minimum"
+    typical_max = tables.TYPICAL_BOND_LENGTH_MAX[inputs.ground]
+    if l_b > typical_max:
         warnings.append(Notice(code="bond_length_exceeds_typical",
-                               params={"bond_length": round(l_b, 2), "typical_max": tables.TYPICAL_BOND_LENGTH_MAX}))
+                               params={"bond_length": round(l_b, 2), "typical_max": typical_max}))
+    if inputs.spacing is not None and inputs.spacing < tables.MIN_HORIZONTAL_SPACING:
+        warnings.append(Notice(code="anchor_spacing_below_gec4",
+                               params={"spacing": inputs.spacing, "minimum": tables.MIN_HORIZONTAL_SPACING}))
     capacity = q_u * l_b / fs
 
     tendon = _select_tendon(inputs, design, lock_off, test, warnings)
@@ -247,8 +269,12 @@ def design_anchor(inputs: AnchorDesignInputs) -> AnchorDesignResult:
                     ok=_within(test, inputs.test_limit * tendon.smts_total)),
     ]
     if inputs.max_bond_length is not None:
-        checks.append(AnchorCheck(id="bond_length_limit", demand=l_b, limit=inputs.max_bond_length,
-                                  ok=_within(l_b, inputs.max_bond_length)))
+        row = AnchorCheck(id="bond_length_limit", demand=l_b, limit=inputs.max_bond_length,
+                          ok=_within(l_b, inputs.max_bond_length))
+        checks.append(row)
+        if not row.ok:
+            warnings.append(Notice(code="bond_length_above_limit",
+                                   params={"bond_length": round(l_b, 2), "limit": inputs.max_bond_length}))
     if inputs.ground == "soil":
         row = AnchorCheck(id="overburden", demand=inputs.min_overburden, limit=centre_depth,
                           ok=centre_depth * (1.0 + _EPS) >= inputs.min_overburden)
@@ -262,7 +288,8 @@ def design_anchor(inputs: AnchorDesignInputs) -> AnchorDesignResult:
         warnings.append(Notice(code="phi_zero_wedge"))
 
     sources = [
-        f"{tables.GEC4} sections 5.3.2-5.3.4, 5.3.6-5.3.8 (free length, bond length, tendon limits)",
+        f"{tables.GEC4} sections 5.3.2-5.3.4, 5.3.6-5.3.8, fig. 37 (lengths, spacing, tendon limits)",
+        f"{tables.MIN_BOND_LENGTH_SOURCE} (minimum bond length)",
         f"{tables.GEC4} Eq. 19-21, p. 66-67 (anchor load)",
     ]
     return AnchorDesignResult(
@@ -271,7 +298,7 @@ def design_anchor(inputs: AnchorDesignInputs) -> AnchorDesignResult:
         vertical_load_per_m=(t_v / inputs.spacing if inputs.spacing is not None else None),
         lock_off_load=lock_off, test_load=test,
         wedge_angle_deg=45.0 + inputs.phi_deg / 2.0, wedge_distance=x_wedge, wedge_length=l_wedge,
-        beyond_wedge=beyond, free_length_required=l_required, free_length_minimum=l_min,
+        beyond_wedge=beyond, beyond_wedge_along_anchor=beyond_axis, free_length_required=l_required, free_length_minimum=l_min,
         free_length=l_free, free_length_governing=free_governing,
         transfer_load=q_u, transfer_load_source=q_source, safety_factor=fs,
         bond_length_calculated=l_b_calc, bond_length=l_b, bond_length_governing=bond_governing,

@@ -71,9 +71,14 @@ def test_free_length_rules_and_governing():
     # head at 2.5 m: long wedge, 0.2H = 2 m > 1.5 m
     r = design_anchor(make(head_depth=2.5))
     x, length = wedge_geometry(make(head_depth=2.5))
+    # chi = 2 m normal to the surface (GEC-4 fig. 37a); along the anchor 2 / sin(45 + 33/2 + 15)
+    # = 2 / sin(76.5 deg) = 2.0568 m
+    along = 2.0 / math.sin(math.radians(76.5))
+    assert along == pytest.approx(2.0568, abs=1e-4)
     assert r.beyond_wedge == pytest.approx(2.0)
-    assert r.free_length_required == pytest.approx(length + 2.0)
-    assert r.free_length == pytest.approx(length + 2.0)
+    assert r.beyond_wedge_along_anchor == pytest.approx(along)
+    assert r.free_length_required == pytest.approx(length + along)
+    assert r.free_length == pytest.approx(length + along)
     assert r.free_length_governing == "wedge"
     # low anchor: short wedge, 4.5 m strand minimum governs
     low = design_anchor(make())
@@ -84,7 +89,39 @@ def test_free_length_rules_and_governing():
     short = design_anchor(make(excavation_height=4.0, head_depth=1.0))
     assert short.beyond_wedge == pytest.approx(1.5)  # 0.2 * 4 = 0.8 < 1.5
     explicit = design_anchor(make(head_depth=2.5, beyond_wedge=3.0, min_free_length=1.0))
-    assert explicit.free_length == pytest.approx(explicit.wedge_length + 3.0)
+    assert explicit.free_length == pytest.approx(explicit.wedge_length + 3.0 / math.sin(math.radians(76.5)))
+
+
+def test_clearance_normal_to_surface_phi_zero():
+    # phi = 0 (undrained), alpha = 15: chi = 2 m normal -> 2 / sin(60 deg) = 2.3094 m along the anchor
+    r = design_anchor(make(phi_deg=0.0, head_depth=2.0))
+    assert r.beyond_wedge_along_anchor == pytest.approx(2.3094, abs=1e-4)
+    assert r.free_length_required == pytest.approx(r.wedge_length + 2.3094, abs=1e-4)
+
+
+def test_gec4_minimum_bond_length_defaults():
+    # GEC-4 appendix E 3B: 4.5 m in soil; rock 4.5 m strand / 3 m bar
+    rock = design_anchor(make(ground="rock", ultimate_transfer_load=730.0, safety_factor=3.0))
+    assert rock.bond_length_calculated == pytest.approx(445.17 * 3 / 730, abs=0.01)  # 1.83 m
+    assert rock.bond_length == 4.5 and rock.bond_length_governing == "minimum"
+    assert "min_bond_length_default" in {n.code for n in rock.assumptions}
+    bar = design_anchor(make(ground="rock", ultimate_transfer_load=730.0, safety_factor=3.0,
+                             tendon={"type": "bar"}))
+    assert bar.bond_length == 3.0
+    soil = design_anchor(make(ultimate_transfer_load=300.0))
+    assert soil.bond_length == 4.5
+    low = design_anchor(make(ultimate_transfer_load=400.0, min_bond_length=2.0))
+    assert low.bond_length == pytest.approx(445.17 * 2 / 400, abs=0.01)  # 2.23 m
+    assert "min_bond_length_below_gec4" in {w.code for w in low.warnings}
+
+
+def test_rock_safety_factor_guidance_and_spacing():
+    rock = design_anchor(make(ground="rock", safety_factor=2.0))
+    assert "safety_factor_below_guidance" in {w.code for w in rock.warnings}
+    soil = design_anchor(make(safety_factor=2.0))
+    assert "safety_factor_below_guidance" not in {w.code for w in soil.warnings}
+    close = design_anchor(make(spacing=1.0, horizontal_load_per_m=100.0))
+    assert "anchor_spacing_below_gec4" in {w.code for w in close.warnings}
 
 
 def test_bond_stress_route_equals_direct_transfer_load():
@@ -105,6 +142,7 @@ def test_min_bond_length_and_warnings():
     codes = {w.code for w in long.warnings}
     assert "bond_length_exceeds_typical" in codes
     assert not next(c for c in long.checks if c.id == "bond_length_limit").ok
+    assert "bond_length_above_limit" in codes
     steep = design_anchor(make(inclination_deg=50.0))
     assert "inclination_outside_range" in {w.code for w in steep.warnings}
 
