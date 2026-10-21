@@ -44,7 +44,10 @@ from geotek.core.models.walls import (
 from geotek.engine.bearing import bearing_capacity
 from geotek.engine.sheet_pile import SheetPileResult, anchored_sheet_pile, cantilever_sheet_pile
 from geotek.engine.stability import SoilBand
-from geotek.engine.walls.base import CheckResult, Force, WallAnalysis, overturning_moments, passive_force
+from geotek.engine.walls.base import (
+    CheckResult, Force, KeySliding, WallAnalysis, attach_without_key, key_result, key_sliding_basic,
+    overturning_moments, passive_force, seismic_passive_ratio, strip_key,
+)
 from geotek.engine.walls.global_stability import wall_global_stability
 from geotek.engine.walls.walls import wall_forces
 
@@ -255,12 +258,21 @@ def verify_wall(
             r_base = v * math.tan(math.radians(db)) + fd_d.adhesion * b_eff
             detail = f"V_d tan({db:.1f})"
         rd = r_base / case.r_sliding
-        pp = passive_force(fd_d, wf.embedment, settings, bf_d.gamma, reduction=1.0)
+        phi_front = 0.0 if fd_d.drainage == "undrained" else fd_d.phi
+        pp = passive_force(fd_d, wf.embedment, settings, bf_d.gamma, reduction=1.0,
+                           seismic_ratio=seismic_passive_ratio(phi_front, loads, seismic))
+        toe_term = 0.0
         if pp is not None:
-            rd += case.passive_participation * pp.fx / case.r_passive
+            toe_term = case.passive_participation * pp.fx / case.r_passive
+            rd += toe_term
             share = "" if case.passive_participation == 1 else f"{case.passive_participation:g} x "
             detail += f" + {share}P_p,d"
-        checks["sliding"] = _odf("sliding", rd, h, detail)
+        key = key_sliding_basic(geometry, fd_d, settings, bf_d.gamma, reduction=1.0, backfill=bf_d,
+                                loads=loads, seismic=seismic)
+        key_res, h_sl = None, h
+        if key is not None:
+            key_res, rd, h_sl, detail = _key_sliding(case, key, rd, toe_term, v, b_eff, h, detail)
+        checks["sliding"] = _odf("sliding", rd, h_sl, detail)
         if case.r_overturning is not None:
             checks["overturning"] = _odf("overturning", m_res / case.r_overturning, m_ot,
                                          f"M_R / gamma_Rdev (gamma_Rdev = {case.r_overturning:g}) vs M_O")
@@ -286,11 +298,40 @@ def verify_wall(
             case=case.name, width=B, forces=stab, sum_v=v, sum_h=h, m_resisting=m_res,
             m_overturning=m_ot, eccentricity=e, q_max=q_max, q_min=q_min, bearing=bearing,
             checks=checks, warnings=list(wf.warnings), factors_used=list(case.factors_used),
+            shear_key=key_res,
         ))
+        if key is not None:
+            results[-1].forces.append(key.passive)
 
+    if geometry.key is not None:
+        attach_without_key(results, verify_wall(strip_key(geometry), backfill, foundation, loads, settings,
+                                                seismic=seismic, approach=approach))
     if not seismic and any(c.id == "EQU" for c in code.combinations):
         results.append(_ec7_equ(code, geometry, backfill, loads, settings))
     return results
+
+
+def _key_sliding(case: LimitStateCase, key: KeySliding, rd_base: float, toe_term: float, v: float,
+                 b_eff: float, driving: float, detail: str):
+    """Shear key sliding in partial-factor form: R_d of the base surface (``rd_base`` incl. toe
+    passive) and of the plane through the key tip, each plus the design key passive.
+
+    Returns (ShearKeyResult, governing R_d, detail). The key passive is divided by gamma_R,e and
+    multiplied by the passive participation, like the toe passive.
+    """
+    key_term = case.passive_participation * key.passive.fx / case.r_passive
+    if key.deep.drainage == "undrained":
+        deep = key.deep.su * b_eff / case.r_sliding
+    else:
+        v_deep = v + case.stabilising["EV"] * key.extra_v
+        deep = (v_deep * math.tan(math.radians(key.deep.phi)) + key.deep.c * b_eff) / case.r_sliding
+    rb, rt = rd_base + key_term, deep + toe_term + key_term
+    driving_deep = driving - sum(f.fx for f in _factor_forces(key.deep_forces, case.stabilising))
+    res = key_result(key, rb, rt, driving, key_term, driving_deep)
+    # The sliding check reports R_d and E_d of the governing surface.
+    rd_eq, ed_eq = (rb, driving) if res.governing == "base" else (rt, driving_deep)
+    return res, rd_eq, ed_eq, (f"{detail} + key P_p,d; governing surface: {res.governing} "
+                              f"(base {res.fs_base_surface:.3f}, key tip {res.fs_deep_surface:.3f})")
 
 
 def _ec7_equ(code, geometry, backfill, loads, settings) -> WallAnalysis:
@@ -443,8 +484,10 @@ def verify_wall_layered(geometry, soil, loads, settings, *, seismic: bool,
         return [analyze_wall_layered(geometry, soil, loads, settings, seismic=seismic,
                                      backfill_slope=backfill_slope, gwt_case=gwt_case)]
     selected = soil_at_case(soil, gwt_case)
+    # With a shear key the key-zone water forces (WA) reach the key tip.
+    water_level = geometry.height + (geometry.key.depth if geometry.key is not None else 0.0)
     water = min(selected.front_profile().gwt.depth_for("design"),
-                selected.retained_profile().gwt.depth_for("design")) < geometry.height
+                selected.retained_profile().gwt.depth_for("design")) < water_level
     missing = required_layered_inputs(settings, approach=approach, seismic=seismic, water=water)
     if missing:
         raise MissingFactorsError(missing)
@@ -477,9 +520,14 @@ def verify_wall_layered(geometry, soil, loads, settings, *, seismic: bool,
             resistance = v * math.tan(math.radians(db)) + fd.adhesion * be
             detail = f"V_d tan({db:.3f}) + c_a B'"
         rd = resistance / case.r_sliding
+        toe_term = 0.0
         if passive is not None:
-            rd += case.passive_participation * passive.fx / case.r_passive
-        checks["sliding"] = _odf("sliding", rd, h, detail)
+            toe_term = case.passive_participation * passive.fx / case.r_passive
+            rd += toe_term
+        key_res, h_sl = None, h
+        if wf.key is not None:
+            key_res, rd, h_sl, detail = _key_sliding(case, wf.key, rd, toe_term, v, be, h, detail)
+        checks["sliding"] = _odf("sliding", rd, h_sl, detail)
         if case.r_overturning is not None:
             mr_ot, mo_ot = overturning_moments(stab, mr, mo, settings)
             checks["overturning"] = _odf("overturning", mr_ot / case.r_overturning, mo_ot,
@@ -511,8 +559,14 @@ def verify_wall_layered(geometry, soil, loads, settings, *, seismic: bool,
             case=case.name, width=B, forces=stab + ([passive] if passive is not None else []),
             sum_v=v, sum_h=h, m_resisting=mr, m_overturning=mo, eccentricity=e,
             q_max=qmax, q_min=qmin, bearing=bearing, checks=checks,
-            warnings=wf.warnings + warnings, factors_used=list(case.factors_used),
+            warnings=wf.warnings + warnings, factors_used=list(case.factors_used), shear_key=key_res,
         ))
+        if wf.key is not None:
+            results[-1].forces.append(wf.key.passive)
+    if geometry.key is not None:
+        attach_without_key(results, verify_wall_layered(
+            strip_key(geometry), soil, loads, settings, seismic=seismic, approach=approach,
+            backfill_slope=backfill_slope, gwt_case=gwt_case))
     if not seismic and any(c.id == "EQU" for c in code.combinations):
         log = FactorLog(code)
         combo = code.combination("EQU")

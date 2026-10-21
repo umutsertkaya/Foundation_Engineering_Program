@@ -44,6 +44,8 @@ def wall_result(id: str, result: StructureWallResult, fingerprint: str) -> dto.W
     return dto.WallResultDTO(
         structure_id=id, geometry=result.geometry, passed=result.passed,
         governing=result.governing, checks=checks,
+        shear_key=[dto.ShearKeyResultDTO(case=case, **vars(analysis.shear_key))
+                   for case, analysis in result.analyses.items() if analysis.shear_key is not None],
         governing_check_ids=list(getattr(result, "governing_check_ids", [])),
         minimum_width_governs=getattr(result, "minimum_width_governs", False),
         forces={case: [dto.ForceDTO.model_validate(force) for force in analysis.forces]

@@ -91,6 +91,7 @@ def net_pressure(
     surcharge_factor: float = 1.0,
     water_factor: float = 1.0,
     seismic_increment: float = 0.0,
+    seismic_increment_below: float = 0.0,
     passive_seismic_ratio: float = 1.0,
     backfill_slope: float = 0.0,
     passive_width_ratio: float = 1.0,
@@ -101,7 +102,11 @@ def net_pressure(
 
     Seismic (simplified): ``seismic_increment`` [kPa] is a uniform dynamic pressure added
     behind the wall over the retained height H (resultant at H/2, TBDY 16.12.2.8);
-    ``passive_seismic_ratio`` (K_PE / K_P <= 1) scales the passive effective pressure.
+    ``seismic_increment_below`` is the horizontal dynamic coefficient increment
+    Delta K_h = (1 - kv) K_AE,h - K_A,h (>= 0) applied to the retained effective vertical stress
+    plus surcharge below the dredge line, where the M-O active pressure also acts on the
+    embedded part (Ebeling & Morrison 1992); ``passive_seismic_ratio`` (K_PE / K_P <= 1) scales the
+    passive effective pressure.
 
     ``backfill_slope`` [deg] is the retained ground slope beta (active side only; the front
     ground stays horizontal). Rankine uses the slope coefficient with the resultant parallel to
@@ -142,6 +147,10 @@ def net_pressure(
     p_eff[(z < H) | ((z == H) & left)] = 0.0
     if seismic_increment:
         a_eff = a_eff + np.where((z < H) | ((z == H) & left), seismic_increment, 0.0)
+    if seismic_increment_below > 0:
+        sv_eff = _evaluate(act0, z, which="sigma_v_eff", left=left)
+        a_eff = a_eff + np.where((z < H) | ((z == H) & left), 0.0,
+                                 seismic_increment_below * (sv_eff + surcharge))
     if drainage == "undrained":
         u_back = u_front = np.zeros_like(z)
     else:

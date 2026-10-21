@@ -11265,6 +11265,16 @@
             "title": "Embedment",
             "description": "Front soil level above base bottom (D)",
             "default": 0.0
+          },
+          "key": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ShearKey"
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         },
         "type": "object",
@@ -11884,6 +11894,16 @@
             "minimum": 0.0,
             "title": "Embedment",
             "default": 0.0
+          },
+          "key": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ShearKey"
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         },
         "type": "object",
@@ -14552,6 +14572,218 @@
         "title": "SessionInfo",
         "description": "Open-project state of the running server."
       },
+      "ShearKey": {
+        "properties": {
+          "position": {
+            "type": "string",
+            "enum": [
+              "toe",
+              "middle",
+              "heel"
+            ],
+            "title": "Position",
+            "default": "heel"
+          },
+          "width": {
+            "type": "number",
+            "exclusiveMinimum": 0.0,
+            "title": "Width",
+            "description": "Horizontal size of the key [m]"
+          },
+          "depth": {
+            "type": "number",
+            "exclusiveMaximum": 10.0,
+            "exclusiveMinimum": 0.0,
+            "title": "Depth",
+            "description": "Projection below the base bottom [m]"
+          }
+        },
+        "type": "object",
+        "required": [
+          "width",
+          "depth"
+        ],
+        "title": "ShearKey",
+        "description": "Concrete shear key (kayma dişi) cast under the base slab; a full-length strip, per metre of wall.\n\n``position`` places the key under the toe, the middle of the base or the heel; ``width`` is its\nhorizontal size and ``depth`` how far it projects below the base bottom."
+      },
+      "ShearKeyResultDTO": {
+        "properties": {
+          "position": {
+            "type": "string",
+            "enum": [
+              "toe",
+              "middle",
+              "heel"
+            ],
+            "title": "Position"
+          },
+          "width": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Width"
+          },
+          "depth": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Depth"
+          },
+          "passive_full": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Passive Full"
+          },
+          "passive_used": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Passive Used"
+          },
+          "reduction": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reduction"
+          },
+          "arm": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Arm"
+          },
+          "fs_base_surface": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Fs Base Surface"
+          },
+          "fs_deep_surface": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Fs Deep Surface"
+          },
+          "fs_with_key": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Fs With Key"
+          },
+          "fs_without_key": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Fs Without Key"
+          },
+          "governing": {
+            "type": "string",
+            "enum": [
+              "base",
+              "deep"
+            ],
+            "title": "Governing"
+          },
+          "demand_v": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Demand V"
+          },
+          "demand_m": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Demand M"
+          },
+          "case": {
+            "type": "string",
+            "title": "Case"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "position",
+          "width",
+          "depth",
+          "passive_full",
+          "passive_used",
+          "reduction",
+          "arm",
+          "fs_base_surface",
+          "fs_deep_surface",
+          "fs_with_key",
+          "fs_without_key",
+          "governing",
+          "demand_v",
+          "demand_m",
+          "case"
+        ],
+        "title": "ShearKeyResultDTO",
+        "description": "Shear key result of one design case."
+      },
       "SheetPileCreate": {
         "properties": {
           "kind": {
@@ -16624,6 +16856,13 @@
             },
             "type": "array",
             "title": "Checks"
+          },
+          "shear_key": {
+            "items": {
+              "$ref": "#/components/schemas/ShearKeyResultDTO"
+            },
+            "type": "array",
+            "title": "Shear Key"
           },
           "forces": {
             "additionalProperties": {

@@ -176,5 +176,8 @@
   "walls.loads.r_hint": "Boş = duvar tipine göre (TBDY Tablo 16.7)",
   "walls.loads.sds_range": "S_DS 0'dan büyük ve 3'ten küçük olmalıdır.",
   "walls.loads.r_range": "r 0'dan büyük ve en fazla 2 olmalıdır.",
-  "walls.run.seismic_invalid": "Bir deprem girdisi aralık dışında; Yükler/deprem adımında düzeltin veya boşaltın."
+  "walls.run.seismic_invalid": "Bir deprem girdisi aralık dışında; Yükler/deprem adımında düzeltin veya boşaltın.",
+  "walls.warning.shear_key_bearing": "Taşıma gücünde diş derinliği gömülmeye eklenmedi (tutucu)",
+  "walls.warning.shear_key_water": "Yeraltı suyu diş ucundan yukarıda ({depth} m): diş çevresindeki su basıncı ve kaldırma ayrıca düzeltilmedi",
+  "walls.warning.shear_key_reduces_sliding": "Diş ucundan geçen yüzey, dişsiz taban yüzeyinden daha düşük kayma güvenliği veriyor; diş altındaki zemin dayanımını ve taban sürtünmesi varsayımını kontrol edin"
 }

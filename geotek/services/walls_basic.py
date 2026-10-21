@@ -27,6 +27,7 @@ from geotek.core.models.walls import (
     CantileverGeometry,
     FoundationSoil,
     GravityGeometry,
+    ShearKey,
     WallLoads,
     WallSettings,
 )
@@ -79,6 +80,8 @@ class BasicWallInput(BaseModel):
     surcharge_basis: Literal["horizontal", "inclined"] = "horizontal"
     """``inclined``: surcharge per inclined ground area, converted to q / cos(beta) per horizontal."""
     embedment: float | None = Field(None, ge=0)
+    shear_key: ShearKey | None = None
+    """Shear key added to every sized geometry (width must fit the base)."""
     sds: float | None = Field(None, gt=0, lt=3, description="TBDY S_DS; None = no seismic case")
     r: float | None = Field(None, gt=0, le=2)
     """TBDY Table 16.7 r; None = by wall type (cantilever / gravity 1.5)."""
@@ -140,16 +143,20 @@ def _round(x: float, step: float = STEP) -> float:
 
 def proportion(inp: BasicWallInput, B: float, D: float):
     """Geometry for base width B from the preliminary sizing ratios (None if not feasible)."""
-    return proportion_for(inp.wall_type, inp.height, B, D)
+    return proportion_for(inp.wall_type, inp.height, B, D, key=inp.shear_key)
 
 
-def proportion_for(wall_type: str, H: float, B: float, D: float):
-    """``proportion`` without an input model (shared with the advanced-level sizing)."""
+def proportion_for(wall_type: str, H: float, B: float, D: float, key: ShearKey | None = None):
+    """``proportion`` without an input model (shared with the advanced-level sizing).
+
+    ``key`` is attached unchanged; a base too narrow for it is infeasible (None)."""
+    if key is not None and key.width > B:
+        return None
     if wall_type == "gravity":
         top = max(0.30, _ceil(H / 12))
         if top > B:
             return None
-        return GravityGeometry(height=H, base_width=B, top_width=top, back_offset=0.0, embedment=D)
+        return GravityGeometry(height=H, base_width=B, top_width=top, back_offset=0.0, embedment=D, key=key)
     t_base = max(0.40, _ceil(H / 12))
     stem_bottom = max(0.30, _ceil(H / 12))
     stem_top = min(0.30, stem_bottom)
@@ -158,10 +165,42 @@ def proportion_for(wall_type: str, H: float, B: float, D: float):
     if heel < 0.30 or t_base >= H - 0.5:
         return None
     return CantileverGeometry(stem_height=H - t_base, stem_top=stem_top, stem_bottom=stem_bottom,
-                              toe=toe, heel=heel, base_thickness=t_base, embedment=D)
+                              toe=toe, heel=heel, base_thickness=t_base, embedment=D, key=key)
 
 
-def _assumptions(inp: BasicWallInput, D: float, r: float | None) -> list[Assumption]:
+SRC_SHEAR_KEY = ("Das, Principles of Foundation Engineering (taban dişi, D1 = D + diş derinliği); "
+                 "ODTÜ CE366 Recitation 5 P1 (P_p = 65D + 32.5D², FS_p = 2)")
+
+
+def key_assumptions(key: ShearKey | None, reduction: float) -> list[Assumption]:
+    """Visible assumptions of the shear key sliding model (empty without a key)."""
+    if key is None:
+        return []
+    params = {"position": key.position, "width": key.width, "depth": key.depth}
+    return [
+        Assumption(
+            text=(f"Kayma dişi ({key.position}, b={key.width:g} m, d={key.depth:g} m): pasif direnç ön yüzde Rankine K_p ile, "
+                  "düşey gerilme ön zemin seviyesinden başlar (ön dolgu + temel zemini γ); azaltma katsayısı "
+                  f"{reduction:g} (ODTÜ örneğindeki FS_p = 2 ile aynı); depremde (1−k_v)K_PE/K_P ile azaltılır; "
+                  "diş pasifi 'pasif direnç' ayarından bağımsız sayılır. Ön zemin kazı/oyulma ile kalkabiliyorsa "
+                  "gömülme D = 0 girilmelidir"),
+            source=SRC_SHEAR_KEY, code="wall.shear_key_passive", params={**params, "reduction": reduction}),
+        Assumption(
+            text="Kayma iki yüzeyde kontrol edilir: taban yüzeyi (V tanδ_b + c_a·B' + diş pasifi) ve diş ucundan "
+                 "geçen yatay düzlem ((ΣV + diş yanı zemin ağırlığı) tanφ + c·B' + diş pasifi). Diş ucu düzleminde "
+                 "itki, topuk hattında diş tabanına kadar uzatılır (temel zemini K_a, δ = β; sürşarj, su ve deprem "
+                 "artışları ile diş yanı zeminin ataleti dahil). Küçük güvenlik oranı yönetir. Drenajsız temel "
+                 "zemininde deprem veya eğimli dolguyla diş bölgesi itkisi hesaplanamaz; analiz açık hata ile durur",
+            source=SRC_SHEAR_KEY, code="wall.shear_key_surfaces", params=params),
+        Assumption(
+            text="Taşıma gücünde diş derinliği gömülmeye eklenmez (gömülme ve derinlik katsayıları küçük kalır, "
+                 "her durumda tutucu); diş için yalnız kesme ve moment talebi (V = azaltılmamış statik pasif, "
+                 "M = V·kol) verilir, betonarme tasarımı yapılmaz",
+            source="Koordinatör kararı; tutucu", code="wall.shear_key_demands", params=params),
+    ]
+
+
+def _assumptions(inp: BasicWallInput, D: float, r: float | None, key: ShearKey | None = None) -> list[Assumption]:
     out = [
         Assumption(text="Pasif direnç (ön ayak önü) ihmal edildi", source=SRC_CONSERVATIVE),
         Assumption(text="Sürşarj yükü devrilme ve kaymada dengeleyici sayılmadı", source=SRC_CONSERVATIVE),
@@ -179,6 +218,7 @@ def _assumptions(inp: BasicWallInput, D: float, r: float | None) -> list[Assumpt
     else:
         out.append(Assumption(text="Topuk ucundan geçen sanal düşey düzlemde itki, δ = β (Rankine eşdeğeri)",
                               source="Klasik konsol duvar yaklaşımı"))
+    out += key_assumptions(key, WallSettings().passive_reduction)
     if inp.sds is not None:
         out.append(Assumption(text=f"k_h = 0.4·S_DS/r, k_v = 0.5·k_h, r = {r:g}"
                                    + (" (duvar tipine göre)" if inp.r is None else ""), source=SRC_TBDY_SEISMIC))
@@ -279,7 +319,7 @@ def size_wall(inp: BasicWallInput, *, max_width_ratio: float = 1.2) -> BasicWall
                                "gerekir; bunlar ileri seviyede değerlendirilmelidir.")
     return BasicWallResult(
         geometry=geom, passed=passed, analyses=analyses, global_stability=glob, governing=governing,
-        assumptions=_assumptions(inp, D, r if inp.sds is not None else None),
+        assumptions=_assumptions(inp, D, r if inp.sds is not None else None, geom.key),
         factors_used=list(used.values()), kh=kh, kv=kv, iterations=it, warnings=warnings,
         slip_results=best_slips,
     )
@@ -321,7 +361,7 @@ def check_wall(inp: BasicWallInput, geometry: CantileverGeometry | GravityGeomet
             used[f.path] = f
     return BasicWallResult(
         geometry=geometry, passed=not fails, analyses=analyses, global_stability=glob,
-        governing=", ".join(fails) if fails else "", assumptions=_assumptions(inp, D, r if inp.sds is not None else None),
+        governing=", ".join(fails) if fails else "", assumptions=_assumptions(inp, D, r if inp.sds is not None else None, geometry.key),
         factors_used=list(used.values()), kh=kh, kv=kv, iterations=0,
         warnings=sorted({w for a in analyses.values() for w in a.warnings}), slip_results=slips,
     )
@@ -414,13 +454,17 @@ def design_sheet_pile_basic(inp: BasicSheetPileInput) -> BasicSheetPileResult:
                       - rankine_ka(inp.phi, beta)) * math.cos(math.radians(beta))
             else:
                 dK = mononobe_okabe_kae(inp.phi, kh=kh, kv=kv) * (1 - kv) - rankine_ka(inp.phi)
-            kw["seismic_increment"] = 0.5 * g_eff * H**2 * dK / H  # uniform over H, resultant at H/2
+            # uniform over H, resultant at H/2; the surcharge part dK q H is included (structure path too)
+            kw["seismic_increment"] = dK * (0.5 * g_eff * H**2 + kw["surcharge"] * H) / H
+            kw["seismic_increment_below"] = max(dK, 0.0)  # M-O increment on the embedded part too
             kw["passive_seismic_ratio"] = min(1.0, mononobe_okabe_kpe(inp.phi, kh=kh, kv=kv) * (1 - kv)
                                               / rankine_kp(inp.phi))
             assumptions += [
                 Assumption(text=f"k_h = 0.4·S_DS/r = {kh:.3f}, r = 1.0 (palplanş/ankrajlı)", source=SRC_TBDY_SEISMIC),
                 Assumption(text="Dinamik aktif artım (M-O) kazı yüksekliği boyunca düzgün, bileşke H/2'de; "
-                                "pasif K_PE/K_P oranıyla azaltıldı", source=SRC_TBDY_SEISMIC + "; Mononobe-Okabe"),
+                                "kazı tabanı altında ΔK_AE·σ′v olarak gömülü boyca sürer; "
+                                "pasif K_PE/K_P oranıyla azaltıldı",
+                           source=SRC_TBDY_SEISMIC + "; Mononobe-Okabe; Ebeling & Morrison (1992)"),
             ]
     if inp.support == "cantilever":
         res = cantilever_sheet_pile(profile, H, depth_increase=0.2, **kw)

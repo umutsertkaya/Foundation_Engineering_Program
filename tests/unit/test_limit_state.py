@@ -156,7 +156,9 @@ def test_tbdy_seismic_rules(tbdy_filled):
     v, h = a.sum_v, a.sum_h
     assert a.checks["sliding"].value == pytest.approx(v * math.tan(math.radians(30)) / 1.1 / h, rel=1e-6)
     kp = rankine_kp(30)
-    pp = 0.5 * kp * 18 * 1.5**2
+    # Seismic passive: (1 - kv) K_PE / K_P (M-O passive), review 2026-10-21
+    from geotek.engine.earth_pressure.coefficients import mononobe_okabe_kpe
+    pp = 0.5 * kp * 18 * 1.5**2 * (1 - kv) * mononobe_okabe_kpe(30, kh=kh, kv=kv) / kp
     assert b.checks["sliding"].value == pytest.approx((v * math.tan(math.radians(30)) / 1.1 + 0.3 * pp / 1.4) / h, rel=1e-6)
     # Overturning with gamma_Rdev = 1.3 and bearing with gamma_Rv = 1.4
     assert a.checks["overturning"].value == pytest.approx(a.m_resisting / 1.3 / a.m_overturning, rel=1e-9)

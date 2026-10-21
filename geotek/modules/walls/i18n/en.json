@@ -176,5 +176,8 @@
   "walls.loads.r_hint": "Empty = by wall type (TBDY Table 16.7)",
   "walls.loads.sds_range": "S_DS must be greater than 0 and less than 3.",
   "walls.loads.r_range": "r must be greater than 0 and at most 2.",
-  "walls.run.seismic_invalid": "A seismic input is out of range; correct or clear it in the Loads/seismic step."
+  "walls.run.seismic_invalid": "A seismic input is out of range; correct or clear it in the Loads/seismic step.",
+  "walls.warning.shear_key_bearing": "Key depth is not added to the bearing embedment (conservative)",
+  "walls.warning.shear_key_water": "Groundwater is above the key tip ({depth} m): water pressure around the key and uplift are not corrected separately",
+  "walls.warning.shear_key_reduces_sliding": "The plane through the key tip gives lower sliding safety than the key-less base surface; check the soil strength below the key and the base friction assumption"
 }

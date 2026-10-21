@@ -2121,6 +2121,7 @@ export interface components {
              * @default 0
              */
             embedment: number;
+            key?: components["schemas"]["ShearKey"] | null;
         };
         /**
          * CheckDTO
@@ -2372,6 +2373,7 @@ export interface components {
              * @default 0
              */
             embedment: number;
+            key?: components["schemas"]["ShearKey"] | null;
         };
         /**
          * GroundwaterCondition
@@ -3356,6 +3358,73 @@ export interface components {
             dirty: boolean;
         };
         /**
+         * ShearKey
+         * @description Concrete shear key (kayma dişi) cast under the base slab; a full-length strip, per metre of wall.
+         *
+         *     ``position`` places the key under the toe, the middle of the base or the heel; ``width`` is its
+         *     horizontal size and ``depth`` how far it projects below the base bottom.
+         */
+        ShearKey: {
+            /**
+             * Position
+             * @default heel
+             * @enum {string}
+             */
+            position: "toe" | "middle" | "heel";
+            /**
+             * Width
+             * @description Horizontal size of the key [m]
+             */
+            width: number;
+            /**
+             * Depth
+             * @description Projection below the base bottom [m]
+             */
+            depth: number;
+        };
+        /**
+         * ShearKeyResultDTO
+         * @description Shear key result of one design case.
+         */
+        ShearKeyResultDTO: {
+            /**
+             * Position
+             * @enum {string}
+             */
+            position: "toe" | "middle" | "heel";
+            /** Width */
+            width: number | null;
+            /** Depth */
+            depth: number | null;
+            /** Passive Full */
+            passive_full: number | null;
+            /** Passive Used */
+            passive_used: number | null;
+            /** Reduction */
+            reduction: number | null;
+            /** Arm */
+            arm: number | null;
+            /** Fs Base Surface */
+            fs_base_surface: number | null;
+            /** Fs Deep Surface */
+            fs_deep_surface: number | null;
+            /** Fs With Key */
+            fs_with_key: number | null;
+            /** Fs Without Key */
+            fs_without_key: number | null;
+            /**
+             * Governing
+             * @enum {string}
+             */
+            governing: "base" | "deep";
+            /** Demand V */
+            demand_v: number | null;
+            /** Demand M */
+            demand_m: number | null;
+            /** Case */
+            case: string;
+        };
+        /**
          * SheetPileCreate
          * @description Sheet pile inputs without a server id; profile selection matches retaining walls.
          *
@@ -4019,6 +4088,8 @@ export interface components {
             minimum_width_governs: boolean;
             /** Checks */
             checks: components["schemas"]["CheckDTO"][];
+            /** Shear Key */
+            shear_key?: components["schemas"]["ShearKeyResultDTO"][];
             /** Forces */
             forces: {
                 [key: string]: components["schemas"]["ForceDTO"][];
