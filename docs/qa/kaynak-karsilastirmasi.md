@@ -87,9 +87,11 @@ seismic_toe)`, `_iterate_toe`, `structures._sheet_case`). Neden: eski H üstü d
 H = 5, q = 10, k_h = 0.2, k_v = 0.1, uç 8 m): ΔK_ad = 0.9·0.49266 − 0.33333 = 0.1101; artım z = 0'da 10.125, z = 5'te 8.750,
 z = 8'de 7.924 kPa, uçtan aşağıda 0. Bağımsız salt okuma inceleme (Opus, medium): formül, yineleme (denge kalıbı < 0.1 kNm) ve
 temel/yapı yolu uyumu (1e-12) doğrulandı. Açık: ΔK_ad KDYY örneğiyle birebir doğrulanmadı (TBDY 16.12.2.4 metni yok).
-**Şev yön kontrolü (ayrı PR).** `bishop` yalnız kayan kütle −x yönüne hareket ediyorsa doğru m_α kuralını uygular;
-ters yönlü geometride sin α < 0 dilimi olmayan daire m_α'yı olduğundan yüksek (güvensiz) verir. Önerilen: `bishop`'ta
-çıkış tarafı dilimi yoksa (min sin α ≥ 0) daireyi reddet ve `SlopeModel` için yüzey eğimi yönü denetimi + hata testi.
+**Şev yön kontrolü (uygulandı, 2026-10-21).** Çözücü kayan kütlenin −x yönüne gittiğini varsayar (şev ayağı solda). Ters yönlü
+geometride denenen tüm dairelerde (kh = 0) sessiz yanlış FS üretilmedi: daireler m_α ve sürücü moment korumalarıyla reddediliyor,
+sonuç "kabul edilebilir daire yok" oluyordu. Bu belirsiz mesaj yerine `SlopeModel.descends_toward_positive_x` ve
+`search_critical_circle` içinde "x koordinatlarını aynalayın" hatası eklendi (yalnız daire bulunamazsa; mevcut sonuçlar değişmez).
+Tek daire için doğrudan `bishop` çağrısında ters yön hâlâ yalnız None döner.
 `tbdy_kae_steep` β: `SlopeError` ile β ≥ φ′ − ψ durumunda durduruluyor, değişiklik gerekmedi. `toe_force`: konsol için
 işareti kazı yönünde negatif, büyüklük doğru; arayüzde |R| gösterimi önerilir (ön yüz kapsamı, "Exe arayüz" işiyle
 çakışmamak için dokunulmadı).

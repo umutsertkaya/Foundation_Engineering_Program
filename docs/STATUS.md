@@ -105,7 +105,7 @@ Kaynak: Umut'un cihazındaki tam metin md dönüşümü (`docs/research/Youd.et.
   `gen_code_map.py --check` 0; `pyinstaller_modules.py --check` 0. Kayma dişi G3 (PR #21) birleşmedi, G4 başlamadı. Web ekranı gerçek API ile elle gözle kontrol edilmedi.
 
 - 2026-10-21, kaynak karşılaştırması ([rapor](qa/kaynak-karsilastirmasi.md)): Umut'un `docs/research` kaynaklarıyla (EM 2502/2504, EN 1997-1, KDYY el kitabı, Peck, PTI) karşılaştırma. Kod: LPI ilk katman yüzeye uzatıldı (güvensiz eksik), palplanşta global-FS pasifi EM 2504'e göre tanφ′/c′ azaltması ile kuvvet bölmenin küçüğü (φ ≥ 35°), düz zeminde Bishop FS≈1e16 reddi; ec7.yaml birincil metinle doğrulandı. İki bağımsız salt okuma inceleme geçti. Açık: ince daneli Q durumu FS 2.0, KDYY düzgün deprem artımı, AASHTO 0.55/0.50, ters şev yön denetimi. Test sonucu PR açıklamasında.
-- 2026-10-21, kaynak karşılaştırması 2. parça: ince daneli (drenajsız) palplanş pasifi FS 2.0 (EM 2504 Tablo 5-1) uygulandı. KDYY palplanş deprem dağılımı (üniform ½ΔK_ad σ′v(uç) + üçgen sürşarj, uç yinelemesi; Opus incelemesi geçti, tam test 2018 geçti) uygulandı; ters şev yön denetimi sonraki adım; ayrıntı [rapor §5](qa/kaynak-karsilastirmasi.md). Umut kaynak araştırmasını sonraya bıraktı.
+- 2026-10-21, kaynak karşılaştırması 2. parça: ince daneli (drenajsız) palplanş pasifi FS 2.0 (EM 2504 Tablo 5-1) uygulandı. KDYY palplanş deprem dağılımı (üniform ½ΔK_ad σ′v(uç) + üçgen sürşarj, uç yinelemesi; Opus incelemesi geçti, tam test 2018 geçti) uygulandı; ters şev yön hatası (search_critical_circle) eklendi; ayrıntı [rapor §5](qa/kaynak-karsilastirmasi.md). Umut kaynak araştırmasını sonraya bıraktı.
 
 Her kayıt tarih, kapsam ve gerçek sonuç taşır; eski sayı güncel başarı diye kullanılmaz.
 
