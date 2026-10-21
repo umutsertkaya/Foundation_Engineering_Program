@@ -354,6 +354,32 @@ class BearingResultDTO(DTO):
     warnings: list[str]
 
 
+class ShearKeyDTO(DTO):
+    """ShearKeyResult mirror: sliding on both candidate surfaces, with and without the key, and
+    the key demands (kN/m, kNm/m; no reinforced-concrete design)."""
+
+    position: Literal["toe", "middle", "heel"]
+    width: ResultNumber
+    depth: ResultNumber
+    passive_full: ResultNumber
+    passive_used: ResultNumber
+    reduction: ResultNumber
+    arm: ResultNumber
+    fs_base_surface: ResultNumber
+    fs_deep_surface: ResultNumber
+    fs_with_key: ResultNumber
+    fs_without_key: ResultNumber
+    governing: Literal["base", "deep"]
+    demand_v: ResultNumber
+    demand_m: ResultNumber
+
+
+class ShearKeyResultDTO(ShearKeyDTO):
+    """Shear key result of one design case."""
+
+    case: str
+
+
 class WallAnalysisDTO(DTO):
     """WallAnalysis dataclass mirror; checks include their case and utilisation."""
 
@@ -371,6 +397,7 @@ class WallAnalysisDTO(DTO):
     checks: dict[str, CheckDTO]
     warnings: list[str]
     factors_used: list[UsedFactorDTO]
+    shear_key: ShearKeyDTO | None = None
 
 
 class PressureDiagramDTO(DTO):
@@ -408,6 +435,8 @@ class WallResultDTO(DTO):
     minimum_width_governs: bool = False
     """True when sizing ended at the minimum width with no failing check."""
     checks: list[CheckDTO]
+    shear_key: list[ShearKeyResultDTO] = Field(default_factory=list)
+    """One entry per design case when the geometry has a shear key; empty otherwise."""
     forces: dict[str, list[ForceDTO]]
     pressures: list[PressureDiagramDTO]
     slip_circles: list[SlipCircleDTO]

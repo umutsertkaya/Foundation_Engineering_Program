@@ -27,10 +27,16 @@ from geotek.core.models.walls import (
 )
 from geotek.engine.walls.base import (
     Force,
+    KeySliding,
     WallAnalysis,
     earth_thrust_forces,
+    attach_without_key,
     evaluate_checks,
+    key_sliding_basic,
+    key_warnings,
+    key_weight_forces,
     passive_force,
+    strip_key,
     weight_forces,
 )
 
@@ -41,6 +47,8 @@ class WallForces:
     width: float
     embedment: float
     warnings: list[str]
+    key: KeySliding | None = None
+    """Layered path only: shear key passive resistance and key-tip plane data."""
 
 
 def gravity_wall_polygon(g: GravityGeometry):
@@ -73,6 +81,7 @@ def wall_forces(
     if isinstance(geometry, GravityGeometry):
         g = geometry
         forces += weight_forces("Wall", gravity_wall_polygon(g), gc, loads, seismic, "DC")
+        forces += key_weight_forces(g, settings, loads, seismic)
         theta = math.degrees(math.atan2(g.back_offset, g.height))
         delta = backfill.delta if backfill.delta is not None else 2 * backfill.phi / 3
         thrust, warnings = earth_thrust_forces(
@@ -82,12 +91,13 @@ def wall_forces(
         if g.back_offset > 0:
             warnings.append("Soil resting on the battered back face is accounted for through the "
                             "Coulomb thrust (theta), not as a separate weight")
-        return WallForces(forces + thrust, g.base_width, g.embedment, warnings)
+        return WallForces(forces + thrust, g.base_width, g.embedment, warnings + key_warnings(g))
 
     g = geometry
     base, stem, heel_soil, toe_soil = cantilever_polygons(g, backfill.slope)
     forces += weight_forces("Base slab", base, gc, loads, seismic, "DC")
     forces += weight_forces("Stem", stem, gc, loads, seismic, "DC")
+    forces += key_weight_forces(g, settings, loads, seismic)
     forces += weight_forces("Soil over heel", heel_soil, backfill.gamma, loads, seismic, "EV")
     if settings.include_toe_soil and toe_soil:
         forces += weight_forces("Soil over toe", toe_soil, backfill.gamma, loads, seismic, "EV")
@@ -99,7 +109,7 @@ def wall_forces(
         backfill=backfill, loads=loads, seismic=seismic, H=h_virtual,
         base_point=(g.width, 0.0), theta=0.0, delta=backfill.slope,
     )
-    return WallForces(forces + thrust, g.width, g.embedment, warnings)
+    return WallForces(forces + thrust, g.width, g.embedment, warnings + key_warnings(g))
 
 
 def _analyze(geometry, backfill, foundation, loads, settings, seismic) -> WallAnalysis:
@@ -107,9 +117,13 @@ def _analyze(geometry, backfill, foundation, loads, settings, seismic) -> WallAn
     settings = settings or WallSettings()
     wf = wall_forces(geometry, backfill, loads, settings, seismic=seismic)
     passive = passive_force(foundation, wf.embedment, settings, backfill.gamma)
-    return evaluate_checks(case="seismic" if seismic else "static", width=wf.width, forces=wf.forces,
-                           passive=passive, foundation=foundation, embedment=wf.embedment,
-                           settings=settings, warnings=wf.warnings)
+    key = key_sliding_basic(geometry, foundation, settings, backfill.gamma)
+    result = evaluate_checks(case="seismic" if seismic else "static", width=wf.width, forces=wf.forces,
+                             passive=passive, foundation=foundation, embedment=wf.embedment,
+                             settings=settings, warnings=wf.warnings, key=key)
+    if key is not None:
+        attach_without_key([result], [_analyze(strip_key(geometry), backfill, foundation, loads, settings, seismic)])
+    return result
 
 
 def analyze_gravity_wall(geometry: GravityGeometry, backfill: Backfill, foundation: FoundationSoil,

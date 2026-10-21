@@ -110,5 +110,8 @@
   "report.page.refused.no_result": "Sonucu olmayan bölüm var; önce hesabı çalıştırın:",
   "report.page.refused.stale_result": "Eski sonuçlu bölüm var; hesabı yeniden çalıştırın:",
   "report.page.refused.empty_selection": "En az bir bölüm seçin.",
-  "report.page.refused.unknown_section": "Bilinmeyen bölüm; listeyi yenileyin:"
+  "report.page.refused.unknown_section": "Bilinmeyen bölüm; listeyi yenileyin:",
+  "report.assumption.wall.shear_key_passive": "Kayma dişi ({position}, b = {width} m, d = {depth} m): pasif direnç ön yüzde Rankine K_p ile ön zemin seviyesinden diş tabanına kadar; azaltma katsayısı {reduction} mühendis varsayımıdır (yayımlanmış kaynak gösterilmedi). Diş pasifi 'pasif direnç' ayarından bağımsız olarak sayılır",
+  "report.assumption.wall.shear_key_surfaces": "Kayma iki yüzeyde kontrol edilir: taban altı + diş pasifi ve diş ucundan geçen yatay düzlem ((ΣV + diş yanı zemin ağırlığı) tanφ + c·B′ + diş pasifi); küçük olan yönetir (tutucu) ; diş derinliğindeki arka aktif itki ihmal edildi",
+  "report.assumption.wall.shear_key_demands": "Taşıma gücünde diş derinliği gömülmeye eklenmez; diş için yalnız kesme ve moment talebi verilir (V = azaltılmamış pasif, M = V·kol); betonarme tasarımı yapılmaz"
 }

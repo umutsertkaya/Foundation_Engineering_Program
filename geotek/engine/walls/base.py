@@ -14,9 +14,11 @@ import numpy as np
 
 from geotek.config.codes import FactorLog, UsedFactor, resolve_code
 from geotek.core.errors import GeoTekError
-from geotek.core.models.walls import Backfill, FoundationSoil, WallLoads, WallSettings
+from geotek.core.models.walls import Backfill, FoundationSoil, ShearKey, WallLoads, WallSettings
+from geotek.core.warning_codes import format_warning
 from geotek.engine.bearing import BearingResult, bearing_capacity
 from geotek.engine.earth_pressure.coefficients import rankine_kp
+from geotek.engine.earth_pressure.distribution import resultant
 from geotek.engine.earth_pressure.wedge import trial_wedge
 
 
@@ -52,6 +54,53 @@ class CheckResult:
 
 
 @dataclass
+class KeySliding:
+    """Shear key data the sliding check needs (see ``evaluate_checks``)."""
+
+    key: ShearKey
+    passive: Force
+    """Passive resistance on the key front face after the reduction factor (kind PASSIVE)."""
+    full: float
+    """Passive resistance before the reduction factor [kN/m]."""
+    arm: float
+    """Depth of the passive resultant below the base bottom [m]."""
+    reduction: float
+    deep: FoundationSoil
+    """Strength of the soil at key-bottom level (sliding plane through the key tip)."""
+    extra_v: float
+    """Net soil weight between the base bottom and the key bottom, beside the key [kN/m]."""
+
+
+@dataclass
+class ShearKeyResult:
+    """Sliding with a shear key: both candidate surfaces, the governing one and the key demands.
+
+    The ``fs_*`` values are the sliding resistance over the driving force for the checked case
+    (global factor of safety for ASD, R_d / E_d for partial-factor codes).
+    """
+
+    position: str
+    width: float
+    depth: float
+    passive_full: float
+    """Passive resistance on the key front face before reduction [kN/m]."""
+    passive_used: float
+    """Passive resistance used in sliding after reduction [kN/m]."""
+    reduction: float
+    arm: float
+    """Resultant of the passive pressure below the base bottom [m]."""
+    fs_base_surface: float
+    fs_deep_surface: float
+    fs_with_key: float
+    governing: Literal["base", "deep"]
+    fs_without_key: float | None = None
+    demand_v: float = 0.0
+    """Shear demand at the key root, V = unreduced passive [kN/m]; no reinforced-concrete design."""
+    demand_m: float = 0.0
+    """Bending demand at the key root, M = V * arm [kNm/m]."""
+
+
+@dataclass
 class WallAnalysis:
     case: str
     """'static' or 'seismic'."""
@@ -69,6 +118,7 @@ class WallAnalysis:
     warnings: list[str] = field(default_factory=list)
     factors_used: list[UsedFactor] = field(default_factory=list)
     """Every code factor used, with its source label."""
+    shear_key: ShearKeyResult | None = None
 
     @property
     def passed(self) -> bool:
@@ -180,6 +230,100 @@ def passive_force(foundation: FoundationSoil, embedment: float, settings: WallSe
     return Force("Passive (front)", pp, 0.0, 0.0, embedment / 3, "PASSIVE")
 
 
+def key_weight_forces(geometry, settings: WallSettings, loads: WallLoads, seismic: bool) -> list[Force]:
+    """Self-weight (and seismic inertia) of the shear key, below the base bottom (y < 0)."""
+    key = geometry.key
+    if key is None:
+        return []
+    x0, x1 = key.span(geometry.width)
+    return weight_forces("Shear key", [(x0, -key.depth), (x1, -key.depth), (x1, 0.0), (x0, 0.0)],
+                         settings.concrete_unit_weight, loads, seismic, "DC")
+
+
+def key_passive_from_diagram(z, p, embedment: float, depth: float) -> tuple[float, float]:
+    """(force, arm below the base bottom) of a piecewise-linear passive diagram over the key.
+
+    ``z`` is the depth below the front ground; the key face spans ``embedment`` to
+    ``embedment + depth``. Jumps at layer boundaries appear as repeated ``z`` values.
+    """
+    a, b = embedment, embedment + depth
+    zs, ps = [], []
+    for z0, z1, p0, p1 in zip(z[:-1], z[1:], p[:-1], p[1:]):
+        lo, hi = max(z0, a), min(z1, b)
+        if hi - lo <= 1e-12 or z1 <= z0:
+            continue
+        slope = (p1 - p0) / (z1 - z0)
+        zs += [lo, hi]
+        ps += [p0 + slope * (lo - z0), p0 + slope * (hi - z0)]
+    if len(zs) < 2:
+        return 0.0, depth / 2
+    # Segments are contiguous or separated by jumps; integrate each separately.
+    force = moment = 0.0
+    for i in range(0, len(zs), 2):
+        f, c = resultant(np.array(zs[i:i + 2]), np.array(ps[i:i + 2]))
+        if f > 0:
+            force += f
+            moment += f * c
+    return (force, moment / force - a) if force > 0 else (0.0, depth / 2)
+
+
+def key_sliding_basic(geometry, foundation: FoundationSoil, settings: WallSettings, gamma_front: float,
+                      reduction: float | None = None) -> KeySliding | None:
+    """Shear key passive resistance and key-tip plane data for a homogeneous foundation.
+
+    Rankine passive on the key front face from the front ground (``embedment`` above the base
+    bottom) down to the key bottom: p_p = K_p gamma z + 2 c sqrt(K_p) (K_p = 1 and s_u for
+    undrained soil), multiplied by the passive reduction factor.
+    """
+    key = geometry.key
+    if key is None:
+        return None
+    d, df = key.depth, geometry.embedment
+    if foundation.drainage == "undrained":
+        kp, c = 1.0, foundation.su
+    else:
+        kp, c = rankine_kp(foundation.phi), foundation.c
+    cohesion = 2 * c * math.sqrt(kp)
+    full, arm = key_passive_from_diagram(
+        [df, df + d], [kp * gamma_front * df + cohesion, kp * gamma_front * (df + d) + cohesion], df, d)
+    r = settings.passive_reduction if reduction is None else reduction
+    x0, _ = key.span(geometry.width)
+    force = Force("Shear key passive", full * r, 0.0, x0, -arm, "PASSIVE")
+    extra_v = foundation.gamma * (geometry.width - key.width) * d
+    return KeySliding(key, force, full, arm, r, foundation, extra_v)
+
+
+def key_warnings(geometry) -> list[str]:
+    return [format_warning("walls.warning.shear_key_bearing")] if geometry.key is not None else []
+
+
+def strip_key(geometry):
+    """The same wall without its shear key (for the with/without comparison)."""
+    return geometry.model_copy(update={"key": None})
+
+
+def attach_without_key(results, baseline) -> None:
+    """Record the sliding ratio of the key-less wall in each result with a shear key."""
+    by_case = {a.case: a for a in baseline}
+    for analysis in results:
+        base = by_case.get(analysis.case)
+        if analysis.shear_key is not None and base is not None and "sliding" in base.checks:
+            analysis.shear_key.fs_without_key = base.checks["sliding"].value
+            if analysis.shear_key.fs_with_key < analysis.shear_key.fs_without_key - 1e-9:
+                analysis.warnings.append(format_warning("walls.warning.shear_key_reduces_sliding"))
+
+
+def key_result(ks: KeySliding, rb: float, rd: float, driving: float, used: float) -> ShearKeyResult:
+    """Governing surface = smaller resistance. ``rb``/``rd`` already include all passives."""
+    fs_b = float(rb / driving) if driving > 0 else math.inf
+    fs_d = float(rd / driving) if driving > 0 else math.inf
+    return ShearKeyResult(
+        position=ks.key.position, width=ks.key.width, depth=ks.key.depth,
+        passive_full=ks.full, passive_used=used, reduction=ks.reduction, arm=ks.arm,
+        fs_base_surface=fs_b, fs_deep_surface=fs_d, fs_with_key=min(fs_b, fs_d),
+        governing="base" if fs_b <= fs_d else "deep", demand_v=ks.full, demand_m=ks.full * ks.arm)
+
+
 def evaluate_checks(
     *,
     case: str,
@@ -190,7 +334,11 @@ def evaluate_checks(
     embedment: float,
     settings: WallSettings,
     warnings: list[str],
+    key: KeySliding | None = None,
 ) -> WallAnalysis:
+    """ASD checks. With a shear key, sliding takes the smaller of two surfaces: (a) the base
+    interface (V tan(delta_b) + c_a B') plus the key passive, (b) a horizontal plane through the key
+    tip ((V + W_soil) tan(phi) + c B' + key passive); toe passive, if used, acts on both."""
     code = resolve_code(settings.design_code, settings.factor_overrides)
     if code.approach != "global_fs":
         raise GeoTekError(
@@ -234,6 +382,21 @@ def evaluate_checks(
     if passive is not None:
         resist += passive.fx
         detail += " + reduced passive"
+    key_result_ = None
+    if key is not None:
+        b_eff = max(width - 2 * abs(e), 0.0)
+        toe_pp = passive.fx if passive is not None else 0.0
+        if key.deep.drainage == "undrained":
+            deep = key.deep.su * b_eff
+        else:
+            deep = ((sum_v + key.extra_v) * math.tan(math.radians(key.deep.phi))
+                    + key.deep.c * b_eff)
+        rb = resist + key.passive.fx
+        rd = deep + toe_pp + key.passive.fx
+        key_result_ = key_result(key, rb, rd, sum_h, key.passive.fx)
+        resist = min(rb, rd)
+        detail += (f" + key passive; governing surface: {key_result_.governing} "
+                   f"(base {key_result_.fs_base_surface:.2f}, key tip {key_result_.fs_deep_surface:.2f})")
     fs_sl = resist / sum_h if sum_h > 0 else math.inf
     req = log.value(f"safety.sliding.{case}")
     checks["sliding"] = CheckResult("sliding", fs_sl, req, fs_sl >= req, detail)
@@ -264,11 +427,11 @@ def evaluate_checks(
         checks["bearing"] = CheckResult("bearing", 0.0, log.value(f"safety.bearing_capacity.{case}"), False,
                                         "Resultant outside the base")
 
-    all_forces = forces + ([passive] if passive is not None else [])
+    all_forces = forces + ([passive] if passive is not None else []) + ([key.passive] if key is not None else [])
     return WallAnalysis(
         case=case, width=width, forces=all_forces, sum_v=sum_v, sum_h=sum_h, m_resisting=m_res,
         m_overturning=m_ot, eccentricity=e, q_max=q_max, q_min=q_min, bearing=bearing,
-        checks=checks, warnings=warnings, factors_used=log.as_list(),
+        checks=checks, warnings=warnings, factors_used=log.as_list(), shear_key=key_result_,
     )
 
 

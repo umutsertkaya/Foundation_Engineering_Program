@@ -13,6 +13,7 @@ import numpy as np
 
 from geotek.core.constants import GAMMA_W
 from geotek.core.errors import GeoTekError, LayerDesignError
+from geotek.core.warning_codes import format_warning
 from geotek.core.models.profile import DesignParameters, GroundwaterCondition, SoilLayer, SoilProfile
 from geotek.core.models.structures import GwtCase, StructureSoilModel
 from geotek.core.models.walls import CantileverGeometry, FoundationSoil, GravityGeometry, WallLoads, WallSettings
@@ -20,7 +21,10 @@ from geotek.engine.bearing import bearing_capacity
 from geotek.engine.earth_pressure.distribution import PressureDistribution, lateral_pressure, resultant
 from geotek.engine.sheet_pile import _evaluate
 from geotek.engine.stability import SoilBand
-from geotek.engine.walls.base import CheckResult, Force, WallAnalysis, clip_polygon_y, evaluate_checks, weight_forces
+from geotek.engine.walls.base import (
+    CheckResult, Force, KeySliding, WallAnalysis, attach_without_key, clip_polygon_y, evaluate_checks,
+    key_passive_from_diagram, key_warnings, key_weight_forces, strip_key, weight_forces,
+)
 from geotek.engine.walls.walls import WallForces, cantilever_polygons, gravity_wall_polygon
 
 if TYPE_CHECKING:
@@ -424,6 +428,30 @@ def wall_pressures_layered(geometry, soil, loads, settings, *, seismic, backfill
                                                       geometry.height)}
 
 
+def _key_sliding_layered(geometry, soil: StructureSoilModel, settings: WallSettings) -> KeySliding:
+    """Shear key passive resistance from the layered front profile and the key-tip foundation."""
+    key = geometry.key
+    D, H, B = geometry.embedment, geometry.height, geometry.width
+    profile = soil.front_profile()
+    pond = GAMMA_W * max(H - D - profile.gwt.depth_for("design"), 0.0)
+    dist = lateral_pressure(profile, D + key.depth, top=H - D, state="passive", layerwise=True,
+                            total_stress_surcharge=pond)
+    full, arm = key_passive_from_diagram(dist.z, dist.sigma_h_eff, D, key.depth)
+    reduction = settings.passive_reduction
+    x0, _ = key.span(B)
+    force = Force("Shear key passive", full * reduction, 0.0, x0, -arm, "PASSIVE")
+    try:
+        deep, _ = foundation_from_structure(soil, H - D, H + key.depth, B,
+                                            gwt_bearing_correction=settings.gwt_bearing_correction)
+    except ValueError as exc:
+        raise GeoTekError(f"Shear key tip at {H + key.depth:g} m is outside the soil profile: {exc}") from exc
+    extra_v = 0.0
+    if deep.drainage == "drained":
+        _, u, sve = profile.stresses(np.array([H, H + key.depth]), "design")
+        extra_v = float((B - key.width) * (sve[1] - sve[0]) - key.width * (u[1] - u[0]))
+    return KeySliding(key, force, full, arm, reduction, deep, extra_v)
+
+
 def wall_forces_layered(geometry, soil: StructureSoilModel, loads: WallLoads, settings: WallSettings,
                         *, seismic: bool, backfill_slope: float = 0.0,
                         gwt_case: GwtCase = "design") -> WallForces:
@@ -446,6 +474,7 @@ def wall_forces_layered(geometry, soil: StructureSoilModel, loads: WallLoads, se
         if loads.surcharge and loads.surcharge_resists:
             forces.append(Force("Surcharge over heel", 0.0, -loads.surcharge * geometry.heel,
                                 geometry.x_stem_back + geometry.heel / 2, hv, "LS"))
+    forces += key_weight_forces(geometry, settings, loads, seismic)
     forces += _thrusts(geometry, profile, hv, theta, zero, static, dynamic, loads, seismic, backfill_slope)
     if dynamic_water > 0:
         d_su = hv - profile.gwt.depth_for("design")
@@ -471,7 +500,15 @@ def wall_forces_layered(geometry, soil: StructureSoilModel, loads: WallLoads, se
         warnings.append("Drenajsız katmanda toplam gerilme/s_u kullanıldı; ayrıca yatay su itkisi eklenmedi")
     if seismic and dynamic.component("effective")[0] < static.component("effective")[0]:
         warnings.append("Seismic thrust lower than static (kv effect); check inputs")
-    return WallForces(forces, B, geometry.embedment, list(dict.fromkeys(warnings)))
+    key = None
+    if geometry.key is not None:
+        key = _key_sliding_layered(geometry, selected, settings)
+        warnings += key_warnings(geometry)
+        tip = H + geometry.key.depth
+        water = min(selected.front_profile().gwt.depth_for("design"), selected.retained_profile().gwt.depth_for("design"))
+        if water < tip:
+            warnings.append(format_warning("walls.warning.shear_key_water", depth=round(water, 3)))
+    return WallForces(forces, B, geometry.embedment, list(dict.fromkeys(warnings)), key)
 
 
 def _check_forward_loading(forces):
@@ -501,7 +538,11 @@ def analyze_wall_layered(geometry, soil, loads, settings, *, seismic, backfill_s
         case="seismic" if seismic else "static", width=wf.width,
         forces=forces, passive=passive,
         foundation=foundation, embedment=wf.embedment, settings=settings, warnings=wf.warnings + warnings,
+        key=wf.key,
     )
+    if wf.key is not None:
+        attach_without_key([result], [analyze_wall_layered(strip_key(geometry), soil, loads, settings, seismic=seismic,
+                                                           backfill_slope=backfill_slope, gwt_case=gwt_case)])
     if foundation.drainage == "undrained" and any(f.name == "Uplift" for f in forces):
         # Keep the existing uplift/contact eccentricity convention. Only bearing
         # V (inclination and demand) uses total stress, without subtracting U.

@@ -110,5 +110,8 @@
   "report.page.refused.no_result": "Some sections have no result; run the calculation first:",
   "report.page.refused.stale_result": "Some sections have stale results; recalculate:",
   "report.page.refused.empty_selection": "Select at least one section.",
-  "report.page.refused.unknown_section": "Unknown section; refresh the list:"
+  "report.page.refused.unknown_section": "Unknown section; refresh the list:",
+  "report.assumption.wall.shear_key_passive": "Shear key ({position}, b = {width} m, d = {depth} m): passive resistance on the front face with Rankine K_p from the front ground to the key bottom; reduction factor {reduction} is an engineering assumption (no published source given). Key passive counts regardless of the toe-passive setting",
+  "report.assumption.wall.shear_key_surfaces": "Sliding is checked on two surfaces: under the base plus key passive, and the horizontal plane through the key tip ((ΣV + soil weight beside the key) tanφ + c·B′ + key passive); the smaller governs (conservative); active thrust on the back over the key depth is neglected",
+  "report.assumption.wall.shear_key_demands": "Key depth is not added to the bearing embedment; only shear and moment demands are given for the key (V = unreduced passive, M = V·arm); no reinforced-concrete design"
 }
