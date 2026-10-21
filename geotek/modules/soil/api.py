@@ -202,6 +202,20 @@ def router() -> APIRouter:
             service.commit(session, investigations=investigations)
             return borehole
 
+    @api.post("/boreholes", response_model=Borehole, operation_id="create_borehole")
+    def create_borehole(payload: Borehole, session: SessionDep) -> Borehole:
+        """Add a borehole entered by hand (SPT, log and laboratory records may follow later)."""
+        with session.lock:
+            project = session.require_project()
+            service.finite(payload.model_dump())
+            if any(item.id == payload.id for item in project.investigations.boreholes):
+                api_error(409, "validation", f"Borehole {payload.id!r} already exists.")
+            investigations = project.investigations.model_copy(update={
+                "boreholes": [*project.investigations.boreholes, payload],
+            })
+            service.commit(session, investigations=investigations)
+            return payload
+
     @api.put("/boreholes/{id}", response_model=Borehole, operation_id="update_borehole")
     def update_borehole(id: str, payload: Borehole, session: SessionDep) -> Borehole:
         """Replace a borehole; the body id must identify the path resource."""

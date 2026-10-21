@@ -269,34 +269,35 @@ Yer sütunu işleyicinin `def` satırıdır; çok satırlı dekoratörler AST il
 | POST | `/api/m/report/docx` | `geotek/modules/report/api.py:45` | `build_docx` | — |
 | GET | `/api/m/report/sections` | `geotek/modules/report/api.py:32` | `list_sections` | `web/src/modules/report/api.ts` |
 | POST | `/api/m/sheet_pile/structures/{id}/design` | `geotek/modules/sheet_pile/api.py:21` | `design_sheet_pile` | `web/src/modules/sheet_pile/api.ts` |
-| DELETE | `/api/m/soil/boreholes/{id}` | `geotek/modules/soil/api.py:213` | `delete_borehole` | `web/src/modules/soil/api.ts` |
-| PUT | `/api/m/soil/boreholes/{id}` | `geotek/modules/soil/api.py:206` | `update_borehole` | — |
-| PUT | `/api/m/soil/boreholes/{id}/log` | `geotek/modules/soil/api.py:220` | `set_borehole_log` | — |
-| GET | `/api/m/soil/boreholes/{id}/processed` | `geotek/modules/soil/api.py:347` | `get_processed_spt` | `web/src/modules/soil/api.ts` |
-| GET | `/api/m/soil/boreholes/{id}/uscs` | `geotek/modules/soil/api.py:314` | `get_borehole_uscs` | `web/src/modules/soil/api.ts` |
-| GET | `/api/m/soil/classification/sbtn/reference` | `geotek/modules/soil/api.py:263` | `get_sbtn_reference` | `web/src/modules/soil/api.ts` |
-| POST | `/api/m/soil/classification/uscs` | `geotek/modules/soil/api.py:326` | `classify_uscs` | `web/src/modules/soil/api.ts` |
-| GET | `/api/m/soil/classification/uscs/reference` | `geotek/modules/soil/api.py:334` | `get_uscs_reference` | `web/src/modules/soil/api.ts` |
-| DELETE | `/api/m/soil/cpts/{id}` | `geotek/modules/soil/api.py:235` | `delete_cpt` | `web/src/modules/soil/api.ts` |
-| PUT | `/api/m/soil/cpts/{id}` | `geotek/modules/soil/api.py:230` | `update_cpt` | — |
-| GET | `/api/m/soil/cpts/{id}/processed` | `geotek/modules/soil/api.py:242` | `get_processed_cpt` | `web/src/modules/soil/api.ts` |
-| GET | `/api/m/soil/cpts/{id}/sbtn` | `geotek/modules/soil/api.py:297` | `get_cpt_sbtn` | `web/src/modules/soil/api.ts` |
+| POST | `/api/m/soil/boreholes` | `geotek/modules/soil/api.py:206` | `create_borehole` | `web/src/modules/soil/api.ts` |
+| DELETE | `/api/m/soil/boreholes/{id}` | `geotek/modules/soil/api.py:227` | `delete_borehole` | `web/src/modules/soil/api.ts` |
+| PUT | `/api/m/soil/boreholes/{id}` | `geotek/modules/soil/api.py:220` | `update_borehole` | `web/src/modules/soil/api.ts` |
+| PUT | `/api/m/soil/boreholes/{id}/log` | `geotek/modules/soil/api.py:234` | `set_borehole_log` | — |
+| GET | `/api/m/soil/boreholes/{id}/processed` | `geotek/modules/soil/api.py:361` | `get_processed_spt` | `web/src/modules/soil/api.ts` |
+| GET | `/api/m/soil/boreholes/{id}/uscs` | `geotek/modules/soil/api.py:328` | `get_borehole_uscs` | `web/src/modules/soil/api.ts` |
+| GET | `/api/m/soil/classification/sbtn/reference` | `geotek/modules/soil/api.py:277` | `get_sbtn_reference` | `web/src/modules/soil/api.ts` |
+| POST | `/api/m/soil/classification/uscs` | `geotek/modules/soil/api.py:340` | `classify_uscs` | `web/src/modules/soil/api.ts` |
+| GET | `/api/m/soil/classification/uscs/reference` | `geotek/modules/soil/api.py:348` | `get_uscs_reference` | `web/src/modules/soil/api.ts` |
+| DELETE | `/api/m/soil/cpts/{id}` | `geotek/modules/soil/api.py:249` | `delete_cpt` | `web/src/modules/soil/api.ts` |
+| PUT | `/api/m/soil/cpts/{id}` | `geotek/modules/soil/api.py:244` | `update_cpt` | `web/src/modules/soil/api.ts` |
+| GET | `/api/m/soil/cpts/{id}/processed` | `geotek/modules/soil/api.py:256` | `get_processed_cpt` | `web/src/modules/soil/api.ts` |
+| GET | `/api/m/soil/cpts/{id}/sbtn` | `geotek/modules/soil/api.py:311` | `get_cpt_sbtn` | `web/src/modules/soil/api.ts` |
 | POST | `/api/m/soil/import/cpt` | `geotek/modules/soil/api.py:154` | `import_cpt` | — |
 | POST | `/api/m/soil/import/spt` | `geotek/modules/soil/api.py:184` | `import_spt` | — |
 | GET | `/api/m/soil/investigations` | `geotek/modules/soil/api.py:144` | `list_investigations` | `web/src/modules/soil/api.ts` |
-| POST | `/api/m/soil/layering/cpt/{cpt_id}` | `geotek/modules/soil/api.py:366` | `propose_cpt_layers` | `web/src/modules/soil/api.ts` |
-| POST | `/api/m/soil/layering/spt/{borehole_id}` | `geotek/modules/soil/api.py:376` | `propose_spt_layers` | `web/src/modules/soil/api.ts` |
-| GET | `/api/m/soil/profiles` | `geotek/modules/soil/api.py:383` | `list_profiles` | `web/src/modules/soil/api.ts` |
-| POST | `/api/m/soil/profiles` | `geotek/modules/soil/api.py:392` | `create_profile` | `web/src/modules/soil/api.ts` |
-| DELETE | `/api/m/soil/profiles/{id}` | `geotek/modules/soil/api.py:446` | `delete_profile` | `web/src/modules/soil/api.ts` |
-| GET | `/api/m/soil/profiles/{id}` | `geotek/modules/soil/api.py:401` | `get_profile` | `web/src/modules/soil/api.ts` |
-| PUT | `/api/m/soil/profiles/{id}` | `geotek/modules/soil/api.py:424` | `update_profile` | `web/src/modules/soil/api.ts` |
-| POST | `/api/m/soil/profiles/{id}/layers/merge` | `geotek/modules/soil/api.py:476` | `merge_layers` | — |
-| GET | `/api/m/soil/profiles/{id}/layers/{layer_id}/parameters` | `geotek/modules/soil/api.py:494` | `list_layer_parameters` | `web/src/modules/soil/api.ts` |
-| POST | `/api/m/soil/profiles/{id}/layers/{layer_id}/parameters/approve` | `geotek/modules/soil/api.py:531` | `approve_parameters` | `web/src/modules/soil/api.ts` |
-| PUT | `/api/m/soil/profiles/{id}/layers/{layer_id}/parameters/{key}` | `geotek/modules/soil/api.py:508` | `update_parameter_selection` | `web/src/modules/soil/api.ts` |
-| POST | `/api/m/soil/profiles/{id}/layers/{layer_id}/split` | `geotek/modules/soil/api.py:467` | `split_layer` | — |
-| POST | `/api/m/soil/profiles/{id}/parameters/suggest-all` | `geotek/modules/soil/api.py:558` | `suggest_all_parameters` | `web/src/modules/soil/api.ts` |
+| POST | `/api/m/soil/layering/cpt/{cpt_id}` | `geotek/modules/soil/api.py:380` | `propose_cpt_layers` | `web/src/modules/soil/api.ts` |
+| POST | `/api/m/soil/layering/spt/{borehole_id}` | `geotek/modules/soil/api.py:390` | `propose_spt_layers` | `web/src/modules/soil/api.ts` |
+| GET | `/api/m/soil/profiles` | `geotek/modules/soil/api.py:397` | `list_profiles` | `web/src/modules/soil/api.ts` |
+| POST | `/api/m/soil/profiles` | `geotek/modules/soil/api.py:406` | `create_profile` | `web/src/modules/soil/api.ts` |
+| DELETE | `/api/m/soil/profiles/{id}` | `geotek/modules/soil/api.py:460` | `delete_profile` | `web/src/modules/soil/api.ts` |
+| GET | `/api/m/soil/profiles/{id}` | `geotek/modules/soil/api.py:415` | `get_profile` | `web/src/modules/soil/api.ts` |
+| PUT | `/api/m/soil/profiles/{id}` | `geotek/modules/soil/api.py:438` | `update_profile` | `web/src/modules/soil/api.ts` |
+| POST | `/api/m/soil/profiles/{id}/layers/merge` | `geotek/modules/soil/api.py:490` | `merge_layers` | — |
+| GET | `/api/m/soil/profiles/{id}/layers/{layer_id}/parameters` | `geotek/modules/soil/api.py:508` | `list_layer_parameters` | `web/src/modules/soil/api.ts` |
+| POST | `/api/m/soil/profiles/{id}/layers/{layer_id}/parameters/approve` | `geotek/modules/soil/api.py:545` | `approve_parameters` | `web/src/modules/soil/api.ts` |
+| PUT | `/api/m/soil/profiles/{id}/layers/{layer_id}/parameters/{key}` | `geotek/modules/soil/api.py:522` | `update_parameter_selection` | `web/src/modules/soil/api.ts` |
+| POST | `/api/m/soil/profiles/{id}/layers/{layer_id}/split` | `geotek/modules/soil/api.py:481` | `split_layer` | — |
+| POST | `/api/m/soil/profiles/{id}/parameters/suggest-all` | `geotek/modules/soil/api.py:572` | `suggest_all_parameters` | `web/src/modules/soil/api.ts` |
 | POST | `/api/m/walls/structures/{id}/check` | `geotek/modules/walls/api.py:52` | `check_wall` | `web/src/modules/walls/api.ts` |
 | POST | `/api/m/walls/structures/{id}/required-factors` | `geotek/modules/walls/api.py:29` | `get_structure_required_factors` | `web/src/modules/walls/api.ts` |
 | POST | `/api/m/walls/structures/{id}/size` | `geotek/modules/walls/api.py:44` | `size_wall` | `web/src/modules/walls/api.ts` |
@@ -578,7 +579,7 @@ Test sütunu: o dosyayı doğrudan import eden `tests/` dosyaları (yoksa `—`)
 | Dosya | Satır | Bağımlı olduğu | Kullanan | Test |
 |---|---:|---|---|---|
 | `modules/soil/__init__.py` | 16 | `core.modules`, `modules.soil.api` | `modules.soil.api` | `api/test_soil_api.py` |
-| `modules/soil/api.py` | 564 | `api`, `api.common`, `api.schemas`, `api.session`, `core.models.investigations`, `core.models.parameters`, `core.models.profile`, `engine.classification`, `engine.classification.robertson`, `engine.classification.uscs`, `engine.classification.uscs_names`, `modules.soil`, `modules.soil.schemas`, `modules.soil.service`, `services`, `services.layering`, `services.module1`, `services.parameters` | `modules.soil` | — |
+| `modules/soil/api.py` | 578 | `api`, `api.common`, `api.schemas`, `api.session`, `core.models.investigations`, `core.models.parameters`, `core.models.profile`, `engine.classification`, `engine.classification.robertson`, `engine.classification.uscs`, `engine.classification.uscs_names`, `modules.soil`, `modules.soil.schemas`, `modules.soil.service`, `services`, `services.layering`, `services.module1`, `services.parameters` | `modules.soil` | — |
 | `modules/soil/schemas.py` | 212 | `api.schemas`, `core.models.investigations`, `core.models.parameters`, `core.models.profile` | `modules.soil.api`, `modules.soil.service` | — |
 | `modules/soil/service.py` | 275 | `api.session`, `core.constants`, `core.errors`, `core.models.parameters`, `core.models.profile`, `core.models.project`, `io`, `io.tabular`, `modules.soil.schemas` | `modules.soil.api` | `api/test_soil_api.py` |
 
@@ -627,7 +628,7 @@ graph LR
   modules_report -->|8| shared
   modules_sheet_pile -->|1| app
   modules_sheet_pile -->|28| shared
-  modules_soil -->|32| shared
+  modules_soil -->|35| shared
   modules_walls -->|44| shared
 ```
 
@@ -640,7 +641,7 @@ graph LR
 | `modules/liquefaction` | 8 | `shared` |
 | `modules/report` | 5 | `shared` |
 | `modules/sheet_pile` | 14 | `app`, `shared` |
-| `modules/soil` | 21 | `shared` |
+| `modules/soil` | 23 | `shared` |
 | `modules/walls` | 17 | `shared` |
 | `shared` | 39 | — |
 
@@ -653,7 +654,7 @@ graph LR
 | `modules/liquefaction/api.ts` | POST `/m/liquefaction/run`<br>GET `/m/liquefaction/result` |
 | `modules/report/api.ts` | POST `/m/report/run`<br>GET `/m/report/sections` |
 | `modules/sheet_pile/api.ts` | POST `/m/sheet_pile/structures/{}/design` |
-| `modules/soil/api.ts` | GET `/m/soil/investigations`<br>GET `/m/soil/cpts/{}/processed`<br>GET `/m/soil/boreholes/{}/processed`<br>POST `/m/soil/layering/cpt/{}`<br>POST `/m/soil/layering/spt/{}`<br>GET `/m/soil/profiles`<br>POST `/m/soil/profiles`<br>GET `/m/soil/profiles/{}`<br>PUT `/m/soil/profiles/{}`<br>DELETE `/m/soil/profiles/{}`<br>GET `/m/soil/profiles/{}/layers/{}/parameters`<br>PUT `/m/soil/profiles/{}/layers/{}/parameters/{}`<br>POST `/m/soil/profiles/{}/layers/{}/parameters/approve`<br>POST `/m/soil/profiles/{}/parameters/suggest-all`<br>GET `/m/soil/classification/sbtn/reference`<br>GET `/m/soil/cpts/{}/sbtn`<br>GET `/m/soil/boreholes/{}/uscs`<br>POST `/m/soil/classification/uscs`<br>GET `/m/soil/classification/uscs/reference`<br>DELETE `/m/soil/cpts/{}`<br>DELETE `/m/soil/boreholes/{}` |
+| `modules/soil/api.ts` | GET `/m/soil/investigations`<br>GET `/m/soil/cpts/{}/processed`<br>GET `/m/soil/boreholes/{}/processed`<br>POST `/m/soil/layering/cpt/{}`<br>POST `/m/soil/layering/spt/{}`<br>GET `/m/soil/profiles`<br>POST `/m/soil/profiles`<br>GET `/m/soil/profiles/{}`<br>PUT `/m/soil/profiles/{}`<br>DELETE `/m/soil/profiles/{}`<br>GET `/m/soil/profiles/{}/layers/{}/parameters`<br>PUT `/m/soil/profiles/{}/layers/{}/parameters/{}`<br>POST `/m/soil/profiles/{}/layers/{}/parameters/approve`<br>POST `/m/soil/profiles/{}/parameters/suggest-all`<br>GET `/m/soil/classification/sbtn/reference`<br>GET `/m/soil/cpts/{}/sbtn`<br>GET `/m/soil/boreholes/{}/uscs`<br>POST `/m/soil/classification/uscs`<br>GET `/m/soil/classification/uscs/reference`<br>DELETE `/m/soil/cpts/{}`<br>DELETE `/m/soil/boreholes/{}`<br>POST `/m/soil/boreholes`<br>PUT `/m/soil/boreholes/{}`<br>PUT `/m/soil/cpts/{}` |
 | `modules/walls/api.ts` | GET `/m/walls/wall-types`<br>POST `/m/walls/structures/{}/required-factors`<br>POST `/m/walls/structures/{}/size`<br>POST `/m/walls/structures/{}/check` |
 | `shared/api/client.ts` | GET `/health`<br>GET `/i18n/{}`<br>POST `/project/new`<br>POST `/project/open`<br>POST `/project/save`<br>GET `/project`<br>PATCH `/project/meta`<br>PUT `/project/site`<br>PUT `/project/active-profile`<br>GET `/structures`<br>POST `/structures`<br>GET `/structures/{}`<br>PUT `/structures/{}`<br>DELETE `/structures/{}`<br>PUT `/structures/{}/soil`<br>POST `/structures/{}/soil/resync`<br>GET `/jobs/{}`<br>DELETE `/jobs/{}`<br>GET `/codes`<br>GET `/codes/{}/factors`<br>GET `/codes/{}/required`<br>PUT `/project/design-overrides/{}` |
 | `shared/api/core.ts` | GET `/modules`<br>GET `/settings`<br>PUT `/settings`<br>GET `/library`<br>POST `/library`<br>POST `/library/{}/open`<br>POST `/library/{}/duplicate`<br>POST `/library/{}/rename`<br>POST `/library/{}/export`<br>DELETE `/library/{}`<br>POST `/library/import`<br>GET `/session`<br>POST `/project/save`<br>POST `/project/close`<br>GET `/data/profiles` |
@@ -795,13 +796,15 @@ Testler yalnız **Kullanan** sütununda görünür; “Test” sütunu o dosyay�
 | Dosya | Satır | Bağımlı olduğu | Kullanan | Test |
 |---|---:|---|---|---|
 | `modules/soil/Root.tsx` | 17 | `modules/soil/pages/ClassificationPage.tsx`, `modules/soil/pages/ParametersPage.tsx`, `modules/soil/pages/ProfilesPage.tsx`, `modules/soil/pages/SiteDataPage.tsx` | `modules/soil/manifest.ts` | — |
-| `modules/soil/api.ts` | 141 | `modules/soil/types.ts`, `shared/api/http.ts`, `shared/api/types.ts` | `modules/soil/components/LayeringModal.tsx`, `modules/soil/pages/ClassificationPage.tsx`, `modules/soil/pages/ParametersPage.tsx`, `modules/soil/pages/ProfilesPage.tsx`, `modules/soil/pages/SiteDataPage.tsx` | `modules/soil/__tests__/parameters_consistency.test.tsx`, `modules/soil/__tests__/soil.test.tsx`, `modules/soil/__tests__/soil_layering_params_ui.test.tsx` +1 |
+| `modules/soil/api.ts` | 155 | `modules/soil/types.ts`, `shared/api/http.ts`, `shared/api/types.ts` | `modules/soil/components/InvestigationEditor.tsx`, `modules/soil/components/LayeringModal.tsx`, `modules/soil/pages/ClassificationPage.tsx`, `modules/soil/pages/ParametersPage.tsx`, `modules/soil/pages/ProfilesPage.tsx` +1 | `modules/soil/__tests__/parameters_consistency.test.tsx`, `modules/soil/__tests__/soil.test.tsx`, `modules/soil/__tests__/soil_layering_params_ui.test.tsx` +1 |
 | `modules/soil/classification/PlasticityChart.tsx` | 110 | `modules/soil/classification/geometry.ts`, `modules/soil/types.ts` | `modules/soil/pages/ClassificationPage.tsx` | `modules/soil/__tests__/classification.test.tsx` |
 | `modules/soil/classification/SbtnChart.tsx` | 109 | `modules/soil/classification/geometry.ts`, `modules/soil/types.ts` | `modules/soil/pages/ClassificationPage.tsx` | `modules/soil/__tests__/classification.test.tsx` |
 | `modules/soil/classification/geometry.ts` | 125 | — | `modules/soil/classification/PlasticityChart.tsx`, `modules/soil/classification/SbtnChart.tsx`, `modules/soil/pages/ClassificationPage.tsx` | `modules/soil/__tests__/classification.test.tsx` |
 | `modules/soil/components/ErrorAlert.tsx` | 21 | `shared/api/errorMessage.ts` | `modules/soil/components/LayeringModal.tsx`, `modules/soil/pages/ClassificationPage.tsx`, `modules/soil/pages/ParametersPage.tsx` | `test/error_alert.test.tsx` |
+| `modules/soil/components/InvestigationEditor.tsx` | 215 | `modules/soil/api.ts`, `modules/soil/components/RecordTable.tsx`, `shared/api/types.ts`, `shared/components/ErrorAlert.tsx`, `shared/soil/uscs.ts` | `modules/soil/pages/SiteDataPage.tsx` | — |
 | `modules/soil/components/LayeringModal.tsx` | 424 | `modules/soil/api.ts`, `modules/soil/components/ErrorAlert.tsx`, `modules/soil/components/WarningList.tsx`, `modules/soil/latest.ts`, `modules/soil/types.ts`, `shared/api/types.ts` | `modules/soil/pages/ProfilesPage.tsx` | `modules/soil/__tests__/soil_layering_params_ui.test.tsx` |
 | `modules/soil/components/ParameterKeyCard.tsx` | 321 | `modules/soil/components/WarningList.tsx`, `modules/soil/parameterState.ts`, `modules/soil/units.ts`, `shared/api/types.ts` | `modules/soil/pages/ParametersPage.tsx` | — |
+| `modules/soil/components/RecordTable.tsx` | 107 | — | `modules/soil/components/InvestigationEditor.tsx` | — |
 | `modules/soil/components/WarningList.tsx` | 19 | `modules/soil/useWarningText.ts` | `modules/soil/components/LayeringModal.tsx`, `modules/soil/components/ParameterKeyCard.tsx`, `modules/soil/pages/ClassificationPage.tsx` | — |
 | `modules/soil/latest.ts` | 21 | — | `modules/soil/components/LayeringModal.tsx`, `modules/soil/pages/ParametersPage.tsx` | `modules/soil/__tests__/parameters_consistency.test.tsx` |
 | `modules/soil/manifest.ts` | 20 | `modules/soil/Root.tsx`, `shared/moduleTypes.ts` | — | — |
@@ -809,7 +812,7 @@ Testler yalnız **Kullanan** sütununda görünür; “Test” sütunu o dosyay�
 | `modules/soil/pages/ClassificationPage.tsx` | 472 | `modules/soil/api.ts`, `modules/soil/classification/PlasticityChart.tsx`, `modules/soil/classification/SbtnChart.tsx`, `modules/soil/classification/geometry.ts`, `modules/soil/components/ErrorAlert.tsx`, `modules/soil/components/WarningList.tsx`, `modules/soil/types.ts`, `shared/components/EmptyState.tsx` | `modules/soil/Root.tsx` | `modules/soil/__tests__/classification.test.tsx` |
 | `modules/soil/pages/ParametersPage.tsx` | 319 | `modules/soil/api.ts`, `modules/soil/components/ErrorAlert.tsx`, `modules/soil/components/ParameterKeyCard.tsx`, `modules/soil/latest.ts`, `modules/soil/parameterState.ts`, `modules/soil/units.ts`, `shared/api/client.ts`, `shared/api/types.ts`, `shared/components/EmptyState.tsx` | `modules/soil/Root.tsx` | `modules/soil/__tests__/parameters_consistency.test.tsx`, `modules/soil/__tests__/soil_layering_params_ui.test.tsx` |
 | `modules/soil/pages/ProfilesPage.tsx` | 562 | `modules/soil/api.ts`, `modules/soil/components/LayeringModal.tsx`, `shared/api/client.ts`, `shared/api/types.ts`, `shared/components/EmptyState.tsx`, `shared/hooks/useUndoable.ts`, `shared/soil/CommitInputs.tsx`, `shared/soil/GwtEditor.tsx`, `shared/soil/LayerEditor.tsx`, `shared/soil/LayerLegend.tsx`, `shared/soil/SoilColumn.tsx`, `shared/soil/layerOps.ts` | `modules/soil/Root.tsx` | `modules/soil/__tests__/soil.test.tsx` |
-| `modules/soil/pages/SiteDataPage.tsx` | 345 | `modules/soil/api.ts`, `modules/soil/types.ts`, `shared/api/client.ts`, `shared/components/EmptyState.tsx`, `shared/components/ErrorAlert.tsx` | `modules/soil/Root.tsx` | `modules/soil/__tests__/site_import.test.tsx` |
+| `modules/soil/pages/SiteDataPage.tsx` | 391 | `modules/soil/api.ts`, `modules/soil/components/InvestigationEditor.tsx`, `modules/soil/types.ts`, `shared/api/client.ts`, `shared/components/EmptyState.tsx`, `shared/components/ErrorAlert.tsx` | `modules/soil/Root.tsx` | `modules/soil/__tests__/site_import.test.tsx` |
 | `modules/soil/parameterState.ts` | 171 | `shared/api/types.ts` | `modules/soil/components/ParameterKeyCard.tsx`, `modules/soil/pages/ParametersPage.tsx` | `modules/soil/__tests__/parameterState.test.ts` |
 | `modules/soil/types.ts` | 147 | `shared/api/types.ts` | `modules/soil/api.ts`, `modules/soil/classification/PlasticityChart.tsx`, `modules/soil/classification/SbtnChart.tsx`, `modules/soil/components/LayeringModal.tsx`, `modules/soil/mock.ts` +2 | `modules/soil/__tests__/classification.test.tsx` |
 | `modules/soil/units.ts` | 11 | — | `modules/soil/components/ParameterKeyCard.tsx`, `modules/soil/pages/ParametersPage.tsx` | — |
@@ -853,10 +856,10 @@ Testler yalnız **Kullanan** sütununda görünür; “Test” sütunu o dosyay�
 | `shared/api/mock/hash.ts` | 36 | `shared/api/types.ts` | `modules/anchored_wall/mock.ts`, `shared/api/mock/coreRoutes.ts`, `shared/api/mock/store.ts` | — |
 | `shared/api/mock/index.ts` | 26 | `shared/api/mock/core.ts`, `shared/api/mock/coreRoutes.ts`, `shared/api/mock/dispatcher.ts`, `shared/api/mock/store.ts` | `shared/api/http.ts` | `modules/anchored_wall/__tests__/anchored_wall.test.tsx`, `modules/liquefaction/__tests__/liquefaction.test.tsx`, `modules/sheet_pile/__tests__/sheet_pile.test.tsx` +16 |
 | `shared/api/mock/store.ts` | 149 | `shared/api/mock/data.ts`, `shared/api/mock/hash.ts`, `shared/api/types.ts` | `modules/anchored_wall/mock.ts`, `modules/liquefaction/mock.ts`, `modules/sheet_pile/mock.ts`, `modules/soil/mock.ts`, `modules/walls/mock.ts` +3 | `modules/liquefaction/__tests__/liquefaction.test.tsx`, `modules/sheet_pile/__tests__/sheet_pile.test.tsx`, `modules/soil/__tests__/soil_mock.test.ts` +3 |
-| `shared/api/schema.d.ts` | 11973 | — | — | — |
-| `shared/api/types.ts` | 775 | — | `app/ModuleShell.tsx`, `app/ProjectProvider.tsx`, `app/i18n.ts`, `app/pages/LauncherPage.tsx`, `app/pages/SettingsPage.tsx` +61 | `modules/liquefaction/__tests__/liquefaction.test.tsx`, `modules/liquefaction/__tests__/results.test.tsx`, `modules/sheet_pile/__tests__/result-contract.test.tsx` +14 |
+| `shared/api/schema.d.ts` | 12089 | — | — | — |
+| `shared/api/types.ts` | 775 | — | `app/ModuleShell.tsx`, `app/ProjectProvider.tsx`, `app/i18n.ts`, `app/pages/LauncherPage.tsx`, `app/pages/SettingsPage.tsx` +62 | `modules/liquefaction/__tests__/liquefaction.test.tsx`, `modules/liquefaction/__tests__/results.test.tsx`, `modules/sheet_pile/__tests__/result-contract.test.tsx` +14 |
 | `shared/components/EmptyState.tsx` | 26 | — | `app/ModuleShell.tsx`, `app/pages/LauncherPage.tsx`, `app/pages/StartPage.tsx`, `modules/liquefaction/pages/ResultsPage.tsx`, `modules/report/pages/HomePage.tsx` +9 | — |
-| `shared/components/ErrorAlert.tsx` | 36 | `shared/api/errorMessage.ts` | `app/ModuleShell.tsx`, `app/RequireProject.tsx`, `app/pages/LauncherPage.tsx`, `app/pages/SettingsPage.tsx`, `app/pages/StartPage.tsx` +14 | `test/error_alert.test.tsx` |
+| `shared/components/ErrorAlert.tsx` | 36 | `shared/api/errorMessage.ts` | `app/ModuleShell.tsx`, `app/RequireProject.tsx`, `app/pages/LauncherPage.tsx`, `app/pages/SettingsPage.tsx`, `app/pages/StartPage.tsx` +15 | `test/error_alert.test.tsx` |
 | `shared/components/MissingFactorsForm.tsx` | 116 | `shared/api/types.ts` | `modules/walls/pages/WallWizardPage.tsx` | `test/missing_factors_form.test.tsx` |
 | `shared/hooks/useJob.ts` | 191 | `shared/api/client.ts`, `shared/api/types.ts` | `modules/walls/pages/WallWizardPage.tsx` | `test/skeleton.test.tsx`, `test/use_job.test.tsx` |
 | `shared/hooks/useProfileName.ts` | 38 | `shared/api/core.ts`, `shared/api/types.ts` | `modules/sheet_pile/pages/SheetPileDetailPage.tsx`, `shared/structureSoil/StructureSoilStep.tsx` | — |
@@ -875,7 +878,7 @@ Testler yalnız **Kullanan** sütununda görünür; “Test” sütunu o dosyay�
 | `shared/soil/layerOps.ts` | 403 | `shared/api/types.ts` | `modules/soil/mock.ts`, `modules/soil/pages/ProfilesPage.tsx`, `modules/walls/pages/WallTypePicker.tsx`, `modules/walls/pages/WallWizardPage.tsx`, `shared/api/mock/coreRoutes.ts` +3 | `modules/soil/__tests__/soil.test.tsx` |
 | `shared/soil/layerStatus.ts` | 81 | `shared/api/types.ts` | `shared/soil/LayerEditor.tsx` | `modules/soil/__tests__/soil.test.tsx` |
 | `shared/soil/soilStyle.ts` | 185 | `shared/api/types.ts`, `shared/soil/uscs.ts` | `modules/walls/components/WallCrossSection.tsx`, `shared/soil/LayerEditor.tsx`, `shared/soil/LayerLegend.tsx`, `shared/soil/SoilColumn.tsx`, `shared/soil/SoilPatternDefs.tsx` +1 | `modules/soil/__tests__/soil.test.tsx` |
-| `shared/soil/uscs.ts` | 45 | — | `shared/soil/LayerEditor.tsx`, `shared/soil/soilStyle.ts` | — |
+| `shared/soil/uscs.ts` | 45 | — | `modules/soil/components/InvestigationEditor.tsx`, `shared/soil/LayerEditor.tsx`, `shared/soil/soilStyle.ts` | — |
 | `shared/soil/zones.ts` | 100 | `shared/api/types.ts`, `shared/soil/layerOps.ts` | `modules/walls/components/sectionLayout.ts`, `modules/walls/pages/WallWizardPage.tsx`, `modules/walls/settings.ts`, `shared/soil/GwtEditor.tsx`, `shared/soil/GwtMarker.tsx` +3 | `modules/soil/__tests__/soil.test.tsx` |
 | `shared/structureSoil/StructureSoilSection.tsx` | 829 | `shared/api/types.ts`, `shared/soil/GwtMarker.tsx`, `shared/soil/SoilPatternDefs.tsx`, `shared/soil/axis.ts`, `shared/soil/format.ts`, `shared/soil/soilStyle.ts`, `shared/soil/zones.ts` | `modules/walls/pages/WallWizardPage.tsx`, `shared/structureSoil/StructureSoilStep.tsx` | — |
 | `shared/structureSoil/StructureSoilStep.tsx` | 434 | `shared/api/client.ts`, `shared/api/types.ts`, `shared/hooks/useProfileName.ts`, `shared/hooks/useUndoable.ts`, `shared/soil/GwtEditor.tsx`, `shared/soil/LayerEditor.tsx`, `shared/soil/LayerLegend.tsx`, `shared/soil/layerOps.ts`, `shared/soil/zones.ts`, `shared/structureSoil/StructureSoilSection.tsx` | `modules/walls/pages/WallWizardPage.tsx` | — |

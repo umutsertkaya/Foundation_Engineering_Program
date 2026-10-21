@@ -1,6 +1,8 @@
 import { request, request_upload } from "../../shared/api/http";
 import type {
   DeletionResponse,
+  Borehole,
+  CPTSounding,
   DesignKey,
   LayeringProposal,
   LayeringSettings,
@@ -138,4 +140,16 @@ export function delete_cpt(id: string): Promise<DeletionResponse> {
 
 export function delete_borehole(id: string): Promise<DeletionResponse> {
   return request<DeletionResponse>("DELETE", `/m/soil/boreholes/${encodeURIComponent(id)}`);
+}
+
+export function create_borehole(payload: Borehole): Promise<Borehole> {
+  return request<Borehole>("POST", "/m/soil/boreholes", payload);
+}
+
+export function update_borehole(payload: Borehole): Promise<Borehole> {
+  return request<Borehole>("PUT", `/m/soil/boreholes/${encodeURIComponent(payload.id)}`, payload);
+}
+
+export function update_cpt(payload: CPTSounding): Promise<CPTSounding> {
+  return request<CPTSounding>("PUT", `/m/soil/cpts/${encodeURIComponent(payload.id)}`, payload);
 }

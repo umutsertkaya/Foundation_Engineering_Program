@@ -60,4 +60,30 @@ describe("site data import", () => {
     expect(form.get("decimal")).toBe(",");
     expect((form.get("file") as File).name).toBe("cpt1.csv");
   });
+
+  it("creates a borehole by hand with an SPT row", async () => {
+    render(
+      <MantineProvider theme={theme}>
+        <MemoryRouter>
+          <SiteDataPage />
+        </MemoryRouter>
+      </MantineProvider>,
+    );
+    fireEvent.click(await screen.findByRole("button", { name: i18n.t("web.site.new_borehole") }));
+    const dialog = await screen.findByRole("dialog");
+    fireEvent.change(within(dialog).getByLabelText(i18n.t("web.site.record_id")), { target: { value: "BH-7" } });
+    fireEvent.change(within(dialog).getByLabelText(new RegExp(i18n.t("web.site.gwt_depth").split(" [")[0])), {
+      target: { value: "2.5" },
+    });
+    fireEvent.click(within(dialog).getByRole("tab", { name: i18n.t("web.site.tab_spt") }));
+    fireEvent.click(within(dialog).getByRole("button", { name: i18n.t("web.site.add_row") }));
+    fireEvent.change(within(dialog).getByLabelText(`N 1`), { target: { value: "12" } });
+    fireEvent.click(within(dialog).getByRole("button", { name: i18n.t("web.site.save") }));
+
+    await waitFor(() => expect(calls.some((c) => c.method === "POST")).toBe(true));
+    const post = calls.find((c) => c.method === "POST")!;
+    expect(post.url).toBe("/api/m/soil/boreholes");
+    const body = JSON.parse(post.body as string);
+    expect(body).toMatchObject({ id: "BH-7", gwt_depth: 2.5, energy_ratio: 60, spt: [{ depth: 0, n_field: 12 }] });
+  });
 });

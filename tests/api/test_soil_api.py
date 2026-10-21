@@ -69,6 +69,7 @@ def clean(client):
 IMPLEMENTED_REQUESTS = [
     ("GET", "/investigations", None),
     ("POST", "/import/cpt", None), ("POST", "/import/spt", None),
+    ("POST", "/boreholes", {"id": "B1"}),
     ("PUT", "/boreholes/B1", {"id": "B1"}), ("DELETE", "/boreholes/B1", None),
     ("PUT", "/boreholes/B1/log", []), ("PUT", "/cpts/C1", CPT),
     ("DELETE", "/cpts/C1", None), ("GET", "/cpts/C1/processed", None),
@@ -99,7 +100,7 @@ def test_requires_open_project(shell, method, path, payload):
 
 @pytest.mark.parametrize("method,path,payload", [
     row for row in IMPLEMENTED_REQUESTS
-    if not row[1].startswith("/import/") and row[1] not in {"/investigations", "/profiles"}
+    if not row[1].startswith("/import/") and row[1] not in {"/investigations", "/profiles", "/boreholes"}
 ])
 def test_missing_resources(opened, method, path, payload):
     response = opened.request(method, PREFIX + path,
@@ -973,3 +974,20 @@ def test_reopen_full_soil_workflow(opened, library_dir):
     assert records["boreholes"][0]["spt"][1]["refusal"] is True
     assert opened.get(f"{PREFIX}/cpts/C1/processed").status_code == 200
     assert opened.get(f"{PREFIX}/boreholes/B1/processed").status_code == 200
+
+
+def test_create_borehole_by_hand(opened):
+    created = opened.post(f"{PREFIX}/boreholes", json={
+        "id": "BH-9", "gwt_depth": 2.0, "energy_ratio": 72,
+        "spt": [{"depth": 1.5, "n_field": 8}],
+        "log": [{"top": 0, "bottom": 3, "uscs": "SM"}],
+        "lab": [{"depth": 1.5, "FC": 20, "LL": 30, "PL": 22}],
+    })
+    assert created.status_code == 200, created.text
+    assert created.json()["lab"][0]["PI"] == 8
+    assert opened.get("/api/session").json()["dirty"] is True
+    duplicate = opened.post(f"{PREFIX}/boreholes", json={"id": "BH-9"})
+    assert duplicate.status_code == 409 and error_code(duplicate) == "validation"
+    invalid = opened.post(f"{PREFIX}/boreholes", json={"id": "BH-8", "log": [{"top": 2, "bottom": 1}]})
+    assert invalid.status_code == 422
+    assert [b["id"] for b in opened.get(f"{PREFIX}/investigations").json()["boreholes"]] == ["BH-9"]
