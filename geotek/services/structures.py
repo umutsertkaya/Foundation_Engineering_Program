@@ -130,6 +130,9 @@ def required_factors(project: Project, structure_id: str) -> list[MissingFactor]
     settings = _settings(project, structure)
     if isinstance(structure, RetainingWallStructure):
         base, sds, gwt_case = structure.height, structure.inputs.sds, structure.inputs.gwt_case
+        key = structure.geometry.key if structure.geometry is not None else None
+        if key is not None:
+            base += key.depth  # key-zone water forces reach the key tip
     else:
         # Water may load the embedded part even when it is below the dredge line.
         base, sds, gwt_case = structure.soil.profile.bottom, structure.sds, "design"
@@ -654,6 +657,12 @@ def _sheet_case(structure, design_soil, *, seismic, passive_factor, active_facto
         increment = (ae.component("effective")[0] - ast.component("effective")[0]) / H
         # Same H/2 uniform-increment convention as the existing basic sheet-pile service.
         net += seismic_factor * np.where((z < H) | ((z == H) & left), increment, 0.0)
+        # Below the dredge line the M-O active increment continues on the embedded part
+        # (Ebeling & Morrison 1992), layer-local, never negative.
+        ae_full = lateral_pressure(retained, bottom, surcharge=q, method="coulomb", delta=beta, beta=beta,
+                                   kh=kh, kv=kv, layerwise=True)
+        below = np.maximum(_evaluate(ae_full, z, left=left) - aq, 0.0)
+        net += seismic_factor * np.where((z < H) | ((z == H) & left), 0.0, below)
         # Layer-local passive M-O/Rankine ratio, never increase passive resistance.
         ratio = np.ones_like(z)
         for i, depth in enumerate(z):
@@ -725,7 +734,8 @@ def design_sheet_pile_structure(project: Project, structure_id: str, progress: P
             assumptions = [a for a in assumptions if a.code != "sheet_pile.support_method"]
         assumptions.extend(_sheet_assumptions(structure))
         if seismic:
-            assumptions.append(Assumption(text="r=1; M-O artımı H boyunca düzgün (bileşke H/2); "
+            assumptions.append(Assumption(text="r=1; M-O artımı H boyunca düzgün (bileşke H/2), kazı tabanı altında "
+                                                "katman bazında M-O artımı gömülü boyca sürer; "
                                                 "katman başına pasif M-O/Rankine oranı en çok 1; drenajsız deprem durdurulur; "
                                                 "hidrodinamik ve fazla boşluk suyu basıncı yok", source=SRC_TBDY_SEISMIC,
                                                 code="sheet_pile.seismic", params={"r": 1, "passive_ratio_max": 1}))

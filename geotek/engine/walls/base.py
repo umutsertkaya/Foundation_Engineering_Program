@@ -14,11 +14,12 @@ import numpy as np
 
 from geotek.config.codes import FactorLog, UsedFactor, resolve_code
 from geotek.core.errors import GeoTekError
+from geotek.core.models.profile import DesignParameters, GroundwaterCondition, SoilLayer, SoilProfile
 from geotek.core.models.walls import Backfill, FoundationSoil, ShearKey, WallLoads, WallSettings
 from geotek.core.warning_codes import format_warning
 from geotek.engine.bearing import BearingResult, bearing_capacity
-from geotek.engine.earth_pressure.coefficients import rankine_kp
-from geotek.engine.earth_pressure.distribution import resultant
+from geotek.engine.earth_pressure.coefficients import mononobe_okabe_kpe, rankine_kp
+from geotek.engine.earth_pressure.distribution import lateral_pressure, resultant
 from geotek.engine.earth_pressure.wedge import trial_wedge
 
 
@@ -68,7 +69,12 @@ class KeySliding:
     deep: FoundationSoil
     """Strength of the soil at key-bottom level (sliding plane through the key tip)."""
     extra_v: float
-    """Net soil weight between the base bottom and the key bottom, beside the key [kN/m]."""
+    """Net soil weight between the base bottom and the key bottom, beside the key [kN/m]
+    (times (1 - kv) in the seismic case)."""
+    deep_forces: list[Force] = field(default_factory=list)
+    """Horizontal actions that load only the block above the key-tip plane: active thrust,
+    water and seismic increments between the base and the key bottom, and the inertia of the
+    soil beside the key. Fx < 0 drives the wall forward."""
 
 
 @dataclass
@@ -215,10 +221,20 @@ def earth_thrust_forces(
     return forces, warnings
 
 
+def seismic_passive_ratio(phi: float, loads: WallLoads, seismic: bool) -> float:
+    """Pseudo-static passive ratio (1 - kv) K_PE / K_P <= 1 (Mononobe-Okabe passive, horizontal
+    front ground, delta = 0); 1 in the static case. phi = 0 for undrained soil."""
+    if not seismic or (loads.kh == 0 and loads.kv == 0):
+        return 1.0
+    return min(1.0, (1 - loads.kv) * mononobe_okabe_kpe(phi, kh=loads.kh, kv=loads.kv) / rankine_kp(phi))
+
+
 def passive_force(foundation: FoundationSoil, embedment: float, settings: WallSettings,
-                  gamma_front: float, reduction: float | None = None) -> Force | None:
+                  gamma_front: float, reduction: float | None = None,
+                  seismic_ratio: float = 1.0) -> Force | None:
     """Rankine passive resistance on the front of the toe (sliding only), multiplied by
-    ``reduction`` (default: the ASD ``settings.passive_reduction``)."""
+    ``reduction`` (default: the ASD ``settings.passive_reduction``) and by the seismic passive
+    ratio (see ``seismic_passive_ratio``)."""
     if not settings.use_passive or embedment <= 0:
         return None
     if foundation.drainage == "undrained":
@@ -226,7 +242,7 @@ def passive_force(foundation: FoundationSoil, embedment: float, settings: WallSe
     else:
         kp = rankine_kp(foundation.phi)
         pp = 0.5 * kp * gamma_front * embedment**2 + 2 * foundation.c * math.sqrt(kp) * embedment
-    pp *= settings.passive_reduction if reduction is None else reduction
+    pp *= (settings.passive_reduction if reduction is None else reduction) * seismic_ratio
     return Force("Passive (front)", pp, 0.0, 0.0, embedment / 3, "PASSIVE")
 
 
@@ -268,29 +284,104 @@ def key_passive_from_diagram(z, p, embedment: float, depth: float) -> tuple[floa
 
 
 def key_sliding_basic(geometry, foundation: FoundationSoil, settings: WallSettings, gamma_front: float,
-                      reduction: float | None = None) -> KeySliding | None:
+                      reduction: float | None = None, *, backfill: Backfill, loads: WallLoads,
+                      seismic: bool) -> KeySliding | None:
     """Shear key passive resistance and key-tip plane data for a homogeneous foundation.
 
     Rankine passive on the key front face from the front ground (``embedment`` above the base
-    bottom) down to the key bottom: p_p = K_p gamma z + 2 c sqrt(K_p) (K_p = 1 and s_u for
-    undrained soil), multiplied by the passive reduction factor.
+    bottom) down to the key bottom: p_p = K_p sigma_v + 2 c sqrt(K_p) (K_p = 1 and s_u for
+    undrained soil), sigma_v = gamma_front D + gamma_foundation (z - D), multiplied by the passive
+    reduction factor and, in the seismic case, by the M-O passive ratio.
     """
     key = geometry.key
     if key is None:
         return None
     d, df = key.depth, geometry.embedment
     if foundation.drainage == "undrained":
-        kp, c = 1.0, foundation.su
+        kp, c, phi = 1.0, foundation.su, 0.0
     else:
-        kp, c = rankine_kp(foundation.phi), foundation.c
+        kp, c, phi = rankine_kp(foundation.phi), foundation.c, foundation.phi
     cohesion = 2 * c * math.sqrt(kp)
+    sv_top = gamma_front * df
     full, arm = key_passive_from_diagram(
-        [df, df + d], [kp * gamma_front * df + cohesion, kp * gamma_front * (df + d) + cohesion], df, d)
+        [df, df + d], [kp * sv_top + cohesion, kp * (sv_top + foundation.gamma * d) + cohesion], df, d)
     r = settings.passive_reduction if reduction is None else reduction
     x0, _ = key.span(geometry.width)
-    force = Force("Shear key passive", full * r, 0.0, x0, -arm, "PASSIVE")
-    extra_v = foundation.gamma * (geometry.width - key.width) * d
-    return KeySliding(key, force, full, arm, r, foundation, extra_v)
+    force = Force("Shear key passive", full * r * seismic_passive_ratio(phi, loads, seismic), 0.0,
+                  x0, -arm, "PASSIVE")
+    soil_beside = foundation.gamma * (geometry.width - key.width) * d
+    vertical = 1.0 - loads.kv if seismic else 1.0
+    deep = key_zone_thrust_basic(geometry, backfill, foundation, loads, seismic)
+    if seismic and loads.kh > 0:
+        deep.append(Force("Soil beside key (inertia)", -loads.kh * soil_beside, 0.0,
+                          geometry.width / 2, -d / 2, "EQ"))
+    return KeySliding(key, force, full, arm, r, foundation, soil_beside * vertical, deep)
+
+
+def key_zone_thrust_basic(geometry, backfill: Backfill, foundation: FoundationSoil, loads: WallLoads,
+                          seismic: bool) -> list[Force]:
+    """Active thrust between the base level and the key-tip plane on the vertical line through
+    the heel (homogeneous backfill over the foundation soil).
+
+    The plane through the key tip extends the sliding block below the base, so the retained side
+    pushes on it down to the key bottom. Layer-local Coulomb coefficients with delta = beta on that
+    vertical soil plane (Rankine-equivalent), the same convention as the layered wall path; c' is
+    ignored by the Coulomb solution (conservative). Only the horizontal component is used.
+    """
+    key = geometry.key
+    beta = backfill.slope
+    if hasattr(geometry, "heel"):
+        hv = geometry.height + geometry.heel * math.tan(math.radians(beta))
+    else:
+        hv = geometry.height + geometry.back_offset * math.tan(math.radians(beta))
+    d = key.depth
+    undrained = foundation.drainage == "undrained"
+    design = (DesignParameters(su=foundation.su) if undrained
+              else DesignParameters(phi_eff=foundation.phi, c_eff=foundation.c))
+    profile = SoilProfile(
+        id="key-zone", gwt=GroundwaterCondition(depth_insitu=hv + d + 10.0),
+        layers=[SoilLayer(id="backfill", top=0.0, bottom=hv, gamma=backfill.gamma,
+                          design=DesignParameters(phi_eff=backfill.phi)),
+                SoilLayer(id="foundation", top=hv, bottom=hv + d + 1.0, gamma=foundation.gamma,
+                          behaviour=foundation.drainage, design=design)])
+    common = dict(method="coulomb", delta=beta, beta=beta, layerwise=True, steep_seismic=True)
+    dyn = seismic and (loads.kh > 0 or loads.kv != 0)
+    try:
+        zero = lateral_pressure(profile, hv + d, **common)
+        static = lateral_pressure(profile, hv + d, surcharge=loads.surcharge, **common)
+        dynamic = (lateral_pressure(profile, hv + d, surcharge=loads.surcharge, kh=loads.kh, kv=loads.kv,
+                                    **common) if dyn else static)
+    except GeoTekError as exc:
+        raise GeoTekError(
+            "Kayma dişi: diş derinliği boyunca arka aktif itki hesaplanamadı (drenajsız temel zemininde "
+            f"eğimli dolgu veya deprem desteklenmiyor): {exc}") from exc
+
+    def band(dist):
+        return key_band_force(dist.z, dist.sigma_h_eff, hv, d)
+
+    out = []
+    parts = [("Key zone earth pressure", band(zero), "EH")]
+    if loads.surcharge:
+        parts.append(("Key zone surcharge pressure", band(static) - band(zero), "LS"))
+    if dyn:
+        parts.append(("Key zone seismic increment", band(dynamic) - band(static), "EQ"))
+    for name, f, kind in parts:
+        if abs(f) > 1e-12:
+            out.append(Force(name, -f, 0.0, geometry.width, -d / 2, kind))
+    return out
+
+
+def key_band_force(z, p, top: float, depth: float) -> float:
+    """Force of a piecewise-linear pressure diagram between depths ``top`` and ``top + depth``."""
+    a, b = top, top + depth
+    total = 0.0
+    for z0, z1, p0, p1 in zip(z[:-1], z[1:], p[:-1], p[1:]):
+        lo, hi = max(z0, a), min(z1, b)
+        if hi - lo <= 1e-12 or z1 <= z0:
+            continue
+        slope = (p1 - p0) / (z1 - z0)
+        total += 0.5 * (2 * p0 + slope * (lo - z0 + hi - z0)) * (hi - lo)
+    return float(total)
 
 
 def key_warnings(geometry) -> list[str]:
@@ -313,10 +404,13 @@ def attach_without_key(results, baseline) -> None:
                 analysis.warnings.append(format_warning("walls.warning.shear_key_reduces_sliding"))
 
 
-def key_result(ks: KeySliding, rb: float, rd: float, driving: float, used: float) -> ShearKeyResult:
-    """Governing surface = smaller resistance. ``rb``/``rd`` already include all passives."""
+def key_result(ks: KeySliding, rb: float, rd: float, driving: float, used: float,
+               driving_deep: float | None = None) -> ShearKeyResult:
+    """Governing surface = smaller ratio. ``rb``/``rd`` already include all passives;
+    ``driving_deep`` adds the key-zone actions (``KeySliding.deep_forces``) to ``driving``."""
+    driving_deep = driving if driving_deep is None else driving_deep
     fs_b = float(rb / driving) if driving > 0 else math.inf
-    fs_d = float(rd / driving) if driving > 0 else math.inf
+    fs_d = float(rd / driving_deep) if driving_deep > 0 else math.inf
     return ShearKeyResult(
         position=ks.key.position, width=ks.key.width, depth=ks.key.depth,
         passive_full=ks.full, passive_used=used, reduction=ks.reduction, arm=ks.arm,
@@ -393,11 +487,13 @@ def evaluate_checks(
                     + key.deep.c * b_eff)
         rb = resist + key.passive.fx
         rd = deep + toe_pp + key.passive.fx
-        key_result_ = key_result(key, rb, rd, sum_h, key.passive.fx)
-        resist = min(rb, rd)
+        key_result_ = key_result(key, rb, rd, sum_h, key.passive.fx,
+                                 sum_h - sum(f.fx for f in key.deep_forces))
         detail += (f" + key passive; governing surface: {key_result_.governing} "
                    f"(base {key_result_.fs_base_surface:.2f}, key tip {key_result_.fs_deep_surface:.2f})")
     fs_sl = resist / sum_h if sum_h > 0 else math.inf
+    if key_result_ is not None:
+        fs_sl = key_result_.fs_with_key
     req = log.value(f"safety.sliding.{case}")
     checks["sliding"] = CheckResult("sliding", fs_sl, req, fs_sl >= req, detail)
 

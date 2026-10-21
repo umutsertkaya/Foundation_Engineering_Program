@@ -36,6 +36,7 @@ from geotek.engine.walls.base import (
     key_warnings,
     key_weight_forces,
     passive_force,
+    seismic_passive_ratio,
     strip_key,
     weight_forces,
 )
@@ -116,8 +117,11 @@ def _analyze(geometry, backfill, foundation, loads, settings, seismic) -> WallAn
     loads = loads or WallLoads()
     settings = settings or WallSettings()
     wf = wall_forces(geometry, backfill, loads, settings, seismic=seismic)
-    passive = passive_force(foundation, wf.embedment, settings, backfill.gamma)
-    key = key_sliding_basic(geometry, foundation, settings, backfill.gamma)
+    phi_front = 0.0 if foundation.drainage == "undrained" else foundation.phi
+    passive = passive_force(foundation, wf.embedment, settings, backfill.gamma,
+                            seismic_ratio=seismic_passive_ratio(phi_front, loads, seismic))
+    key = key_sliding_basic(geometry, foundation, settings, backfill.gamma, backfill=backfill, loads=loads,
+                            seismic=seismic)
     result = evaluate_checks(case="seismic" if seismic else "static", width=wf.width, forces=wf.forces,
                              passive=passive, foundation=foundation, embedment=wf.embedment,
                              settings=settings, warnings=wf.warnings, key=key)

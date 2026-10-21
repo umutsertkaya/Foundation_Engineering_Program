@@ -44,6 +44,12 @@ def _hand():
     return ph, v0, v_key, pp_full, arm
 
 
+def _key_zone():
+    """Active thrust between base and key tip on the heel line: foundation Ka = 1/3 (phi 30, beta 0),
+    sigma_v at base level = 18 x 6.0 + 10 = 118 kPa -> (118 x 0.6 + 0.5 x 18 x 0.6^2) / 3 = 24.68 kN/m."""
+    return (118 * 0.6 + 0.5 * 18 * 0.6**2) / 3
+
+
 # --- model -------------------------------------------------------------------------------
 
 
@@ -78,7 +84,7 @@ def test_key_none_reproduces_old_result_and_depth_zero_converges():
     assert thin.shear_key.passive_full == pytest.approx(0.0, abs=1e-3)
 
 
-def test_hand_calculation_base_surface_governs():
+def test_hand_calculation_key_tip_surface_governs():
     ph, v0, v_key, pp, arm = _hand()
     r = analyze_cantilever_wall(_wall(), BACKFILL, SAND, LOADS)
     k = r.shear_key
@@ -91,12 +97,16 @@ def test_hand_calculation_base_surface_governs():
     assert r.sum_v == pytest.approx(v, rel=1e-9)
     # (a) base surface: V tan(delta_b) + reduced passive; (b) key tip: (V + soil beside key) tan(phi) + passive
     assert k.fs_base_surface == pytest.approx((v * TAN30 + 29.16) / ph, rel=1e-6)
-    assert k.fs_deep_surface == pytest.approx(((v + 18 * 3.0 * 0.6) * TAN30 + 29.16) / ph, rel=1e-6)
-    assert k.governing == "base" and k.fs_with_key == k.fs_base_surface
+    # The key-tip plane also carries the active thrust between the base and the key bottom.
+    assert k.fs_deep_surface == pytest.approx(((v + 18 * 3.0 * 0.6) * TAN30 + 29.16) / (ph + _key_zone()),
+                                              rel=1e-6)
+    assert k.fs_base_surface == pytest.approx(1.8461, abs=1e-4)
+    assert k.fs_deep_surface == pytest.approx(1.6579, abs=1e-4)
+    assert k.governing == "deep" and k.fs_with_key == k.fs_deep_surface
     assert r.checks["sliding"].value == pytest.approx(k.fs_with_key)
     assert k.fs_without_key == pytest.approx(v0 * TAN30 / ph, rel=1e-6)
     assert k.fs_with_key > k.fs_without_key
-    assert "governing surface: base" in r.checks["sliding"].detail
+    assert "governing surface: deep" in r.checks["sliding"].detail
     assert any(parse_warning(w)[0] == "walls.warning.shear_key_bearing" for w in r.warnings)
     passive = [f for f in r.forces if f.name == "Shear key passive"]
     assert len(passive) == 1 and passive[0].fx == pytest.approx(29.16) and passive[0].y == pytest.approx(-arm)
@@ -125,7 +135,8 @@ def test_undrained_foundation_uses_su_on_both_surfaces():
     assert k.passive_full == pytest.approx(pp_full, rel=1e-9)
     b_eff = 3.5 - 2 * abs(r.eccentricity)
     assert k.fs_base_surface == pytest.approx((50 * b_eff + 0.5 * pp_full) / ph, rel=1e-3)
-    assert k.fs_deep_surface == pytest.approx(k.fs_base_surface, rel=1e-9)
+    # key zone, total stress: sigma_h = sigma_v - 2 s_u = (118 + 18 z) - 100 over z = 0..0.6 -> 14.04 kN/m
+    assert k.fs_deep_surface == pytest.approx(k.fs_base_surface * ph / (ph + 18 * 0.6 + 0.5 * 18 * 0.36), rel=1e-9)
 
 
 @pytest.mark.parametrize("position,x0", [("toe", 0.0), ("middle", 1.5), ("heel", 3.0)])
@@ -149,7 +160,7 @@ def test_toe_passive_is_added_on_both_surfaces_when_used():
     v = v0 + v_key
     assert r.shear_key.fs_base_surface == pytest.approx((v * TAN30 + toe + 29.16) / ph, rel=1e-6)
     assert r.shear_key.fs_deep_surface == pytest.approx(
-        ((v + 32.4) * TAN30 + toe + 29.16) / ph, rel=1e-6)
+        ((v + 32.4) * TAN30 + toe + 29.16) / (ph + _key_zone()), rel=1e-6)
 
 
 def test_seismic_adds_key_inertia_and_gravity_wall_supports_a_key():
@@ -185,8 +196,11 @@ def test_ec7_basic_matches_design_value_hand_calc():
         assert k.fs_base_surface == pytest.approx(
             (v * math.tan(math.radians(phi_d)) / case.r_sliding + term) / h, rel=1e-9)
         v_deep = v + case.stabilising["EV"] * 18 * 3.0 * 0.6
+        ka_d = math.tan(math.radians(45 - phi_d / 2)) ** 2           # foundation soil in the key zone
+        h_deep = h + ka_d * (case.stabilising["EH"] * (108 * 0.6 + 0.5 * 18 * 0.6**2)
+                             + case.stabilising["LS"] * 10 * 0.6)
         assert k.fs_deep_surface == pytest.approx(
-            (v_deep * math.tan(math.radians(phi_d)) / case.r_sliding + term) / h, rel=1e-9)
+            (v_deep * math.tan(math.radians(phi_d)) / case.r_sliding + term) / h_deep, rel=1e-9)
         assert result.checks["sliding"].value == pytest.approx(k.fs_with_key)
         assert k.fs_without_key == pytest.approx(base.checks["sliding"].value)
         checked += 1
@@ -224,7 +238,10 @@ def test_layered_key_passive_and_sliding_hand_calc():
     assert k.fs_base_surface == pytest.approx((v * TAN30 + 0.5 * pp) / h, rel=1e-6)
     assert geometry.width == pytest.approx(4.0)
     # soil beside the key between the base and the key tip: (B - b) * gamma * d
-    assert k.fs_deep_surface == pytest.approx(((v + (4.0 - 0.5) * 19 * 0.6) * TAN30 + 0.5 * pp) / h, rel=1e-6)
+    # key zone: Ka = 1/3, sigma_v at base level behind the heel = 19 x 6.0 -> (114 x 0.6 + 0.5 x 19 x 0.36) / 3
+    h_deep = h + (114 * 0.6 + 0.5 * 19 * 0.6**2) / 3
+    assert k.fs_deep_surface == pytest.approx(((v + (4.0 - 0.5) * 19 * 0.6) * TAN30 + 0.5 * pp) / h_deep,
+                                              rel=1e-6)
     plain = analyze_wall_layered(_layered_geometry(None), _soil(), WallLoads(), settings, seismic=False)
     assert k.fs_without_key == pytest.approx(plain.checks["sliding"].value)
     assert k.fs_with_key > k.fs_without_key
@@ -356,3 +373,82 @@ def test_fingerprint_of_key_less_walls_is_unchanged():
     keyed = structure.model_copy(update={"geometry": structure.geometry.model_copy(update={"key": KEY})})
     assert _fingerprint(project, keyed, "asd") != before
     assert "key" not in json.dumps(structure.geometry.model_dump(mode="json", exclude={"key"}))
+
+
+# --- review fixes (2026-10-21): key-tip plane actions, seismic passive, published example ----------
+
+
+def test_published_example_metu_ce366_key_passive():
+    """METU CE366 Recitation 5, P1: 1 m front fill (20 kN/m3), foundation sand phi 32 / 20 kN/m3,
+    passive on the key from the base bottom with the front-fill overburden, Kp = 3.25:
+    P_p = 65 D + 32.5 D^2 (D = key depth), used with FS = 2 on passive (our reduction 0.5)."""
+    from geotek.engine.walls.base import key_sliding_basic
+
+    d = 1.43
+    geometry = CantileverGeometry(stem_height=7.0, stem_top=0.3, stem_bottom=0.5, toe=1.0, heel=3.5,
+                                  base_thickness=1.0, embedment=1.0, key=ShearKey(position="middle",
+                                                                                 width=0.5, depth=d))
+    foundation = FoundationSoil(phi=32, gamma=20, overburden=20)
+    ks = key_sliding_basic(geometry, foundation, WallSettings(), 20.0, backfill=Backfill(gamma=18, phi=30),
+                           loads=WallLoads(surcharge=30), seismic=False)
+    published = 65 * d + 32.5 * d**2                                   # 159.4 kN/m with Kp rounded to 3.25
+    assert ks.full == pytest.approx(rankine_kp(32) * 20 * (d + d**2 / 2), rel=1e-9)
+    assert ks.full == pytest.approx(published, rel=2e-3)
+    assert ks.passive.fx == pytest.approx(0.5 * ks.full, rel=1e-9)
+
+
+def test_seismic_reduces_key_and_toe_passive_and_loads_the_key_tip_block():
+    from geotek.engine.earth_pressure.coefficients import mononobe_okabe_kpe
+
+    loads = WallLoads(surcharge=10, kh=0.2, kv=0.1)
+    r = analyze_cantilever_wall(_wall(), BACKFILL, SAND, loads, WallSettings(use_passive=True), seismic=True)
+    ratio = 0.9 * mononobe_okabe_kpe(30, kh=0.2, kv=0.1) / 3.0
+    assert 0.7 < ratio < 0.8
+    key_passive = next(f for f in r.forces if f.name == "Shear key passive")
+    toe_passive = next(f for f in r.forces if f.name == "Passive (front)")
+    assert key_passive.fx == pytest.approx(29.16 * ratio, rel=1e-9)
+    assert toe_passive.fx == pytest.approx(0.5 * 0.5 * 3 * 18 * 1.5**2 * ratio, rel=1e-9)
+    assert r.shear_key.demand_v == pytest.approx(58.32, rel=1e-9)   # structural demand stays static-unreduced
+    from geotek.engine.walls.base import key_sliding_basic
+    ks = key_sliding_basic(_wall(), SAND, WallSettings(), 18.0, backfill=BACKFILL, loads=loads, seismic=True)
+    names = {f.name: f for f in ks.deep_forces}
+    assert names["Soil beside key (inertia)"].fx == pytest.approx(-0.2 * 18 * 3.0 * 0.6)
+    assert names["Key zone seismic increment"].fx < 0
+    assert ks.extra_v == pytest.approx(18 * 3.0 * 0.6 * 0.9)
+    static = key_sliding_basic(_wall(), SAND, WallSettings(), 18.0, backfill=BACKFILL, loads=LOADS, seismic=False)
+    assert sum(f.fx for f in static.deep_forces) == pytest.approx(-_key_zone(), rel=1e-6)
+
+
+def test_key_passive_counts_with_toe_passive_off_and_d_zero_removes_overburden():
+    """Toe passive off keeps the key passive with the front-soil overburden (METU CE366 P1);
+    a front soil that may be removed is modelled with embedment D = 0."""
+    off = analyze_cantilever_wall(_wall(), BACKFILL, SAND, LOADS)
+    assert off.shear_key.passive_full == pytest.approx(58.32)
+    no_front = CantileverGeometry(stem_height=5.3, stem_top=0.3, stem_bottom=0.5, toe=0.8, heel=2.2,
+                                  base_thickness=0.7, embedment=0.0, key=KEY)
+    bare = analyze_cantilever_wall(no_front, BACKFILL, SAND, LOADS)
+    assert bare.shear_key.passive_full == pytest.approx(0.5 * 3 * 18 * 0.6**2, rel=1e-9)
+
+
+def test_layered_key_zone_water_increments():
+    soil = _soil()
+    soil = soil.model_copy(update={"gwt_retained": GroundwaterCondition(depth_insitu=3.0),
+                                   "gwt_front": GroundwaterCondition(depth_insitu=5.5)})
+    wf = wall_forces_layered(_layered_geometry(), soil, WallLoads(), WallSettings(), seismic=False)
+    names = {f.name: f for f in wf.key.deep_forces}
+    assert names["Key zone water (retained)"].fx == pytest.approx(-9.81 * (3.0 * 0.6 + 0.6**2 / 2), rel=1e-3)
+    assert names["Key zone water (front)"].fx == pytest.approx(9.81 * (0.5 * 0.6 + 0.6**2 / 2), rel=1e-3)
+
+
+def test_layered_partial_factors_with_water_between_base_and_key_tip():
+    """Water table between the base (6.0 m) and the key tip (6.6 m): the key-zone water forces need
+    the WA factor, which is asked for explicitly instead of failing inside the force factoring."""
+    from geotek.core.errors import MissingFactorsError
+
+    with pytest.raises(MissingFactorsError) as exc:
+        verify_wall_layered(_layered_geometry(), _soil(water=6.3), WallLoads(), WallSettings(design_code="ec7"),
+                            seismic=False, approach="DA2")
+    assert "DA2.load.WA" in str(exc.value)
+    names = {f.name for f in wall_forces_layered(_layered_geometry(), _soil(water=6.3), WallLoads(), WallSettings(),
+                                                 seismic=False).key.deep_forces}
+    assert "Key zone water (retained)" in names
