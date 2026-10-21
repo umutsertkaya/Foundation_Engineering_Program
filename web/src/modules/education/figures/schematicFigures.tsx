@@ -263,3 +263,52 @@ export function LiqMechanism() {
     </Svg>
   );
 }
+
+export function ClsGradingCurve() {
+  const pts: [number, number][] = [[0.01, 3], [0.075, 8], [0.2, 18], [0.5, 40], [1, 62], [2, 80], [4.75, 94], [10, 100]];
+  const X = (d: number) => 50 + ((Math.log10(d) + 2) / 3.2) * 320, Y = (p: number) => 215 - p * 1.9;
+  return (
+    <Svg label="Particle size distribution curve">
+      <Line x1={50} y1={215} x2={380} y2={215} /><Line x1={50} y1={215} x2={50} y2={20} />
+      {[0.01, 0.1, 1, 10].map((d) => <g key={d}><Line x1={X(d)} y1={215} x2={X(d)} y2={20} color={C.grid} w={0.5} /><T x={X(d)} y={229} anchor="middle">{d}</T></g>)}
+      {[0, 25, 50, 75, 100].map((p) => <T key={p} x={46} y={Y(p) + 4} anchor="end">{p}</T>)}
+      <polyline fill="none" stroke={C.a} strokeWidth={2} points={pts.map(([d, p]) => `${X(d)},${Y(p)}`).join(" ")} />
+      {[[10, 0.075], [30, 0.35], [60, 0.8]].map(([p, d]) => (
+        <g key={p}><line x1={50} y1={Y(p)} x2={X(d)} y2={Y(p)} stroke={C.d} strokeDasharray="3 3" /><line x1={X(d)} y1={Y(p)} x2={X(d)} y2={215} stroke={C.d} strokeDasharray="3 3" />
+          <T x={X(d) + 3} y={208} color={C.d}>D{p}</T></g>
+      ))}
+      <T x={215} y={246} anchor="middle">tane çapı (mm, log)</T><T x={56} y={14}>geçen %</T>
+      <T x={250} y={60}>Cu = D60 / D10,  Cc = D30² / (D10·D60)</T>
+      <Line x1={X(4.75)} y1={215} x2={X(4.75)} y2={Y(100)} color={C.b} dash="4 3" /><T x={X(4.75) - 4} y={36} anchor="end" color={C.b}>No.4</T>
+    </Svg>
+  );
+}
+
+export function SpwWallTypes() {
+  const half = (x: number, anchored: boolean) => (
+    <g>
+      <rect x={x} y={150} width={165} height={90} fill={C.soil} opacity={0.5} />
+      <rect x={x + 100} y={50} width={65} height={100} fill={C.soil} opacity={0.5} />
+      <rect x={x + 96} y={30} width={8} height={210} fill={C.wall} />
+      <T x={x + 4} y={146} color={C.a}>kazı tabanı</T>
+      {anchored && <><line x1={x + 100} y1={52} x2={x + 160} y2={90} stroke="currentColor" strokeWidth={3} /><circle cx={x + 100} cy={52} r={4} fill={C.b} /><T x={x + 106} y={48} color={C.b}>T</T></>}
+      <T x={x + 40} y={252} anchor="middle">{anchored ? "ankrajlı (serbest zemin)" : "konsol"}</T>
+    </g>
+  );
+  return <Svg label="Cantilever and anchored sheet pile">{half(10, false)}{half(215, true)}</Svg>;
+}
+
+export function GanTendonLimits() {
+  const X = (r: number) => 40 + r * 320;
+  return (
+    <Svg label="Tendon stress limits as fractions of SMTS">
+      <rect x={X(0)} y={80} width={X(1) - X(0)} height={36} fill={C.grid} opacity={0.4} stroke="currentColor" />
+      <rect x={X(0)} y={80} width={X(0.6) - X(0)} height={36} fill={C.c} opacity={0.6} />
+      <rect x={X(0.6)} y={80} width={X(0.7) - X(0.6)} height={36} fill={C.a} opacity={0.6} />
+      <rect x={X(0.7)} y={80} width={X(0.8) - X(0.7)} height={36} fill={C.d} opacity={0.6} />
+      {[[0.6, "0,60"], [0.7, "0,70"], [0.8, "0,80"], [1, "1,00"]].map(([r, l]) => <g key={l as string}><Line x1={X(r as number)} y1={72} x2={X(r as number)} y2={124} /><T x={X(r as number)} y={138} anchor="middle">{l as string} SMTS</T></g>)}
+      <T x={X(0.3)} y={102} anchor="middle">T_tasarım</T><T x={X(0.65)} y={64} anchor="middle" color={C.a}>T_kilit</T><T x={X(0.75)} y={156} anchor="middle" color={C.d}>T_deneme = 1,33·T</T>
+      <T x={40} y={200}>SMTS: tendonun özelleşmiş en küçük çekme dayanımı</T>
+    </Svg>
+  );
+}

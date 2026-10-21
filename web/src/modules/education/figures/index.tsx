@@ -8,7 +8,7 @@ import {
   EpStatesMovement, EpWallForces,
 } from "./epFigures";
 import {
-  LiqMechanism, AnchorTieForce, BearFailureWedge, AnchorBondFreeLength, AnchoredWallEnvelopes, AnchoredWallHeave, ShearKeyPlanes, SlopeSurchargeWedge, EpActivePassive, SlopeBishopSlice, SlopeSearchDomain, SpAnchoredMoment,
+  LiqMechanism, ClsGradingCurve, SpwWallTypes, GanTendonLimits, AnchorTieForce, BearFailureWedge, AnchorBondFreeLength, AnchoredWallEnvelopes, AnchoredWallHeave, ShearKeyPlanes, SlopeSurchargeWedge, EpActivePassive, SlopeBishopSlice, SlopeSearchDomain, SpAnchoredMoment,
   SpCantilever, SpNetDiagram, SpPassiveFactor, WallStabilityChecks,
 } from "./schematicFigures";
 
@@ -51,6 +51,29 @@ export const FIGURES: Record<string, ComponentType> = {
   "liq-spt-correlation": LiqSptCorrelation,
   "liq-msf-curve": LiqMsfCurve,
   "liq-lpi-weight": LiqLpiWeight,
+  "cls-grading-curve": ClsGradingCurve,
+  "cls-plasticity-chart": ClassUscsPlasticity,
+  "cls-robertson-chart": ClassIcChart,
+  "slp-slip-circle": SlopeBishopSlice,
+  "slp-bishop-slice": SlopeBishopSlice,
+  "slp-search-results": SlopeSearchDomain,
+  "sur-beta-wedge": SlopeSurchargeWedge,
+  "sur-surcharge-basis": EpRankineDiagram,
+  "sur-sheet-moment": SpNetDiagram,
+  "spw-wall-types": SpwWallTypes,
+  "spw-moment-diagram": SpNetDiagram,
+  "spw-method-compare": SpCantilever,
+  "anc-free-support": AnchorTieForce,
+  "anc-free-vs-fixed": SpAnchoredMoment,
+  "key-geometry": ShearKeyPlanes,
+  "key-passive-diagram": EpActivePassive,
+  "key-tip-plane": ShearKeyPlanes,
+  "gan-wedge-geometry": AnchorBondFreeLength,
+  "gan-free-bond-zones": AnchorBondFreeLength,
+  "gan-tendon-limits": GanTendonLimits,
+  "awl-sand-envelope": AnchoredWallEnvelopes,
+  "awl-clay-envelopes": AnchoredWallEnvelopes,
+  "awl-basal-heave": AnchoredWallHeave,
   "anchor-tie-force": AnchorTieForce,
   "sp-anchored-moment": SpAnchoredMoment,
 };
