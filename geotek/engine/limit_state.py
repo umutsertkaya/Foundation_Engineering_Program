@@ -323,7 +323,7 @@ def _key_sliding(case: LimitStateCase, key: KeySliding, rd_base: float, toe_term
     if key.deep.drainage == "undrained":
         deep = key.deep.su * b_eff / case.r_sliding
     else:
-        v_deep = v + case.stabilising["EV"] * key.extra_v
+        v_deep = v + case.stabilising.get("WA", 0.0) * key.uplift + case.stabilising["EV"] * key.extra_v
         deep = (v_deep * math.tan(math.radians(key.deep.phi)) + key.deep.c * b_eff) / case.r_sliding
     rb, rt = rd_base + key_term, deep + toe_term + key_term
     driving_deep = driving - sum(f.fx for f in _factor_forces(key.deep_forces, case.stabilising))

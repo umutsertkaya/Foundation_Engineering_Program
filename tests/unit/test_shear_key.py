@@ -267,6 +267,48 @@ def test_layered_water_above_key_tip_warns():
     assert ("walls.warning.shear_key_water", {"depth": 5.0}) in codes
 
 
+def test_layered_key_bottom_uplift_enters_forces_but_not_twice_in_the_key_tip_plane():
+    """Water at 5.0 m, base at 6.0 m, key 0.5 m wide x 0.6 m deep: the key bottom carries gamma_w x 0.6 m
+    more pressure than the base level, i.e. 0.5 x 9.81 x 0.6 = 2.943 kN/m of extra uplift."""
+    from geotek.core.constants import GAMMA_W
+
+    wet = wall_forces_layered(_layered_geometry(), _soil(water=5.0), WallLoads(), WallSettings(), seismic=False)
+    uplift = next(f for f in wet.forces if f.name == "Key uplift")
+    assert wet.key.uplift == pytest.approx(0.5 * GAMMA_W * 0.6)
+    assert uplift.fy == pytest.approx(0.5 * GAMMA_W * 0.6) and uplift.kind == "WA"
+    assert uplift.x == pytest.approx(sum(KEY.span(wet.width)) / 2)
+    dry = wall_forces_layered(_layered_geometry(), _soil(), WallLoads(), WallSettings(), seismic=False)
+    assert not any(f.name == "Key uplift" for f in dry.forces) and dry.key.uplift == 0.0
+    # the key-tip plane already carries the u term in extra_v; the added uplift is put back there
+    r = analyze_wall_layered(_layered_geometry(), _soil(water=5.0), WallLoads(), WallSettings(), seismic=False)
+    k = r.shear_key
+    phi = math.tan(math.radians(30.0))
+    h_deep = r.sum_h - sum(f.fx for f in wet.key.deep_forces)
+    pp = k.passive_used
+    assert k.fs_deep_surface == pytest.approx(((r.sum_v + wet.key.uplift + wet.key.extra_v) * phi + pp) / h_deep,
+                                              rel=1e-6)
+
+
+def test_layered_key_uplift_interpolates_front_and_retained_water():
+    from geotek.core.constants import GAMMA_W
+    soil = _soil()
+    soil.gwt_retained = GroundwaterCondition(depth_insitu=5.0)   # retained side wet, front dry
+    wf = wall_forces_layered(_layered_geometry(), soil, WallLoads(), WallSettings(), seismic=False)
+    share = sum(KEY.span(wf.width)) / 2 / wf.width
+    assert wf.key.uplift == pytest.approx(0.5 * GAMMA_W * 0.6 * share)
+
+
+def test_layered_ec7_with_water_above_key_tip_adds_key_uplift_and_keeps_tip_plane_consistent():
+    from geotek.config.codes import FactorOverride
+    settings = WallSettings(design_code="ec7", factor_overrides={
+        f"{combo}.load.WA": FactorOverride(value=1.0, note="test") for combo in ("DA1-C1", "DA1-C2", "DA2", "EQU")})
+    wet = verify_wall_layered(_layered_geometry(), _soil(water=5.0), WallLoads(), settings, seismic=False,
+                              approach="DA2")
+    for result in (r for r in wet if r.case != "EQU"):
+        assert any(f.name == "Key uplift" for f in result.forces)
+        assert result.shear_key.fs_deep_surface > 0 and math.isfinite(result.shear_key.fs_with_key)
+
+
 def test_layered_ec7_uses_design_values_and_participation():
     settings = WallSettings(design_code="ec7")
     results = verify_wall_layered(_layered_geometry(), _soil(), WallLoads(), settings, seismic=False,
@@ -452,3 +494,18 @@ def test_layered_partial_factors_with_water_between_base_and_key_tip():
     names = {f.name for f in wall_forces_layered(_layered_geometry(), _soil(water=6.3), WallLoads(), WallSettings(),
                                                  seismic=False).key.deep_forces}
     assert "Key zone water (retained)" in names
+
+
+def test_global_stability_is_independent_of_the_shear_key():
+    """A key never makes the Bishop check fail: the circle passes below the base and the key volume is soil."""
+    from geotek.core.models.walls import Backfill
+    from geotek.engine.stability import SoilBand
+    from geotek.engine.walls.global_stability import wall_global_stability
+
+    def run(key):
+        geometry = CantileverGeometry(stem_height=4.55, stem_top=0.3, stem_bottom=0.45, toe=1.5, heel=2.5,
+                                      base_thickness=0.45, embedment=0.6, key=key)
+        return wall_global_stability(geometry, Backfill(gamma=18, phi=30), [SoilBand(top=0.0, gamma=19, c=0, phi=28)],
+                                     WallLoads(surcharge=10), WallSettings())[1].value
+
+    assert run(ShearKey(position="heel", width=0.5, depth=1.0)) == pytest.approx(run(None))

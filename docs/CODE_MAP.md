@@ -353,14 +353,14 @@ Test sütunu: o dosyayı doğrudan import eden `tests/` dosyaları (yoksa `—`)
 | Dosya | Satır | Bağımlı olduğu | Kullanan | Test |
 |---|---:|---|---|---|
 | `config/__init__.py` | 1 | — | — | `unit/test_limit_state.py` |
-| `config/codes.py` | 251 | `core.errors` | `api.app`, `api.schemas`, `core.models.project`, `core.models.walls`, `engine.limit_state`, `engine.walls.base` +5 | `api/test_codes_api.py`, `api/test_contract.py`, `api/test_structures_api.py` +8 |
+| `config/codes.py` | 251 | `core.errors` | `api.app`, `api.schemas`, `core.models.project`, `core.models.walls`, `engine.limit_state`, `engine.walls.base` +5 | `api/test_codes_api.py`, `api/test_contract.py`, `api/test_structures_api.py` +9 |
 
 #### `geotek.core`
 
 | Dosya | Satır | Bağımlı olduğu | Kullanan | Test |
 |---|---:|---|---|---|
 | `core/__init__.py` | 1 | — | — | — |
-| `core/constants.py` | 13 | — | `core.models.investigations`, `core.models.profile`, `core.models.structures`, `engine.correlations.physical`, `engine.correlations.stiffness`, `engine.correlations.strength` +14 | `unit/test_earth_pressure.py`, `unit/test_layering_spt.py`, `unit/test_stresses.py` +5 |
+| `core/constants.py` | 13 | — | `core.models.investigations`, `core.models.profile`, `core.models.structures`, `engine.correlations.physical`, `engine.correlations.stiffness`, `engine.correlations.strength` +14 | `unit/test_earth_pressure.py`, `unit/test_layering_spt.py`, `unit/test_shear_key.py` +6 |
 | `core/errors.py` | 89 | `services.walls_advanced` | `api.app`, `api.calculation_jobs`, `api.jobs`, `api.library_routes`, `api.registry`, `config.codes` +28 | `api/test_jobs_api.py`, `unit/test_anchored_wall.py`, `unit/test_anchors.py` +26 |
 | `core/module_state.py` | 54 | `core.errors`, `core.models.project` | `modules.anchored_wall.api`, `modules.anchored_wall.report` | `api/test_anchored_wall_api.py`, `unit/test_module_report_hook.py`, `unit/test_project_io_13.py` |
 | `core/modules.py` | 76 | `core.errors` | `api.registry`, `modules.anchored_wall`, `modules.anchored_wall.report`, `modules.education`, `modules.liquefaction`, `modules.report` +3 | `unit/test_module_registry.py`, `unit/test_module_report_hook.py`, `unit/test_new_module.py` |
@@ -483,7 +483,7 @@ Test sütunu: o dosyayı doğrudan import eden `tests/` dosyaları (yoksa `—`)
 
 | Dosya | Satır | Bağımlı olduğu | Kullanan | Test |
 |---|---:|---|---|---|
-| `engine/stability.py` | 252 | `core.constants`, `core.errors` | `engine.limit_state`, `engine.walls.global_stability`, `engine.walls.layered`, `services.walls_advanced`, `services.walls_basic` | `unit/test_limit_state.py`, `unit/test_stability.py`, `unit/test_structures_service.py` +5 |
+| `engine/stability.py` | 252 | `core.constants`, `core.errors` | `engine.limit_state`, `engine.walls.global_stability`, `engine.walls.layered`, `services.walls_advanced`, `services.walls_basic` | `unit/test_limit_state.py`, `unit/test_shear_key.py`, `unit/test_stability.py` +6 |
 
 #### `geotek.engine.stresses`
 
@@ -496,9 +496,9 @@ Test sütunu: o dosyayı doğrudan import eden `tests/` dosyaları (yoksa `—`)
 | Dosya | Satır | Bağımlı olduğu | Kullanan | Test |
 |---|---:|---|---|---|
 | `engine/walls/__init__.py` | 0 | — | — | `unit/test_walls_layered.py` |
-| `engine/walls/base.py` | 541 | `config.codes`, `core.errors`, `core.models.profile`, `core.models.walls`, `core.warning_codes`, `engine.bearing`, `engine.earth_pressure.coefficients`, `engine.earth_pressure.distribution`, `engine.earth_pressure.wedge` | `engine.limit_state`, `engine.walls.global_stability`, `engine.walls.layered`, `engine.walls.walls`, `services.structures`, `services.walls_advanced` +1 | `api/test_contract.py`, `unit/test_shear_key.py`, `unit/test_structures_service.py` +1 |
-| `engine/walls/global_stability.py` | 164 | `config.codes`, `core.models.walls`, `engine.stability`, `engine.walls.base`, `engine.walls.walls` | `engine.limit_state`, `services.structures`, `services.walls_advanced`, `services.walls_basic` | `unit/test_levels.py`, `unit/test_limit_state.py`, `unit/test_walls.py` +1 |
-| `engine/walls/layered.py` | 644 | `core.constants`, `core.errors`, `core.models.profile`, `core.models.structures`, `core.models.walls`, `core.warning_codes`, `engine.bearing`, `engine.earth_pressure.distribution`, `engine.sheet_pile`, `engine.stability`, `engine.walls.base`, `engine.walls.walls`, `services.walls_basic` | `engine.limit_state`, `services.structures` | `api/job_helpers.py`, `unit/test_shear_key.py`, `unit/test_sheet_pile_slope.py` +3 |
+| `engine/walls/base.py` | 544 | `config.codes`, `core.errors`, `core.models.profile`, `core.models.walls`, `core.warning_codes`, `engine.bearing`, `engine.earth_pressure.coefficients`, `engine.earth_pressure.distribution`, `engine.earth_pressure.wedge` | `engine.limit_state`, `engine.walls.global_stability`, `engine.walls.layered`, `engine.walls.walls`, `services.structures`, `services.walls_advanced` +1 | `api/test_contract.py`, `unit/test_shear_key.py`, `unit/test_structures_service.py` +1 |
+| `engine/walls/global_stability.py` | 164 | `config.codes`, `core.models.walls`, `engine.stability`, `engine.walls.base`, `engine.walls.walls` | `engine.limit_state`, `services.structures`, `services.walls_advanced`, `services.walls_basic` | `unit/test_levels.py`, `unit/test_limit_state.py`, `unit/test_shear_key.py` +2 |
+| `engine/walls/layered.py` | 654 | `core.constants`, `core.errors`, `core.models.profile`, `core.models.structures`, `core.models.walls`, `core.warning_codes`, `engine.bearing`, `engine.earth_pressure.distribution`, `engine.sheet_pile`, `engine.stability`, `engine.walls.base`, `engine.walls.walls`, `services.walls_basic` | `engine.limit_state`, `services.structures` | `api/job_helpers.py`, `unit/test_shear_key.py`, `unit/test_sheet_pile_slope.py` +3 |
 | `engine/walls/walls.py` | 142 | `core.models.walls`, `engine.walls.base` | `engine.limit_state`, `engine.walls.global_stability`, `engine.walls.layered`, `services.walls_advanced`, `services.walls_basic` | `unit/test_levels.py`, `unit/test_limit_state.py`, `unit/test_shear_key.py` +2 |
 
 #### `geotek.i18n`
@@ -602,7 +602,7 @@ Test sütunu: o dosyayı doğrudan import eden `tests/` dosyaları (yoksa `—`)
 | `services/report.py` | 524 | `api.registry`, `config.codes`, `core.errors`, `core.models.profile`, `core.models.project`, `core.warning_codes`, `engine.classification`, `engine.classification.robertson`, `engine.classification.uscs`, `engine.classification.uscs_names`, `i18n`, `services`, `services.module1`, `services.structures` | `modules.report.api` | `unit/test_module_report_hook.py`, `unit/test_report_status_guard.py`, `unit/test_t10c_messages.py` |
 | `services/structures.py` | 809 | `config.codes`, `core.errors`, `core.models.profile`, `core.models.project`, `core.models.structures`, `core.models.walls`, `core.warning_codes`, `engine.earth_pressure.coefficients`, `engine.earth_pressure.distribution`, `engine.limit_state`, `engine.sheet_pile`, `engine.walls.base`, `engine.walls.global_stability`, `engine.walls.layered`, `services.walls_advanced`, `services.walls_basic` | `api.app`, `api.calculation_jobs`, `api.calculation_results`, `modules.walls.api`, `services.report` | `api/test_sheet_pile_api.py`, `api/test_structures_api.py`, `api/test_walls_api.py` +5 |
 | `services/walls_advanced.py` | 346 | `config.codes`, `core.constants`, `core.errors`, `core.models.profile`, `core.models.walls`, `engine.limit_state`, `engine.stability`, `engine.walls.base`, `engine.walls.global_stability`, `engine.walls.walls`, `services.walls_basic` | `api.app`, `core.errors`, `engine.limit_state`, `services.structures` | `api/test_codes_api.py`, `api/test_contract.py`, `api/test_jobs_api.py` +3 |
-| `services/walls_basic.py` | 480 | `config.codes`, `core.constants`, `core.errors`, `core.models.profile`, `core.models.walls`, `engine.earth_pressure.coefficients`, `engine.sheet_pile`, `engine.stability`, `engine.walls.base`, `engine.walls.global_stability`, `engine.walls.walls` | `engine.walls.layered`, `services.structures`, `services.walls_advanced` | `api/job_helpers.py`, `api/test_contract.py`, `api/test_sheet_pile_api.py` +8 |
+| `services/walls_basic.py` | 485 | `config.codes`, `core.constants`, `core.errors`, `core.models.profile`, `core.models.walls`, `engine.earth_pressure.coefficients`, `engine.sheet_pile`, `engine.stability`, `engine.walls.base`, `engine.walls.global_stability`, `engine.walls.walls` | `engine.walls.layered`, `services.structures`, `services.walls_advanced` | `api/job_helpers.py`, `api/test_contract.py`, `api/test_sheet_pile_api.py` +8 |
 
 ## 2. Web (`web/src/`)
 

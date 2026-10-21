@@ -75,6 +75,9 @@ class KeySliding:
     """Horizontal actions that load only the block above the key-tip plane: active thrust,
     water and seismic increments between the base and the key bottom, and the inertia of the
     soil beside the key. Fx < 0 drives the wall forward."""
+    uplift: float = 0.0
+    """Extra hydrostatic uplift on the key bottom beyond the base-level uplift, b * (u_tip - u_base), interpolated front to retained
+    [kN/m]; already in the wall forces (kind WA), added back for the key-tip plane, whose ``extra_v`` has it."""
 
 
 @dataclass
@@ -483,7 +486,7 @@ def evaluate_checks(
         if key.deep.drainage == "undrained":
             deep = key.deep.su * b_eff
         else:
-            deep = ((sum_v + key.extra_v) * math.tan(math.radians(key.deep.phi))
+            deep = ((sum_v + key.uplift + key.extra_v) * math.tan(math.radians(key.deep.phi))
                     + key.deep.c * b_eff)
         rb = resist + key.passive.fx
         rd = deep + toe_pp + key.passive.fx
@@ -535,7 +538,7 @@ def overturning_moments(forces, m_res, m_ot, settings):
     """Reclassify only base uplift; the net moment and contact resultant are unchanged."""
     if settings.uplift_moment == "overturning":
         uplift = sum(f.x * f.fy for f in forces
-                     if f.kind == "WA" and f.name == "Uplift" and f.fy > 0 and f.y == 0.0)
+                     if f.kind == "WA" and f.name in ("Uplift", "Key uplift") and f.fy > 0 and f.y == 0.0)
         if uplift:
             return m_res + uplift, m_ot + uplift
     return m_res, m_ot

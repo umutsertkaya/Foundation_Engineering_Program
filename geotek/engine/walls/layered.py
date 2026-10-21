@@ -472,7 +472,12 @@ def _key_sliding_layered(geometry, soil: StructureSoilModel, settings: WallSetti
     if seismic and loads.kh > 0:
         block = (B - key.width) * float(sv[1] - sv[0])
         forces.append(Force("Soil beside key (inertia)", -loads.kh * block, 0.0, B / 2, -key.depth / 2, "EQ"))
-    return KeySliding(key, force, full, arm, reduction, deep, extra_v, forces)
+    # Key-bottom uplift beyond the base-level uplift, interpolated front -> retained at the key centre like the
+    # base uplift trapezoid (the key-tip plane keeps the front-profile ``extra_v``; the difference is put back).
+    _, u_ret, _ = soil.retained_profile().stresses(np.array([H, H + key.depth]), "design")
+    share = sum(key.span(B)) / 2 / B
+    uplift = max(float(key.width * ((u[1] - u[0]) + ((u_ret[1] - u_ret[0]) - (u[1] - u[0])) * share)), 0.0)
+    return KeySliding(key, force, full, arm, reduction, deep, extra_v, uplift=uplift, deep_forces=forces)
 
 
 def _key_zone_forces(geometry, soil: StructureSoilModel, loads: WallLoads, settings: WallSettings,
@@ -584,11 +589,16 @@ def wall_forces_layered(geometry, soil: StructureSoilModel, loads: WallLoads, se
         key = _key_sliding_layered(geometry, selected, settings, loads, seismic=seismic,
                                    backfill_slope=backfill_slope)
         warnings += key_warnings(geometry)
+        if key.uplift > 1e-9:
+            forces.append(Force("Key uplift", 0.0, key.uplift, sum(geometry.key.span(B)) / 2, 0.0, "WA"))
         tip = H + geometry.key.depth
         water = min(selected.front_profile().gwt.depth_for("design"), selected.retained_profile().gwt.depth_for("design"))
         if water < tip:
             warnings.append(format_warning("walls.warning.shear_key_water", depth=round(water, 3)))
     return WallForces(forces, B, geometry.embedment, list(dict.fromkeys(warnings)), key)
+
+
+UPLIFT_NAMES = ('Uplift', 'Key uplift')
 
 
 def _check_forward_loading(forces):
@@ -600,7 +610,7 @@ def _check_forward_loading(forces):
 def _bearing_vertical_load(forces, foundation):
     """Gross V for total-stress bearing; existing contact eccentricity is retained."""
     if foundation.drainage == "undrained":
-        return -sum(f.fy for f in forces if f.name != "Uplift")
+        return -sum(f.fy for f in forces if f.name not in UPLIFT_NAMES)
     return -sum(f.fy for f in forces)
 
 
@@ -623,7 +633,7 @@ def analyze_wall_layered(geometry, soil, loads, settings, *, seismic, backfill_s
     if wf.key is not None:
         attach_without_key([result], [analyze_wall_layered(strip_key(geometry), soil, loads, settings, seismic=seismic,
                                                            backfill_slope=backfill_slope, gwt_case=gwt_case)])
-    if foundation.drainage == "undrained" and any(f.name == "Uplift" for f in forces):
+    if foundation.drainage == "undrained" and any(f.name in UPLIFT_NAMES for f in forces):
         # Keep the existing uplift/contact eccentricity convention. Only bearing
         # V (inclination and demand) uses total stress, without subtracting U.
         if abs(result.eccentricity) < wf.width / 2:
