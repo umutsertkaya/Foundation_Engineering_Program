@@ -96,7 +96,7 @@ Kaynak: Umut'un cihazındaki tam metin md dönüşümü (`docs/research/Youd.et.
   değerleri yalnız öneri (Kullan düğmesi), eksik girdi listesi, kodlu durdurma/uyarı/varsayım çevirisi TR/EN, güncel/eski/sonuç yok rozeti,
   ölçekli kesit çizimi (serbest/kök boyu) ve moment/kesme grafikleri. Rapor: `anchored_wall:analysis` ve `anchored_wall:anchor` bölümleri
   (`report_entries`/`report_writer`, stale ise rapor reddedilir). Gerçek API ile elle gözle kontrol yapılmadı; ekran testleri mock üzerinde.
-  Test (2026-10-21): pytest tam 1962 geçti; Vitest 343 geçti; tsc ve `npm run build` başarılı; `gen_code_map.py --check` 0. Sıradaki: G8 entegrasyon.
+  Test (2026-10-21): pytest tam 1963 geçti (1 test sabiti güncellendikten sonra ilgili dosyalar yeniden koşuldu); Vitest 343 geçti; tsc ve `npm run build` başarılı; `gen_code_map.py --check` 0. Sıradaki: G8 entegrasyon.
 
 Her kayıt tarih, kapsam ve gerçek sonuç taşır; eski sayı güncel başarı diye kullanılmaz.
 
