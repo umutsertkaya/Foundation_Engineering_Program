@@ -130,7 +130,7 @@
   "sheet_pile.assumption.sheet_pile.support_method": "Cantilever Blum embedment increased by {percent}%; free-earth support for anchored walls",
   "sheet_pile.assumption.sheet_pile.depth_increase": "Embedment increase: {increase}; D = D0 × (1 + increase)",
   "sheet_pile.assumption.sheet_pile.front_water_depth": "Front groundwater overridden to {depth} m below the top; the same level is used for design and seismic cases",
-  "sheet_pile.assumption.sheet_pile.seismic": "r={r}; uniform M-O increment over H (resultant at H/2), below the dredge line the layer-local M-O increment continues on the embedded part (Ebeling & Morrison 1992); passive M-O/Rankine ratio at most {passive_ratio_max} per layer; undrained seismic analysis stopped; no hydrodynamic or excess pore pressure",
+  "sheet_pile.assumption.sheet_pile.seismic": "r={r}; KDYY handbook seismic increment: uniform 0.5 dK_ad sigma'v(toe) over the wall length 0..toe plus a triangular surcharge part 2 q dK_ad (1 - z/toe), toe depth found by iteration; passive M-O/Rankine ratio at most {passive_ratio_max} per layer; undrained seismic analysis stopped; no hydrodynamic or excess pore pressure",
   "sheet_pile.assumption.sheet_pile.governing_cases": "Embedment and toe force: {embedment}; moment, curves and section modulus: {moment}; anchor force: case envelope.",
   "sheet_pile.assumption.sheet_pile.anchor_geometry": "Anchor load = wall force × spacing / cos(inclination); spacing {spacing} m, inclination {inclination}°",
   "sheet_pile.assumption.sheet_pile.mock": "Mock result (not a calculation)",

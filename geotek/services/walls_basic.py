@@ -454,23 +454,21 @@ def design_sheet_pile_basic(inp: BasicSheetPileInput) -> BasicSheetPileResult:
             warnings.append("Drenajsız zeminde deprem etkisi temel seviyede hesaplanmadı; ileri seviye kullanın")
         else:
             kh, kv = tbdy_seismic_coefficients(inp.sds, TBDY_R["anchored_or_rigid"])
-            g_eff = inp.gamma if inp.gwt_depth >= H else inp.gamma_sat - GAMMA_W if inp.gamma_sat else inp.gamma
             if beta:  # Rankine-slope baseline = Coulomb with delta = beta; horizontal component K cos(beta)
                 dK = ((1 - kv) * mononobe_okabe_kae(inp.phi, delta=beta, beta=beta, kh=kh, kv=kv)
                       - rankine_ka(inp.phi, beta)) * math.cos(math.radians(beta))
             else:
                 dK = mononobe_okabe_kae(inp.phi, kh=kh, kv=kv) * (1 - kv) - rankine_ka(inp.phi)
-            # uniform over H, resultant at H/2; the surcharge part dK q H is included (structure path too)
-            kw["seismic_increment"] = dK * (0.5 * g_eff * H**2 + kw["surcharge"] * H) / H
-            kw["seismic_increment_below"] = max(dK, 0.0)  # M-O increment on the embedded part too
+            # KDYY handbook: uniform 0.5 dK sigma'v(toe) over the whole wall plus a triangular surcharge part
+            kw["seismic_dk"] = max(dK, 0.0)
             kw["passive_seismic_ratio"] = min(1.0, mononobe_okabe_kpe(inp.phi, kh=kh, kv=kv) * (1 - kv)
                                               / rankine_kp(inp.phi))
             assumptions += [
                 Assumption(text=f"k_h = 0.4·S_DS/r = {kh:.3f}, r = 1.0 (palplanş/ankrajlı)", source=SRC_TBDY_SEISMIC),
-                Assumption(text="Dinamik aktif artım (M-O) kazı yüksekliği boyunca düzgün, bileşke H/2'de; "
-                                "kazı tabanı altında ΔK_AE·σ′v olarak gömülü boyca sürer; "
-                                "pasif K_PE/K_P oranıyla azaltıldı",
-                           source=SRC_TBDY_SEISMIC + "; Mononobe-Okabe; Ebeling & Morrison (1992)"),
+                Assumption(text="Dinamik aktif artım KDYY el kitabı dağılımıyla: duvar boyunca (0..uç) düzgün "
+                                "½·ΔK_ad·σ′v(uç) ile sürşarj için üçgen 2·q·ΔK_ad·(1−z/uç); uç derinliği "
+                                "yinelemeyle bulunur; pasif K_PE/K_P oranıyla azaltıldı",
+                           source=SRC_TBDY_SEISMIC + "; KDYY el kitabı (AASHTO 2010; Kumbasar & Kip)"),
             ]
     if inp.support == "cantilever":
         res = cantilever_sheet_pile(profile, H, depth_increase=0.2, **kw)

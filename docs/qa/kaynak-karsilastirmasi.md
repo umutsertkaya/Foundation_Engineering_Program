@@ -80,13 +80,14 @@ Büyüklük doğru; arayüzde "uç kuvveti (karşı kuvvet) |R|" olarak mutlak d
 **A1 (uygulandı, 2026-10-21).** İnce daneli (drenajsız, Q) pasifte temel palplanş yolu ve yapı yolu artık FS = 2.0
 (EM 2504 Tablo 5-1, olağan); `asd.yaml` → `sheet_pile_passive_fine` (statik 2.0, deprem 1.5). Drenajsız pasifte FS yine
 kuvvete uygulanır (σ_v + 2s_u)/FS; EM'in "yalnız s_u'ya FS" biçimi uygulanmadı.
-**A2 (sonraki adım; kod `wip/kdyy-seismic` dalında, birleştirilmedi).** KDYY dağılımıyla karşılaştırma programı güvensiz buldu
-(φ = 32°, k_h = 0.2: konsol D0 8.37 m yerine 9.30 m, M_max 624 yerine 974 kNm/m; ankrajlı T 80.4 yerine 90.7 kN/m, %5–29).
-Dalda: ½·ΔK_ad·σ′v(uç) düzgün + sürşarj için 2·q·ΔK_ad·(1−z/uç) üçgen, uç derinliği sabit nokta yinelemesiyle
-(`net_pressure(seismic_dk, seismic_toe)`, `structures._sheet_case`). Hedefli testler geçti (158 + 4); eksikler: tam test,
-CLAUDE.md'nin istediği iki bağımsız salt okuma incelemesi, kullanıcıya formül özeti, i18n varsayım metinleri
-(`sheet_pile.assumption.sheet_pile.seismic`), eski H/2 düzgün artım testlerinin güncellenmesi.
-**Şev yön kontrolü (sonraki adım).** `bishop` yalnız kayan kütle −x yönüne hareket ediyorsa doğru m_α kuralını uygular;
+**A2 (uygulandı, 2026-10-21).** Palplanş deprem artımı KDYY el kitabı dağılımına geçti: ½·ΔK_ad·σ′v(uç) düzgün (0..uç) + sürşarj için
+2·q·ΔK_ad·(1−z/uç) üçgen; ΔK_ad = (1−k_v)K_AE − K_A,statik; uç derinliği sabit nokta yinelemesiyle (`net_pressure(seismic_dk,
+seismic_toe)`, `_iterate_toe`, `structures._sheet_case`). Neden: eski H üstü düzgün + altı ΔK·σ′v dağılımı KDYY'ye göre güvensizdi
+(φ = 32°, k_h = 0.2: konsol D0 8.37 → 9.30 m, M_max 624 → 974 kNm/m; ankrajlı T 80.4 → 90.7 kN/m). El hesabı (φ = 30°, γ = 18,
+H = 5, q = 10, k_h = 0.2, k_v = 0.1, uç 8 m): ΔK_ad = 0.9·0.49266 − 0.33333 = 0.1101; artım z = 0'da 10.125, z = 5'te 8.750,
+z = 8'de 7.924 kPa, uçtan aşağıda 0. Bağımsız salt okuma inceleme (Opus, medium): formül, yineleme (denge kalıbı < 0.1 kNm) ve
+temel/yapı yolu uyumu (1e-12) doğrulandı. Açık: ΔK_ad KDYY örneğiyle birebir doğrulanmadı (TBDY 16.12.2.4 metni yok).
+**Şev yön kontrolü (ayrı PR).** `bishop` yalnız kayan kütle −x yönüne hareket ediyorsa doğru m_α kuralını uygular;
 ters yönlü geometride sin α < 0 dilimi olmayan daire m_α'yı olduğundan yüksek (güvensiz) verir. Önerilen: `bishop`'ta
 çıkış tarafı dilimi yoksa (min sin α ≥ 0) daireyi reddet ve `SlopeModel` için yüzey eğimi yönü denetimi + hata testi.
 `tbdy_kae_steep` β: `SlopeError` ile β ≥ φ′ − ψ durumunda durduruluyor, değişiklik gerekmedi. `toe_force`: konsol için

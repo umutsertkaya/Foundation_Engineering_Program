@@ -130,7 +130,7 @@
   "sheet_pile.assumption.sheet_pile.support_method": "Konsolda Blum gömülmesi %{percent} artırılır; ankrajlıda serbest zemin desteği",
   "sheet_pile.assumption.sheet_pile.depth_increase": "Gömülme artışı: {increase}; D = D0 × (1 + artış)",
   "sheet_pile.assumption.sheet_pile.front_water_depth": "Ön YASS üstten {depth} m olarak geçersiz kılındı; tasarım ve deprem durumlarında aynı seviye kullanılır",
-  "sheet_pile.assumption.sheet_pile.seismic": "r={r}; M-O artımı H boyunca düzgün (bileşke H/2), kazı tabanı altında katman bazında M-O artımı gömülü boyca sürer (Ebeling & Morrison 1992); katman başına pasif M-O/Rankine oranı en çok {passive_ratio_max}; drenajsız deprem durdurulur; hidrodinamik ve fazla boşluk suyu basıncı yok",
+  "sheet_pile.assumption.sheet_pile.seismic": "r={r}; KDYY dinamik artımı: duvar boyunca (0..uç) düzgün ½·ΔK_ad·σ′v(uç) + sürşarj için üçgen 2·q·ΔK_ad·(1−z/uç), uç derinliği yinelemeyle; katman başına pasif M-O/Rankine oranı en çok {passive_ratio_max}; drenajsız deprem durdurulur; hidrodinamik ve fazla boşluk suyu basıncı yok",
   "sheet_pile.assumption.sheet_pile.governing_cases": "Gömülme ve uç kuvveti: {embedment}; moment, eğriler ve kesit modülü: {moment}; ankraj kuvveti: durum zarfı.",
   "sheet_pile.assumption.sheet_pile.anchor_geometry": "Ankraj yükü = duvar kuvveti × aralık / cos(eğim); aralık {spacing} m, eğim {inclination}°",
   "sheet_pile.assumption.sheet_pile.mock": "Örnek sonuç (hesap değildir)",
