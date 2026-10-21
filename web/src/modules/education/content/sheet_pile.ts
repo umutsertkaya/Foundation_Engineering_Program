@@ -203,10 +203,10 @@ export const topic: Topic = {
     },
     {
       type: "formula",
-      expr: "p_pasif,tasarım = p_pasif / GS      (GS = passive_factor)",
+      expr: "p_pasif,tasarım = min( p_pasif / GS ,  p_pasif(tanφ′ / GS, c′ / GS) )      (global FS yolu)",
       caption: {
-        tr: "Pasif direnç güvenlik faktörü. Tasarım kodunda GS, seçilen yönteme göre (EC7 γR,e veya LRFD φ, global FS) değişir; kod 1,0 altındaki GS'yi reddeder.",
-        en: "Passive resistance factor. Its value depends on the design code; the engine rejects passive_factor < 1.",
+        tr: "Pasif direnç güvenlik faktörü. Global FS yolunda pasif basınç, kuvvetin GS'ye bölünmesi ile dayanımın (tanφ′ ve c′) GS'ye bölünerek yeniden hesaplanan pasif basıncının küçüğüdür (USACE EM 1110-2-2504, par. 5-2d, Tablo 5-1); φ′ ≥ 35° için ikincisi küçük kalır. Kısmi katsayı yolunda (EC7 γR;e, KDYY γRe) yalnız kuvvet bölünür. İnce daneli, drenajsız (Q) pasifte olağan GS 2,0'dır. Kod 1,0 altındaki GS'yi reddeder.",
+        en: "Passive resistance factor. On the global-FS path the passive pressure is the smaller of the force divided by GS and the passive pressure recomputed with tan(phi') and c' divided by GS (USACE EM 1110-2-2504 par. 5-2d, Table 5-1); the second governs for phi' >= 35 deg. On the partial-factor path (EC7 gamma R;e, KDYY gamma Re) only the force is divided. For fine-grained undrained (Q) passive the ordinary GS is 2.0. The engine rejects GS < 1.",
       },
     },
     {

@@ -1,4 +1,5 @@
 import { useId, type ReactNode } from "react";
+import { useTranslation } from "react-i18next";
 
 /** Drawing kit for the education figures: 640x400 canvas, soil/concrete hatching, dimension lines, force arrows. */
 export const W = 640;
@@ -165,7 +166,7 @@ export function Chart(p: {
             </g>
           ))}
           {p.series.filter((s) => s.label).map((s, i) => (
-            <g key={`l${i}`}><Ln x1={R - 190} y1={T0 + 16 + i * 20} x2={R - 160} y2={T0 + 16 + i * 20} c={s.c} w={3} d={s.d} /><Tx x={R - 154} y={T0 + 20 + i * 20}>{s.label}</Tx></g>
+            <g key={`l${i}`}><Ln x1={R - 250} y1={T0 + 16 + i * 20} x2={R - 220} y2={T0 + 16 + i * 20} c={s.c} w={3} d={s.d} /><Tx x={R - 214} y={T0 + 20 + i * 20}>{s.label}</Tx></g>
           ))}
           {p.extra?.(sx, sy, c)}
         </>
@@ -175,3 +176,12 @@ export function Chart(p: {
 }
 
 export const linspace = (a: number, b: number, n: number) => Array.from({ length: n + 1 }, (_, i) => a + ((b - a) * i) / n);
+
+/** Picks the Turkish or English label for figure text; `t.n` formats a number with the locale decimal separator. */
+export function useT() {
+  const { i18n } = useTranslation();
+  const en = (i18n.language ?? "tr").startsWith("en");
+  const t = (tr: string, e: string) => (en ? e : tr);
+  t.n = (v: number, d = 2) => (en ? v.toFixed(d) : v.toFixed(d).replace(".", ","));
+  return t;
+}

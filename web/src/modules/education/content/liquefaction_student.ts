@@ -33,8 +33,8 @@ export const student: Block[] = [
     type: "figure",
     id: "liq-mechanism",
     caption: {
-      tr: "Üç aşamalı şema, tek bir doygun kum elemanı için. (I) Sakin durum: taneler birbirine temas eder, σ' büyük ve u küçüktür; oklar tanelerin temas kuvvetini gösterir. (II) Deprem sırasında: tekrarlı kayma ile taneler birbirinden biraz uzaklaşır ve boşluk suyu basıncı u artar; ok uzunluklarındaki temas kuvveti azalır ve u çubuğu toplam gerilmeye doğru büyür. (III) Sıvılaşma anı: u ≈ σ, σ' ≈ 0; taneler birbirine değmez ve su içinde yüzer gibi görünür. Her aşamanın altında σ = σ' + u bağıntısı ve çubukların değerleri (σ, u, σ') yazılmalıdır. Şemada toplam gerilmenin sabit kaldığı, u ile σ' arasındaki paylaşımın değiştiği gösterilmelidir.",
-      en: "Three-stage schematic for one saturated sand element: (I) at rest, grains touch, sigma' large, u small; (II) during shaking, grains separate, u rises toward sigma; (III) at liquefaction, sigma' approximately 0. Bars show sigma, u and sigma' with sigma = sigma' + u in each stage.",
+      tr: "Doygun kum elemanının üç aşaması. (1) Sarsıntıdan önce taneler birbirine temas eder, boşluk suyu basıncı u hidrostatiktir. (2) Sarsıntıda u artar, temas gerilmesi azalır. (3) u toplam gerilmeye yaklaşır, σ′ = σ − u → 0 olur ve zemin sıvı gibi davranır. Sağdaki borular piezometredir.",
+      en: "Three stages of a saturated sand element. (1) Before shaking the grains are in contact and the pore pressure u is hydrostatic. (2) During shaking u rises and the contact stress falls. (3) u approaches the total stress, so σ′ = σ − u → 0 and the soil behaves like a liquid. The tubes on the right are piezometers.",
     },
   },
   {
@@ -98,8 +98,8 @@ export const student: Block[] = [
     type: "figure",
     id: "liq-rd-depth",
     caption: {
-      tr: "Derinliğe karşı r_d eğrileri: Youd 2001 (0-30 m) tek bir çizgi olarak ve BI2014 (0-34 m) M = 6,5, 7,5 ve 8,5 için üç ayrı eğri olarak çizilmelidir. Youd eğrisi dört bölümlü ve sürekli olmalıdır; 9,15 m ve 23 m dönüm noktaları işaretlenmelidir. BI2014 eğrileri büyüklükle yukarı kayar, yani büyük depremde aynı derinlikte r_d daha küçüktür.",
-      en: "r_d versus depth for Youd 2001 (0-30 m) and BI2014 (0-34 m) at M 6.5, 7.5 and 8.5; Youd breakpoints at 9.15 and 23 m marked.",
+      tr: "Gerilme azaltma katsayısı r_d derinlikle azalır. Mavi çizgi Youd vd. (2001) (0-30 m), kesikli çizgiler Boulanger-Idriss (2014) (M = 6,5; 7,5; 8,5). Aynı derinlikte büyük depremde r_d daha küçüktür.",
+      en: "The stress reduction coefficient r_d decreases with depth. Blue: Youd et al. (2001), 0-30 m. Dashed: Boulanger-Idriss (2014) for M = 6.5, 7.5 and 8.5. At the same depth a larger earthquake gives a smaller r_d.",
     },
   },
   {
@@ -149,8 +149,8 @@ export const student: Block[] = [
     type: "figure",
     id: "liq-spt-correlation",
     caption: {
-      tr: "Yatay eksen (N1)60, dikey eksen CRR7,5. Üç eğri çizilmelidir: FC = 5 %, 15 % ve 35 % için Youd 2001 (N1)60cs = α + β (N1)60 dönüşümünden sonra CRR7,5 eğrisi. Eğriler, aynı (N1)60 için FC arttıkça yukarı (ve sola) kaydığını göstermelidir. Üstteki kesikli çizgi (N1)60cs = 30 yoğun sınırını işaretlemelidir; bu sınırın ötesinde eğri yerine 'yoğun' etiketi okunmalıdır. Eksen değerleri kavramsal ölçektir ve tabloda verilen sayısal örneği (FC = 10 %, (N1)60 = 12 → CRR7,5 ≈ 0,142) noktası olarak işaretlenmelidir.",
-      en: "CRR7.5 versus (N1)60 for FC 5, 15 and 35 percent through the Youd (N1)60cs transform; dashed line at (N1)60cs = 30 marks the dense limit; example point (12, 0.142) at FC 10 percent.",
+      tr: "CRR7,5 ile düzeltilmiş (N1)60 ilişkisi. İnce dane oranı FC arttıkça aynı (N1)60 için direnç artar, eğri yukarı kayar. Turuncu kesikli çizgi (N1)60cs = 30 yoğun sınırıdır; bunun ötesinde FS hesaplanmaz.",
+      en: "CRR7.5 versus corrected (N1)60. A higher fines content FC raises the resistance for the same (N1)60, shifting the curve upward. The orange dashed line is the dense limit (N1)60cs = 30; beyond it no FS is computed.",
     },
   },
   {
@@ -214,8 +214,8 @@ export const student: Block[] = [
     type: "figure",
     id: "liq-msf-curve",
     caption: {
-      tr: "Yatay eksen M (5,0 - 8,5), dikey eksen MSF (0,5 - 2,0 arası). Üç eğri gösterilmelidir: Youd idriss (sürekli), andrus_stokoe (kesikli) ve M = 7,5'te MSF = 1 noktası işaretli yatay referans. Idriss eğrisi M = 6,5'te yaklaşık 1,44, M = 8,5'te yaklaşık 0,73 vermelidir. Andrus-Stokoe eğrisi M < 7,5 için idriss'ten yüksek, M > 7,5 için düşük olmalıdır; kod bu fark için M > 7,5'te uyarı verir.",
-      en: "MSF versus M from 5.0 to 8.5: Youd idriss (solid), Andrus-Stokoe (dashed), reference point at M 7.5 with MSF 1; idriss gives about 1.44 at M 6.5 and 0.73 at M 8.5.",
+      tr: "Deprem büyüklüğü ölçekleme faktörü MSF, M = 7,5'te 1'dir. Mavi: Idriss; kırmızı kesikli: Andrus-Stokoe. M < 7,5'te MSF > 1, M > 7,5'te MSF < 1 olur.",
+      en: "Magnitude scaling factor MSF equals 1 at M = 7.5. Blue: Idriss; red dashed: Andrus-Stokoe. MSF > 1 for M < 7.5 and < 1 for M > 7.5.",
     },
   },
   {
@@ -265,16 +265,16 @@ export const student: Block[] = [
     type: "formula",
     expr: "LPI = ∫₀²⁰ F(z) · w(z) dz,   F = 1 − FS (FS < 1),  0 (aksi halde),   w(z) = 10 − 0,5 z",
     caption: {
-      tr: "Iwasaki LPI. Programda integral, her test noktası için 'tributary' (paylaşılan) aralıklarla toplanır: her nokta, komşu noktaların ortasına kadar uzanan bir aralığı temsil eder ve aralığın ağırlıklı integrali doğrudan hesaplanır (kodda w'nin tam integrali: 10 (b − a) − 0,25 (b² − a²)).",
-      en: "Iwasaki LPI as implemented: tributary intervals with the exact integral of w.",
+      tr: "Iwasaki LPI. Programda integral, her test noktası için 'tributary' (paylaşılan) aralıklarla toplanır: her nokta, komşu noktaların ortasına kadar uzanan bir aralığı temsil eder ve aralığın ağırlıklı integrali doğrudan hesaplanır (kodda w'nin tam integrali: 10 (b − a) − 0,25 (b² − a²)). İlk test noktası 2 m veya daha sığsa, ilk aralık yüzeye kadar uzatılır (yeraltı suyu derinliği biliniyorsa en fazla o derinliğe kadar), çünkü ağırlığı en yüksek olan üst tabakayı atlamak güvensiz tarafta kalırdı.",
+      en: "Iwasaki LPI as implemented: each test point represents a tributary interval, and the weighted integral is computed exactly (the integral of w is 10 (b - a) - 0.25 (b^2 - a^2)). If the first test point is at 2 m or shallower, its interval is extended up to the ground surface (at most up to the groundwater depth when known), because dropping the heavily weighted top layer would be unsafe.",
     },
   },
   {
     type: "figure",
     id: "liq-lpi-weight",
     caption: {
-      tr: "Yatay eksen w(z) (0-10), dikey eksen derinlik z (0-20 m, aşağı doğru artan, yüzey üstte). Çizgi w(z) = 10 − 0,5 z'yi göstermelidir: yüzeyde 10, 20 m'de 0. Eğrinin altındaki alan, z = 0-20 m için w'nin integralidir ve yatay şerit ya da gölgelendirme ile işaretlenmelidir. Dört test noktası için (z = 2, 4, 6, 8 m) her biri kendi 'paylaşılan' aralığı ile ayrı bir renkte gösterilmeli (1-3, 3-5, 5-7, 7-9 m); aralık sınırları ve her aralığın w-integrali (18, 16, 14, 12) etiketlenmelidir. 0-1 m aralığı boş bırakılır; bu, kodun davranışıdır ve figürde not olarak yazılmalıdır.",
-      en: "w(z) = 10 - 0.5z versus depth (0-20 m), with the four tributary intervals (1-3, 3-5, 5-7, 7-9 m) shaded and their integrals 18, 16, 14, 12 labelled; the 0-1 m zone is not counted.",
+      tr: "Ağırlık w(z) = 10 − 0,5 z, yüzeyde 10, 20 m'de 0. Örnek 2'nin dört paylaşılan aralığı (0-3, 3-5, 5-7, 7-9 m) çizgi ile eksen arasında gösterilir; turuncu aralıklarda FS < 1 olduğu için F = 1 − FS katkı verir, gri aralık (FS ≥ 1) katkı vermez. İlk aralık, ilk test noktası 2 m olduğu için yüzeye uzatılmıştır.",
+      en: "Weight w(z) = 10 - 0.5 z: 10 at the surface, 0 at 20 m. The four tributary intervals of Example 2 (0-3, 3-5, 5-7, 7-9 m) are shaded between the line and the axis; orange intervals have FS < 1 and contribute F = 1 - FS, the grey interval (FS >= 1) does not. The first interval is extended to the surface because the first test point is at 2 m.",
     },
   },
   {
@@ -286,18 +286,18 @@ export const student: Block[] = [
       { tr: "w(z) = 10 − 0,5 z", en: "w(z) = 10 - 0.5 z" },
     ],
     steps: [
-      { label: { tr: "Paylaşılan aralıklar (orta noktalara göre)", en: "Tributary intervals" }, expr: "[1, 3], [3, 5], [5, 7], [7, 9] m  (ilk aralık 2 − 1 = 1 m'den başlar)", result: "4 aralık" },
+      { label: { tr: "Paylaşılan aralıklar (orta noktalara göre)", en: "Tributary intervals" }, expr: "[0, 3], [3, 5], [5, 7], [7, 9] m  (ilk nokta 2 m ≤ 2 m: ilk aralık yüzeye uzatılır)", result: "4 aralık" },
       { label: { tr: "F = 1 − FS", en: "F = 1 - FS" }, expr: "F = 0,1 ; 0,3 ; 0 (FS ≥ 1) ; 0,2", result: "0,1 / 0,3 / 0 / 0,2" },
-      { label: { tr: "w-integrali: ∫(10 − 0,5z) dz = 10 (b − a) − 0,25 (b² − a²)", en: "Integral of w" }, expr: "[1,3]: 20 − 0,25·8 = 18;  [3,5]: 20 − 0,25·16 = 16;  [5,7]: 20 − 0,25·24 = 14;  [7,9]: 20 − 0,25·32 = 12", result: "18 / 16 / 14 / 12" },
-      { label: { tr: "Her aralığın F × w katkısı", en: "Contribution per interval" }, expr: "0,1·18 + 0,3·16 + 0·14 + 0,2·12 = 1,8 + 4,8 + 0 + 2,4", result: "9,0" },
-      { label: { tr: "LPI ve kategori", en: "LPI and category" }, expr: "LPI = 9,0 ; 5 < 9,0 ≤ 15", result: "yüksek (high)" },
+      { label: { tr: "w-integrali: ∫(10 − 0,5z) dz = 10 (b − a) − 0,25 (b² − a²)", en: "Integral of w" }, expr: "[0,3]: 30 − 0,25·9 = 27,75;  [3,5]: 20 − 0,25·16 = 16;  [5,7]: 20 − 0,25·24 = 14;  [7,9]: 20 − 0,25·32 = 12", result: "27,75 / 16 / 14 / 12" },
+      { label: { tr: "Her aralığın F × w katkısı", en: "Contribution per interval" }, expr: "0,1·27,75 + 0,3·16 + 0·14 + 0,2·12 = 2,775 + 4,8 + 0 + 2,4", result: "9,975" },
+      { label: { tr: "LPI ve kategori", en: "LPI and category" }, expr: "LPI = 9,975 ; 5 < 9,975 ≤ 15", result: "yüksek (high)" },
     ],
     program: {
       input: "Test derinlikleri [2, 4, 6, 8] m; FS = [0,9; 0,7; 1,2; 0,8]; w(z) = 10 − 0,5 z; LPI fonksiyonu: liquefaction_potential_index(depth, fs) (common.py)",
-      output: "LPI = 9.0; kategori: high; paylaşılan aralıklar [1,3], [3,5], [5,7], [7,9] m",
+      output: "LPI = 9.975; kategori: high; paylaşılan aralıklar [0,3], [3,5], [5,7], [7,9] m (ilk aralık yüzeye uzatılmış)",
       note: {
-        tr: "Elle hesap ile program sonucu aynıdır (fark yok). Dikkat: programda 0-1 m aralığı LPI'ya girmez, çünkü ilk aralığın üst sınırı z_1 − Δz/2 = 1 m'den başlar. Bu, kodun gözlemlenen davranışıdır; ilk test derinliği yüzeye daha yakınsa ilk aralık daha da büyür ve bu kısım dahil edilir. Sığ tabakanın önemi düşünülüyorsa ilk test noktası yüzeye yakın bir derinlikte alınmalıdır.",
-        en: "Hand and program agree. The 0-1 m zone is not counted because the first interval starts at z1 - dz/2.",
+        tr: "Elle hesap ile program sonucu aynıdır (9,975). 2 m'deki ilk nokta, ilk aralığı z = 0'a kadar uzatır; bu düzeltmeden önce program 0-1 m'yi hiç saymıyor ve 9,0 veriyordu (güvensiz taraf). Uzatma eşiği (ilk nokta ≤ 2 m) kaynaktan gelmez, programın bir seçimidir; yeraltı suyu derinliği biliniyorsa uzatma o derinlikte durur, çünkü suyun üstündeki zemin sıvılaşabilir sayılmaz.",
+        en: "Hand and program agree (9.975). The first point at 2 m extends the first interval to z = 0; before this correction the program skipped 0-1 m and returned 9.0 (unsafe side). The 2 m threshold is a program choice, not from a source; when the groundwater depth is known the extension stops there.",
       },
     },
   },
@@ -328,8 +328,8 @@ export const student: Block[] = [
     type: "figure",
     id: "liq-csr-crr",
     caption: {
-      tr: "Derinliğe karşı CSR ve CRR eğrileri (aynı sahada). Youd ve BI2014 CRR'ları için iki ayrı çizgi, CSR için tek bir çizgi çizilmelidir. Her derinlikte FS = CRR / CSR ilişkisi, CRR ve CSR çizgilerinin kesişimi ile okunabilmelidir. FS = 1 çizgisi işaretlenmeli, bu çizginin altında kalan derinlikler sıvılaşabilir bölge olarak gölgelenmelidir.",
-      en: "CSR and CRR versus depth for Youd and BI2014 on the same site; FS = 1 line and liquefiable zone shaded.",
+      tr: "Aynı sahada derinliğe göre CSR (talep, kırmızı) ve CRR (direnç, mavi). CRR'nin CSR'nin altına düştüğü gölgeli bölge FS < 1, yani sıvılaşma beklenen derinliklerdir; sıkı kum tabakasında CRR yüksektir (şematik).",
+      en: "CSR (demand, red) and CRR (resistance, blue) versus depth at one site. Where CRR falls below CSR (shaded) FS < 1 and liquefaction is expected; the dense sand layer has a high CRR (schematic).",
     },
   },
 
@@ -366,8 +366,8 @@ export const student: Block[] = [
     type: "figure",
     id: "liq-fs-profile",
     caption: {
-      tr: "Derinliğe göre FS profili: yatay eksen FS (0-2), dikey eksen derinlik (0-20 m, yüzey üstte). Her nokta durumuna göre renklendirilmelidir: sıvılaşabilir (FS < 1), marjinal (1 ≤ FS < 1,1), güvenli (FS ≥ 1,1), ve FS'si olmayan durumlar (GWT üstü, kil benzeri, yoğun, dışlanmış) ayrı bir işaretle gösterilmelidir. Grafiğin köşesinde LPI değeri (örnek için 9,0) ve tehlike kategorisi (yüksek) yazılmalıdır. FS = 1 ve FS = 1,1 yatay referans çizgileri işaretlenmelidir.",
-      en: "FS versus depth with status colours (liquefiable, marginal, safe, and no-FS statuses), LPI value and category label; reference lines at FS 1 and 1.1.",
+      tr: "Derinliğe göre FS profili (şematik). Kırmızı noktalar FS < 1 (sıvılaşabilir), turuncu marjinal, yeşil güvenli. Kırmızı kesikli çizgi FS = 1'dir; solundaki gölgeli bölge sıvılaşma bölgesidir.",
+      en: "FS profile with depth (schematic). Red points have FS < 1 (liquefiable), orange are marginal, green are safe. The red dashed line is FS = 1; the shaded region to its left is the liquefaction zone.",
     },
   },
 
@@ -384,7 +384,7 @@ export const student: Block[] = [
       { tr: "M'yi 7,5 olarak sabit almak ve MSF'yi unutmak: büyük bir depremde CRR'yi MSF ile çarpmadan FS hesaplamak yanlış sonuç verir.", en: "Skipping MSF for a magnitude other than 7.5." },
       { tr: "Youd'da FC'yi girmemek ya da varsayılan bir değer kullanmak: program Youd SPT yolunda FC'yi kendiliğinden varsaymaz; FC açıkça girilmelidir.", en: "Leaving FC undefined in the Youd SPT path." },
       { tr: "N ≥ 30 (Youd) ya da q_c1Ncs ≥ 160 noktalarını sıvılaşmaz diye geçmek yerine FS'yi hesaplamaya çalışmak: bu noktalarda FS yoktur, 'yoğun' olarak işaretlenir.", en: "Trying to compute FS where the point is dense." },
-      { tr: "LPI'yı 0-20 m tam integrali sanmak ya da 0-1 m aralığını dahil edilmiş varsaymak: programda paylaşılan aralıklar kullanılır ve ilk aralık z_1 − Δz/2'den başlar.", en: "Assuming LPI includes 0-1 m." },
+      { tr: "LPI'yı her derinlikte sürekli ölçülmüş sanmak: LPI yalnız test noktalarından, her noktanın paylaşılan aralığıyla toplanır. İlk nokta 2 m'den derinse, noktanın üstündeki tabaka hesaba girmez; sığ tabakanın önemi varsa yüzeye yakın bir test noktası alın.", en: "Treating LPI as measured continuously: it is summed from the test points only. If the first point is deeper than 2 m, the layer above it is not counted; take a shallow test point if the top layer matters." },
       { tr: "FS < 1 olan tabakaları LPI'da hesaba katıp, FS'yi 1'den büyük ama hedef altında (marjinal) olanları ihmal etmek: marjinal bölge bir belirsizlik bandıdır ve sonucu tersine çevirebilir.", en: "Ignoring marginal FS between 1 and the target." },
       { tr: "Youd ve BI2014 sonuçlarını doğrudan karşılaştırmak, girdileri farklı olduğu halde: iki yöntemi aynı girdiyle çalıştırmadan fark yorumlanmamalıdır.", en: "Comparing methods with different inputs." },
     ],

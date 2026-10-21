@@ -21,7 +21,8 @@ export const student: Block[] = [
     type: "figure",
     id: "slp-slip-circle",
     caption: {
-      tr: "Dairesel kayma yüzeyi kesidi: bir yamaç (sağa doğru yükselen, toe solda, kret sağda) ve kesikli bir daire. Dairenin merkezi (x_c, y_c) noktası ve yarıçap R etiketli olsun. Daire, yüzeyle giriş (x_giriş, sağ tarafta kretin üstünde) ve çıkış (x_çıkış, toe'da) noktalarında kesişsin ve bu noktalar işaretlensin. Kayan kütlenin hareket yönü sol (−x) yönünde ok ile gösterilsin. Üst kısımda 'güvenlik sayısı FS = direnç / sürükleyici' kutusu bulunsun.",
+      tr: "Dairesel kayma yüzeyi: merkez O, yarıçap R. Kayan kütle sola (şev ayağına) hareket eder; FS = direnç momenti / itici moment = (τ_f·L·R) / (W·d), burada L yay uzunluğu, W kütlenin ağırlığı, d ağırlığın O'ya göre yatay koludur.",
+      en: "Circular slip surface: centre O, radius R. The sliding mass moves to the left (toward the toe); FS = resisting moment / driving moment = (τ_f·L·R) / (W·d), with L the arc length, W the weight of the mass and d the horizontal arm of the weight about O.",
     },
   },
   {
@@ -52,7 +53,8 @@ export const student: Block[] = [
     type: "figure",
     id: "slp-bishop-slice",
     caption: {
-      tr: "Tek bir dilimin kuvvetleri (büyütülmüş ayrıntı): dairesel taban üzerinde bir dilim; dilimin genişliği b, yüksekliği h etiketli. Ağırlık W dikey ok, taban normal kuvveti N' (efektif) taban normaline dik ok, taban kayma direnci c·b ve sürtünme (N' tanφ) ayrı oklarla gösterilsin. Taban açısı α, merkezin dikeyiyle yapılan açı olarak yayılı yay üzerinde işaretlensin. Kenar kuvvetleri (E_sol, E_sağ, X_sol, X_sağ) Bishop'un basitleştirmesi gereği dikkate alınmadığını belirten kesikli çizgiyle gösterilsin.",
+      tr: "Bishop yöntemi: kütle düşey dilimlere bölünür; seçili dilimde ağırlık W, taban normal kuvveti N′ ve mobilize kayma direnci S etkir. FS = Σ[(c′b + (W − ub) tanφ′) / m_α] / Σ[W sin α].",
+      en: "Bishop's method: the mass is divided into vertical slices; on the selected slice the weight W, base normal force N′ and mobilised shear resistance S act. FS = Σ[(c′b + (W − ub) tanφ′) / m_α] / Σ[W sin α].",
     },
   },
   {
@@ -116,13 +118,7 @@ export const student: Block[] = [
       { tr: "Yakınsamadıysa veya sürükleyici toplam ≤ 0 ise daire geçersiz sayılır; program o daireyi arama dışı bırakır." },
     ],
   },
-  {
-    type: "figure",
-    id: "slp-bishop-slice",
-    caption: {
-      tr: "Bölüm 2'deki dilim şeması ile aynı çizim, bu kez m_α annotasyonuyla: taban üzerinde bir dilimin yanında 'm_α = cos α + sin α tanφ / FS' yazsın ve 'FS başlangıç = 1' notu bulunsun. Şemanın sağ kenarında 'Fark < 10⁻⁶ ise FS sonucu; değilse m_α güncellenir' iterasyon döngüsü ok olarak gösterilsin. Çıkış tarafındaki (α < 0) bir dilimde m_α < 0.2 ise 'daire reddedilir' uyarısı kırmızıyla işaretlensin.",
-    },
-  },
+  
   {
     type: "p",
     text: {
@@ -176,7 +172,8 @@ export const student: Block[] = [
     type: "figure",
     id: "slp-search-results",
     caption: {
-      tr: "Kritik daire arama sonucu: kesitte bir yamaç, kırmızı çizgiyle en düşük FS'li daire ve diğer denenen dairelerin yalnız bir kısmı (açık gri) gösterilsin. Dairenin merkezi ve yarıçapı etiketli olsun. Küçük bir köşe kutusu 'su seviyesi: y = 10 m (kret) → FS = 0.911' ve 'kh = 0.1 → FS = 1.744' değerlerini göstersin. Yamacın sağındaki krete 'yük yok' notu düşülsün.",
+      tr: "Merkez ızgarası: her merkez için en küçük FS'li daire bulunur; kırmızı nokta en küçük FS'li (kritik) dairenin merkezidir. Sayılar şematik FS değerleridir.",
+      en: "Centre grid: for each centre the circle with the smallest FS is found; the red point is the centre of the critical circle. The numbers are schematic FS values.",
     },
   },
   {
@@ -234,9 +231,10 @@ export const student: Block[] = [
   },
   {
     type: "figure",
-    id: "slp-search-results",
+    id: "slp-search-bounds",
     caption: {
-      tr: "Bölüm 4'teki kritik daire şeklinin arama ayrıntısı: aynı yamaç üzerinde x_c ve y_c aralığını gösteren dikdörtgen (ızgara noktaları küçük noktalarla), teğet kotu sınırları (y_t alt ve üst) yatay kesikli çizgilerle. Sınırın dışında kalan bölgeler gri taranmış olsun. Kritik dairenin merkezi sınır içindeyse 'sınır içinde' etiketi, sınıra yakınsa 'sınıra dikkat' kırmızı notu.",
+      tr: "Arama sınırları sonucu belirler: ızgara yalnız x_c, y_c sınırı içinde aranır. Kritik merkez sınıra yapışıksa gerçek kritik daire sınırın dışında olabilir; sınırı genişletip yeniden arayın.",
+      en: "The search bounds control the result: the grid is searched only inside the x_c, y_c bounds. If the critical centre sits on a bound the true critical circle may lie outside; widen the bounds and search again.",
     },
   },
   {
@@ -271,9 +269,10 @@ export const student: Block[] = [
   { type: "h", text: { tr: "6. Sınırlar ve dikkat noktaları", en: "6. Limits and cautions" } },
   {
     type: "figure",
-    id: "slp-slip-circle",
+    id: "slp-reversed-geometry",
     caption: {
-      tr: "Bölüm 1'deki şeklin ek paneli, ters geometri: sağ tarafta aynı yamacın aynası (kret solda, toe sağda) çizilsin. Bu panelde kayan kütlenin hareket yönü sağa işaretlensin ve 'program −x varsayımı: uyumsuz; FS anlamsız (≈ 10^16)' uyarısı yazsın. Sol panel doğru kesidi (toe solda) göstersin.",
+      tr: "Ters yönlü geometri: program kayan kütlenin −x yönüne gittiğini varsayar (şev ayağı solda). Aynalı geometri bu varsayımla uyumsuzdur; program 'x koordinatlarını aynalayın' hatası verir.",
+      en: "Reversed geometry: the program assumes the mass slides toward −x (toe on the left). A mirrored geometry conflicts with this assumption and the program raises a 'mirror the x coordinates' error.",
     },
   },
   {

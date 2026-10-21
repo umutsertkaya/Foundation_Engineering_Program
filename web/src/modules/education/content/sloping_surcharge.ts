@@ -152,23 +152,23 @@ export const topic: Topic = {
     {
       type: "p",
       text: {
-        tr: "Palplanş modülü, aktif tarafta net basınç diyagramını hesaplarken β ve sürşarjı katman bazında uygular. Deprem artışı kazı yüksekliğinde (H boyunca düzgün) ve kazı tabanı altında ayrıca uygulanır. Kazı tabanı altındaki artış, ΔK_h·(σ′v + q) olarak alınır; bu, sürşarj payını da içerir.",
-        en: "The sheet pile net pressure applies beta and surcharge layer by layer. The seismic increment acts uniformly over the excavation height and, below the dredge line, as Delta K_h times (sigma'v + q), which includes surcharge.",
+        tr: "Palplanş modülü, aktif tarafta net basınç diyagramını hesaplarken β ve sürşarjı katman bazında uygular. Deprem artışı KDYY el kitabı dağılımına göre verilir: ΔK_ad = (1 − k_v)·K_AE − K_A olmak üzere, perde ucuna kadar düzgün ½·ΔK_ad·σ′v(uç) ve sürşarj için yüzeyde 2·q·ΔK_ad'den uçta 0'a azalan üçgen bir pay. Uç derinliği artımı etkilediği için program uç derinliğini sabit nokta yinelemesiyle bulur. Artımın uçtan aşağıda etkisi yoktur.",
+        en: "The sheet pile net pressure applies beta and surcharge layer by layer. The seismic increment follows the KDYY handbook distribution: with delta K_ad = (1 - k_v)·K_AE - K_A, a uniform part 1/2·delta K_ad·sigma'v(toe) down to the toe plus, for surcharge, a triangle from 2·q·delta K_ad at the surface to 0 at the toe. Because the toe depth affects the increment, the program finds the toe by fixed-point iteration. Below the toe the increment is zero.",
       },
     },
     {
       type: "figure",
-      id: "sp-net-diagram",
+      id: "sp-seismic-kdyy",
       caption: {
-        tr: "Palplanş net basınç diyagramı: aktif ve pasif kısımlar, kazı tabanı altında deprem artışı ve sürşarj payı (göster: H/2 düzgün artış ve kazı tabanı altındaki ΔK_h payı).",
-        en: "Sheet pile net pressure: active and passive parts, seismic increment below the dredge line and surcharge share.",
+        tr: "Palplanşta deprem artışının KDYY dağılımı: turuncu düzgün pay uç derinliğine kadar sürer, kırmızı üçgen sürşarj payıdır ve uçta sıfıra iner.",
+        en: "KDYY distribution of the seismic increment on a sheet pile: the orange uniform part runs to the toe; the red triangle is the surcharge share and falls to zero at the toe.",
       },
     },
     {
       type: "warn",
       text: {
-        tr: "Eski uygulamada kazı tabanı altındaki deprem artışı yoktu ve yapı yolu sürşarj payını içerirken temel servis yolu içermiyordu. Örnek (β = 8°, q = 20) M_max'ı yaklaşık %13 düşük veriyordu. Bu düzeltildi; sonuçlarda eski değerlerle fark beklenir.",
-        en: "Earlier code omitted the below-dredge seismic increment and the surcharge share in the basic service path; M_max was about 13 percent low in a comparable case. This was corrected.",
+        tr: "Eski uygulama artımı kazı yüksekliği üstünde düzgün, altında ΔK·σ′v olarak veriyordu; KDYY dağılımına göre güvensizdi (φ = 32°, k_h = 0,2 örneğinde konsol D0 8,37 → 9,30 m, M_max 624 → 974 kNm/m). Düzeltildi (PR #36); eski sonuçlarla fark beklenir. ΔK_ad, KDYY örneğiyle birebir doğrulanmadı (TBDY 16.12.2.4 metni elde yok).",
+        en: "The earlier code applied the increment uniformly above the dredge line and as delta K·sigma'v below it, which was unsafe relative to the KDYY distribution (phi = 32 deg, k_h = 0.2: cantilever D0 8.37 to 9.30 m, M_max 624 to 974 kNm/m). Corrected (PR 36); expect differences from old results. Delta K_ad was not matched one-to-one against the KDYY worked example (TBDY 16.12.2.4 text unavailable).",
       },
     },
     {

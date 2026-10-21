@@ -23,8 +23,8 @@ export const student: Block[] = [
     type: "figure",
     id: "gan-wedge-geometry",
     caption: {
-      tr: "Tek ankrajlı kazı kesiti (düşey duvar, yatay arazi). Kazı tabanı H ile işaretlenmeli, tabanın köşesinden yukarı çıkan kayma yüzeyi 45° + φ′/2 açısıyla çizilmeli ve açı etiketlenmeli. Ankraj kafasına z_h derinliği, tabana göre yatay mesafe x, ankraj eksenine göre kama uzunluğu L_kama oklarla gösterilmeli. Kayma yüzeyinin dışında kalan bölgede χ (kayma yüzeyine dik ölçülen ötesi) ayrıca işaretlenmeli. Ankrajın tabanı, eğimi α (ör. 15°) ile yatay eksenle yapılmalı ve eğim açısı etiketlenmelidir.",
-      en: "One anchor in a vertical wall: excavation H, failure surface at 45 + phi/2, head depth z_h, clearance chi.",
+      tr: "Tek ankrajlı kazı kesiti. Kayma yüzeyi duvar tabanından 45° + φ′/2 açıyla yükselir. Serbest boy, yüzey içindeki L_kama ile ötesindeki χ'den oluşur; enjeksiyonlu kök boyu tümüyle kamanın dışındadır. z_h ankraj başının derinliği, α ankraj eğimidir.",
+      en: "Single-anchor excavation section. The failure plane rises from the wall base at 45° + φ′/2. The free length is L_wedge (inside the wedge) plus χ (beyond it); the grouted bond length lies entirely outside the wedge. z_h is the anchor head depth and α the anchor inclination.",
     },
   },
   {
@@ -168,8 +168,8 @@ export const student: Block[] = [
     type: "figure",
     id: "gan-free-bond-zones",
     caption: {
-      tr: "Tendon boyunca bölge şeması (yatay eksen: kafadan itibaren tendon boyu, m). Sırasıyla: kafa, serbest boy (boş tendon, kayma yüzeyinin içinde ve dışında), kama ötesi χ bölgesi ve kök boyu (enjeksiyonla zemine kenetlenmiş). Serbest boyun etiketi iki parçaya bölünerek 'kama L_kama' ve 'χ_eksen' olarak yazılmalı. Kök boyu üzerinde q_u ve L_b, en altta toplam uzunluk L_toplam = L_serbest + L_b etiketi bulunmalı. Alt sınır olarak 4,5 m minimum serbest boy çizgisi kesikli çizgiyle işaretlenmelidir.",
-      en: "Tendon zones: head, free length (wedge and chi), bond length; minimum free length line.",
+      tr: "Tendon boyunca bölgeler: serbest boy (L_kama + χ) ve enjeksiyonla zemine kenetlenen kök boyu. Yük yalnız kök boyunda q_u ile zemine aktarılır; serbest boy en az 4,5 m olmalıdır. L_kama / χ ayrımı şematiktir.",
+      en: "Zones along the tendon: the free length (L_wedge + χ) and the bond length grouted into the soil. Load transfers to the soil only along the bond length at q_u; the free length must be at least 4.5 m. The L_wedge / χ split is schematic.",
     },
   },
 
@@ -287,8 +287,8 @@ export const student: Block[] = [
     type: "figure",
     id: "gan-tendon-limits",
     caption: {
-      tr: "Tek bir tendonun yük sınırları çubuk grafiği: yatay eksen kN, bir çubuk SMTS toplamı (782 kN) olarak çizilmeli. Üç yatay eşik çizgisi işaretlenmeli: 0,60 SMTS (tasarım, 469 kN), 0,70 SMTS (kilitleme, 547 kN) ve 0,80 SMTS (deneme, 626 kN). Üç yük çubuğu (tasarım 445 kN, kilitleme 445 kN, deneme 592 kN) eşiklerin altında kalmalı; deneme yükü çubuğu eşiğe en yakın olan olmalıdır. Grafik altında 2 halatlı (521 kN SMTS) bir karşılaştırma satırı bulunmalı ve tasarım eşiği 313 kN'da yetmediği için kırmızı işaretlenmelidir.",
-      en: "Tendon SMTS bar with the 0.60, 0.70, 0.80 limits and the design, lock-off and test loads.",
+      tr: "Tendon yük sınırları SMTS oranı olarak: tasarım yükü ≤ 0,60, kilitleme yükü ≤ 0,70, deneme yükü ≤ 0,80; 1,00'ın ötesi kopma bölgesidir.",
+      en: "Tendon load limits as fractions of SMTS: design load ≤ 0.60, lock-off load ≤ 0.70, test load ≤ 0.80; beyond 1.00 is the rupture zone.",
     },
   },
   {

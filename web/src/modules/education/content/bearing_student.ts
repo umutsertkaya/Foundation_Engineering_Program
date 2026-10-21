@@ -35,7 +35,8 @@ export const student: Block[] = [
     type: "figure",
     id: "bear-failure-wedge",
     caption: {
-      tr: "Göçme kamaları: temel tabanının hemen altında üçgen bir aktif kama, kamanın iki yanında radyal (spiral) bölgeler ve en dışta pasif kamalar görülmelidir. D derinliğindeki temel tabanı ve B genişliği ayrıca işaretlensin; üstteki D'lik zemin ağırlığının kamalara yük olarak etkidiği okunabilmelidir. Eksantrisite durumunda B' etkin genişliği kesikli çizgiyle gösterilsin.",
+      tr: "Genel kayma göçmesi. Temel altında aktif kama (I), yanlarında radyal bölge (II) ve pasif kama (III) birlikte hareket eder, yüzeyde kabarma oluşur. Sağdaki yük-oturma eğrisinde yoğun zeminde belirgin bir tepe (q_u) görülür; gevşek zeminde tepe yoktur (yerel kayma).",
+      en: "General shear failure. An active wedge (I) under the footing, radial zones (II) beside it and passive wedges (III) move together and the surface heaves. In the load-settlement curve dense soil shows a clear peak (q_u); loose soil has none (local shear).",
     },
   },
   {
@@ -67,7 +68,8 @@ export const student: Block[] = [
     type: "figure",
     id: "bear-terzaghi-zones",
     caption: {
-      tr: "Terzaghi göçme bölgeleri (şerit temel, kesit): temel tabanının altında üçgen aktif kama (taban açısı φ) etiketli; iki yanda radyal bölge (logaritmik spiral) etiketli; en dışta pasif Rankine kamaları yüzeyle yaklaşık 45° − φ/2 açıyla etiketli. Üstteki D'lik zemin bir yük kolonu olarak gösterilsin ve 'q = γD (efektif)' etiketi taşısın. Her bölgenin adı (aktif kama, radyal bölge, pasif kama) kesit üzerinde okunabilmelidir.",
+      tr: "Terzaghi göçme bölgeleri (şerit temel kesiti): I temel altındaki aktif kama, II radyal bölge, III pasif kama. Taban seviyesinin üstündeki zemin q = γ·D'lik bir yük gibi etkir.",
+      en: "Terzaghi failure zones (strip footing section): I active wedge under the footing, II radial zone, III passive wedge. The soil above the footing level acts as a surcharge q = γ·D.",
     },
   },
   {
@@ -145,7 +147,8 @@ export const student: Block[] = [
     type: "figure",
     id: "bear-factor-trend",
     caption: {
-      tr: "N_q, N_c ve Vesic N_γ değerlerinin φ ile değişimi, 0° ile 45° arasında. Eksen ölçeği log önerilir, çünkü N_q büyük φ değerlerinde hızla yükselir. Üç eğri ayrı renkte olsun ve her birinin etiketi okunabilsin; φ = 0° için N_c = 5.14, N_q = 1, N_γ = 0 noktası ayrıca işaretlensin.",
+      tr: "N_c, N_q ve Vesic N_γ faktörlerinin φ′ ile değişimi (logaritmik dikey eksen). Faktörler φ′ arttıkça hızla büyür; φ′ = 30° için N_c = 30,1, N_q = 18,4, N_γ = 22,4.",
+      en: "Variation of N_c, N_q and Vesic N_γ with φ′ (logarithmic vertical axis). The factors grow rapidly with φ′; for φ′ = 30°, N_c = 30.1, N_q = 18.4, N_γ = 22.4.",
     },
   },
   {
@@ -164,7 +167,8 @@ export const student: Block[] = [
     type: "figure",
     id: "bear-factor-tables",
     caption: {
-      tr: "Taşıma faktörleri tablo grafiği: satırlar φ = 0°, 10°, 20°, 30°, 35°, 40° ve sütunlar N_c, N_q, ve üç yöntemin N_γ değerleridir (Meyerhof, Hansen, Vesic). Her hücrede değer iki ondalıkla yazılsın; φ = 0° satırında N_c = 5.14, N_q = 1 ve N_γ = 0 olduğu özel not olarak belirtilsin. Tablonun altında 'Vesic varsayılan' ve 'Terzaghi değerleri farklıdır' notları bulunsun.",
+      tr: "Seçili φ′ değerleri için N_c, N_q ve üç yönteme göre N_γ (Vesic, Hansen, Meyerhof). Altta faktör formülleri verilmiştir.",
+      en: "N_c, N_q and N_γ for three methods (Vesic, Hansen, Meyerhof) at selected φ′ values. The factor formulas are given below the table.",
     },
   },
   {
@@ -296,7 +300,8 @@ export const student: Block[] = [
     type: "figure",
     id: "bear-eccentric-width",
     caption: {
-      tr: "Eksantrik yüklü şerit temel, kesit: üstte V yükü, merkezden e kadar kaymış olarak gösterilsin. Temel genişliği B tam olarak, etkin genişlik B' ise altında kesikli çizgiyle işaretlensin, B' ortadaki yük ile çakışmalı. Eksen üzerinde e, B ve B' etiketleri, altında basınç dağılımı (yük tarafında yüksek q_max, öbür tarafta düşük q_min) çizilsin. Notta B' = B − 2e formülü yazılsın.",
+      tr: "Eksantrik yük: Q merkezden e kadar kaydığında taban basıncı yamuk olur (q_max, q_min). Taşıma gücü, yükün ortasında olduğu B′ = B − 2e genişlikli temel için hesaplanır.",
+      en: "Eccentric load: when Q is offset by e from the centre the base pressure is trapezoidal (q_max, q_min). Bearing capacity is computed for a footing of width B′ = B − 2e centred under the load.",
     },
   },
   {
@@ -343,7 +348,8 @@ export const student: Block[] = [
     type: "figure",
     id: "bear-water-cases",
     caption: {
-      tr: "Yeraltı suyu üç durumu, üç küçük kesit paneli halinde: (a) su seviyesi temel tabanından B veya daha derinde: γ değişmez, q = γ·D; (b) su seviyesi temel tabanı ile tabanın B kadar altı arasında: N_γ teriminde kullanılan γ, γ' ile γ arasında bir ara değere iner (etiket: 'γ_eff'); (c) su seviyesi temel tabanında veya üstünde: q = γ'·D (efektif üstyük) ve N_γ teriminde γ' kullanılır. Her panelde su seviyesi mavi, temel tabanı kalın siyah çizgi ile gösterilsin ve ilgili büyüklükler etiketlensin.",
+      tr: "Yeraltı suyunun üç durumu: (1) temel tabanının üstünde, (2) D ile D+B arasında, (3) D+B'den derinde. Duruma göre q ve N_γ terimindeki birim hacim ağırlığı (γ′, γ_eff veya γ) değişir.",
+      en: "Three groundwater cases: (1) above the footing base, (2) between D and D+B, (3) deeper than D+B. The unit weight in q and in the N_γ term (γ′, γ_eff or γ) changes accordingly.",
     },
   },
   {

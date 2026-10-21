@@ -11,13 +11,7 @@ export const student: Block[] = [
       tr: "Bir market rafında benzer ürünler aynı yere konur ki aradığınızı hızla bulabilesiniz. Zemin mühendisliğinde sınıflandırmanın amacı da budur: birbirine benzeyen zeminleri aynı adla anarak, bir sondaj kuyusundan ya da CPT sondajından gelen çok sayıda ölçümü tek bir dile çevirmek. Raporda 'kumlu kil' yazmak yerine 'SC' ya da 'CL' gibi bir grup sembolü kullanmak, başka bir mühendisin aynı zemini aynı şekilde anlamasını sağlar. Sınıflandırma zemin davranışını hesaplamaz; yalnız hangi hesap yönteminin ve hangi tipik değer aralığının akla yatkın olduğunu gösterir. Bu yüzden bir sembol bir sonuç değil, bir başlangıç varsayımıdır.",
     },
   },
-  {
-    type: "figure",
-    id: "cls-grading-curve",
-    caption: {
-      tr: "Genel bakış: dört ana zemin grubunun (çakıl, kum, silt, kil) dane boyutu aralıkları yatay logaritmik bir şeritte gösterilsin (0.001 ile 100 mm). Her grubun altında 'kaba dane' ya da 'ince dane' etiketi ve 0.075 mm (No. 200) ile 4.75 mm (No. 4) sınır çizgileri bulunsun. Bölüm 2'deki dağılım eğrilerinin hangi aralığa denk geldiği bu şeritte işaretlensin.",
-    },
-  },
+  
   {
     type: "p",
     text: {
@@ -52,7 +46,8 @@ export const student: Block[] = [
     type: "figure",
     id: "cls-grading-curve",
     caption: {
-      tr: "Dane boyutu dağılım eğrisi: yatay eksen logaritmik dane çapı [mm] (0.001 ile 100 arası), düşey eksen elekten geçen yüzde (0 ile 100). Üç eğri çizilsin: (a) iyi derecelenmiş kum (geniş, yumuşak bir eğri), (b) düzgün kum (dik, dar bir eğri), (c) ince dane ağırlıklı zemin (eğri sol üst köşeye yakın). Her eğride D_10, D_30, D_60 noktaları yatay çizgilerle işaretlensin ve etiketleri okunsun. Eğrilerin altında 0.075 mm (No. 200) ve 4.75 mm (No. 4) düşey çizgileri 'ince dane sınırı' ve 'çakıl-kum sınırı' etiketleriyle gösterilsin.",
+      tr: "Dane boyutu dağılım eğrisi: yatay eksen logaritmik dane çapı, düşey eksen elekten geçen yüzde. D10, D30 ve D60 yüzde 10, 30 ve 60'a karşılık gelen çaplardır; No. 4 elek çakılı kumdan, No. 200 elek kumu ince daneden ayırır.",
+      en: "Particle size distribution curve: logarithmic grain size on the horizontal axis, percent passing on the vertical. D10, D30 and D60 are the sizes at 10, 30 and 60 percent; the No. 4 sieve separates gravel from sand and the No. 200 sieve separates sand from fines.",
     },
   },
   {
@@ -105,7 +100,8 @@ export const student: Block[] = [
     type: "figure",
     id: "cls-plasticity-chart",
     caption: {
-      tr: "Plastisite kartı: yatay eksen LL (0 ile 100), düşey eksen PI (0 ile 60). A-çizgisi (PI = 0.73(LL − 20)) ve U-çizgisi (PI = 0.9(LL − 8)) düz çizgi olarak çizilsin ve etiketlensin. Üst sol bölge 'CL' (düşük plastisiteli kil), üst sağ 'CH' (yüksek plastisiteli kil), alt sağ 'MH' (elastik silt), alt sol 'ML' (silt) olarak adlandırılsın. A-çizgisi ile PI = 4 ve PI = 7 yatay çizgileri arasında kalan kesişim bölgesi 'CL-ML' olarak taranmış gösterilsin. LL = 50 dikey çizgisi ayrıca işaretlensin ve 'LL < 50 / LL ≥ 50' etiketi taşısın.",
+      tr: "Casagrande plastisite kartı: A-çizgisi (PI = 0,73 (LL − 20)) ve U-çizgisi (PI = 0,9 (LL − 8)); LL = 50 çizgisi düşük ve yüksek plastisiteyi ayırır. Bölgeler CL, CH, ML/OL, MH/OH ve CL-ML olarak adlandırılır.",
+      en: "Casagrande plasticity chart: the A-line (PI = 0.73 (LL − 20)) and U-line (PI = 0.9 (LL − 8)); the LL = 50 line separates low from high plasticity. Zones are CL, CH, ML/OL, MH/OH and CL-ML.",
     },
   },
   {
@@ -157,13 +153,7 @@ export const student: Block[] = [
       tr: "Kaba daneli zeminde ince dane yüzdesi üç bölgeye ayrılır. Yüzde 5'ten azsa yalnız dane dağılımı belirleyicidir ve ikinci harf W (iyi derecelenmiş) ya da P (kötü derecelenmiş) olur. Yüzde 12'den fazlaysa ince danelerin kıvamı belirleyicidir: ikinci harf M veya C olur; CL-ML bölgesindeki bir zemin ise SC-SM gibi bir çift sembol alır. Yüzde 5 ile 12 arasında kalan zeminler çift sembolle yazılır, örneğin SW-SC; bu, zeminin hem dane dağılımı hem ince dane davranışı açısından sınırda olduğunu gösterir. Kodda iki eksik veri durumu da vardır: çakıl oranı bilinmiyorsa sınıf kumu baskın kabul eder ve sonucu tamamlanmamış sayar; D değerleri yoksa zemini kötü derecelenmiş kabul eder. Bu varsayımlar notes alanında görünür.",
     },
   },
-  {
-    type: "figure",
-    id: "cls-plasticity-chart",
-    caption: {
-      tr: "Bölüm 3'teki plastisite kartının USCS karar sınırlarıyla aynı şekil: LL = 50 dikey çizgisi ve A-çizgisi ile ayrılan dört bölge, her bölgenin yanında hangi USCS sembolüne (CL, ML, CL-ML, CH, MH) karşılık geldiği yazılsın. Kartın yanında küçük bir karar tablosu olsun: 'İnce dane ≥ %50 ise yalnız LL ve PI kullanılır', 'İnce dane %5, %12 eşikleri ise çift sembol kuralı' gibi satırlar okunabilsin. Kartın altında 'önek: çakıl > kum ise G, değilse S' notu bulunsun.",
-    },
-  },
+  
   {
     type: "steps",
     title: { tr: "USCS'yi elle sınıflandırma sırası", en: "Hand USCS sequence" },
@@ -216,7 +206,8 @@ export const student: Block[] = [
     type: "figure",
     id: "cls-robertson-chart",
     caption: {
-      tr: "Robertson normalleştirilmiş davranış grafiği: yatay eksen F_r (%) logaritmik 0.1 ile 10, düşey eksen Q_tn logaritmik 1 ile 1000. Üzerine I_c eş-eğrileri çizilsin: I_c = 1.31, 2.05, 2.60, 2.95, 3.60 (her biri etiketli). Bölge etiketleri: 7 (çakıllı kum), 6 (kum), 5 (kum karışımı), 4 (silt karışımı), 3 (kil), 2 (organik kil). Sol üst köşeye 'bölge 1: Q_tn < 12 exp(−1.4 F_r)' eğrisi kesikli çizgiyle eklensin. Örnek 3 noktası (Q_tn ≈ 57, F_r ≈ 1.02) işaretlensin ve yanına 'örnek 3' yazılsın.",
+      tr: "Robertson normalleştirilmiş davranış grafiği: yatay eksen F_r, düşey eksen Q_tn (ikisi de logaritmik). I_c = 1,31; 2,05; 2,60; 2,95 ve 3,60 eş-eğrileri zemin davranış bölgelerini ayırır; işaretli nokta örneği gösterir.",
+      en: "Robertson normalised behaviour chart: F_r on the horizontal axis, Q_tn on the vertical (both logarithmic). The I_c = 1.31, 2.05, 2.60, 2.95 and 3.60 contours separate the soil behaviour zones; the marked point is the worked example.",
     },
   },
   {
@@ -275,13 +266,7 @@ export const student: Block[] = [
   // 6
   // ------------------------------------------------------------------
   { type: "h", text: { tr: "6. Sınırlar ve eksik veri", en: "6. Limits and missing data" } },
-  {
-    type: "figure",
-    id: "cls-robertson-chart",
-    caption: {
-      tr: "Bölüm 5'teki Robertson grafiğinin sınır kullanımı: I_c eş-eğrileri kalın değil kesikli çizilsin ve 'yaklaşık sınır' notu taşısın. Grafiğin sağ alt bölgesinde 'q_t ≤ σ_v veya f_s ≤ 0: bölge 0 (tanımsız)' kutusu olsun. Örnek 3 ve Örnek 4 noktalarının konumu ayrı işaretlerle (kare ve daire) gösterilsin.",
-    },
-  },
+  
   {
     type: "p",
     text: {

@@ -21,7 +21,8 @@ export const student: Block[] = [
     type: "figure",
     id: "spw-wall-types",
     caption: {
-      tr: "Konsol palplanş ile tek ankrajlı palplanşın yan yana kesitleri. Sol: konsol perde; üst ucu serbest, kazı tabanı H işaretli, altta D0 kadar gömülü kısım ve altta bir R kuvveti oku görünsün. Sağ: aynı kazı yüksekliği H, ankraj noktası üst bölgede (za etiketli) ve ankraj kuvveti T oku. Her iki kesitte de 'kazı tarafı' ve 'arka (aktif) taraf' etiketleri olsun; zemin yüzeyi z = 0, kazı tabanı z = H çizgisiyle gösterilsin.",
+      tr: "Konsol palplanş (solda, yalnız gömme ile ayakta) ve tek ankrajlı palplanş (sağda, ankraj artı gömme). Kesikli mor çizgi perdenin şekil değiştirmesidir; kazı tabanından aşağısı gömme boyudur.",
+      en: "Cantilever sheet pile (left, stands by embedment alone) and single-anchor sheet pile (right, anchor plus embedment). The dashed violet line is the deflected shape; the part below the dredge line is the embedment.",
     },
   },
   {
@@ -93,7 +94,8 @@ export const student: Block[] = [
     type: "figure",
     id: "sp-net-diagram",
     caption: {
-      tr: "Net basınç diyagramı: yatay eksende basınç (kPa), düşey eksende derinlik z (aşağı doğru artan, 0 üstte). Arka aktif basınç (z = 0’dan 5 m’ye kadar, sonra H+D’ye kadar) sol tarafta; pasif basınç kazı tabanının (z = 5) altında sağ tarafta gösterilsin. Net diyagram iki eğrinin farkı olarak tek çizgi halinde çizilsin ve işaret değiştirdiği nokta (z ≈ 6 m çevresi) işaretlensin. Kazı tabanı çizgisi z = H olarak yatay kesikli çizgiyle gösterilsin.",
+      tr: "Konsol palplanşta net basınç, kesme ve moment diyagramları (H = 3 m örneği). Net basınç aktif eksi pasiftir; kesme V = 0 olan derinlikte moment en büyüktür (M_max = 60,75 kN·m/m, z = 4,50 m).",
+      en: "Net pressure, shear and moment diagrams of a cantilever sheet pile (H = 3 m example). The net pressure is active minus passive; the moment is largest where the shear is zero (M_max = 60.75 kN·m/m at z = 4.50 m).",
     },
   },
   {
@@ -180,7 +182,8 @@ export const student: Block[] = [
     type: "figure",
     id: "sp-cantilever",
     caption: {
-      tr: "Konsol palplanş, Blum yöntemi: solda perde kesiti (üst ucu serbest, kazı tabanı H, perde ucu H + D0), sağda net basınç diyagramı ve perde ucunda R oku. Diyagramda pasif kazı tabanı altında gösterilsin. 'D0 (teorik)' ve 'D = 1.2·D0 (tasarım)' ölçüleri ayrı ayrı işaretlensin.",
+      tr: "Konsol palplanş (Blum yöntemi): kazı tabanının üstünde aktif, altında pasif basınç. Perde ucunda moment dengesi D₀'ı verir; tasarım derinliği D = 1,2·D₀'dır.",
+      en: "Cantilever sheet pile (Blum method): active pressure above the dredge line and passive pressure below it. Moment equilibrium at the toe gives D₀; the design depth is D = 1.2·D₀.",
     },
   },
   {
@@ -237,7 +240,8 @@ export const student: Block[] = [
     type: "figure",
     id: "sp-passive-factor",
     caption: {
-      tr: "Pasif güvenlik sayısı etkisi: iki pasif basınç diyagramı, GS = 1 (tam pasif) ve GS = 1.5 (pasif/1.5) aynı grafikte; kazı tabanının altında iki ayrı pasif eğri ve aralarında 'D0 artışı' ölçüsü. Eğrilerin etiketlerinde K_p ve K_p/GS değerleri yazsın; gömme derinliği D0 için iki ayrı yatay çizgi (4.63 m ve 6.12 m) etiketli olsun.",
+      tr: "Pasif güvenlik sayısı etkisi: GS = 1 (tam pasif) ile GS = 1,5 (pasif / 1,5) karşılaştırılır; daha az pasif direnç daha derin gömme gerektirir (H = 5 m: D₀ = 4,63 m → 6,12 m). Çizim şematiktir.",
+      en: "Effect of the passive safety factor: GS = 1 (full passive) versus GS = 1.5 (passive / 1.5); less passive resistance needs deeper embedment (H = 5 m: D₀ = 4.63 m → 6.12 m). The drawing is schematic.",
     },
   },
   {
@@ -295,7 +299,8 @@ export const student: Block[] = [
     type: "figure",
     id: "spw-moment-diagram",
     caption: {
-      tr: "Konsol palplanş kesme ve moment diyagramları, derinlik düşey eksende (0 üstte, H+D0 altta). Üstte kesme V(z) eğrisi, V = 0 olduğu noktada (z = 7.50 m) işaretlenmiş; altta moment M(z) eğrisi, tepe noktası M_max = 281 kNm/m ile etiketli. Kazı tabanı z = H = 5 m yatay kesikli çizgiyle gösterilsin; her iki diyagramda da sıfır çizgisi açıkça görünsün.",
+      tr: "Konsol palplanşta kesme V ve moment M diyagramları (H = 5 m, φ′ = 30°, D₀ = 4,63 m). Kesme z = 7,50 m'de sıfırdır ve moment orada en büyüktür (M_max = 281,25 kN·m/m).",
+      en: "Shear V and moment M diagrams of a cantilever sheet pile (H = 5 m, φ′ = 30°, D₀ = 4.63 m). The shear is zero at z = 7.50 m, where the moment is largest (M_max = 281.25 kN·m/m).",
     },
   },
   {
@@ -326,7 +331,8 @@ export const student: Block[] = [
     type: "figure",
     id: "spw-method-compare",
     caption: {
-      tr: "Yöntem karşılaştırması: aynı perde ve zemin için iki yaklaşımın yan yana kesitleri. Sol: Blum (program), pasif direnç tek bir R kuvveti ile perde ucunda gösterilmiş. Sağ: net basınç diyagramı boyunca yayılmış pasif direnç ve perde ucunda sıfıra yakın basınç. Her iki kesitte de D0 ölçüsü işaretlensin; alt kısımda 'yöntem farkı, D0 ve M_max' notu yazsın. Bu şekil yalnızca kavramsal karşılaştırma içindir, sayısal değer yazılmasın.",
+      tr: "Pasif direncin gösterimi: Blum yönteminde ucun altındaki tüm direnç perde ucunda tek bir R kuvvetinde toplanır; gerçekte direnç yayılıdır. D = 1,2·D₀ artışı bu farkı telafi eder (kavramsal).",
+      en: "How passive resistance is represented: in Blum's method all the resistance below the toe is lumped into a single force R at the toe; in reality it is distributed. The D = 1.2·D₀ increase covers the difference (conceptual).",
     },
   },
   {

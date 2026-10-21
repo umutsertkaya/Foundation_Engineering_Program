@@ -1,4 +1,4 @@
-import { Ang, Chart, Concrete, Dim, Fig, Force, K, Ln, Poly, Soil, Tx, WaterLevel, linspace } from "./kit";
+import { Ang, Chart, Concrete, Dim, Fig, Force, K, Ln, Poly, Soil, Tx, WaterLevel, linspace, useT } from "./kit";
 
 const rad = (d: number) => (d * Math.PI) / 180;
 const nq = (p: number) => Math.exp(Math.PI * Math.tan(rad(p))) * Math.tan(rad(45 + p / 2)) ** 2;
@@ -63,11 +63,11 @@ export function BearEccentricWidth() {
           <Poly pts={[[x0, fy + 20], [x0 + B, fy + 20], [x0 + B, fy + 20 + hh * qmax], [x0, fy + 20 + hh * qmin]]} fill={K.blue} o={0.4} />
           <Tx x={x0 - 8} y={fy + 20 + hh * qmin + 4} a="end" c={K.blue} b>q_min</Tx><Tx x={x0 + B + 8} y={fy + 20 + hh * qmax + 4} c={K.blue} b>q_max</Tx>
           <Dim x1={x0} y1={fy + 164} x2={x0 + B} y2={fy + 164} label="B (temel genişliği)" />
-          <Ln x1={x0} y1={fy + 178} x2={x0 + B - 2 * e} y2={fy + 178} c={K.orange} w={6} />
-          <Tx x={x0 + (B - 2 * e) / 2} y={fy + 198} a="middle" c={K.orange} b>B′ = B − 2e (etkin genişlik)</Tx>
-          <Tx x={30} y={326}>e = M / Q  (momentin yük merkezinden uzaklığı)</Tx>
-          <Tx x={30} y={346}>q = Q/B · (1 ± 6e/B)      e ≤ B/6 ⇒ yamuk,  e &gt; B/6 ⇒ taban kısmen ayrılır</Tx>
-          <Tx x={30} y={366}>Taşıma gücü, yükün tam ortada olduğu B′ genişliğindeki temel için hesaplanır.</Tx>
+          <Ln x1={x0 + 2 * e} y1={fy + 178} x2={x0 + B} y2={fy + 178} c={K.orange} w={6} />
+          <Tx x={x0 + B / 2 + e} y={fy + 198} a="middle" c={K.orange} b>B′ = B − 2e (etkin genişlik)</Tx>
+          <Tx x={30} y={350} s={14}>e = M / Q  (momentin yük merkezinden uzaklığı)</Tx>
+          <Tx x={30} y={370} s={14}>q = Q/B · (1 ± 6e/B)      e ≤ B/6 ⇒ yamuk,  e &gt; B/6 ⇒ taban kısmen ayrılır</Tx>
+          <Tx x={30} y={390} s={14} c={K.mut}>Taşıma gücü, yükün tam ortada olduğu B′ genişliğindeki temel için hesaplanır.</Tx>
         </>
       )}
     </Fig>
@@ -116,7 +116,7 @@ export function BearFactorTrend() {
         { pts: phis.map((p) => [p, nq(p)]), c: K.green, label: "Nq" },
         { pts: phis.map((p) => [p, Math.max(2 * (nq(p) + 1) * Math.tan(rad(p)), 1)]), c: K.red, label: "Nγ (Vesic)" },
       ]}
-      extra={(sx, sy) => <g><Ln x1={sx(30)} y1={sy(1)} x2={sx(30)} y2={sy(1000)} c={K.mut} w={1} d="4 4" /><Tx x={sx(30) + 6} y={sy(2.4)}>φ = 30°: Nc 30,1, Nq 18,4, Nγ 22,4</Tx></g>}
+      extra={(sx, sy) => <g><Ln x1={sx(30)} y1={sy(1)} x2={sx(30)} y2={sy(1000)} c={K.mut} w={1} d="4 4" /><Tx x={sx(31) + 6} y={sy(11)} b>φ = 30°</Tx><Tx x={sx(31) + 6} y={sy(6.5)}>Nc = 30,1</Tx><Tx x={sx(31) + 6} y={sy(3.8)}>Nq = 18,4</Tx><Tx x={sx(31) + 6} y={sy(2.2)}>Nγ = 22,4</Tx></g>}
     />
   );
 }
@@ -138,8 +138,8 @@ export function BearFactorTables() {
             </g>
           ))}
           <Ln x1={30} y1={66} x2={610} y2={66} w={1.5} /><Ln x1={30} y1={66 + rows.length * 34} x2={610} y2={66 + rows.length * 34} w={1.5} />
-          <Tx x={30} y={330}>Nq = e^(π tan φ′) · tan²(45° + φ′/2),    Nc = (Nq − 1) cot φ′    (φ′ = 0 için Nc = 5,14)</Tx>
-          <Tx x={30} y={352}>Nγ = 2(Nq + 1) tan φ′ (Vesic),  1,5(Nq − 1) tan φ′ (Hansen),  (Nq − 1) tan(1,4φ′) (Meyerhof)</Tx>
+          <Tx x={30} y={330} s={14}>Nq = e^(π tan φ′)·tan²(45° + φ′/2),   Nc = (Nq − 1)·cot φ′   (φ′ = 0: Nc = 5,14)</Tx>
+          <Tx x={30} y={352} s={14}>Nγ = 2(Nq+1)tanφ′ (Vesic),  1,5(Nq−1)tanφ′ (Hansen),  (Nq−1)tan(1,4φ′) (Meyerhof)</Tx>
         </>
       )}
     </Fig>
@@ -209,8 +209,8 @@ export function LiqRdDepth() {
     <Chart
       label="rd versus depth" xr={[0.4, 1]} yr={[0, 34]} flipY xl="gerilme azaltma katsayısı rd" yl="derinlik z (m)" xt={[0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1]}
       series={[
-        { pts: linspace(0, 30, 60).map((z) => [rdYoud(z), z]), c: K.blue, label: "Youd ve diğ. 2001" },
-        ...[6.5, 7.5, 8.5].map((m, i) => ({ pts: linspace(0, 34, 68).map((z) => [rdBI(z, m), z] as [number, number]), c: [K.green, K.orange, K.red][i], d: "7 4", label: `Boulanger-Idriss 2014, M = ${f1(m)}` })),
+        { pts: linspace(0, 30, 60).map((z) => [rdYoud(z), z]), c: K.blue, label: "Youd vd. 2001" },
+        ...[6.5, 7.5, 8.5].map((m, i) => ({ pts: linspace(0, 34, 68).map((z) => [rdBI(z, m), z] as [number, number]), c: [K.green, K.orange, K.red][i], d: "7 4", label: `BI 2014, M = ${f1(m)}` })),
       ]}
     />
   );
@@ -268,11 +268,30 @@ export function LiqMsfCurve() {
 }
 
 export function LiqLpiWeight() {
+  const t = useT();
+  const w = (z: number) => 10 - 0.5 * z;
+  // Example 2: test points at 2, 4, 6, 8 m; the first interval is extended to the surface (first point <= 2 m)
+  const iv: { a: number; b: number; F: number }[] = [{ a: 0, b: 3, F: 0.1 }, { a: 3, b: 5, F: 0.3 }, { a: 5, b: 7, F: 0 }, { a: 7, b: 9, F: 0.2 }];
+  const area = (a: number, b: number) => 10 * (b - a) - 0.25 * (b * b - a * a);
   return (
     <Chart
-      label="LPI depth weighting" xr={[0, 10]} yr={[0, 20]} flipY xl="derinlik ağırlığı w(z)" yl="derinlik z (m)"
+      label="LPI depth weighting" xr={[0, 10]} yr={[0, 20]} flipY xl={t("derinlik ağırlığı w(z)", "depth weight w(z)")} yl={t("derinlik z (m)", "depth z (m)")}
       series={[{ pts: [[10, 0], [0, 20]], c: K.blue, label: "w(z) = 10 − 0,5·z" }]}
-      extra={(sx, sy) => <g><Tx x={sx(5.4)} y={sy(11)}>z = 20 m ve altında w = 0</Tx><Tx x={sx(0.2)} y={sy(1.4)} b>LPI = ∫ F(z)·w(z) dz</Tx><Tx x={sx(0.2)} y={sy(2.5)}>F = 1 − FS (FS &lt; 1), aksi halde 0</Tx></g>}
+      extra={(sx, sy) => (
+        <g>
+          {iv.map(({ a, b, F }) => (
+            <g key={a}>
+              <polygon points={`${sx(0)},${sy(a)} ${sx(w(a))},${sy(a)} ${sx(w(b))},${sy(b)} ${sx(0)},${sy(b)}`} fill={F > 0 ? K.orange : K.grid} fillOpacity={F > 0 ? 0.4 : 0.35} stroke={K.ink} strokeWidth={0.8} />
+              <Tx x={sx(0) + 6} y={(sy(a) + sy(b)) / 2 + 4} s={13}>{`∫w = ${t.n(area(a, b), 2)}  ·  F = ${t.n(F, 1)}`}</Tx>
+            </g>
+          ))}
+          <Tx x={sx(4.2)} y={sy(11.6)} s={13} c={K.mut}>{t("w = 0 (z ≥ 20 m)", "w = 0 (z ≥ 20 m)")}</Tx>
+          <Tx x={sx(4.2)} y={sy(13.2)} s={13} c={K.mut}>{t("ilk nokta 2 m: ilk aralık yüzeye uzatıldı", "first point at 2 m: first interval extended to the surface")}</Tx>
+          <Tx x={sx(4.2)} y={sy(15)} b>LPI = ∫ F(z)·w(z) dz</Tx>
+          <Tx x={sx(4.2)} y={sy(16.6)} s={14}>{t("0,1·27,75 + 0,3·16 + 0,2·12", "0.1·27.75 + 0.3·16 + 0.2·12")}</Tx>
+          <Tx x={sx(4.2)} y={sy(18.2)} s={14} b>= {t.n(9.975, 3)}</Tx>
+        </g>
+      )}
     />
   );
 }
@@ -350,8 +369,8 @@ export function ClassFcFromIc() {
   return (
     <Chart
       label="Fines content from Ic" xr={[1.2, 3.6]} yr={[0, 100]} xl="zemin davranış tipi indeksi Ic" yl="tahmini ince dane oranı FC (%)"
-      series={[{ pts: ic.map((v) => [v, Math.min(100, Math.max(0, 80 * v - 137))]), c: K.blue, label: "FC = 80·(Ic + C_FC) − 137" }]}
-      extra={(sx, sy) => <g><Tx x={sx(1.3)} y={sy(8)}>Ic ≤ 1,71: FC = 0</Tx><Tx x={sx(2.7)} y={sy(92)} a="start">Ic ≥ 2,96: FC = %100</Tx></g>}
+      series={[{ pts: ic.map((v) => [v, Math.min(100, Math.max(0, 80 * v - 137))]), c: K.blue }]}
+      extra={(sx, sy) => <g><Tx x={sx(1.3)} y={sy(8)}>Ic ≤ 1,71: FC = 0</Tx><Tx x={sx(2.9)} y={sy(92)} a="end">Ic ≥ 2,96: FC = %100</Tx><Tx x={sx(2.25)} y={sy(38)} b c={K.blue}>FC = 80·(Ic + C_FC) − 137</Tx></g>}
     />
   );
 }

@@ -149,12 +149,13 @@ export const topic: Topic = {
       },
     },
     {
-      type: "figure",
-      id: "ep-active-passive",
-      caption: {
-        tr: "Aktif ve pasif basınç diyagramları: duvarın iki yüzünde, katman kırılmaları, su tablası ve çekme çatlağı işaretli; yatay kuvvet ve merkez derinliği oklarla gösterilsin.",
-      },
+    type: "figure",
+    id: "ep-active-passive",
+    caption: {
+      tr: "Aktif ve pasif durum: duvar zeminden uzaklaşırsa arkadaki zemin aktif kamaya (45° + φ′/2), zemine doğru itilirse pasif kamaya (45° − φ′/2) geçer; σa = K_a·σ′v, σp = K_p·σ′v.",
+      en: "Active and passive states: when the wall moves away the retained soil forms an active wedge (45° + φ′/2); when pushed into the soil it forms a passive wedge (45° − φ′/2); σa = K_a·σ′v, σp = K_p·σ′v.",
     },
+  },
     { type: "h", text: { tr: "7. İstinat duvarı kontrolleri (ASD)", en: "7. Retaining wall checks (ASD)" } },
     {
       type: "formula",
@@ -174,12 +175,13 @@ export const topic: Topic = {
       },
     },
     {
-      type: "figure",
-      id: "wall-stability-checks",
-      caption: {
-        tr: "Duvar kontrol şeması: devrilme (M_R, M_O), kayma (ΣV tan δ, ΣH), eksantrisite ve taban basınç diyagramı (q_max, q_min); ayrıca global Bishop dairesi (taban altından geçen) ayrı panelde gösterilsin.",
-      },
+    type: "figure",
+    id: "wall-stability-checks",
+    caption: {
+      tr: "Gravite duvarının üç temel kontrolü: devrilme, kayma ve taban basıncı.",
+      en: "The three basic gravity-wall checks: overturning, sliding and base pressure.",
     },
+  },
     {
       type: "p",
       text: {

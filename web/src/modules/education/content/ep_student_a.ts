@@ -21,7 +21,8 @@ export const partA: Block[] = [
     type: "figure",
     id: "ep-rankine-diagram",
     caption: {
-      tr: "Şekilde H = 5 m, γ = 18 kN/m³, φ' = 30° ve q = 10 kPa için yatay basınç diyagramı görülmelidir. Diyagram derinlikle doğrusal artan bir yamuk olmalı; üst kenarda yaklaşık 3.33 kPa, taban kenarında yaklaşık 33.33 kPa değerleri işaretlenmelidir. Bu bölümde yalnız 'basınç derinlikle doğrusal artar' fikrine odaklanın; q'nun etkisi 6. bölümde açıklanır.",
+      tr: "H = 5 m, γ = 18 kN/m³, φ′ = 30° ve q = 10 kPa için Rankine aktif basınç diyagramı: yüzeyde 3,33 kPa (sürşarj), tabanda 33,33 kPa. Kuvvet P₁ = 16,67 ve P₂ = 75,0 kN/m, toplam P_a = 91,67 kN/m; bileşke tabandan 1,82 m yukarıdadır.",
+      en: "Rankine active pressure diagram for H = 5 m, γ = 18 kN/m³, φ′ = 30° and q = 10 kPa: 3.33 kPa at the surface (surcharge) and 33.33 kPa at the base. The forces are P₁ = 16.67 and P₂ = 75.0 kN/m, total P_a = 91.67 kN/m, acting 1.82 m above the base.",
     },
   },
   {
@@ -63,7 +64,8 @@ export const partA: Block[] = [
     type: "figure",
     id: "ep-states-movement",
     caption: {
-      tr: "Yatay eksende duvar hareketinin yüksekliğe oranı (kavramsal ölçek), dikey eksende yanal basınç katsayısı K yer almalıdır. Üç eğri görülmeli: sükunet durumu K_0 başlangıç değerinde, aktif durum K_a değerine doğru azalan, pasif durum K_p değerine doğru çok daha büyük hareketle artan bir eğri olmalıdır. Eğrilerin eksen değerleri kavramsal olup kesin veri değildir; üç durumun etiketleri ve K_a < K_0 < K_p sıralaması okunabilmelidir.",
+      tr: "Yanal basınç katsayısı K ile duvar hareketi (şematik): hareket yokken K₀ = 0,50; duvar zeminden uzaklaşırsa K küçük bir harekette K_a = 0,33'e düşer; zemine doğru itilirse K ancak büyük hareketle K_p = 3,00'a ulaşır.",
+      en: "Lateral pressure coefficient K versus wall movement (schematic): K₀ = 0.50 with no movement; as the wall moves away from the soil K falls to K_a = 0.33 after a small movement; pushed into the soil K reaches K_p = 3.00 only after a large movement.",
     },
   },
 
@@ -179,7 +181,8 @@ export const partA: Block[] = [
     type: "figure",
     id: "ep-cohesive-crack",
     caption: {
-      tr: "Kohezyonlu zeminde yatay basınç diyagramı: yüzeyden z_0 derinliğine kadar olan bölge sıfır basınçlı olarak çizilmeli ve z_0 derinliği bir ok ile işaretlenmelidir. z_0'dan sonra basınç doğrusal artar ve tabanda σ_h(H) değeri okunabilmelidir. Diyagramın altında çekme bölgesinin kuvvete katkısının sıfır olduğu bir not bulunmalıdır.",
+      tr: "Kohezyonlu zeminde (c′ = 10 kPa, φ′ = 20°) aktif basınç: yüzeyden z₀ = 1,59 m'ye kadar çekme bölgesinde basınç sıfır sayılır; tabanda σh = 38,9 kPa, P_a = 85,9 kN/m.",
+      en: "Active pressure in a cohesive soil (c′ = 10 kPa, φ′ = 20°): in the tension zone down to z₀ = 1.59 m the pressure is taken as zero; σh = 38.9 kPa at the base, P_a = 85.9 kN/m.",
     },
   },
   {
@@ -235,7 +238,8 @@ export const partA: Block[] = [
     type: "figure",
     id: "ep-layered-water",
     caption: {
-      tr: "İki katmanlı bir zemin ve yeraltı suyu seviyesi için diyagram: üst katman daha küçük φ', alt katman daha büyük φ' ile çizilmeli; katman sınırı ve GWT derinliği işaretlenmelidir. Katman sınırında yatay efektif basıncın sıçradığı, u (hidrostatik) diyagramının ayrı çizildiği ve toplam diyagramın σ'_h + u olarak gösterildiği görülmelidir. Lejant 'efektif' ve 'su' bileşenlerini ayırt etmelidir.",
+      tr: "İki katmanlı zeminde yanal basınç ve yeraltı suyu: katman sınırında K değiştiği için efektif yatay basınç sıçrar (18,0 → 22,8 kPa); su basıncı u ayrı eklenir.",
+      en: "Lateral pressure in a two-layer soil with groundwater: the effective horizontal pressure jumps at the layer boundary because K changes (18.0 → 22.8 kPa); the water pressure u is added separately.",
     },
   },
 
@@ -255,13 +259,7 @@ export const partA: Block[] = [
       tr: "Şerit (sonsuz uzun) ya da çizgisel yük için sezgi şöyledir: yük duvara yakınsa yanal basınca etkisi büyük, uzaksa küçüktür ve etki derinlikle yayılarak zayıflar. Bu yayılma (Boussinesq ya da 2:1 yayılma gibi) bir yerleşim ve dağılım hesabı gerektirir. GeoTek'in earth_pressure modülünde bu hesap yoktur: distribution.py yalnız tekdüze bir surcharge değerini düşey gerilmeye ekler ve bunu tüm derinliklerde aynı şekilde uygular. stresses.py ise yalnız in-situ tabakalı gerilmeyi hesaplar. Bu nedenle şerit ya da çizgisel yük için ayrı bir analiz gerekir; eşdeğer tekdüze q kullanılacaksa bunun muhafazakarlığı açıkça yazılmalıdır. Eğik yüzeyde q, dik yük ise yatay izdüşüme çevrilir: q_h = q / cos β (programda surcharge_per_horizontal, basis = 'inclined').",
     },
   },
-  {
-    type: "figure",
-    id: "ep-rankine-diagram",
-    caption: {
-      tr: "H = 5 m, γ = 18 kN/m³, φ' = 30° ve q = 10 kPa için toplam yatay basınç diyagramı, iki bileşenli gösterilmelidir: zemin ağırlığından gelen üçgen (kuvvet alanı 75 kN/m) ve sürşarjdan gelen sabit 3.333 kPa dikdörtgen ayrı renkte; toplam diyagramın üst kenarı 3.333 kPa, taban kenarı 33.333 kPa olmalıdır. Bileşenlerin toplamının yamuk olduğu, sürşarj kısmının derinlikle değişmediği okunabilmelidir.",
-    },
-  },
+  
 
   // ------------------------------------------------------------------
   // 7 and 8

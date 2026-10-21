@@ -121,19 +121,21 @@ export const topic: Topic = {
       },
     },
     {
-      type: "figure",
-      id: "bear-failure-wedge",
-      caption: {
-        tr: "Göçme kamaları: merkezi aktif kama, iki Prandtl bölgesi ve pasif kama; D derinliğindeki temel tabanı ile B genişliğinin gösterimi. Eksantrisite durumunda B' etkin genişliği işaretlensin.",
-      },
+    type: "figure",
+    id: "bear-failure-wedge",
+    caption: {
+      tr: "Genel kayma göçmesi: aktif kama, radyal bölge ve pasif kama; sağda yoğun ve gevşek zeminin yük-oturma eğrileri.",
+      en: "General shear failure: active wedge, radial zone and passive wedge; on the right the load-settlement curves of dense and loose soil.",
     },
+  },
     {
-      type: "figure",
-      id: "bear-factor-trend",
-      caption: {
-        tr: "N_q, N_c ve Vesic N_γ değerlerinin φ ile değişimi (0–45° aralığı, log ölçekli eksen önerilir); şerit ve dikdörtgen temel karşılaştırması için şekil faktörleri ayrı sütunda gösterilsin.",
-      },
+    type: "figure",
+    id: "bear-factor-trend",
+    caption: {
+      tr: "N_c, N_q ve Vesic N_γ'nın φ′ ile değişimi (logaritmik eksen).",
+      en: "N_c, N_q and Vesic N_γ versus φ′ (logarithmic axis).",
     },
+  },
     {
       type: "warn",
       text: {

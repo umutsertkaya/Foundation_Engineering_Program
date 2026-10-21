@@ -21,7 +21,8 @@ export const student: Block[] = [
     type: "figure",
     id: "anc-free-support",
     caption: {
-      tr: "Tek seviye ankrajlı palplanş kesiti: sol tarafta arka zemin (z = 0 yüzeyi), kazı tabanı z = H yatay kesikli çizgi, perdenin gömülü kısmı H + D kadar; üst bölgede ankraj noktası 'z_a' ve yatay ankraj kuvveti 'T' oku etiketli. Perdenin alt ucu serbest (dönebilir) olarak kısa bir oklu not ile belirtilsin: 'serbest zemin desteği'. Kazı tarafında pasif basınç diyagramı gömülü kısımda, arka tarafta aktif basınç diyagramı tüm boyda görünsün.",
+      tr: "Serbest zemin desteği: ankraj noktasına göre moment dengesi P_a·l_a = P_p·l_p gömme derinliği D'yi, yatay denge T = P_a − P_p ankraj kuvvetini verir.",
+      en: "Free earth support: moment equilibrium about the anchor, P_a·l_a = P_p·l_p, gives the embedment D and horizontal equilibrium, T = P_a − P_p, gives the anchor force.",
     },
   },
   {
@@ -45,7 +46,8 @@ export const student: Block[] = [
     type: "figure",
     id: "anc-free-vs-fixed",
     caption: {
-      tr: "Serbest ve sabit zemin desteği karşılaştırması, iki küçük kesit yan yana. Solda 'serbest uç': perde ucu dönebilir, ucunda moment sıfır, ok ile dönme yönü gösterilsin. Sağda 'sabit uç': perde ucu sıkıca tutulmuş, ucunda bir moment oku ve ters yönde bir dönme kısıtı işareti olsun. Her iki kesitte de ankraj noktası z_a ve kazı tabanı H işaretli olsun; altta 'bu konu: serbest' notu yazsın.",
+      tr: "Serbest uç (sol) ve sabit uç (sağ) zemin desteği: serbest uçta perde ucu dönebilir ve M = 0'dır, sabit uçta uç momenti vardır ve gömme daha derindir. Program serbest uç yöntemini kullanır.",
+      en: "Free earth (left) and fixed earth (right) support: with a free end the toe can rotate and M = 0; with a fixed end there is a toe moment and the embedment is deeper. The program uses the free earth method.",
     },
   },
   {
@@ -111,13 +113,7 @@ export const student: Block[] = [
       },
     },
   },
-  {
-    type: "figure",
-    id: "sp-anchored-moment",
-    caption: {
-      tr: "Ankraj noktasına göre moment: sol tarafta ankraj (z_a = 1 m) ve T oku, sağ tarafta net basınç diyagramı ve ankrajdan her basıncın kolu (z − z_a) kesikli çizgilerle gösterilsin. Diyagramda kazı tabanı z = H = 5 m, gömme sonu z = H + D0 = 6.90 m ayrıca işaretlensin. Ankraj noktası için bir moment merkezi 'M_A = 0' etiketi olsun.",
-    },
-  },
+  
   {
     type: "p",
     text: {
@@ -169,7 +165,8 @@ export const student: Block[] = [
     type: "figure",
     id: "anchor-tie-force",
     caption: {
-      tr: "Ankraj kuvveti ve yükü: üstte perde ve ankraj noktası (z_a = 1 m), ankraj yatayla θ = 15° açı yapan bir çubuk olarak gösterilsin; çubuk ucunda 'P = T·s/cos θ' etiketi. Altta, perde metresi başına yatay T oku (45.2 kN/m) ve 2 m aralıkla iki ankrajın üstten görünüşü; her ankraj için P = 93.6 kN yazsın.",
+      tr: "Serbest zemin desteğinde ankraj kuvveti T = (M_a − M_p) / a ve yatay denge T = P_a − P_p. Ankraj yükü, ankraj aralığı s ve eğimi θ ile P = T·s / cos θ olur.",
+      en: "Anchor force in free earth support, T = (M_a − M_p) / a, and horizontal equilibrium, T = P_a − P_p. The anchor load with spacing s and inclination θ is P = T·s / cos θ.",
     },
   },
   {
@@ -225,9 +222,10 @@ export const student: Block[] = [
   },
   {
     type: "figure",
-    id: "sp-anchored-moment",
+    id: "anc-shear-moment",
     caption: {
-      tr: "Ankrajlı perdenin kesme ve moment diyagramları, derinlik düşey eksende. Kesme V(z) ankraj noktasında (z = 1 m) T kadar sıçrar ve z0 = 3.88 m’de sıfır olur; moment M(z) bu noktada tepe yapar, tepe değeri 71.9 kNm/m etiketli olsun. Kazı tabanı z = 5 m ve gömme sonu z = 6.90 m yatay çizgilerle işaretlensin.",
+      tr: "Ankrajlı perdede kesme ve moment (z_a = 1 m, H = 5 m, D₀ = 1,90 m). Kesme ankraj noktasında T = 45,2 kN/m kadar sıçrar; |M| kesmenin sıfır olduğu z ≈ 3,88 m'de en büyüktür (≈ 72 kN·m/m) ve uçta M = 0'dır.",
+      en: "Shear and moment of the anchored wall (z_a = 1 m, H = 5 m, D₀ = 1.90 m). The shear jumps by T = 45.2 kN/m at the anchor; |M| peaks at z ≈ 3.88 m where the shear is zero (≈ 72 kN·m/m) and M = 0 at the toe.",
     },
   },
 
@@ -250,9 +248,10 @@ export const student: Block[] = [
   },
   {
     type: "figure",
-    id: "anc-free-support",
+    id: "anc-position-effect",
     caption: {
-      tr: "Ankraj yerinin etkisi: üç kesit yan yana, ankraj derinlikleri z_a = 0, 1 ve 2.5 m. Her kesitte D0 ve T değerleri yazsın (2.00 / 38.7; 1.90 / 45.2; 1.61 / 61.1). Ankraj 'alçak' olduğunda (z_a = 4.9 m) kesitin yanına 'hata: ankraj çok alçak' etiketli bir kırmızımsı işaret olsun; bu kesit dolu çizgili değil, kesik çizgili olsun.",
+      tr: "Ankraj yerinin etkisi (H = 5 m, φ′ = 30°): ankraj aşağı indikçe D₀ küçülür, T büyür. z_a = 4,9 m'de ankraj çok alçaktır ve program hata verir.",
+      en: "Effect of the anchor level (H = 5 m, φ′ = 30°): the lower the anchor, the smaller D₀ and the larger T. At z_a = 4.9 m the anchor is too low and the program raises an error.",
     },
   },
   {

@@ -21,7 +21,8 @@ export const student: Block[] = [
     type: "figure",
     id: "sur-beta-wedge",
     caption: {
-      tr: "Eğimli dolgu: düşey bir istinat duvarı ve arkasında β açısıyla yükselen dolgu yüzeyi. Duvarın arkasına etkiyen toplam basınç P_a, dolgu yüzeyine paralel (β açılı) ok ile gösterilsin. Aynı P_a'nın yatay bileşeni P_h = P_a cos β ve düşey bileşeni ayrı kesikli oklarla işaretlensin. 'Rankine: β ≤ φ' koşulu bir kutu içinde yazılsın. Sağ panelde (ek panel) φ − β − ψ ≥ 0 sınırı için küçük bir açı diyagramı çizilsin (bölüm 4'te kullanılacak).",
+      tr: "Eğimli dolgu (β) ve sürşarj (q) aktif kamaya birlikte yük ekler. Rankine eğimli dolgu katsayısı K_a(β), β ≤ φ′ için tanımlıdır: φ′ = 30° için β = 0°, 10°, 20° → 0,3333; 0,3495; 0,4142.",
+      en: "Sloping backfill (β) and surcharge (q) both add load to the active wedge. The Rankine sloping-backfill coefficient K_a(β) exists for β ≤ φ′: for φ′ = 30°, β = 0°, 10°, 20° → 0.3333, 0.3495, 0.4142.",
     },
   },
   {
@@ -116,7 +117,8 @@ export const student: Block[] = [
     type: "figure",
     id: "sur-surcharge-basis",
     caption: {
-      tr: "Sürşarj iki tanım karşılaştırması: sol panelde yatay izdüşüm üzerinde düzgün q (düşey oklar yatay bir çizgi üzerinde). Sağ panelde eğimli yüzey üzerinde düşey oklar, yüzeye dik olan ayrı bir gösterimle q (eğimli yüzey başına) ve izdüşüm başına q / cos β etiketi taşısın. Her iki panelde de K·q·H yanal basınç diyagramı yanına ok olarak eklensin ve 'β = 10°: q_h = 10.15 (eğik yüzey q = 10)' değeri belirtilsin.",
+      tr: "Sürşarjın iki tanımı: 'horizontal' (varsayılan) q'yu yatay izdüşüm başına, 'inclined' eğimli yüzey başına verir; ikincisinde yatay izdüşüm başına q_h = q / cos β olur (β = 10° için 1,015·q).",
+      en: "The two surcharge bases: 'horizontal' (default) gives q per horizontal projection, 'inclined' gives it per inclined surface; in the second case q_h = q / cos β per horizontal projection (1.015·q for β = 10°).",
     },
   },
   {
@@ -165,9 +167,10 @@ export const student: Block[] = [
   },
   {
     type: "figure",
-    id: "sur-beta-wedge",
+    id: "sur-beta-regions",
     caption: {
-      tr: "Bölüm 1 şeklinin ek paneli (deprem sınırı): eğim açısı β'nın yatay ekseni, φ − ψ çizgisinin üstünde 'M-O yok (φ − β − ψ < 0)' ve altında 'M-O geçerli' bölgeleri gösterilsin. φ = 30°, k_h = 0.2 için ψ = 11.31° ve φ − ψ = 18.69° noktası işaretlensin. Üst bölgede 'TBDY 16.24b (β > φ − ψ)' etiketi yazsın.",
+      tr: "Eğim açısı β ve deprem (φ′ = 30°, k_h = 0,2): β ≤ φ′ − ψ = 18,69° için Mononobe-Okabe geçerlidir; φ′ − ψ ile φ′ arasında TBDY 16.24b kullanılır; β > φ′ iken çözüm yoktur ve program hata verir.",
+      en: "Slope angle β and earthquake (φ′ = 30°, k_h = 0.2): Mononobe-Okabe is valid for β ≤ φ′ − ψ = 18.69°; between φ′ − ψ and φ′ TBDY 16.24b is used; for β > φ′ there is no solution and the program stops with an error.",
     },
   },
   {
@@ -225,7 +228,8 @@ export const student: Block[] = [
     type: "figure",
     id: "sur-sheet-moment",
     caption: {
-      tr: "Konsol palplanş net basınç ve moment diyagramı: sol kolonda net basınç diyagramı (aktif ile pasif farkı), kazı tabanı (dredge line) yatay kesikli çizgiyle ve gömülü boy D_0 etiketli. Sağ kolonda kesme kuvveti F(z) ve moment M(z) eğrileri; F(z) = 0 olan noktada M_max işaretlensin ve 'z = 4.5 m, M_max = 60.75 kNm/m' etiketi okunsun. Kazı tabanı altındaki pasif bölge gölgeli gösterilsin.",
+      tr: "Konsol palplanş net basınç, kesme ve moment diyagramı (H = 3 m örneği): V = 0 olan z = 4,50 m'de M_max = 60,75 kN·m/m.",
+      en: "Net pressure, shear and moment diagrams of a cantilever sheet pile (H = 3 m example): M_max = 60.75 kN·m/m at z = 4.50 m where V = 0.",
     },
   },
   {

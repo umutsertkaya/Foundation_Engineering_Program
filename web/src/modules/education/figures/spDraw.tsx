@@ -73,7 +73,8 @@ export function SpNetDiagram() {
           <circle cx={xm + M[iM] * 1.1} cy={y(iM * dz)} r={6} fill={K.red} /><Tx x={xm + M[iM] * 1.1 + 8} y={y(iM * dz) + 18} b c={K.red}>Mmax = {f2(M[iM])}</Tx>
           <Tx x={xm + M[iM] * 1.1 + 8} y={y(iM * dz) + 36} c={K.red}>(z = {f2(iM * dz)} m)</Tx>
           <Ln x1={20} y1={y(zt)} x2={620} y2={y(zt)} c={K.ink} w={1.2} d="3 3" /><Tx x={22} y={y(zt) + 22}>uç: z = H + D₀ = {f2(zt)} m, M ≈ {f1(Math.abs(M[M.length - 1]))} (≈ 0)</Tx>
-          <Tx x={20} y={y(zt) + 46} c={K.mut}>V = ∫p dz, M = ∫V dz. Kesme sıfır olan derinlikte moment en büyüktür. (H = 3 m, γ = 18, φ′ = 30°)</Tx>
+          <Tx x={20} y={y(zt) + 46} c={K.mut} s={14}>V = ∫p dz, M = ∫V dz; M, V = 0 olan derinlikte en büyüktür.</Tx>
+          <Tx x={20} y={y(zt) + 66} c={K.mut} s={14}>H = 3 m, γ = 18 kN/m³, φ′ = 30°</Tx>
         </>
       )}
     </Fig>
@@ -97,8 +98,8 @@ export function SpPassiveFactor() {
           <Tx x={wx - 14} y={y(D) + 38} c={K.orange} b a="end">GS = 1,5: Kp·γ·z / 1,5 (tasarım)</Tx>
           <Poly pts={[[wx + 8, y(0)], [wx + 8 + 70, y(D)], [wx + 8, y(D)]]} fill={K.red} o={0.3} />
           <Tx x={wx + 90} y={y(D) - 4} c={K.red} b>aktif</Tx>
-          <Tx x={20} y={30}>Programda pasif direnç güvenlik sayısı GS ile bölünür: daha az direnç ⇒ daha derin gömme gerekir.</Tx>
-          <Tx x={20} y={y(D) + 66} c={K.mut}>Örnek (H = 3 m): GS = 1 ⇒ D₀ = 4,63 m,  GS = 1,5 ⇒ D₀ = 6,12 m  (programın çıktısı).</Tx>
+          <Tx x={20} y={30} s={14}>Pasif direnç GS ile bölünür: daha az direnç ⇒ daha derin gömme.</Tx>
+          <Tx x={20} y={y(D) + 66} c={K.mut} s={14}>Örnek (H = 5 m, şematik çizim): GS = 1 ⇒ D₀ = 4,63 m;  GS = 1,5 ⇒ D₀ = 6,12 m.</Tx>
         </>
       )}
     </Fig>
@@ -197,8 +198,8 @@ export function SlopeBishopSlice() {
           <Poly pts={[[340, surf(340)], [390, surf(390)], [390, arc(390)], [340, arc(340)]]} fill={K.orange} o={0.35} />
           {xs.map((x) => <Ln key={x} x1={x} y1={surf(x)} x2={x} y2={arc(x)} c={K.ink} w={1} />)}
           <Ln x1={20} y1={235} x2={620} y2={190} c={K.water} w={2.2} d="7 4" /><Tx x={612} y={182} a="end" c={K.water} b>su tablası (u)</Tx>
-          <Tx x={20} y={30} b>Dairesel kayma yüzeyi, merkez O, yarıçap R; kütle düşey dilimlere bölünür</Tx>
-          <Tx x={20} y={58} c={K.mut}>Her dilimde: ağırlık W, taban eğimi α, taban uzunluğu l = b / cos α, boşluk suyu basıncı u</Tx>
+          <Tx x={20} y={28} b>Dairesel kayma yüzeyi, merkez O, yarıçap R; kütle düşey dilimlere bölünür</Tx>
+          <Tx x={20} y={54} c={K.mut} s={13}>Her dilimde: ağırlık W, taban eğimi α, taban uzunluğu l = b / cos α, boşluk suyu basıncı u</Tx>
           {/* detail of one slice */}
           <rect x={20} y={345} width={600} height={115} fill={K.bg} stroke={K.grid} rx={4} />
           <Tx x={30} y={366} b>Seçili dilim (büyütülmüş)</Tx>
@@ -209,10 +210,10 @@ export function SlopeBishopSlice() {
           <Ln x1={140} y1={448} x2={230} y2={428} c={K.red} w={0} />
           <Ln x1={140} y1={448} x2={102} y2={457} c={K.red} w={2.4} end={c.arrow(K.red)} /><Tx x={80} y={455} a="end" c={K.red} s={13}>S</Tx>
           <Ang x={140} y={448} r={44} from={0} to={12} label="α" />
-          <Tx x={260} y={380}>Bishop: dilimler arası düşey kesme kuvvetleri sıfır alınır</Tx>
-          <Tx x={260} y={402}>FS = Σ[(c′b + (W − ub) tanφ′) / mα] / Σ[W sinα]</Tx>
-          <Tx x={260} y={424}>mα = cosα (1 + tanα tanφ′ / FS):  FS iki yanda ⇒ iterasyon</Tx>
-          <Tx x={260} y={446} c={K.mut}>N′: efektif normal kuvvet,  S: mobilize kayma direnci</Tx>
+          <Tx x={250} y={380} s={13}>Bishop: dilimler arası düşey kesme kuvvetleri sıfır alınır</Tx>
+          <Tx x={250} y={402} s={13}>FS = Σ[(c′b + (W − ub) tanφ′) / mα] / Σ[W sinα]</Tx>
+          <Tx x={250} y={424} s={13}>mα = cosα (1 + tanα tanφ′ / FS):  FS iki yanda ⇒ iterasyon</Tx>
+          <Tx x={250} y={446} c={K.mut} s={13}>N′: efektif normal kuvvet,  S: mobilize kayma direnci</Tx>
         </>
       )}
     </Fig>
@@ -232,7 +233,7 @@ export function SlopeSearchDomain() {
             return <g key={`${i}${j}`}><circle cx={x} cy={y} r={min ? 9 : 6} fill={min ? K.red : K.blue} fillOpacity={min ? 1 : 0.55} /><Tx x={x} y={y - 12} a="middle" s={11} c={min ? K.red : K.mut}>{f2(min ? 1.12 : fs)}</Tx></g>;
           }))}
           <path d="M140 250 A 215 215 0 0 0 475 150" fill="none" stroke={K.red} strokeWidth={3.4} /><Ln x1={272} y1={80} x2={140} y2={250} c={K.red} w={1.2} d="5 4" /><Ln x1={272} y1={80} x2={475} y2={150} c={K.red} w={1.2} d="5 4" />
-          <Tx x={20} y={30} b>Merkez ızgarası: her merkezden en küçük FS'li daire bulunur</Tx>
+          <Tx x={20} y={16} b>Merkez ızgarası: her merkezden en küçük FS'li daire bulunur</Tx>
           <Tx x={20} y={392} c={K.mut}>Kırmızı nokta: en küçük FS (kritik daire); sayılar şematik FS değerleridir.</Tx>
         </>
       )}
@@ -284,8 +285,8 @@ export function ShearKeyPlanes() {
           <Force x1={bx - 40} y1={by + 20 + kd / 2} x2={bx + 12} y2={by + 20 + kd / 2} c={K.green} arrow={c.arrow} w={3} />
           <Tx x={40} y={by + 4 + kd / 2} c={K.green} b>Pp (diş pasifi)</Tx>
           <Tx x={30} y={30} b>İki kayma düzlemi kontrol edilir; küçük FS yönetir</Tx>
-          <Tx x={30} y={330}>Referans duvar (G9 incelemesi): taban FS = 1,85,  diş ucu düzlemi FS = 1,66 ⇒ diş ucu yönetir.</Tx>
-          <Tx x={30} y={352} c={K.mut}>Diş ucu düzleminde ek arka itki ΔH diş eklenir (diş derinliği boyunca aktif itki).</Tx>
+          <Tx x={30} y={330} s={14}>Referans duvar (G9): taban FS = 1,85, diş ucu düzlemi FS = 1,66 ⇒ diş ucu yönetir.</Tx>
+          <Tx x={30} y={352} c={K.mut} s={14}>Diş ucu düzleminde ek arka itki ΔH diş eklenir (diş derinliği boyunca).</Tx>
         </>
       )}
     </Fig>
@@ -302,7 +303,7 @@ export function AnchorBondFreeLength() {
   const [xf, yf] = pt(x0, y0, Lf, -theta), [xb, yb] = pt(x0, y0, Lf + Lb, -theta);
   const wedgeX = wx + 8 + (y(H) - top) / Math.tan(rad(a45));
   return (
-    <Fig label="Ground anchor: free length and bond length behind the active wedge">
+    <Fig label="Ground anchor: free length and bond length behind the active wedge" h={440}>
       {(c) => (
         <>
           <Soil x={wx + 8} y={top} w={500} h={y(H) - top + 40} c={c} />
@@ -336,13 +337,13 @@ export function GanTendonLimits() {
           <rect x={X(0.6)} y={120} width={X(0.7) - X(0.6)} height={50} fill={K.blue} fillOpacity={0.55} />
           <rect x={X(0.7)} y={120} width={X(0.8) - X(0.7)} height={50} fill={K.orange} fillOpacity={0.55} />
           <rect x={X(0.8)} y={120} width={X(1) - X(0.8)} height={50} fill={K.red} fillOpacity={0.3} />
-          {[[0.6, "0,60"], [0.7, "0,70"], [0.8, "0,80"], [1, "1,00"]].map(([r, l]) => <g key={l as string}><Ln x1={X(r as number)} y1={110} x2={X(r as number)} y2={182} /><Tx x={X(r as number)} y={204} a="middle" b>{l as string}·SMTS</Tx></g>)}
+          {[[0.6, "0,60"], [0.7, "0,70"], [0.8, "0,80"], [1, "1,00"]].map(([r, l]) => <g key={l as string}><Ln x1={X(r as number)} y1={110} x2={X(r as number)} y2={182} /><Tx x={X(r as number)} y={204} a="middle" b>{l as string}</Tx></g>)}
           <Tx x={X(0.3)} y={150} a="middle" b>T_tasarım ≤ 0,60 SMTS</Tx>
           <Tx x={X(0.65)} y={100} a="middle" c={K.blue} b>T_kilit ≤ 0,70</Tx>
-          <Tx x={X(0.75)} y={236} a="middle" c={K.orange} b>T_deneme = 1,33·T ≤ 0,80 SMTS</Tx>
+          <Tx x={X(0.75)} y={240} a="middle" c={K.orange} b>T_deneme = 1,33·T ≤ 0,80</Tx>
           <Tx x={X(0.9)} y={150} a="middle" c={K.red}>kopma bölgesi</Tx>
-          <Tx x={50} y={300}>SMTS: tendonun özelleşmiş en küçük çekme dayanımı (halat veya bar için üretici değeri).</Tx>
-          <Tx x={50} y={322} c={K.mut}>Tasarım yükü, kilitleme yükü ve deneme yükü ayrı sınırlara bağlıdır.</Tx>
+          <Tx x={50} y={290} s={14}>Sayılar SMTS oranıdır (tendonun özelleşmiş en küçük çekme dayanımı).</Tx>
+          <Tx x={50} y={312} c={K.mut} s={14}>Tasarım, kilitleme ve deneme yükü ayrı sınırlara bağlıdır.</Tx>
         </>
       )}
     </Fig>

@@ -21,7 +21,8 @@ export const student: Block[] = [
     type: "figure",
     id: "key-geometry",
     caption: {
-      tr: "Kayma dişli konsol istinat duvarı, kesit. Duvar gövdesi, temel tabanı (kalınlık 0.7 m), topuk altında 0.5 m genişlik ve 0.6 m derinlikte diş (kesikli dolgu ile). Ölçüler etiketli: duvar yüksekliği 6.0 m (gövde 5.3 + taban 0.7), ön ayak 0.8 m, topuk 2.2 m, diş genişliği 0.5 m, diş derinliği 0.6 m, ön gömme D = 1.5 m. Ön tarafta kazı zemini ve arka tarafta dolgu ayrı renkle; arka dolgunun üst yüzeyinde 10 kPa sürşarj oku olsun.",
+      tr: "Kayma dişli konsol istinat duvarı kesiti. B taban genişliği, x_k dişin ayaktan uzaklığı, b_k diş genişliği, h_k diş derinliği, D_f ön gömme ve H duvar yüksekliğidir.",
+      en: "Cantilever retaining wall with a shear key. B is the base width, x_k the key distance from the toe, b_k the key width, h_k the key depth, D_f the front embedment and H the wall height.",
     },
   },
   {
@@ -83,7 +84,8 @@ export const student: Block[] = [
     type: "figure",
     id: "key-passive-diagram",
     caption: {
-      tr: "Diş ön yüzündeki pasif basınç diyagramı, Örnek 1 için: yatay eksende basınç (kPa), düşey eksende derinlik. Diyagram, temel tabanının altındaki ön gömme D = 1.0 m’den başlayıp d = 1.43 m aşağıya kadar uzanmalı; üstte σ_v = 20 kPa, altta σ_v = 48.6 kPa ile işaretlenmeli ve pasif basınç K_p·σ_v’nin doğrusal artışını göstermeli. Diyagramın altında 'toplam ≈ 159.6 kN/m' ve 'kullanılan (×0.5) ≈ 79.8 kN/m' etiketleri olsun. Ön dolgu kalınlığı 1.0 m, temel tabanı ve diş ayrıca işaretlensin.",
+      tr: "Dişin ön yüzündeki pasif basınç: mavi tam pasif, yeşil kayma kontrolünde kullanılan 0,5·P_p (EM 1110-2-2502). Ön zemin kaybolmayacaksa hesaba girer (şematik).",
+      en: "Passive pressure on the front face of the key: blue is full passive, green is the 0.5·P_p used in the sliding check (EM 1110-2-2502). It counts only if the front soil will not be removed (schematic).",
     },
   },
   {
@@ -151,7 +153,8 @@ export const student: Block[] = [
     type: "figure",
     id: "key-tip-plane",
     caption: {
-      tr: "Diş ucu düzlemi ve arka itki kesiti, referans duvar. Kayan blok: temel tabanı ile diş tabanı arasındaki yatay düzlem (diş ucu düzlemi) ile sınırlanmış; topuk hattındaki düşey yüzeyde taban seviyesinden diş tabanına (0.6 m) kadar uzanan 'arka itki ΔH = 24.7 kN/m' oku, dolgu tarafında gösterilsin. Diş ucunun altında 'diş ucu düzlemi' etiketi ve diş yanındaki zemin için 'diş yanı zemin ağırlığı 32.4 kN' etiketi olsun.",
+      tr: "Diş ucu düzlemi: kayan blok, taban ile diş ucu düzlemi arasında kalır. Topuktaki düşey arka düzlem diş ucuna kadar uzatılır ve bu ek yükseklikte aktif itki ΔH_diş eklenir (referans duvarda 24,7 kN/m).",
+      en: "Key-tip plane: the sliding block lies between the base and the key-tip plane. The vertical back plane at the heel is extended to the key tip and the active thrust over that extra height, ΔH_key, is added (24.7 kN/m for the reference wall).",
     },
   },
   {
@@ -164,7 +167,8 @@ export const student: Block[] = [
     type: "figure",
     id: "shear-key-planes",
     caption: {
-      tr: "Kayma yüzeyleri karşılaştırması: aynı referans duvarda iki kontrol yüzeyi, taban yüzeyi (FS = 1.85) ve diş ucu düzlemi (FS = 1.66) etiketli; her yüzeyin üstünde ilgili kuvvetler (V tan δ_b, pasif, ΔH) okları ile gösterilsin. Yönetici yüzey kalın çizgiyle vurgulansın.",
+      tr: "Kontrol edilen iki kayma düzlemi: ① taban düzlemi (FS = 1,85) ve ② diş ucu düzlemi (FS = 1,66). Küçük FS veren yüzey, burada diş ucu düzlemi, yönetir.",
+      en: "The two sliding planes that are checked: ① the base plane (FS = 1.85) and ② the key-tip plane (FS = 1.66). The plane with the smaller FS, here the key-tip plane, governs.",
     },
   },
 
@@ -203,9 +207,10 @@ export const student: Block[] = [
   },
   {
     type: "figure",
-    id: "wall-stability-checks",
+    id: "key-fs-bars",
     caption: {
-      tr: "Kayma kontrol tablosu/çubuk grafiği: üç çubuk, 'diş yok' (FS 1.56), 'diş var, taban yüzeyi' (FS 1.85) ve 'diş var, diş ucu düzlemi' (FS 1.66); her çubuğun üstünde değer, altında yüzey adı yazsın. Yatay bir kesikli çizgi 'FS = 1.50' sınırını göstersin (bu bir örnek sınır çizgisidir, yönetmelik değeri değildir; etiketinde 'örnek' yazsın). En kısa çubuk olan yönetici yüzey işaretlensin.",
+      tr: "Kayma güvenliği: diş yokken FS = 1,56; dişli duvarda taban düzlemi FS = 1,85, diş ucu düzlemi FS = 1,66. Kesikli çizgi örnek bir FS = 1,50 sınırıdır, yönetmelik değeri değildir.",
+      en: "Sliding safety: FS = 1.56 without a key; with a key the base plane gives FS = 1.85 and the key-tip plane FS = 1.66. The dashed line is an example limit FS = 1.50, not a code value.",
     },
   },
   {
@@ -240,9 +245,10 @@ export const student: Block[] = [
   },
   {
     type: "figure",
-    id: "key-passive-diagram",
+    id: "key-passive-seismic",
     caption: {
-      tr: "Drenajlı ve deprem durumunda diş pasifi karşılaştırması: iki pasif diyagramı yan yana, biri statik (tam) ve biri sismik azaltılmış (kayma için kullanılan) olsun; alt kısımda 'yapısal talep: statik (azaltılmamış)' notu yazsın. Drenajsız durumda (φ = 0) diyagramın doğrusal bir yapıya sahip olduğu, σ_v yerine s_u ile çalıştığı etiketle belirtilsin.",
+      tr: "Statik ve depremli pasif: depremde kayma kontrolünde pasif, (1 − k_v)·K_PE oranıyla azaltılır; yapısal talep için azaltılmamış statik pasif kullanılır.",
+      en: "Static and seismic passive: in an earthquake the passive used for the sliding check is reduced by the (1 − k_v)·K_PE ratio; the unreduced static passive is used for the structural demand.",
     },
   },
   {

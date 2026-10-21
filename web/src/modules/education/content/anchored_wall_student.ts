@@ -34,8 +34,8 @@ export const student: Block[] = [
     type: "figure",
     id: "awl-sand-envelope",
     caption: {
-      tr: "Kum için görünür basınç zarfı (kesit: derinlik aşağı doğru, basınç yatay eksende). Zarf bir yamuk olmalı: z = 0'da sıfır, z = 2/3·H1 (ilk ankraj H1 = 1,5 m için 1,0 m) noktasında p_max = 45 kPa, orta kısımda sabit 45 kPa, alt rampa z = H − 2/3·H_n+1 (son ankrajdan sonraki 2,5 m için 8,33 m) noktasında başlayıp z = H = 10 m'de sıfıra inmeli. Kenarda 'Toplam = 390 kN/m = 0,65 K_a γ H²' ve 'p_max = Toplam / (H − H1/3 − H_n+1/3)' yazmalı. Ankraj seviyeleri 1,5 / 4,5 / 7,5 m için kesikli yatay çizgilerle işaretlenmeli.",
-      en: "Sand apparent envelope: trapezoid with p_max 45 kPa, ramps at 2/3 H1 and H minus 2/3 Hn+1, anchors at 1.5, 4.5, 7.5 m.",
+      tr: "Kum için görünür basınç zarfı (H = 10 m, ankrajlar 1,5 / 4,5 / 7,5 m): yamuk, z = 2/3·H₁ = 1,0 m'den z = H − H₊₁/3 = 9,17 m'ye kadar p_max = 45 kPa'dır; alan toplam yük P = 0,65·K_a·γ·H² = 390 kN/m'ye eşittir.",
+      en: "Apparent pressure envelope for sand (H = 10 m, anchors at 1.5 / 4.5 / 7.5 m): a trapezoid with p_max = 45 kPa from z = 2/3·H₁ = 1.0 m to z = H − H₊₁/3 = 9.17 m; its area equals the total load P = 0.65·K_a·γ·H² = 390 kN/m.",
     },
   },
 
@@ -166,8 +166,8 @@ export const student: Block[] = [
     type: "figure",
     id: "awl-clay-envelopes",
     caption: {
-      tr: "Kil zarfları karşılaştırması (yatay eksen basınç kPa, düşey eksen derinlik m, yukarı pozitif aşağı). Üç ayrı panel ya da üst üste üç eğri: (a) yumuşak kil N_s = 4,53 için p = 29,92 kPa'da sabit ve z = 0 → 2 m rampasıyla başlayan zarf; (b) sert kil N_s ≤ 4 için p = 0,4 × 17 × 8 = 54,4 kPa'da, z = 0, 1,33, 6, 8 m noktalarındaki yamuk; (c) Henkel (N_s ≥ 5,14) ile d derinliği işaretli, p = K_a γH'nin büyük çıktığı bir örnek (K_a = 1,171, p ≈ 159 kPa). Her eğride N_s ve K_a değeri etiketlenmeli.",
-      en: "Clay envelopes: soft (29.92 kPa), stiff (54.4 kPa), Henkel (Ka 1.171) with N_s labels.",
+      tr: "Kil zarfları (H = 8 m, γ = 17 kN/m³): yumuşak kilde p = 29,92 kPa'da sabit (z = 0 → 2 m rampa), sert kilde p = 54,4 kPa'lık yamuk (c = 0,4; toplam ≥ 3H²).",
+      en: "Clay envelopes (H = 8 m, γ = 17 kN/m³): soft clay has a constant p = 29.92 kPa (ramp over z = 0 → 2 m); stiff clay a trapezoid with p = 54.4 kPa (c = 0.4; total ≥ 3H²).",
     },
   },
 
@@ -281,8 +281,8 @@ export const student: Block[] = [
     type: "figure",
     id: "awl-basal-heave",
     caption: {
-      tr: "Kil kazıda taban kabarması kesiti: kazı çukuru, yüzeyden kazı tabanına H = 6 m (ok), kazı genişliği B = 10 m (yatay ok), etkin genişlik B' = B/√2 = 7,07 m ayrıca kesikli çizgiyle işaretlenmeli. Tabanın altındaki kil bölgesinde kayma yüzeyi (yaklaşık yarım daire ya da kesikli eğri) ve 's_u = 20 kPa' etiketi bulunmalı. Sağ alt köşede 'FS = N_c s_u/(γH) = 1,098 < 1,5' yazan kutu, kırmızı işaretli olmalı.",
-      en: "Basal heave section: H, B, B' = B/sqrt2, failure surface, FS 1.098 < 1.5 box.",
+      tr: "Kil tabanda kabarma: kazı genişliği B ve derinliği H, taban altındaki yumuşak kil (S_u,b) içinde dairesel bir kayma yüzeyi oluşur. FS = N_c·S_u,b / (γH + q).",
+      en: "Basal heave in clay: with excavation width B and depth H a circular failure surface forms in the soft clay below the base (S_u,b). FS = N_c·S_u,b / (γH + q).",
     },
   },
 

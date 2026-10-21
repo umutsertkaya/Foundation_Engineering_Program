@@ -22,7 +22,8 @@ export const partB: Block[] = [
     type: "figure",
     id: "ep-coulomb-wedge",
     caption: {
-      tr: "Şekil: düşey duvar yüzü (sol), yatay dolgu yüzeyi (üst) ve topuktan çıkan eğik kayma düzlemi (ρ açısı) ile sınırlı kama. Kama üzerinde üç ok: aşağı W, kayma düzlemi tepkisi R (normalden φ sapmalı), duvar yüzünden P (normalden δ sapmalı). Ayrı bir küçük kutuda üç kuvvetin kapalı kuvvet üçgeni çizilmeli.",
+      tr: "Coulomb kaması: düşey duvar, yatay dolgu ve topuktan çıkan ρ açılı kayma düzlemi. Kama üzerinde W, kayma düzlemi tepkisi R (normalden φ sapmalı) ve duvar tepkisi P_A (normalden δ sapmalı) dengededir; sağda kapalı kuvvet üçgeni.",
+      en: "Coulomb wedge: vertical wall, horizontal backfill and a slip plane at angle ρ from the heel. On the wedge W, the slip-plane reaction R (deviating φ from the normal) and the wall reaction P_A (deviating δ from the normal) are in equilibrium; the closed force triangle is on the right.",
     },
   },
   {
@@ -55,7 +56,8 @@ export const partB: Block[] = [
     type: "figure",
     id: "ep-ka-phi",
     caption: {
-      tr: "Şekil: yatay eksen φ (20–45°), dikey eksen katsayı. Üç eğri: Ka (Rankine ve δ = 0 Coulomb çakışık, alttan), Ka (δ = 20° Coulomb, Rankine'in biraz altında), K0 = 1 − sin φ (üstte, orta) ve Kp = tan²(45° + φ/2) (en yukarı çıkan eğri). Ka azalır, Kp hızla artar; φ = 30° için işaretler Ka = 0.333, K0 = 0.5, Kp = 3.0.",
+      tr: "K_a, K₀ ve K_p'nin φ′ ile değişimi: φ′ = 30° için K_a = 0,33, K₀ = 0,50, K_p = 3,00.",
+      en: "K_a, K₀ and K_p versus φ′: for φ′ = 30°, K_a = 0.33, K₀ = 0.50, K_p = 3.00.",
     },
   },
   {
@@ -83,13 +85,7 @@ export const partB: Block[] = [
       tr: "Sürşarj dikkatle yorumlanmalıdır. Eğimli bir yüzeyde q birimi, yüzey alanı başına düşey yük ise yatay izdüşüm başına değeri q / cos β olur (surcharge_per_horizontal, basis='inclined'). Yanlış birim seçimi itkiyi yaklaşık cos β oranında hatalı verir. Log-spiral yöntemi (geotek/engine/earth_pressure/log_spiral.py) ise yalnızca pasif direnç içindir. Terzaghi'nin logaritmik spiral kayma yüzeyini kullanır: yüzey topuktan başlayıp zemin yüzeyindeki bir kutup O etrafında döner ve momentlerin dengesinden en küçük pasif kuvvet bulunur. Düz kayma düzlemi kullanan Rankine ya da Coulomb pasif formüllerinde δ büyük olduğunda pasif direnç aşırı büyük çıkar; coulomb_kp fonksiyonu da δ > φ/2 için bunu açıkça uyarır. Log-spiral bu hatayı azaltır. Yöntemin sınırı, dik duvar ve yatay zemin varsayımıdır; sonuç Kp, H ve γ'dan bağımsızdır ve program yalnızca φ ve δ ≤ φ aralığında çalışır.",
     },
   },
-  {
-    type: "figure",
-    id: "ep-coulomb-wedge",
-    caption: {
-      tr: "Şekil: eğimli dolgu (β > 0, yüzey yukarı eğimli) ve üzerinde yüzey sürşarjı q olan kama. Kama alanı çizgisi topuktan yüzeye çıkan kayma düzlemi, ağırlığa eklenen sürşarj şeridi kama üstünde gösterilmeli. Üç kuvvet (W, R, P) bu eğimli yüzeyde yeniden çizilmeli.",
-    },
-  },
+  
   { type: "h", text: { tr: "9) Deprem: yalancı-statik yaklaşım", en: "9) Earthquake: the pseudo-static approach" } },
   {
     type: "p",
@@ -134,7 +130,8 @@ export const partB: Block[] = [
     type: "figure",
     id: "ep-seismic-wedge",
     caption: {
-      tr: "Şekil: deprem kuvvetli kama. Kama ağırlığı W aşağı, kh·W yatay (duvara doğru ya da duvardan uzağa yönlü olarak aktif ve pasif için ayrı gösterilmeli), kv·W düşey ok. Ayrıca kuvvetlerin bileşkesinin ψ açısıyla eğik yön verdiği bir kuvvet üçgeni ve P_AE'nin normal yönü.",
+      tr: "Depremli Coulomb kaması: ağırlık W'ya yatay k_h·W eklenir ve kuvvet üçgeni buna göre değişir (R = 0,88 W, P_AE = 0,68 W; k_h = 0,20).",
+      en: "Coulomb wedge with earthquake: the horizontal force k_h·W is added to the weight W and the force triangle changes accordingly (R = 0.88 W, P_AE = 0.68 W; k_h = 0.20).",
     },
   },
   { type: "h", text: { tr: "10) İstinat duvarı kontrolleri", en: "10) Retaining wall checks" } },
@@ -178,7 +175,8 @@ export const partB: Block[] = [
     type: "figure",
     id: "wall-stability-checks",
     caption: {
-      tr: "Şekil: gravite duvarı kesiti üzerinde beş kontrolün özeti. Devrilme (ön-taban noktası etrafında M_R ve M_O okları), kayma (R direnç oku ve H itkisi), eksantrisite (bileşke R'nin taban üzerindeki konumu ve B/6 sınırları), taban basınç yamuğu (q_max ve q_min), taşıma (efektif taban B' ve Q_ult). Her kontrolün yanında gerekli FS değeri ve hesaplanan değer yazılmalıdır.",
+      tr: "Gravite duvarının üç temel kontrolü: devrilme (FS = ΣM_R / ΣM_O), kayma (FS = ΣV·tan δ_b / ΣH) ve taban basıncı (q = ΣV/B·(1 ± 6e/B)).",
+      en: "The three basic checks of a gravity wall: overturning (FS = ΣM_R / ΣM_O), sliding (FS = ΣV·tan δ_b / ΣH) and base pressure (q = ΣV/B·(1 ± 6e/B)).",
     },
   },
   {
@@ -226,7 +224,8 @@ export const partB: Block[] = [
     type: "figure",
     id: "ep-wall-forces",
     caption: {
-      tr: "Şekil: örnek duvar üzerindeki tüm kuvvetler ve kolları. Duvar ağırlığı W (x = 1.25 m), aktif itkinin yatay bileşeni (H/3 kolunda), düşey bileşeni (topukta, x = 2.5 m), taban direnci R, taban basınç yamuğu. Kayma dişi varsa diş tabanındaki ek itki ve diş ucu düzlemi ayrıca çizilmeli.",
+      tr: "Örnek gravite duvarı (2,5 × 4 m, γc = 24): W = 240 kN/m, P_a = 48 kN/m. M_R = 300, M_O = 64 kN·m/m, devrilme FS = 4,69.",
+      en: "Example gravity wall (2.5 × 4 m, γc = 24): W = 240 kN/m, P_a = 48 kN/m. M_R = 300, M_O = 64 kN·m/m, overturning FS = 4.69.",
     },
   },
   {
