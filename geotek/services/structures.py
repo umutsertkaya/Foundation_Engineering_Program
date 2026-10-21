@@ -664,16 +664,20 @@ def _sheet_case(structure, design_soil, *, seismic, passive_factor, active_facto
         # increment below is purely dynamic; M-O stops with a coded error when beta > phi' - psi.
         ae = lateral_pressure(retained, H, surcharge=q, method="coulomb", delta=beta, beta=beta,
                                kh=kh, kv=kv, layerwise=True)
-        ast = lateral_pressure(retained, H, surcharge=q, layerwise=True, **slope)
-        increment = (ae.component("effective")[0] - ast.component("effective")[0]) / H
-        # Same H/2 uniform-increment convention as the existing basic sheet-pile service.
-        net += seismic_factor * np.where((z < H) | ((z == H) & left), increment, 0.0)
-        # Below the dredge line the M-O active increment continues on the embedded part
-        # (Ebeling & Morrison 1992), layer-local, never negative.
-        ae_full = lateral_pressure(retained, bottom, surcharge=q, method="coulomb", delta=beta, beta=beta,
-                                   kh=kh, kv=kv, layerwise=True)
-        below = np.maximum(_evaluate(ae_full, z, left=left) - aq, 0.0)
-        net += seismic_factor * np.where((z < H) | ((z == H) & left), 0.0, below)
+        # KDYY handbook increment: uniform 0.5 dK_ad sigma'v(toe) over 0..toe (AASHTO 2010) plus a triangular
+        # surcharge part 2 q dK_ad (1 - z/toe) (Kumbasar & Kip). dK_ad = M-O total - static (Rankine slope), taken
+        # at the toe from the layered profiles, so it depends on the toe depth (fixed point below).
+        ae_full0 = lateral_pressure(retained, bottom, method="coulomb", delta=beta, beta=beta,
+                                    kh=kh, kv=kv, layerwise=True)
+        ast0 = lateral_pressure(retained, bottom, layerwise=True, **slope)
+
+        def seismic_part(toe_depth):
+            sv0 = float(np.interp(toe_depth, z, _evaluate(zero, z, which="sigma_v_eff", left=left)))
+            de0 = float(np.interp(toe_depth, z, _evaluate(ae_full0, z, left=left))
+                        - np.interp(toe_depth, z, _evaluate(ast0, z, left=left)))
+            dk = max(de0, 0.0) / sv0 if sv0 > 0 else 0.0
+            inc = 0.5 * max(de0, 0.0) + 2.0 * dk * q * (1.0 - z / toe_depth)
+            return seismic_factor * np.where(z <= toe_depth, np.maximum(inc, 0.0), 0.0)
         # Layer-local passive M-O/Rankine ratio, never increase passive resistance.
         ratio = np.ones_like(z)
         for i, depth in enumerate(z):
@@ -685,15 +689,32 @@ def _sheet_case(structure, design_soil, *, seismic, passive_factor, active_facto
             phi = layer.design.phi_eff
             ratio[i] = min(1.0, (1 - kv) * mononobe_okabe_kpe(phi, kh=kh, kv=kv) / rankine_kp(phi))
         net += pd * (1 - ratio)
-    F, Fz = _cumulative(z, net), _cumulative(z, net * z)
     i_h = int(np.searchsorted(z, H))
     anchor = structure.anchor_depth if structure.support == "anchored" else None
-    if anchor is None:
-        toe = _root(lambda zz: np.interp(zz, z, F) * zz - np.interp(zz, z, Fz), z, i_h + 1)
-        increase = 0.2
-    else:
-        toe = _root(lambda zz: np.interp(zz, z, Fz) - anchor * np.interp(zz, z, F), z, i_h + 1)
-        increase = 0.0
+    increase = 0.2 if anchor is None else 0.0
+    net_base = net
+
+    def solve_toe(net_try):
+        F_, Fz_ = _cumulative(z, net_try), _cumulative(z, net_try * z)
+        if anchor is None:
+            return _root(lambda zz: np.interp(zz, z, F_) * zz - np.interp(zz, z, Fz_), z, i_h + 1)
+        return _root(lambda zz: np.interp(zz, z, Fz_) - anchor * np.interp(zz, z, F_), z, i_h + 1)
+
+    toe = solve_toe(net_base)
+    if seismic and toe is not None:
+        for _ in range(60):
+            net = net_base + seismic_part(toe)
+            new_toe = solve_toe(net)
+            if new_toe is None:
+                toe = None
+                break
+            done = abs(new_toe - toe) < 1e-3
+            toe = new_toe
+            if done:
+                break
+        else:
+            raise GeoTekError("Seismic toe-depth iteration did not converge; check the seismic parameters")
+    F, Fz = _cumulative(z, net), _cumulative(z, net * z)
     if toe is None:
         raise GeoTekError("No sheet-pile embedment equilibrium within the structure profile; deepen the profile")
     if structure.depth_increase is not None:
