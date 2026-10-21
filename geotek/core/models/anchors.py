@@ -11,6 +11,8 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
+from geotek.core.models.structures import SURCHARGE_BASIS_DESCRIPTION, StructureSoilModel, SurchargeBasis
+
 ANCHOR_STATE_VERSION = 1
 
 
@@ -198,7 +200,165 @@ class AnchorRecord(_Model):
     result_hash: str | None = None
 
 
+class AnchorLevel(_Model):
+    """One anchor row of the wall; loads are per metre of wall, anchors repeat at ``spacing``."""
+
+    depth: float = Field(ge=0)
+    """Anchor head depth below the ground surface [m]."""
+    spacing: float = Field(gt=0)
+    """Horizontal anchor spacing [m]."""
+    inclination_deg: float = Field(0.0, ge=0, lt=60)
+    """Inclination below the horizontal [°]; the wall load is the horizontal component."""
+
+
+class AnchorDesignCommon(_Model):
+    """Anchor design inputs shared by every level; geometry and load come from the analysis.
+
+    Same meaning and rules as ``AnchorDesignInputs``; nothing is assumed when left out.
+    """
+
+    safety_factor: float | None = Field(None, gt=1)
+    ultimate_transfer_load: float | None = Field(None, gt=0)
+    ultimate_bond_stress: float | None = Field(None, gt=0)
+    hole_diameter: float | None = Field(None, gt=0)
+    min_bond_length: float | None = Field(None, gt=0)
+    max_bond_length: float | None = Field(None, gt=0)
+    min_free_length: float | None = Field(None, gt=0)
+    beyond_wedge: float | None = Field(None, gt=0)
+    wedge_origin_below_base: float = Field(0.0, ge=0)
+    tendon: TendonSpec
+    lock_off_ratio: float | None = Field(None, gt=0, le=1.5)
+    test_factor: float = Field(1.33, gt=1)
+    design_limit: float = Field(0.60, gt=0, le=1)
+    lock_off_limit: float = Field(0.70, gt=0, le=1)
+    test_limit: float = Field(0.80, gt=0, le=1)
+    min_overburden: float = Field(4.5, ge=0)
+    ground: Literal["soil", "rock"] = "soil"
+    transfer_load_ref: str | None = Field(None, max_length=120)
+
+
+class WallSection(_Model):
+    """Generic wall section: strength check only, no steel or concrete design."""
+
+    w_cm3: float | None = Field(None, gt=0)
+    """Elastic section modulus: per metre of wall (sheet pile) or per pile (soldier pile) [cm³]."""
+    allowable_stress_mpa: float | None = Field(None, gt=0)
+    ei_knm2: float | None = Field(None, gt=0)
+    """Bending stiffness, same basis as ``w_cm3``; stored for later deflection work, not used."""
+
+
+class AnchoredWallAnalysisInputs(_Model):
+    wall_type: Literal["sheet_pile", "soldier_pile"] = "sheet_pile"
+    excavation_height: float = Field(gt=0.5, le=30)
+    """H: depth of the excavation base below the ground surface [m]."""
+    soil: StructureSoilModel
+    """Structure copy of the soil profile (design parameters); fill and water overrides are not used."""
+    levels: list[AnchorLevel] = Field(min_length=1, max_length=6)
+    drainage: Literal["drained", "undrained"] = "drained"
+    backfill_slope: float = Field(0.0, ge=0, lt=45)
+    """Retained ground slope β [°]; single anchor level only."""
+    surcharge: float = Field(0.0, ge=0)
+    surcharge_basis: SurchargeBasis = Field("horizontal", description=SURCHARGE_BASIS_DESCRIPTION)
+    passive_factor: float = Field(1.0, ge=1)
+    """Divisor on the passive resistance below the excavation base."""
+    depth_increase: float | None = Field(None, ge=0)
+    """D = D0 (1 + increase); ``None``: 0 for one level, 0.2 for several levels."""
+    front_water_depth: float | None = Field(None, ge=0)
+    load_method: Literal["hinge", "tributary"] = "hinge"
+    """Several levels: how the apparent pressure envelope is split into anchor loads."""
+    stiff_clay_coefficient: float = Field(0.3, ge=0.2, le=0.4)
+    """Several levels, stiff clay (γH/Su <= 4): envelope ordinate = coefficient x γ H."""
+    pile_spacing: float | None = Field(None, gt=0)
+    """Soldier pile wall: centre spacing [m]."""
+    passive_width: float | None = Field(None, gt=0)
+    """Soldier pile wall: effective passive width per pile below the base [m]."""
+    section: WallSection = Field(default_factory=WallSection)
+    anchor_design: AnchorDesignCommon | None = None
+    """When given, every level is fed to the anchor design engine."""
+
+    @model_validator(mode="after")
+    def _consistent(self) -> AnchoredWallAnalysisInputs:
+        depths = [lv.depth for lv in self.levels]
+        if depths != sorted(depths) or len(set(depths)) != len(depths):
+            raise ValueError("levels must be listed by increasing, distinct depth")
+        if depths[-1] >= self.excavation_height:
+            raise ValueError("every anchor must be above the excavation base")
+        if self.soil.retained_fill or self.soil.gwt_retained or self.soil.gwt_front:
+            raise ValueError("retained fill and separate retained/front groundwater are not supported")
+        if self.wall_type == "soldier_pile":
+            if self.pile_spacing is None or self.passive_width is None:
+                raise ValueError("soldier pile walls need pile_spacing and passive_width")
+        elif self.pile_spacing is not None or self.passive_width is not None:
+            raise ValueError("pile_spacing and passive_width apply to soldier pile walls only")
+        if self.backfill_slope > 0 and self.drainage == "undrained":
+            raise ValueError("sloping ground with undrained behaviour is not supported")
+        return self
+
+
+class LevelResult(_Model):
+    depth: float
+    inclination_deg: float
+    spacing: float
+    horizontal_load_per_m: float
+    """T_h [kN/m of wall]."""
+    horizontal_load_per_anchor: float
+    axial_load_per_anchor: float
+    vertical_load_per_m: float
+    design: AnchorDesignResult | None = None
+    design_missing: list[str] = Field(default_factory=list)
+    design_error: str | None = None
+
+
+class EnvelopeResult(_Model):
+    kind: Literal["sand", "soft_clay", "stiff_clay"]
+    p_max: float
+    total_thrust: float
+    gamma: float
+    phi_deg: float | None
+    su: float | None
+    ka: float | None
+    z: list[float]
+    p: list[float]
+
+
+class AnalysisResult(_Model):
+    method: Literal["free_earth_single", "apparent_hinge", "apparent_tributary"]
+    wall_type: Literal["sheet_pile", "soldier_pile"]
+    excavation_height: float
+    embedment_theoretical: float
+    embedment: float
+    wall_length: float
+    base_reaction: float | None
+    """Several levels: force the wall passes to the soil at the excavation base [kN/m]."""
+    envelope: EnvelopeResult | None
+    levels: list[LevelResult]
+    m_max: float
+    """Largest bending moment per metre of wall [kNm/m]."""
+    z_m_max: float
+    v_max: float
+    """Largest shear per metre of wall [kN/m]."""
+    member_spacing: float
+    """Wall length carried by one structural member (1 m for sheet piles, pile spacing otherwise)."""
+    m_max_member: float
+    v_max_member: float
+    required_section_modulus_cm3: float | None
+    checks: list[AnchorCheck]
+    z: list[float]
+    shear: list[float]
+    moment: list[float]
+    warnings: list[Notice]
+    assumptions: list[Notice]
+    sources: list[str]
+
+
+class AnalysisRecord(_Model):
+    inputs: AnchoredWallAnalysisInputs
+    result: AnalysisResult | None = None
+    result_hash: str | None = None
+
+
 class AnchoredWallState(_Model):
     """``Project.modules["anchored_wall"]``; later phases add fields with defaults."""
 
     anchor: AnchorRecord | None = None
+    analysis: AnalysisRecord | None = None

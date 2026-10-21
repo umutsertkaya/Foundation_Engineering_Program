@@ -1306,6 +1306,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/m/anchored_wall/analysis/run": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Run Wall Analysis
+         * @description Analyse the anchored wall; with ``save`` store inputs and result in the open project.
+         */
+        post: operations["anchored_wall_run_analysis"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/m/anchored_wall/anchor/reference": {
         parameters: {
             query?: never;
@@ -1381,6 +1401,67 @@ export interface components {
             /** Profile Id */
             profile_id: string | null;
         };
+        /** AnalysisRecord */
+        AnalysisRecord: {
+            inputs: components["schemas"]["AnchoredWallAnalysisInputs"];
+            result?: components["schemas"]["AnalysisResult"] | null;
+            /** Result Hash */
+            result_hash?: string | null;
+        };
+        /** AnalysisResult */
+        AnalysisResult: {
+            /**
+             * Method
+             * @enum {string}
+             */
+            method: "free_earth_single" | "apparent_hinge" | "apparent_tributary";
+            /**
+             * Wall Type
+             * @enum {string}
+             */
+            wall_type: "sheet_pile" | "soldier_pile";
+            /** Excavation Height */
+            excavation_height: number;
+            /** Embedment Theoretical */
+            embedment_theoretical: number;
+            /** Embedment */
+            embedment: number;
+            /** Wall Length */
+            wall_length: number;
+            /** Base Reaction */
+            base_reaction: number | null;
+            envelope: components["schemas"]["EnvelopeResult"] | null;
+            /** Levels */
+            levels: components["schemas"]["LevelResult"][];
+            /** M Max */
+            m_max: number;
+            /** Z M Max */
+            z_m_max: number;
+            /** V Max */
+            v_max: number;
+            /** Member Spacing */
+            member_spacing: number;
+            /** M Max Member */
+            m_max_member: number;
+            /** V Max Member */
+            v_max_member: number;
+            /** Required Section Modulus Cm3 */
+            required_section_modulus_cm3: number | null;
+            /** Checks */
+            checks: components["schemas"]["AnchorCheck"][];
+            /** Z */
+            z: number[];
+            /** Shear */
+            shear: number[];
+            /** Moment */
+            moment: number[];
+            /** Warnings */
+            warnings: components["schemas"]["Notice"][];
+            /** Assumptions */
+            assumptions: components["schemas"]["Notice"][];
+            /** Sources */
+            sources: string[];
+        };
         /**
          * AnchorCheck
          * @description ``ok`` when demand <= limit; for ``overburden`` demand is the required cover, limit the available.
@@ -1420,6 +1501,71 @@ export interface components {
             beyond_wedge_rule: string;
             /** Source */
             source: string;
+        };
+        /**
+         * AnchorDesignCommon
+         * @description Anchor design inputs shared by every level; geometry and load come from the analysis.
+         *
+         *     Same meaning and rules as ``AnchorDesignInputs``; nothing is assumed when left out.
+         */
+        AnchorDesignCommon: {
+            /** Safety Factor */
+            safety_factor?: number | null;
+            /** Ultimate Transfer Load */
+            ultimate_transfer_load?: number | null;
+            /** Ultimate Bond Stress */
+            ultimate_bond_stress?: number | null;
+            /** Hole Diameter */
+            hole_diameter?: number | null;
+            /** Min Bond Length */
+            min_bond_length?: number | null;
+            /** Max Bond Length */
+            max_bond_length?: number | null;
+            /** Min Free Length */
+            min_free_length?: number | null;
+            /** Beyond Wedge */
+            beyond_wedge?: number | null;
+            /**
+             * Wedge Origin Below Base
+             * @default 0
+             */
+            wedge_origin_below_base: number;
+            tendon: components["schemas"]["TendonSpec"];
+            /** Lock Off Ratio */
+            lock_off_ratio?: number | null;
+            /**
+             * Test Factor
+             * @default 1.33
+             */
+            test_factor: number;
+            /**
+             * Design Limit
+             * @default 0.6
+             */
+            design_limit: number;
+            /**
+             * Lock Off Limit
+             * @default 0.7
+             */
+            lock_off_limit: number;
+            /**
+             * Test Limit
+             * @default 0.8
+             */
+            test_limit: number;
+            /**
+             * Min Overburden
+             * @default 4.5
+             */
+            min_overburden: number;
+            /**
+             * Ground
+             * @default soil
+             * @enum {string}
+             */
+            ground: "soil" | "rock";
+            /** Transfer Load Ref */
+            transfer_load_ref?: string | null;
         };
         /** AnchorDesignInputs */
         AnchorDesignInputs: {
@@ -1570,6 +1716,21 @@ export interface components {
             sources: string[];
         };
         /**
+         * AnchorLevel
+         * @description One anchor row of the wall; loads are per metre of wall, anchors repeat at ``spacing``.
+         */
+        AnchorLevel: {
+            /** Depth */
+            depth: number;
+            /** Spacing */
+            spacing: number;
+            /**
+             * Inclination Deg
+             * @default 0
+             */
+            inclination_deg: number;
+        };
+        /**
          * AnchorRecord
          * @description Stored anchor design: the inputs, the last result and the hash of its inputs.
          */
@@ -1592,12 +1753,76 @@ export interface components {
             safety_factor_guidance: components["schemas"]["SafetyFactorGuidance"][];
             defaults: components["schemas"]["AnchorDefaults"];
         };
+        /** AnchoredWallAnalysisInputs */
+        AnchoredWallAnalysisInputs: {
+            /**
+             * Wall Type
+             * @default sheet_pile
+             * @enum {string}
+             */
+            wall_type: "sheet_pile" | "soldier_pile";
+            /** Excavation Height */
+            excavation_height: number;
+            soil: components["schemas"]["StructureSoilModel"];
+            /** Levels */
+            levels: components["schemas"]["AnchorLevel"][];
+            /**
+             * Drainage
+             * @default drained
+             * @enum {string}
+             */
+            drainage: "drained" | "undrained";
+            /**
+             * Backfill Slope
+             * @default 0
+             */
+            backfill_slope: number;
+            /**
+             * Surcharge
+             * @default 0
+             */
+            surcharge: number;
+            /**
+             * Surcharge Basis
+             * @description horizontal: the surcharge is a vertical load per horizontal projected area; inclined: per area of the inclined ground surface (q / cos(beta) per horizontal area)
+             * @default horizontal
+             * @enum {string}
+             */
+            surcharge_basis: "horizontal" | "inclined";
+            /**
+             * Passive Factor
+             * @default 1
+             */
+            passive_factor: number;
+            /** Depth Increase */
+            depth_increase?: number | null;
+            /** Front Water Depth */
+            front_water_depth?: number | null;
+            /**
+             * Load Method
+             * @default hinge
+             * @enum {string}
+             */
+            load_method: "hinge" | "tributary";
+            /**
+             * Stiff Clay Coefficient
+             * @default 0.3
+             */
+            stiff_clay_coefficient: number;
+            /** Pile Spacing */
+            pile_spacing?: number | null;
+            /** Passive Width */
+            passive_width?: number | null;
+            section?: components["schemas"]["WallSection"];
+            anchor_design?: components["schemas"]["AnchorDesignCommon"] | null;
+        };
         /**
          * AnchoredWallState
          * @description ``Project.modules["anchored_wall"]``; later phases add fields with defaults.
          */
         AnchoredWallState: {
             anchor?: components["schemas"]["AnchorRecord"] | null;
+            analysis?: components["schemas"]["AnalysisRecord"] | null;
         };
         /**
          * ApiError
@@ -1968,6 +2193,30 @@ export interface components {
              */
             delta_base?: number | null;
         };
+        /** EnvelopeResult */
+        EnvelopeResult: {
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "sand" | "soft_clay" | "stiff_clay";
+            /** P Max */
+            p_max: number;
+            /** Total Thrust */
+            total_thrust: number;
+            /** Gamma */
+            gamma: number;
+            /** Phi Deg */
+            phi_deg: number | null;
+            /** Su */
+            su: number | null;
+            /** Ka */
+            ka: number | null;
+            /** Z */
+            z: number[];
+            /** P */
+            p: number[];
+        };
         /**
          * ExportRequest
          * @description Destination file or directory outside the library.
@@ -2275,6 +2524,28 @@ export interface components {
              * @default 0.5
              */
             n_change_ratio: number;
+        };
+        /** LevelResult */
+        LevelResult: {
+            /** Depth */
+            depth: number;
+            /** Inclination Deg */
+            inclination_deg: number;
+            /** Spacing */
+            spacing: number;
+            /** Horizontal Load Per M */
+            horizontal_load_per_m: number;
+            /** Horizontal Load Per Anchor */
+            horizontal_load_per_anchor: number;
+            /** Axial Load Per Anchor */
+            axial_load_per_anchor: number;
+            /** Vertical Load Per M */
+            vertical_load_per_m: number;
+            design?: components["schemas"]["AnchorDesignResult"] | null;
+            /** Design Missing */
+            design_missing?: string[];
+            /** Design Error */
+            design_error?: string | null;
         };
         /**
          * LibraryEntryDTO
@@ -3380,6 +3651,16 @@ export interface components {
             state: components["schemas"]["AnchoredWallState"];
             /** Anchor Result Stale */
             anchor_result_stale: boolean;
+            /**
+             * Analysis Result Stale
+             * @default false
+             */
+            analysis_result_stale: boolean;
+            /**
+             * Analysis Soil Stale
+             * @default false
+             */
+            analysis_soil_stale: boolean;
         };
         /**
          * StoredLiquefactionDTO
@@ -3697,6 +3978,18 @@ export interface components {
             iterations: number;
             /** Result Hash */
             result_hash: string;
+        };
+        /**
+         * WallSection
+         * @description Generic wall section: strength check only, no steel or concrete design.
+         */
+        WallSection: {
+            /** W Cm3 */
+            w_cm3?: number | null;
+            /** Allowable Stress Mpa */
+            allowable_stress_mpa?: number | null;
+            /** Ei Knm2 */
+            ei_knm2?: number | null;
         };
         /** WallSettings */
         WallSettings: {
@@ -10765,6 +11058,104 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AnchorDesignResult"];
+                };
+            };
+            /** @description Invalid operation or input file */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Resource not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Conflicting or stale structure state */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Validation error or missing_factors */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Engine or server error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Contract stub; not implemented */
+            501: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Other client error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Other server error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    anchored_wall_run_analysis: {
+        parameters: {
+            query?: {
+                save?: boolean;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AnchoredWallAnalysisInputs"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AnalysisResult"];
                 };
             };
             /** @description Invalid operation or input file */
