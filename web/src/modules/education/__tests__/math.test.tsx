@@ -21,7 +21,7 @@ describe("formula typesetting", () => {
   });
   it("keeps decimal commas as plain commas (no escaped braces)", () => {
     const tex = toTexLines("x = 6,00 + a^1,5 − 0,65·b")[0];
-    expect(tex).not.toContain("\{,\}");
+    expect(tex).not.toContain("\\{,\\}");
     expect(tex).toContain("6{,}00");
   });
   it("renders every formula in every topic without KaTeX errors", () => {
