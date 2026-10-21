@@ -52,13 +52,18 @@ class _Writer:
         return {"report.wall.governing": "Governing check",
                 "report.wall.governing_utilisation": "Highest utilisation"}[key]
 
+    def coded(self, key, params, fallback=None):
+        labels = {"case.static": "Static", "case.seismic": "Seismic",
+                  "check.sliding": "Sliding", "check.bearing": "Bearing capacity"}
+        return labels.get(key, str(fallback if fallback is not None else key))
+
 
 def test_governing_line_falls_back_to_highest_utilisation():
     checks = [{"case": "static", "name": "sliding", "utilisation": 0.62},
               {"case": "seismic", "name": "bearing", "utilisation": 0.81},
               {"case": "static", "name": "tilt", "utilisation": None}]
     line = report._governing_line(_Writer(), {"governing": "", "checks": checks})
-    assert line == "Highest utilisation: seismic:bearing (0.81)"
+    assert line == "Highest utilisation: Seismic · Bearing capacity (0.81)"
     assert report._governing_line(_Writer(), {"governing": "static:sliding", "checks": checks}) \
-        == "Governing check: static:sliding"
+        == "Governing check: Static · Sliding"
     assert report._governing_line(_Writer(), {"governing": "", "checks": []}) == "Governing check: -"

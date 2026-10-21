@@ -376,7 +376,7 @@ export function LauncherPage() {
                           pr={0}
                           style={{ textTransform: "uppercase" }}
                         >
-                          {project?.meta.design_code || defaultCode || t("web.common.none")}
+                          {codes.find((c) => c.id === (project?.meta.design_code || defaultCode))?.name ?? (project?.meta.design_code || defaultCode || t("web.common.none"))}
                         </Table.Td>
                       </Table.Tr>
                     </Table.Tbody>

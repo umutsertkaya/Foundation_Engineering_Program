@@ -315,16 +315,37 @@ def _evidence(w: _Writer, result: dict) -> None:
         w.bullets(warnings)
 
 
+def _case_label(w: _Writer, case: str) -> str:
+    """``static`` or ``seismic:combination`` as a readable label; unknown parts pass through."""
+    state, _, combo = case.partition(":")
+    label = w.coded(f"case.{state}", {}, state)
+    return f"{label} ({combo})" if combo else label
+
+
+def _check_label(w: _Writer, name: str) -> str:
+    return w.coded(f"check.{name}", {}, name)
+
+
+def _governing_ids(w: _Writer, text: str) -> str:
+    """Localise ``case:name`` ids (separated by ``;`` or ``,``) used by the governing line."""
+    out = []
+    for part in text.replace(",", ";").split(";"):
+        case, sep, name = part.strip().rpartition(":")
+        out.append(f"{_case_label(w, case)} · {_check_label(w, name)}" if sep else part.strip())
+    return "; ".join(out)
+
+
 def _governing_line(w: _Writer, result: dict) -> str:
     """Failing checks when there are any; otherwise the check with the highest utilisation."""
     if result.get("governing"):
-        return f"{w.tr('report.wall.governing')}: {result['governing']}"
+        return f"{w.tr('report.wall.governing')}: {_governing_ids(w, str(result['governing']))}"
     rated = [c for c in result.get("checks") or [] if c.get("utilisation") is not None
              and math.isfinite(c["utilisation"])]
     if not rated:
         return f"{w.tr('report.wall.governing')}: {DASH}"
     top = max(rated, key=lambda c: c["utilisation"])
-    return (f"{w.tr('report.wall.governing_utilisation')}: {top['case']}:{top['name']} "
+    return (f"{w.tr('report.wall.governing_utilisation')}: "
+            f"{_case_label(w, top['case'])} · {_check_label(w, top['name'])} "
             f"({_fmt(top['utilisation'], 2)})")
 
 
@@ -345,7 +366,27 @@ def _wall_section(w: _Writer, structure, result: dict) -> None:
     geometry = result.get("geometry") or {}
     w.heading(w.tr("report.wall.geometry"), 3)
     w.table([w.tr("report.col.item"), w.tr("report.col.value")],
-            [[k, _fmt(v, 3)] for k, v in geometry.items() if k != "kind"])
+            [[w.coded(f"ui.geo.{k}", {}, k), _fmt(v, 3)]
+             for k, v in geometry.items() if k not in {"kind", "key"}])
+    key = geometry.get("key")
+    if key:
+        w.heading(w.tr("walls.key.result_title"), 3)
+        w.key_values([
+            (w.tr("walls.key.position"), w.enum("walls.key.position", key["position"])),
+            (w.tr("walls.key.width"), _fmt(key["width"], 2)),
+            (w.tr("walls.key.depth"), _fmt(key["depth"], 2)),
+        ])
+        rows = result.get("shear_key") or []
+        if rows:
+            w.table([w.tr("walls.key.col_case"), w.tr("walls.key.col_fs_base"), w.tr("walls.key.col_fs_deep"),
+                     w.tr("walls.key.col_fs_without"), w.tr("walls.key.col_fs_with"),
+                     w.tr("walls.key.col_passive"), w.tr("walls.key.col_demand_v"),
+                     w.tr("walls.key.col_demand_m")],
+                    [[_case_label(w, r["case"]), _fmt(r["fs_base_surface"], 2), _fmt(r["fs_deep_surface"], 2),
+                      _fmt(r["fs_without_key"], 2), _fmt(r["fs_with_key"], 2),
+                      _fmt(r["passive_used"], 1), _fmt(r["demand_v"], 1), _fmt(r["demand_m"], 1)]
+                     for r in rows])
+            w.paragraph(w.tr("walls.key.note"))
     w.paragraph(f"{w.tr('report.wall.verdict')}: {(w.passfail(bool(result.get('passed'))) if result.get('passed') is not None else DASH)}",
                 bold=True)
     w.paragraph(_governing_line(w, result))
@@ -354,7 +395,7 @@ def _wall_section(w: _Writer, structure, result: dict) -> None:
         [w.tr("report.check.case"), w.tr("report.check.name"), w.tr("report.check.value"),
          w.tr("report.check.required"), w.tr("report.check.utilisation"),
          w.tr("report.check.result")],
-        [[c["case"], c["name"], f"{_fmt(c['value'], 3)}", f"{c['comparison']} {_fmt(c['required'], 3)}",
+        [[_case_label(w, c["case"]), _check_label(w, c["name"]), f"{_fmt(c['value'], 3)}", f"{c['comparison']} {_fmt(c['required'], 3)}",
           _fmt(c.get("utilisation"), 2), (w.passfail(bool(c["passed"])) if c.get("passed") is not None else DASH)]
          for c in result.get("checks") or []],
     )
@@ -375,7 +416,7 @@ def _sheet_pile_section(w: _Writer, structure, result: dict) -> None:
         (w.tr("report.pile.total_length"), _fmt(result.get("total_length"))),
         (w.tr("report.pile.anchor_depth"), _fmt(result.get("anchor_depth"))),
         (w.tr("report.pile.anchor_force"), _fmt(result.get("anchor_force"), 1)),
-        (w.tr("report.pile.toe_force"), _fmt(result.get("toe_force"), 1)),
+        (w.tr("report.pile.toe_force"), _fmt(abs(result["toe_force"]) if isinstance(result.get("toe_force"), (int, float)) else None, 1)),
         (w.tr("report.pile.M_max"), _fmt(result.get("M_max"), 1)),
         (w.tr("report.pile.z_M_max"), _fmt(result.get("z_M_max"))),
         (w.tr("report.pile.section_modulus"), _fmt(result.get("section_modulus_cm3"), 1)),

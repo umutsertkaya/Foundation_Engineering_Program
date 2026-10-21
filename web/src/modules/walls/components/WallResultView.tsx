@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import type { CantileverGeometry, GravityGeometry, WallResultDTO, WallType } from "../../../shared/api/types";
 import { factorPathLabel } from "../labels";
 import { WallCheckCards } from "./WallCheckCards";
+import { ShearKeyResult } from "./ShearKeyResult";
 import { WallCrossSection } from "./WallCrossSection";
 import { useWarningText } from "../../../shared/hooks/useWarningText";
 
@@ -77,6 +78,7 @@ export function WallResultView({ result, stale = false, staleReason = "inputs" }
       <Text size="xs" c="dimmed">
         {t("walls.result.section_geometry_only")}
       </Text>
+      <ShearKeyResult items={result.shear_key ?? []} />
 
       <SimpleGrid cols={{ base: 1, md: 2 }} spacing="sm">
         <Card withBorder padding="sm" radius="sm">

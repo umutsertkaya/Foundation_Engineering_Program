@@ -550,5 +550,11 @@
   "shell.stopped_desc": "You can close this tab. Run GeoTek.exe again to restart.",
   "shell.disconnected_title": "Cannot reach the program",
   "shell.disconnected_desc": "GeoTek may have been closed or stopped. Restart it and reload the page; unsaved changes may be lost.",
-  "shell.reload": "Reload page"
+  "shell.reload": "Reload page",
+  "soil.error.gwt_missing_title": "Groundwater depth not entered",
+  "soil.error.gwt_missing": "This calculation needs the groundwater depth of the sounding. On the Site data page, click the pencil icon of the record and enter it.",
+  "soil.error.gwt_missing_link": "Go to site data",
+  "ui.geo.stem_height": "Stem height",
+  "ui.geo.embedment": "Embedment D",
+  "ui.geo.height": "Height H"
 }

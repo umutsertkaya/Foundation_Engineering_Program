@@ -5,7 +5,7 @@
  * World frame: x to the right from the toe front edge [m], y up from the underside of the base [m].
  * The structure frame of the soil model is z down from the retained ground surface, so the retained
  * surface is y = H, the base is z = H and the front ground is z = H - D (y = D). The retained side
- * is on the right, the front (toe) side on the left. Neither wall model has a shear key, so none is drawn.
+ * is on the right, the front (toe) side on the left. A shear key is drawn as a strip below the base.
  */
 import type {
   CantileverGeometry,
@@ -189,6 +189,13 @@ export function buildSectionLayout(input: SectionInput): SectionLayout {
     wallCentre = [(xFrontTop + xBackTop + B) / 3, H / 2];
   }
 
+  const key = geometry.key ?? null;
+  if (key) {
+    const kw = Math.min(B, Math.max(EPS, key.width));
+    const kx0 = key.position === "toe" ? 0 : key.position === "heel" ? B - kw : (B - kw) / 2;
+    wall.push([[kx0, 0], [kx0 + kw, 0], [kx0 + kw, -Math.max(EPS, key.depth)], [kx0, -Math.max(EPS, key.depth)]]);
+  }
+
   const margin = Math.max(1.2, 0.45 * B);
   const xMin = -margin;
   const xMax = B + Math.max(1.5, 0.6 * B);
@@ -198,7 +205,9 @@ export function buildSectionLayout(input: SectionInput): SectionLayout {
   const zones = soil ? computeZones(soil, H - D, H) : null;
   const profileBottom =
     soil && soil.profile.layers.length > 0 ? soil.profile.layers[soil.profile.layers.length - 1].bottom : H;
-  const below = soil ? Math.max(1.0, Math.min(Math.max(0, profileBottom - H), Math.max(1.5, 0.5 * H))) : 0.8;
+  const keyDepth = key ? Math.max(EPS, key.depth) : 0;
+  const below0 = soil ? Math.max(1.0, Math.min(Math.max(0, profileBottom - H), Math.max(1.5, 0.5 * H))) : 0.8;
+  const below = Math.max(below0, keyDepth + 0.5);
   const zViewBottom = H + below;
 
   const worldW = xMax - xMin;
