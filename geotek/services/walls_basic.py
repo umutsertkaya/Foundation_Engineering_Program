@@ -424,11 +424,12 @@ def design_sheet_pile_basic(inp: BasicSheetPileInput) -> BasicSheetPileResult:
     assumptions = [
         Assumption(text="Homojen zemin, hidrostatik su (sızma yok)", source=SRC_CONSERVATIVE),
         Assumption(text="Rankine aktif/pasif, duvar sürtünmesi ihmal", source=SRC_CONSERVATIVE),
-        Assumption(text=f"Pasif basınçlar {PASSIVE_FS_BASIC} ile bölündü", source=SRC_SHEET_PASSIVE),
+        Assumption(text=f"Pasif basınçlar {PASSIVE_FS_BASIC} ile bölündü; tanφ′ ve c′ de {PASSIVE_FS_BASIC} ile bölünerek "
+                 "bulunan pasif basınç daha küçükse o alındı (yüksek φ′; USACE EM 1110-2-2504 5-2d)", source=SRC_SHEET_PASSIVE),
     ]
     beta = inp.backfill_slope
     kw: dict = dict(surcharge=surcharge_per_horizontal(inp.surcharge, beta, inp.surcharge_basis),
-                    passive_factor=PASSIVE_FS_BASIC, drainage=inp.drainage,
+                    passive_factor=PASSIVE_FS_BASIC, passive_strength_reduction=True, drainage=inp.drainage,
                     allowable_stress_mpa=inp.allowable_stress_mpa, backfill_slope=beta)
     if beta:
         assumptions.append(Assumption(

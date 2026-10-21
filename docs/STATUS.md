@@ -104,6 +104,8 @@ Kaynak: Umut'un cihazındaki tam metin md dönüşümü (`docs/research/Youd.et.
   Test: pytest tam 1963 geçti / 2 atlandı; tsc temiz; Vitest 38 dosya / 343 test geçti; `npm run build` başarılı;
   `gen_code_map.py --check` 0; `pyinstaller_modules.py --check` 0. Kayma dişi G3 (PR #21) birleşmedi, G4 başlamadı. Web ekranı gerçek API ile elle gözle kontrol edilmedi.
 
+- 2026-10-21, kaynak karşılaştırması ([rapor](qa/kaynak-karsilastirmasi.md)): Umut'un `docs/research` kaynaklarıyla (EM 2502/2504, EN 1997-1, KDYY el kitabı, Peck, PTI) karşılaştırma. Kod: LPI ilk katman yüzeye uzatıldı (güvensiz eksik), palplanşta global-FS pasifi EM 2504'e göre tanφ′/c′ azaltması ile kuvvet bölmenin küçüğü (φ ≥ 35°), düz zeminde Bishop FS≈1e16 reddi; ec7.yaml birincil metinle doğrulandı. İki bağımsız salt okuma inceleme geçti. Açık: ince daneli Q durumu FS 2.0, KDYY düzgün deprem artımı, AASHTO 0.55/0.50, ters şev yön denetimi. Test sonucu PR açıklamasında.
+
 Her kayıt tarih, kapsam ve gerçek sonuç taşır; eski sayı güncel başarı diye kullanılmaz.
 
 ## Çalışma alanları ve devir

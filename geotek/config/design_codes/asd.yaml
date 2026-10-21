@@ -13,6 +13,8 @@ factor_sources:
   safety.sliding.static: {source: "FHWA-NHI-06-089 Vol. II (2026-10-20 karşılaştırma, secondary)", status: secondary}
   safety.bearing_capacity.static: {source: "FHWA-NHI-06-089 Vol. II, önerilen 3.0 (secondary)", status: secondary}
   safety.global_stability.static: {source: "FHWA-NHI-06-089 Vol. II (secondary)", status: secondary}
+  safety.sheet_pile_passive.static: {source: "USACE EM 1110-2-2504 Tablo 5-1: perde duvarı, serbest drenajlı zemin, olağan durum 1.50 (S durumu); ince daneli zeminde Q durumu 2.00 (programda ayrı değer yok)", status: verified}
+  safety.sheet_pile_passive.seismic: {source: "USACE EM 1110-2-2504 Tablo 5-1: perde duvarı, serbest drenajlı zemin, olağanüstü durum 1.10 (S durumu); ince daneli zeminde Q durumu 1.50", status: verified}
   safety.overturning.static: {source: "Eksantrisite kriterinden türetilmiş yaklaşık değer; doğrudan kaynak yok", status: unverified}
   eccentricity: {source: "ASD — yaygın uygulama; sismik değerler doğrulanmadı", status: unverified}
   eccentricity.soil.static: {source: "FHWA-NHI-06-089 Vol. II, B/6 (secondary)", status: secondary}
@@ -33,4 +35,4 @@ verification:
   - item: "All global factors of safety and eccentricity limits"
     value: "see above"
     status: unverified
-    note: "Common practice values; FHWA-NHI-06-089 Vol. II partly compared 2026-10-20 (static sliding, bearing, global, eccentricity: secondary); NAVFAC DM-7.02 not checked; seismic values and sheet pile passive unverified"
+    note: "Common practice values; FHWA-NHI-06-089 Vol. II partly compared 2026-10-20 (static sliding, bearing, global, eccentricity: secondary); NAVFAC DM-7.02 not checked; seismic values unverified. Sheet pile passive 1.5 / 1.1 compared with USACE EM 1110-2-2504 Table 5-1 on 2026-10-21 (free-draining S-case: matches; fine-grained Q-case needs 2.0 / 1.5, not modelled)"

@@ -3,6 +3,7 @@ import math
 import numpy as np
 import pytest
 
+from geotek.core.errors import GeoTekError
 from geotek.engine.stability import SlopeModel, SoilBand, SurfaceLoad, bishop, search_critical_circle
 
 H = 10.0
@@ -66,3 +67,11 @@ def test_slice_output():
     r = bishop(_slope(c=10, phi=25), 10, 25, 20, n_slices=30)
     assert len(r.slices["x"]) == 30
     assert np.all(r.slices["weight"] > 0)
+
+
+def test_flat_ground_has_no_driving_moment():
+    # A symmetric circle on flat ground cancels to round-off; it must not return FS ~ 1e16
+    model = SlopeModel(surface=[(0, 10), (40, 10)], layers=[SoilBand(top=10, gamma=18, c=10, phi=25)])
+    assert bishop(model, 20, 16, 8) is None
+    with pytest.raises(GeoTekError):
+        search_critical_circle(model, x_range=(10, 30), y_range=(11, 20), tangent_range=(0, 8))

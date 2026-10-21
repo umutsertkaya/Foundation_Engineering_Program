@@ -59,7 +59,7 @@
   "anchored_wall.assumption.envelope_source_unverified": "The envelope shapes and the hinge method were checked against a course summary of Peck's diagrams, not the original figures; verify before design use.",
   "anchored_wall.assumption.load_method_hinge": "Anchor loads by the hinge method: hinges at every anchor except the first; bending moments from the same model.",
   "anchored_wall.assumption.load_method_tributary": "Anchor loads by the tributary method (mid-points between supports); bending moments still from the hinge model.",
-  "anchored_wall.assumption.embedment_from_base_reaction": "Embedment: moment equilibrium about the toe under the base reaction R_B and the net pressure below the base (passive divided by the given factor of safety). This is deeper than the GEC-4 5.5.3 force criterion.",
+  "anchored_wall.assumption.embedment_from_base_reaction": "Embedment: moment equilibrium about the toe under the base reaction R_B and the net pressure below the base (passive divided by the given factor of safety; where smaller, the passive pressure from tan φ′ and c′ divided by that factor is used, USACE EM 1110-2-2504 5-2d). This is deeper than the GEC-4 5.5.3 force criterion.",
   "anchored_wall.assumption.sand_surcharge_uniform": "Sand envelope: the surcharge adds a uniform Ka q over the full height.",
   "anchored_wall.assumption.stiff_clay_coefficient": "Stiff clay envelope ordinate p = {value}·γH (chosen by the user, GEC-4 figure 27 range 0.2–0.4); trapezoidal shape.",
   "anchored_wall.assumption.stiff_clay_bottom_ramp_omitted": "The bottom ramp of the stiff clay envelope is omitted (conservative).",

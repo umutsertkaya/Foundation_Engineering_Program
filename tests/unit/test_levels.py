@@ -50,7 +50,7 @@ def test_factor_labels():
     assert tbdy.source_of("TBDY-seismic.resistance.bearing").status == "verified"
     assert "Tablo 16.2" in tbdy.source_of("TBDY-seismic.resistance.bearing").source
     assert tbdy.source_of("TBDY-seismic.material.tan_phi").status == "not_in_source"
-    assert get_design_code("ec7").source_of("EQU.load.G_dst").status == "secondary"
+    assert get_design_code("ec7").source_of("EQU.load.G_dst").status == "verified"
     assert get_design_code("aashto_lrfd").source_of("load.DC.max").status == "secondary"
     assert get_design_code("aashto_lrfd").source_of("resistance.strength.global_stability").status == "secondary"
     assert get_design_code("aashto_lrfd").source_of("eccentricity.soil.extreme").status == "unverified"
