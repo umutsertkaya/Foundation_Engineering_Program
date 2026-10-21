@@ -115,6 +115,8 @@ def net_pressure(
     backfill_slope: float = 0.0,
     passive_width_ratio: float = 1.0,
     passive_strength_reduction: bool = False,
+    seismic_dk: float = 0.0,
+    seismic_toe: float | None = None,
 ) -> NetPressure:
     """Net pressure diagram. ``active_factor``, ``surcharge_factor`` and ``water_factor`` are
     load factors on the soil, surcharge and water parts of the driving pressure (partial
@@ -137,6 +139,12 @@ def net_pressure(
     way as well (tan(phi') and c' divided by ``passive_factor``) and takes the smaller passive
     pressure; it is for global-FS (ASD) design, not for partial factors on the resistance
     (EN 1997-1 gamma_R;e, KDYY gamma_Re), which divide the force only.
+
+    ``seismic_dk`` (Delta K_ad = K_AE,total - K_A,static) with ``seismic_toe`` [m] is the KDYY
+    handbook increment: a uniform 0.5 Delta K_ad sigma'_v(toe) over the whole wall length
+    0..toe (AASHTO 2010) plus a triangular surcharge part 2 q Delta K_ad (1 - z/toe)
+    (Kumbasar & Kip). It replaces ``seismic_increment`` and ``seismic_increment_below``; the toe
+    depth is part of the solution, so the solvers iterate on it. ``seismic_toe=None`` adds nothing.
 
     ``passive_width_ratio`` (<= 1) is the effective passive width over the member spacing for
     soldier pile walls; it scales the effective passive pressure only, not the water."""
@@ -182,9 +190,15 @@ def net_pressure(
         p_s = _evaluate(pas_s, z, offset=H, left=left) * passive_seismic_ratio * passive_width_ratio
         p_s[(z < H) | ((z == H) & left)] = 0.0
         p_div = np.minimum(p_div, p_s)
-    if seismic_increment:
+    if seismic_dk > 0:
+        if seismic_toe is not None:
+            sv_all = _evaluate(act0, z, which="sigma_v_eff", left=left)
+            sv_toe = float(np.interp(seismic_toe, z, sv_all))
+            inc = 0.5 * seismic_dk * sv_toe + 2.0 * seismic_dk * surcharge * (1.0 - z / seismic_toe)
+            a_eff = a_eff + np.where(z <= seismic_toe, np.maximum(inc, 0.0), 0.0)
+    elif seismic_increment:
         a_eff = a_eff + np.where((z < H) | ((z == H) & left), seismic_increment, 0.0)
-    if seismic_increment_below > 0:
+    if seismic_increment_below > 0 and not seismic_dk > 0:
         sv_eff = _evaluate(act0, z, which="sigma_v_eff", left=left)
         a_eff = a_eff + np.where((z < H) | ((z == H) & left), 0.0,
                                  seismic_increment_below * (sv_eff + surcharge))
@@ -269,6 +283,20 @@ def _section(m_max, allowable_stress_mpa):
     return m_max / allowable_stress_mpa * 1000.0  # kNm/m / MPa -> cm3/m
 
 
+def _iterate_toe(solve, toe_of, kwargs: dict):
+    """Fixed point on the toe depth for the KDYY seismic increment (it depends on the toe)."""
+    if not kwargs.get("seismic_dk", 0.0) > 0:
+        return solve(kwargs)
+    res = solve({**kwargs, "seismic_toe": None})
+    for _ in range(60):
+        toe = toe_of(res)
+        new = solve({**kwargs, "seismic_toe": toe})
+        if abs(toe_of(new) - toe) < 1e-3:
+            return new
+        res = new
+    raise GeoTekError("Seismic toe-depth iteration did not converge; check the seismic parameters")
+
+
 def cantilever_sheet_pile(
     profile: SoilProfile,
     H: float,
@@ -277,6 +305,12 @@ def cantilever_sheet_pile(
     allowable_stress_mpa: float | None = None,
     **pressure_kwargs,
 ) -> SheetPileResult:
+    return _iterate_toe(
+        lambda kw: _cantilever_once(profile, H, depth_increase, allowable_stress_mpa, kw),
+        lambda r: r.H + r.D0, pressure_kwargs)
+
+
+def _cantilever_once(profile, H, depth_increase, allowable_stress_mpa, pressure_kwargs):
     np_ = net_pressure(profile, H, **pressure_kwargs)
     z, net = np_.z, np_.net
     F = _cumulative(z, net)                     # shear (net force above z)
@@ -314,6 +348,14 @@ def anchored_sheet_pile(
 ) -> SheetPileResult:
     if not 0 <= anchor_depth < H:
         raise GeoTekError("Anchor must lie between the top of the wall and the dredge line")
+    return _iterate_toe(
+        lambda kw: _anchored_once(profile, H, anchor_depth, depth_increase, allowable_stress_mpa,
+                                  anchor_spacing, anchor_inclination, kw),
+        lambda r: r.H + r.D0, pressure_kwargs)
+
+
+def _anchored_once(profile, H, anchor_depth, depth_increase, allowable_stress_mpa,
+                   anchor_spacing, anchor_inclination, pressure_kwargs):
     np_ = net_pressure(profile, H, **pressure_kwargs)
     z, net = np_.z, np_.net
     F = _cumulative(z, net)

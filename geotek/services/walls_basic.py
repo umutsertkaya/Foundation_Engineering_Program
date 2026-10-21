@@ -370,6 +370,8 @@ def check_wall(inp: BasicWallInput, geometry: CantileverGeometry | GravityGeomet
 # --- sheet piles -------------------------------------------------------------------------
 
 PASSIVE_FS_BASIC = 1.5
+PASSIVE_FS_FINE = 2.0
+"""Undrained (fine-grained, Q-case) passive factor, USACE EM 1110-2-2504 Table 5-1."""
 SRC_SHEET_PASSIVE = ("Pasif dirence GS = 1.5 — USS Steel Sheet Piling Design Manual / USACE EM 1110-2-2504 "
                      "uygulaması (doğrulanmadı)")
 
@@ -421,15 +423,18 @@ def design_sheet_pile_basic(inp: BasicSheetPileInput) -> BasicSheetPileResult:
     layer = SoilLayer(id="S", top=0.0, bottom=depth, gamma=inp.gamma, gamma_sat=inp.gamma_sat or inp.gamma,
                       design=DesignParameters(phi_eff=inp.phi, c_eff=inp.c, su=inp.su))
     profile = SoilProfile(id="basic", gwt=GroundwaterCondition(depth_insitu=inp.gwt_depth), layers=[layer])
+    fs_passive = PASSIVE_FS_FINE if inp.drainage == "undrained" else PASSIVE_FS_BASIC
     assumptions = [
         Assumption(text="Homojen zemin, hidrostatik su (sızma yok)", source=SRC_CONSERVATIVE),
         Assumption(text="Rankine aktif/pasif, duvar sürtünmesi ihmal", source=SRC_CONSERVATIVE),
-        Assumption(text=f"Pasif basınçlar {PASSIVE_FS_BASIC} ile bölündü; tanφ′ ve c′ de {PASSIVE_FS_BASIC} ile bölünerek "
-                 "bulunan pasif basınç daha küçükse o alındı (yüksek φ′; USACE EM 1110-2-2504 5-2d)", source=SRC_SHEET_PASSIVE),
+        Assumption(text=f"Pasif basınçlar {fs_passive} ile bölündü; tanφ′ ve c′ de {fs_passive} ile bölünerek "
+                 "bulunan pasif basınç daha küçükse o alındı (yüksek φ′; USACE EM 1110-2-2504 5-2d)"
+                 + ("; drenajsız (ince daneli, Q durumu) için EM 2504 Tablo 5-1 değeri 2.0" if fs_passive == PASSIVE_FS_FINE else ""),
+                   source=SRC_SHEET_PASSIVE),
     ]
     beta = inp.backfill_slope
     kw: dict = dict(surcharge=surcharge_per_horizontal(inp.surcharge, beta, inp.surcharge_basis),
-                    passive_factor=PASSIVE_FS_BASIC, passive_strength_reduction=True, drainage=inp.drainage,
+                    passive_factor=fs_passive, passive_strength_reduction=True, drainage=inp.drainage,
                     allowable_stress_mpa=inp.allowable_stress_mpa, backfill_slope=beta)
     if beta:
         assumptions.append(Assumption(
@@ -449,23 +454,21 @@ def design_sheet_pile_basic(inp: BasicSheetPileInput) -> BasicSheetPileResult:
             warnings.append("Drenajsız zeminde deprem etkisi temel seviyede hesaplanmadı; ileri seviye kullanın")
         else:
             kh, kv = tbdy_seismic_coefficients(inp.sds, TBDY_R["anchored_or_rigid"])
-            g_eff = inp.gamma if inp.gwt_depth >= H else inp.gamma_sat - GAMMA_W if inp.gamma_sat else inp.gamma
             if beta:  # Rankine-slope baseline = Coulomb with delta = beta; horizontal component K cos(beta)
                 dK = ((1 - kv) * mononobe_okabe_kae(inp.phi, delta=beta, beta=beta, kh=kh, kv=kv)
                       - rankine_ka(inp.phi, beta)) * math.cos(math.radians(beta))
             else:
                 dK = mononobe_okabe_kae(inp.phi, kh=kh, kv=kv) * (1 - kv) - rankine_ka(inp.phi)
-            # uniform over H, resultant at H/2; the surcharge part dK q H is included (structure path too)
-            kw["seismic_increment"] = dK * (0.5 * g_eff * H**2 + kw["surcharge"] * H) / H
-            kw["seismic_increment_below"] = max(dK, 0.0)  # M-O increment on the embedded part too
+            # KDYY handbook: uniform 0.5 dK sigma'v(toe) over the whole wall plus a triangular surcharge part
+            kw["seismic_dk"] = max(dK, 0.0)
             kw["passive_seismic_ratio"] = min(1.0, mononobe_okabe_kpe(inp.phi, kh=kh, kv=kv) * (1 - kv)
                                               / rankine_kp(inp.phi))
             assumptions += [
                 Assumption(text=f"k_h = 0.4·S_DS/r = {kh:.3f}, r = 1.0 (palplanş/ankrajlı)", source=SRC_TBDY_SEISMIC),
-                Assumption(text="Dinamik aktif artım (M-O) kazı yüksekliği boyunca düzgün, bileşke H/2'de; "
-                                "kazı tabanı altında ΔK_AE·σ′v olarak gömülü boyca sürer; "
-                                "pasif K_PE/K_P oranıyla azaltıldı",
-                           source=SRC_TBDY_SEISMIC + "; Mononobe-Okabe; Ebeling & Morrison (1992)"),
+                Assumption(text="Dinamik aktif artım KDYY el kitabı dağılımıyla: duvar boyunca (0..uç) düzgün "
+                                "½·ΔK_ad·σ′v(uç) ile sürşarj için üçgen 2·q·ΔK_ad·(1−z/uç); uç derinliği "
+                                "yinelemeyle bulunur; pasif K_PE/K_P oranıyla azaltıldı",
+                           source=SRC_TBDY_SEISMIC + "; KDYY el kitabı (AASHTO 2010; Kumbasar & Kip)"),
             ]
     if inp.support == "cantilever":
         res = cantilever_sheet_pile(profile, H, depth_increase=0.2, **kw)
