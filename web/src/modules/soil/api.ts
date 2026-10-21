@@ -1,4 +1,4 @@
-import { request } from "../../shared/api/http";
+import { request, request_upload } from "../../shared/api/http";
 import type {
   DeletionResponse,
   DesignKey,
@@ -105,4 +105,37 @@ export function classify_uscs(payload: USCSClassifyRequest): Promise<USCSItemDTO
 
 export function get_uscs_reference(): Promise<USCSReferenceDTO> {
   return request<USCSReferenceDTO>("GET", "/m/soil/classification/uscs/reference");
+}
+
+export interface CptImportForm {
+  file: File;
+  sounding_id: string;
+  qc_unit: "MPa" | "kPa";
+  delimiter: string;
+  decimal: string;
+}
+
+export function import_cpt(form: CptImportForm): Promise<InvestigationsDTO["cpts"][number]> {
+  const body = new FormData();
+  body.append("file", form.file, form.file.name);
+  body.append("sounding_id", form.sounding_id);
+  body.append("qc_unit", form.qc_unit);
+  body.append("delimiter", form.delimiter);
+  body.append("decimal", form.decimal);
+  return request_upload("/m/soil/import/cpt", body);
+}
+
+export function import_spt(file: File, borehole_id: string): Promise<InvestigationsDTO["boreholes"][number]> {
+  const body = new FormData();
+  body.append("file", file, file.name);
+  body.append("borehole_id", borehole_id);
+  return request_upload("/m/soil/import/spt", body);
+}
+
+export function delete_cpt(id: string): Promise<DeletionResponse> {
+  return request<DeletionResponse>("DELETE", `/m/soil/cpts/${encodeURIComponent(id)}`);
+}
+
+export function delete_borehole(id: string): Promise<DeletionResponse> {
+  return request<DeletionResponse>("DELETE", `/m/soil/boreholes/${encodeURIComponent(id)}`);
 }

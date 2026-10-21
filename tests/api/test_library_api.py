@@ -215,3 +215,26 @@ def test_session_is_per_application(library_dir):
         create(first, "Alfa")
         assert first.get("/api/session").json()["open"] is True
         assert second.get("/api/session").json()["open"] is False
+
+
+def test_upload_and_download_round_trip(shell, library_dir):
+    create(shell, "Alfa")
+    downloaded = shell.get("/api/library/alfa.gtk/download")
+    assert downloaded.status_code == 200
+    assert "alfa.gtk" in downloaded.headers["content-disposition"]
+    assert json.loads(downloaded.content)["meta"]["name"] == "Alfa"
+
+    uploaded = shell.post("/api/library/upload", params={"name": "C:\\Users\\x\\Beta.gtk"},
+                          content=downloaded.content)
+    assert uploaded.status_code == 200, uploaded.text
+    assert uploaded.json()["file"] == "beta.gtk" and uploaded.json()["name"] == "Alfa"
+    assert (library_dir / "beta.gtk").is_file()
+
+
+def test_upload_rejects_empty_and_invalid_body(shell):
+    empty = shell.post("/api/library/upload", params={"name": "x.gtk"}, content=b"")
+    assert empty.status_code == 422 and error_code(empty) == "validation"
+    bad = shell.post("/api/library/upload", params={"name": "x.gtk"}, content=b"{}")
+    assert bad.status_code == 422 and error_code(bad) == "invalid_project_file"
+    assert shell.get("/api/library").json() == []
+    assert shell.get("/api/library/yok.gtk/download").status_code == 404

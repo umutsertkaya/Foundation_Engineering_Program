@@ -6,7 +6,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { App } from "../app/App";
 import i18n, { loadLanguageCatalog } from "../app/i18n";
 import { theme } from "../app/theme";
-import { setMockMode, update_project_meta } from "../shared/api/client";
+import { get_project, setMockMode, update_project_meta } from "../shared/api/client";
 import { close_project, get_session, list_library } from "../shared/api/core";
 import { mockRequest, resetCoreMock } from "../shared/api/mock";
 
@@ -156,5 +156,14 @@ describe("launcher site blur", () => {
     // The page was not unmounted by the refresh: same element, value retained.
     expect(screen.getByLabelText(i18n.t("launcher.pga_g"))).toBe(pga);
     expect(pga).toHaveValue("0.77");
+  });
+
+  it("selects the site class from the TBDY list and saves it", async () => {
+    Element.prototype.scrollIntoView = vi.fn();
+    renderApp("/launcher");
+    const select = await screen.findByRole("textbox", { name: new RegExp(i18n.t("launcher.site_class")) });
+    fireEvent.click(select);
+    fireEvent.click(await screen.findByRole("option", { name: i18n.t("launcher.site_class.ZD") }));
+    await waitFor(async () => expect((await get_project()).site.site_class).toBe("ZD"));
   });
 });

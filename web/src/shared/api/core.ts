@@ -1,4 +1,4 @@
-import { request } from "./http";
+import { isMockMode, request, request_upload } from "./http";
 import type {
   AppSettings, LibraryEntry, LibraryExportRequest, ModuleInfo, NewProjectRequest, ProfileSummary,
   SessionInfo,
@@ -51,6 +51,19 @@ export function delete_library_project(file: string): Promise<{ trash_path: stri
 
 export function import_library_project(path: string): Promise<LibraryEntry> {
   return request<LibraryEntry>("POST", "/library/import", { path });
+}
+
+/** Import a project file chosen in the browser's file dialog (the file is sent, no server path is needed). */
+export async function upload_library_project(file: File): Promise<LibraryEntry> {
+  if (isMockMode()) return import_library_project(file.name);
+  return request_upload<LibraryEntry>(
+    `/library/upload?name=${encodeURIComponent(file.name)}`, file, { "Content-Type": "application/octet-stream" },
+  );
+}
+
+/** URL the browser downloads the stored project file from. */
+export function library_download_url(file: string): string {
+  return `/api/library/${encodeURIComponent(file)}/download`;
 }
 
 export function get_session(): Promise<SessionInfo> {

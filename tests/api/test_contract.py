@@ -57,10 +57,12 @@ REQUESTS = [
     ("GET", "/api/library", None),
     ("POST", "/api/library", {"name": "Contract"}),
     ("POST", "/api/library/import", {"path": "sample.gtk"}),
+    ("POST", "/api/library/upload", None),
     ("POST", "/api/library/{file}/open", None),
     ("POST", "/api/library/{file}/duplicate", None),
     ("POST", "/api/library/{file}/rename", {"name": "Renamed"}),
     ("POST", "/api/library/{file}/export", {"dest": "out.gtk"}),
+    ("GET", "/api/library/{file}/download", None),
     ("DELETE", "/api/library/{file}", None),
     ("GET", "/api/session", None),
     ("GET", "/api/i18n/{lang}", None),
@@ -147,7 +149,7 @@ IMPLEMENTED = {
     (method, path) for method, path, _ in REQUESTS
     if path in {
         "/api/health", "/api/modules", "/api/settings", "/api/library", "/api/library/import",
-        "/api/session", "/api/project", "/api/project/new", "/api/project/open",
+        "/api/library/upload", "/api/session", "/api/project", "/api/project/new", "/api/project/open",
         "/api/project/save", "/api/project/close", "/api/project/meta", "/api/project/site",
         "/api/project/active-profile", "/api/data/profiles",
         "/api/i18n/{lang}", "/api/structures", "/api/structures/{id}",

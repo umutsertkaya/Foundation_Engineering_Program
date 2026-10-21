@@ -6,6 +6,7 @@ import {
   Button,
   Card,
   Container,
+  FileInput,
   Group,
   Loader,
   Menu,
@@ -22,6 +23,7 @@ import {
 import { notifications } from "@mantine/notifications";
 import {
   IconCopy,
+  IconDownload,
   IconDotsVertical,
   IconFileExport,
   IconFileImport,
@@ -40,6 +42,8 @@ import {
   export_library_project,
   get_settings,
   import_library_project,
+  library_download_url,
+  upload_library_project,
   list_library,
   rename_library_project,
 } from "../../shared/api/core";
@@ -92,6 +96,7 @@ export function StartPage() {
   // Import modal state
   const [importOpen, setImportOpen] = useState(false);
   const [importPath, setImportPath] = useState("");
+  const [importFile, setImportFile] = useState<File | null>(null);
   const [importApiError, setImportApiError] = useState<unknown>(null);
 
   // Rename modal state
@@ -243,11 +248,15 @@ export function StartPage() {
 
   const handleImport = async () => {
     const trimmed = importPath.trim();
-    if (!trimmed) return;
+    if (!trimmed && !importFile) return;
     setBusy(true);
     setImportApiError(null);
     try {
-      const imported = await import_library_project(trimmed);
+      const imported = importFile
+        ? await upload_library_project(importFile)
+        : await import_library_project(trimmed);
+      setImportFile(null);
+      setImportPath("");
       await refreshLibrary();
       setImportOpen(false);
       notifications.show({ message: imported.name || imported.file, color: "green" });
@@ -500,6 +509,15 @@ export function StartPage() {
                                       {t("start.action.duplicate")}
                                     </Menu.Item>
                                     <Menu.Item
+                                      component="a"
+                                      href={library_download_url(entry.file)}
+                                      download={entry.file}
+                                      leftSection={<IconDownload size={14} />}
+                                      disabled={isCorrupt}
+                                    >
+                                      {t("start.action.download")}
+                                    </Menu.Item>
+                                    <Menu.Item
                                       leftSection={<IconFileExport size={14} />}
                                       disabled={isCorrupt}
                                       onClick={() => openExportModal(entry)}
@@ -613,8 +631,18 @@ export function StartPage() {
       >
         <Stack gap="sm">
           {importApiError != null && <ErrorAlert error={importApiError} />}
+          <FileInput
+            label={t("start.import_file")}
+            placeholder={t("start.import_choose")}
+            accept=".gtk"
+            clearable
+            value={importFile}
+            onChange={setImportFile}
+            data-testid="import-file"
+          />
           <TextInput
-            label={t("start.import")}
+            label={t("start.import_or_path")}
+            disabled={importFile !== null}
             value={importPath}
             onChange={(e) => setImportPath(e.currentTarget.value)}
             onKeyDown={(e) => {
