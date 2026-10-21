@@ -8299,6 +8299,444 @@
         }
       }
     },
+    "/api/m/anchored_wall/state": {
+      "get": {
+        "tags": [
+          "anchored_wall"
+        ],
+        "summary": "Get Module State",
+        "description": "Return the module state stored in the open project (defaults when absent).",
+        "operationId": "anchored_wall_get_state",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StateResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid operation or input file",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflicting or stale structure state",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation error or missing_factors",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Engine or server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "501": {
+            "description": "Contract stub; not implemented",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Other client error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "5XX": {
+            "description": "Other server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "anchored_wall"
+        ],
+        "summary": "Put Module State",
+        "description": "Replace the module state; a stored result must match its inputs.",
+        "operationId": "anchored_wall_put_state",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AnchoredWallState"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StateResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid operation or input file",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflicting or stale structure state",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation error or missing_factors",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Engine or server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "501": {
+            "description": "Contract stub; not implemented",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Other client error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "5XX": {
+            "description": "Other server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/m/anchored_wall/anchor/design": {
+      "post": {
+        "tags": [
+          "anchored_wall"
+        ],
+        "summary": "Design Ground Anchor",
+        "description": "Design one ground anchor; with ``save`` store inputs and result in the open project.",
+        "operationId": "anchored_wall_design_anchor",
+        "parameters": [
+          {
+            "name": "save",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": false,
+              "title": "Save"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AnchorDesignInputs"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnchorDesignResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid operation or input file",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflicting or stale structure state",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation error or missing_factors",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Engine or server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "501": {
+            "description": "Contract stub; not implemented",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Other client error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "5XX": {
+            "description": "Other server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/m/anchored_wall/anchor/reference": {
+      "get": {
+        "tags": [
+          "anchored_wall"
+        ],
+        "summary": "Anchor Reference",
+        "description": "Source-labelled tendon and presumptive load-transfer tables and engine defaults.",
+        "operationId": "anchored_wall_anchor_reference",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnchorReference"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid operation or input file",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflicting or stale structure state",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation error or missing_factors",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Engine or server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "501": {
+            "description": "Contract stub; not implemented",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Other client error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "5XX": {
+            "description": "Other server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/m/report/sections": {
       "get": {
         "tags": [
@@ -8542,6 +8980,597 @@
         ],
         "title": "ActiveProfileUpdate",
         "description": "Select a project profile; null restores the domain's first-profile fallback."
+      },
+      "AnchorCheck": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "demand": {
+            "type": "number",
+            "title": "Demand"
+          },
+          "limit": {
+            "type": "number",
+            "title": "Limit"
+          },
+          "ok": {
+            "type": "boolean",
+            "title": "Ok"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "demand",
+          "limit",
+          "ok"
+        ],
+        "title": "AnchorCheck"
+      },
+      "AnchorDefaults": {
+        "properties": {
+          "min_free_length_strand": {
+            "type": "number",
+            "title": "Min Free Length Strand"
+          },
+          "min_free_length_bar": {
+            "type": "number",
+            "title": "Min Free Length Bar"
+          },
+          "min_free_length_source": {
+            "type": "string",
+            "title": "Min Free Length Source"
+          },
+          "test_factor": {
+            "type": "number",
+            "title": "Test Factor"
+          },
+          "design_limit": {
+            "type": "number",
+            "title": "Design Limit"
+          },
+          "lock_off_limit": {
+            "type": "number",
+            "title": "Lock Off Limit"
+          },
+          "test_limit": {
+            "type": "number",
+            "title": "Test Limit"
+          },
+          "min_overburden": {
+            "type": "number",
+            "title": "Min Overburden"
+          },
+          "beyond_wedge_rule": {
+            "type": "string",
+            "title": "Beyond Wedge Rule"
+          },
+          "source": {
+            "type": "string",
+            "title": "Source"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "min_free_length_strand",
+          "min_free_length_bar",
+          "min_free_length_source",
+          "test_factor",
+          "design_limit",
+          "lock_off_limit",
+          "test_limit",
+          "min_overburden",
+          "beyond_wedge_rule",
+          "source"
+        ],
+        "title": "AnchorDefaults",
+        "description": "Defaults the engine applies when the input is left out, each with its source."
+      },
+      "AnchorDesignInputs": {
+        "properties": {
+          "excavation_height": {
+            "type": "number",
+            "exclusiveMinimum": 0.0,
+            "title": "Excavation Height"
+          },
+          "head_depth": {
+            "type": "number",
+            "minimum": 0.0,
+            "title": "Head Depth"
+          },
+          "inclination_deg": {
+            "type": "number",
+            "exclusiveMaximum": 90.0,
+            "minimum": 0.0,
+            "title": "Inclination Deg"
+          },
+          "phi_deg": {
+            "type": "number",
+            "exclusiveMaximum": 90.0,
+            "minimum": 0.0,
+            "title": "Phi Deg"
+          },
+          "wedge_origin_below_base": {
+            "type": "number",
+            "minimum": 0.0,
+            "title": "Wedge Origin Below Base",
+            "default": 0.0
+          },
+          "beyond_wedge": {
+            "anyOf": [
+              {
+                "type": "number",
+                "exclusiveMinimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Beyond Wedge"
+          },
+          "horizontal_load_per_m": {
+            "anyOf": [
+              {
+                "type": "number",
+                "exclusiveMinimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Horizontal Load Per M"
+          },
+          "spacing": {
+            "anyOf": [
+              {
+                "type": "number",
+                "exclusiveMinimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Spacing"
+          },
+          "axial_load": {
+            "anyOf": [
+              {
+                "type": "number",
+                "exclusiveMinimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Axial Load"
+          },
+          "safety_factor": {
+            "anyOf": [
+              {
+                "type": "number",
+                "exclusiveMinimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Safety Factor"
+          },
+          "ultimate_transfer_load": {
+            "anyOf": [
+              {
+                "type": "number",
+                "exclusiveMinimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ultimate Transfer Load"
+          },
+          "ultimate_bond_stress": {
+            "anyOf": [
+              {
+                "type": "number",
+                "exclusiveMinimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ultimate Bond Stress"
+          },
+          "hole_diameter": {
+            "anyOf": [
+              {
+                "type": "number",
+                "exclusiveMinimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Hole Diameter"
+          },
+          "min_bond_length": {
+            "anyOf": [
+              {
+                "type": "number",
+                "exclusiveMinimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Min Bond Length"
+          },
+          "max_bond_length": {
+            "anyOf": [
+              {
+                "type": "number",
+                "exclusiveMinimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max Bond Length"
+          },
+          "min_free_length": {
+            "anyOf": [
+              {
+                "type": "number",
+                "exclusiveMinimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Min Free Length"
+          },
+          "tendon": {
+            "$ref": "#/components/schemas/TendonSpec"
+          },
+          "lock_off_ratio": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 1.5,
+                "exclusiveMinimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lock Off Ratio"
+          },
+          "test_factor": {
+            "type": "number",
+            "exclusiveMinimum": 1.0,
+            "title": "Test Factor",
+            "default": 1.33
+          },
+          "design_limit": {
+            "type": "number",
+            "maximum": 1.0,
+            "exclusiveMinimum": 0.0,
+            "title": "Design Limit",
+            "default": 0.6
+          },
+          "lock_off_limit": {
+            "type": "number",
+            "maximum": 1.0,
+            "exclusiveMinimum": 0.0,
+            "title": "Lock Off Limit",
+            "default": 0.7
+          },
+          "test_limit": {
+            "type": "number",
+            "maximum": 1.0,
+            "exclusiveMinimum": 0.0,
+            "title": "Test Limit",
+            "default": 0.8
+          },
+          "min_overburden": {
+            "type": "number",
+            "minimum": 0.0,
+            "title": "Min Overburden",
+            "default": 4.5
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "excavation_height",
+          "head_depth",
+          "inclination_deg",
+          "phi_deg",
+          "tendon"
+        ],
+        "title": "AnchorDesignInputs"
+      },
+      "AnchorDesignResult": {
+        "properties": {
+          "load_source": {
+            "type": "string",
+            "enum": [
+              "horizontal_per_m",
+              "axial"
+            ],
+            "title": "Load Source"
+          },
+          "horizontal_load_per_anchor": {
+            "type": "number",
+            "title": "Horizontal Load Per Anchor"
+          },
+          "design_load": {
+            "type": "number",
+            "title": "Design Load"
+          },
+          "vertical_load_per_anchor": {
+            "type": "number",
+            "title": "Vertical Load Per Anchor"
+          },
+          "vertical_load_per_m": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Vertical Load Per M"
+          },
+          "lock_off_load": {
+            "type": "number",
+            "title": "Lock Off Load"
+          },
+          "test_load": {
+            "type": "number",
+            "title": "Test Load"
+          },
+          "wedge_angle_deg": {
+            "type": "number",
+            "title": "Wedge Angle Deg"
+          },
+          "wedge_distance": {
+            "type": "number",
+            "title": "Wedge Distance"
+          },
+          "wedge_length": {
+            "type": "number",
+            "title": "Wedge Length"
+          },
+          "beyond_wedge": {
+            "type": "number",
+            "title": "Beyond Wedge"
+          },
+          "free_length_required": {
+            "type": "number",
+            "title": "Free Length Required"
+          },
+          "free_length_minimum": {
+            "type": "number",
+            "title": "Free Length Minimum"
+          },
+          "free_length": {
+            "type": "number",
+            "title": "Free Length"
+          },
+          "free_length_governing": {
+            "type": "string",
+            "enum": [
+              "wedge",
+              "minimum"
+            ],
+            "title": "Free Length Governing"
+          },
+          "transfer_load": {
+            "type": "number",
+            "title": "Transfer Load"
+          },
+          "transfer_load_source": {
+            "type": "string",
+            "enum": [
+              "direct",
+              "bond_stress"
+            ],
+            "title": "Transfer Load Source"
+          },
+          "safety_factor": {
+            "type": "number",
+            "title": "Safety Factor"
+          },
+          "bond_length_calculated": {
+            "type": "number",
+            "title": "Bond Length Calculated"
+          },
+          "bond_length": {
+            "type": "number",
+            "title": "Bond Length"
+          },
+          "bond_length_governing": {
+            "type": "string",
+            "enum": [
+              "calculated",
+              "minimum"
+            ],
+            "title": "Bond Length Governing"
+          },
+          "bond_capacity": {
+            "type": "number",
+            "title": "Bond Capacity"
+          },
+          "total_length": {
+            "type": "number",
+            "title": "Total Length"
+          },
+          "bond_centre_depth": {
+            "type": "number",
+            "title": "Bond Centre Depth"
+          },
+          "tendon": {
+            "$ref": "#/components/schemas/TendonResult"
+          },
+          "checks": {
+            "items": {
+              "$ref": "#/components/schemas/AnchorCheck"
+            },
+            "type": "array",
+            "title": "Checks"
+          },
+          "warnings": {
+            "items": {
+              "$ref": "#/components/schemas/Notice"
+            },
+            "type": "array",
+            "title": "Warnings"
+          },
+          "assumptions": {
+            "items": {
+              "$ref": "#/components/schemas/Notice"
+            },
+            "type": "array",
+            "title": "Assumptions"
+          },
+          "sources": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Sources"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "load_source",
+          "horizontal_load_per_anchor",
+          "design_load",
+          "vertical_load_per_anchor",
+          "vertical_load_per_m",
+          "lock_off_load",
+          "test_load",
+          "wedge_angle_deg",
+          "wedge_distance",
+          "wedge_length",
+          "beyond_wedge",
+          "free_length_required",
+          "free_length_minimum",
+          "free_length",
+          "free_length_governing",
+          "transfer_load",
+          "transfer_load_source",
+          "safety_factor",
+          "bond_length_calculated",
+          "bond_length",
+          "bond_length_governing",
+          "bond_capacity",
+          "total_length",
+          "bond_centre_depth",
+          "tendon",
+          "checks",
+          "warnings",
+          "assumptions",
+          "sources"
+        ],
+        "title": "AnchorDesignResult"
+      },
+      "AnchorRecord": {
+        "properties": {
+          "inputs": {
+            "$ref": "#/components/schemas/AnchorDesignInputs"
+          },
+          "result": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AnchorDesignResult"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "result_hash": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Result Hash"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "inputs"
+        ],
+        "title": "AnchorRecord",
+        "description": "Stored anchor design: the inputs, the last result and the hash of its inputs."
+      },
+      "AnchorReference": {
+        "properties": {
+          "tendons": {
+            "items": {
+              "$ref": "#/components/schemas/TendonInfo"
+            },
+            "type": "array",
+            "title": "Tendons"
+          },
+          "transfer_loads": {
+            "items": {
+              "$ref": "#/components/schemas/TransferLoadInfo"
+            },
+            "type": "array",
+            "title": "Transfer Loads"
+          },
+          "safety_factor_guidance": {
+            "items": {
+              "$ref": "#/components/schemas/SafetyFactorGuidance"
+            },
+            "type": "array",
+            "title": "Safety Factor Guidance"
+          },
+          "defaults": {
+            "$ref": "#/components/schemas/AnchorDefaults"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "tendons",
+          "transfer_loads",
+          "safety_factor_guidance",
+          "defaults"
+        ],
+        "title": "AnchorReference",
+        "description": "Source-labelled library for the UI; presumptive values are never applied silently."
+      },
+      "AnchoredWallState": {
+        "properties": {
+          "anchor": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AnchorRecord"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "AnchoredWallState",
+        "description": "``Project.modules[\"anchored_wall\"]``; later phases add fields with defaults."
       },
       "ApiError": {
         "properties": {
@@ -10588,6 +11617,38 @@
         "title": "NewProjectRequest",
         "description": "Subset of ProjectMeta needed to create a library project."
       },
+      "Notice": {
+        "properties": {
+          "code": {
+            "type": "string",
+            "title": "Code"
+          },
+          "params": {
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "string"
+                }
+              ]
+            },
+            "type": "object",
+            "title": "Params"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "code"
+        ],
+        "title": "Notice",
+        "description": "A translatable message: ``anchored_wall.warning.<code>`` / ``.assumption.<code>``."
+      },
       "ParameterApproval": {
         "properties": {
           "keys": {
@@ -12171,6 +13232,30 @@
         ],
         "title": "SPTRecord"
       },
+      "SafetyFactorGuidance": {
+        "properties": {
+          "ground": {
+            "type": "string",
+            "title": "Ground"
+          },
+          "value": {
+            "type": "number",
+            "title": "Value"
+          },
+          "source": {
+            "type": "string",
+            "title": "Source"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "ground",
+          "value",
+          "source"
+        ],
+        "title": "SafetyFactorGuidance"
+      },
       "SelectionUpdate": {
         "properties": {
           "mode": {
@@ -13413,6 +14498,25 @@
         "title": "SoundingLiquefactionDTO",
         "description": "Depth-aligned triggering series; CSR/CRR/FS map to engine csr/crr/fs."
       },
+      "StateResponse": {
+        "properties": {
+          "state": {
+            "$ref": "#/components/schemas/AnchoredWallState"
+          },
+          "anchor_result_stale": {
+            "type": "boolean",
+            "title": "Anchor Result Stale"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "state",
+          "anchor_result_stale"
+        ],
+        "title": "StateResponse",
+        "description": "Stored module state plus whether the stored anchor result still matches its inputs."
+      },
       "StoredLiquefactionDTO": {
         "properties": {
           "profile_id": {
@@ -13556,6 +14660,227 @@
         ],
         "title": "StructureSummary",
         "description": "Structure list entry; stale indicates changed source soil or analysis inputs."
+      },
+      "TendonInfo": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "type": {
+            "type": "string",
+            "title": "Type"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "smts_kn": {
+            "type": "number",
+            "title": "Smts Kn"
+          },
+          "area_mm2": {
+            "type": "number",
+            "title": "Area Mm2"
+          },
+          "source": {
+            "type": "string",
+            "title": "Source"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "type",
+          "label",
+          "smts_kn",
+          "area_mm2",
+          "source"
+        ],
+        "title": "TendonInfo"
+      },
+      "TendonResult": {
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "strand",
+              "bar",
+              "custom"
+            ],
+            "title": "Type"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "source": {
+            "type": "string",
+            "title": "Source"
+          },
+          "count": {
+            "type": "integer",
+            "title": "Count"
+          },
+          "smts_each": {
+            "type": "number",
+            "title": "Smts Each"
+          },
+          "smts_total": {
+            "type": "number",
+            "title": "Smts Total"
+          },
+          "area_total_mm2": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Area Total Mm2"
+          },
+          "design_utilisation": {
+            "type": "number",
+            "title": "Design Utilisation"
+          },
+          "lock_off_utilisation": {
+            "type": "number",
+            "title": "Lock Off Utilisation"
+          },
+          "test_utilisation": {
+            "type": "number",
+            "title": "Test Utilisation"
+          },
+          "count_governing": {
+            "type": "string",
+            "enum": [
+              "design",
+              "lock_off",
+              "test",
+              "user"
+            ],
+            "title": "Count Governing"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "type",
+          "label",
+          "source",
+          "count",
+          "smts_each",
+          "smts_total",
+          "area_total_mm2",
+          "design_utilisation",
+          "lock_off_utilisation",
+          "test_utilisation",
+          "count_governing"
+        ],
+        "title": "TendonResult"
+      },
+      "TendonSpec": {
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "strand",
+              "bar"
+            ],
+            "title": "Type"
+          },
+          "library_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Library Id"
+          },
+          "count": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Count"
+          },
+          "custom_smts_kn": {
+            "anyOf": [
+              {
+                "type": "number",
+                "exclusiveMinimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Custom Smts Kn"
+          },
+          "custom_area_mm2": {
+            "anyOf": [
+              {
+                "type": "number",
+                "exclusiveMinimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Custom Area Mm2"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "type"
+        ],
+        "title": "TendonSpec",
+        "description": "Prestressing steel selection; ``None`` library id / count means choose automatically."
+      },
+      "TransferLoadInfo": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "ground": {
+            "type": "string",
+            "title": "Ground"
+          },
+          "condition": {
+            "type": "string",
+            "title": "Condition"
+          },
+          "q_u_kn_per_m": {
+            "type": "number",
+            "title": "Q U Kn Per M"
+          },
+          "source": {
+            "type": "string",
+            "title": "Source"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "ground",
+          "condition",
+          "q_u_kn_per_m",
+          "source"
+        ],
+        "title": "TransferLoadInfo"
       },
       "TrashResponse": {
         "properties": {
