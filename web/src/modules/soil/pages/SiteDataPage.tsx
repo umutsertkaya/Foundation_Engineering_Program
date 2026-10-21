@@ -17,12 +17,13 @@ import {
   Title,
 } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
-import { IconFileImport, IconTrash } from "@tabler/icons-react";
+import { IconFileImport, IconPencil, IconPlus, IconTrash } from "@tabler/icons-react";
 import { useTranslation } from "react-i18next";
 import { ApiError } from "../../../shared/api/client";
 import { delete_borehole, delete_cpt, import_cpt, import_spt, list_investigations } from "../api";
 import type { InvestigationsDTO } from "../types";
 import { EmptyState } from "../../../shared/components/EmptyState";
+import { InvestigationEditor, type EditTarget } from "../components/InvestigationEditor";
 import { ErrorAlert } from "../../../shared/components/ErrorAlert";
 
 export function SiteDataPage() {
@@ -50,6 +51,7 @@ export function SiteDataPage() {
     void loadInvestigations();
   }, [loadInvestigations]);
 
+  const [editTarget, setEditTarget] = useState<EditTarget | null>(null);
   const [importKind, setImportKind] = useState<"cpt" | "spt" | null>(null);
   const [file, setFile] = useState<File | null>(null);
   const [recordId, setRecordId] = useState("");
@@ -60,6 +62,20 @@ export function SiteDataPage() {
   const [importError, setImportError] = useState<unknown>(null);
   const [fileMissing, setFileMissing] = useState(false);
   const [idMissing, setIdMissing] = useState(false);
+
+  const downloadTemplate = () => {
+    const text = importKind === "cpt"
+      ? `depth [m]${delimiter}qc [${qcUnit}]${delimiter}fs [kPa]${delimiter}u2 [kPa]\n1${delimiter}${decimal === "," ? "2,5" : "2.5"}${delimiter}${decimal === "," ? "40,0" : "40.0"}${delimiter}0\n`
+      : "depth [m],N\n1.5,8\n3.0,12\n4.5,50/12\n";
+    const url = URL.createObjectURL(new Blob(["\ufeff" + text], { type: "text/csv" }));
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = importKind === "cpt" ? "cpt-sablon.csv" : "spt-sablon.csv";
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 10_000);
+  };
 
   const openImport = (kind: "cpt" | "spt") => {
     setImportKind(kind);
@@ -127,7 +143,20 @@ export function SiteDataPage() {
         <Button variant="light" leftSection={<IconFileImport size={16} />} onClick={() => openImport("spt")}>
           {t("web.site.import_spt")}
         </Button>
+        <Button
+          variant="default"
+          leftSection={<IconPlus size={16} />}
+          onClick={() => setEditTarget({ kind: "borehole", isNew: true, value: { id: "", energy_ratio: 60, borehole_diameter_mm: 100, sampler: "standard", spt: [], lab: [], log: [] } })}
+        >
+          {t("web.site.new_borehole")}
+        </Button>
       </Group>
+
+      <InvestigationEditor
+        target={editTarget}
+        onClose={() => setEditTarget(null)}
+        onSaved={() => void loadInvestigations()}
+      />
 
       <Modal
         opened={importKind !== null}
@@ -140,6 +169,9 @@ export function SiteDataPage() {
           <Text size="xs" c="dimmed">
             {importKind === "cpt" ? t("web.site.import_cpt_hint") : t("web.site.import_spt_hint")}
           </Text>
+          <Button variant="subtle" size="compact-xs" onClick={downloadTemplate} style={{ alignSelf: "flex-start" }}>
+            {t("web.site.template")}
+          </Button>
           <FileInput
             label={t("web.site.import_file")}
             placeholder={t("web.site.import_file_placeholder")}
@@ -225,6 +257,13 @@ export function SiteDataPage() {
                             {t("web.site.points_count", { count: cpt.depth.length })}
                           </Badge>
                           <ActionIcon
+                            size="sm" variant="subtle"
+                            aria-label={t("web.site.edit", { id: cpt.id })}
+                            onClick={() => setEditTarget({ kind: "cpt", value: cpt })}
+                          >
+                            <IconPencil size={14} />
+                          </ActionIcon>
+                          <ActionIcon
                             size="sm" color="red" variant="subtle"
                             aria-label={t("web.site.delete", { id: cpt.id })}
                             onClick={() => void removeRecord("cpt", cpt.id)}
@@ -276,6 +315,13 @@ export function SiteDataPage() {
                           <Badge size="xs" color="grape" variant="light">
                             {t("web.site.lab_count", { count: labCount })}
                           </Badge>
+                          <ActionIcon
+                            size="sm" variant="subtle"
+                            aria-label={t("web.site.edit", { id: bh.id })}
+                            onClick={() => setEditTarget({ kind: "borehole", isNew: false, value: bh })}
+                          >
+                            <IconPencil size={14} />
+                          </ActionIcon>
                           <ActionIcon
                             size="sm" color="red" variant="subtle"
                             aria-label={t("web.site.delete", { id: bh.id })}
