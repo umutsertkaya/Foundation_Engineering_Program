@@ -662,8 +662,6 @@ def _sheet_case(structure, design_soil, *, seismic, passive_factor, active_facto
         kh, kv = tbdy_seismic_coefficients(structure.sds, TBDY_R["anchored_or_rigid"])
         # Coulomb with delta = beta equals the Rankine-slope coefficient at kh = kv = 0, so the
         # increment below is purely dynamic; M-O stops with a coded error when beta > phi' - psi.
-        ae = lateral_pressure(retained, H, surcharge=q, method="coulomb", delta=beta, beta=beta,
-                               kh=kh, kv=kv, layerwise=True)
         # KDYY handbook increment: uniform 0.5 dK_ad sigma'v(toe) over 0..toe (AASHTO 2010) plus a triangular
         # surcharge part 2 q dK_ad (1 - z/toe) (Kumbasar & Kip). dK_ad = M-O total - static (Rankine slope), taken
         # at the toe from the layered profiles, so it depends on the toe depth (fixed point below).
@@ -771,8 +769,8 @@ def design_sheet_pile_structure(project: Project, structure_id: str, progress: P
             assumptions = [a for a in assumptions if a.code != "sheet_pile.support_method"]
         assumptions.extend(_sheet_assumptions(structure))
         if seismic:
-            assumptions.append(Assumption(text="r=1; M-O artımı H boyunca düzgün (bileşke H/2), kazı tabanı altında "
-                                                "katman bazında M-O artımı gömülü boyca sürer; "
+            assumptions.append(Assumption(text="r=1; KDYY dinamik artımı: duvar boyunca (0..uç) düzgün ½·ΔK_ad·σ′v(uç) + "
+                                                "sürşarj için üçgen 2·q·ΔK_ad·(1−z/uç), uç derinliği yinelemeyle; "
                                                 "katman başına pasif M-O/Rankine oranı en çok 1; drenajsız deprem durdurulur; "
                                                 "hidrodinamik ve fazla boşluk suyu basıncı yok", source=SRC_TBDY_SEISMIC,
                                                 code="sheet_pile.seismic", params={"r": 1, "passive_ratio_max": 1}))

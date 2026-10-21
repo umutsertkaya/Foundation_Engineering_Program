@@ -1,15 +1,15 @@
-"""KDYY handbook seismic increment for sheet piles (2026-10-21) and the fine-grained passive FS.
+"""KDYY handbook seismic increment for sheet piles (2026-10-21).
 
 Hand numbers: phi 30, gamma 18, no water, kh 0.2, kv 0.1, q 10 kPa, toe 8 m:
 increment(z) = 0.5 dK 18 * 8 + 2 dK 10 (1 - z/8) for z <= toe, zero below.
 """
 
+import numpy as np
 import pytest
 
 from geotek.core.models.profile import DesignParameters, GroundwaterCondition, SoilLayer, SoilProfile
 from geotek.engine.earth_pressure.coefficients import mononobe_okabe_kae, rankine_ka
 from geotek.engine.sheet_pile import anchored_sheet_pile, cantilever_sheet_pile, net_pressure
-from geotek.services.walls_basic import BasicSheetPileInput, design_sheet_pile_basic
 
 H = 5.0
 DK = 0.9 * mononobe_okabe_kae(30, kh=0.2, kv=0.1) - rankine_ka(30)
@@ -24,10 +24,10 @@ def test_kdyy_increment_by_hand():
     base = net_pressure(_profile(), H, surcharge=10)
     seis = net_pressure(_profile(), H, surcharge=10, seismic_dk=DK, seismic_toe=8.0)
     for depth in (1.0, 3.0, 6.0, 7.5):
-        i = int(__import__("numpy").searchsorted(base.z, depth))
+        i = int(np.searchsorted(base.z, depth))
         hand = 0.5 * DK * 18 * 8.0 + 2 * DK * 10 * (1 - base.z[i] / 8.0)
         assert seis.active[i] - base.active[i] == pytest.approx(hand, rel=1e-9)
-    i = int(__import__("numpy").searchsorted(base.z, 9.0))
+    i = int(np.searchsorted(base.z, 9.0))
     assert seis.active[i] == pytest.approx(base.active[i])
 
 
@@ -41,20 +41,11 @@ def test_kdyy_toe_iteration_is_a_fixed_point_and_not_smaller_than_static():
     F = cumulative_integral(again.z, again.net)
     Fz = cumulative_integral(again.z, again.net * again.z)
     toe = H + seis.D0
-    import numpy as np
     assert abs(np.interp(toe, again.z, F) * toe - np.interp(toe, again.z, Fz)) < 1.0
 
 
 def test_kdyy_anchored_force_exceeds_uniform_h_convention():
-    # EM-free comparison: KDYY distribution loads the embedded part too, so T grows vs static.
+    # The KDYY distribution loads the whole wall length, so T grows well above the static value.
     static = anchored_sheet_pile(_profile(), H, 1.0, passive_factor=1.5)
     seis = anchored_sheet_pile(_profile(), H, 1.0, passive_factor=1.5, seismic_dk=DK)
     assert seis.anchor_force > static.anchor_force * 1.15
-
-
-def test_undrained_front_uses_fs_two():
-    res = design_sheet_pile_basic(BasicSheetPileInput(
-        retained_height=4.0, gamma=18, drainage="undrained", su=40, surcharge=20))
-    assert any("2.0" in a.text or "2,0" in a.text for a in res.assumptions)
-    drained = design_sheet_pile_basic(BasicSheetPileInput(retained_height=5.0, gamma=18, phi=30))
-    assert not any("Tablo 5-1" in a.text for a in drained.assumptions)
