@@ -11,5 +11,13 @@
   "education.warning": "Dikkat",
   "education.back": "Tüm konular",
   "education.sources": "Kaynaklar",
-  "education.code_refs": "Kodda karşılığı"
+  "education.code_refs": "Kodda karşılığı",
+  "education.worked": "Çözümlü örnek",
+  "education.program_result": "Programın sonucu (aynı girdi)",
+  "education.quiz": "Kendini sına",
+  "education.mistakes": "Sık yapılan hatalar",
+  "education.glossary": "Terimler sözlüğü",
+  "education.reading": "Önerilen okuma",
+  "education.tab.student": "Öğrenci anlatımı",
+  "education.tab.engineer": "Program bunu nasıl hesaplıyor"
 }

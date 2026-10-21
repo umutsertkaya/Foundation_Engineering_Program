@@ -11,5 +11,13 @@
   "education.warning": "Caution",
   "education.back": "All topics",
   "education.sources": "References",
-  "education.code_refs": "Where it lives in code"
+  "education.code_refs": "Where it lives in code",
+  "education.worked": "Worked example",
+  "education.program_result": "Program result (same input)",
+  "education.quiz": "Test yourself",
+  "education.mistakes": "Common mistakes",
+  "education.glossary": "Glossary",
+  "education.reading": "Further reading",
+  "education.tab.student": "Student guide",
+  "education.tab.engineer": "How the program computes this"
 }

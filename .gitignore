@@ -16,7 +16,7 @@ playwright-report/
 test-results/
 
 # Telifli tam metin makaleler (yalnız yerel; STATUS'ta atıf yapılır)
-docs/research/Youd.et.al.*
+docs/research/
 
 # Agent worktrees (local only)
 .claude/worktrees/
