@@ -370,6 +370,8 @@ def check_wall(inp: BasicWallInput, geometry: CantileverGeometry | GravityGeomet
 # --- sheet piles -------------------------------------------------------------------------
 
 PASSIVE_FS_BASIC = 1.5
+PASSIVE_FS_FINE = 2.0
+"""Undrained (fine-grained, Q-case) passive factor, USACE EM 1110-2-2504 Table 5-1."""
 SRC_SHEET_PASSIVE = ("Pasif dirence GS = 1.5 — USS Steel Sheet Piling Design Manual / USACE EM 1110-2-2504 "
                      "uygulaması (doğrulanmadı)")
 
@@ -421,15 +423,18 @@ def design_sheet_pile_basic(inp: BasicSheetPileInput) -> BasicSheetPileResult:
     layer = SoilLayer(id="S", top=0.0, bottom=depth, gamma=inp.gamma, gamma_sat=inp.gamma_sat or inp.gamma,
                       design=DesignParameters(phi_eff=inp.phi, c_eff=inp.c, su=inp.su))
     profile = SoilProfile(id="basic", gwt=GroundwaterCondition(depth_insitu=inp.gwt_depth), layers=[layer])
+    fs_passive = PASSIVE_FS_FINE if inp.drainage == "undrained" else PASSIVE_FS_BASIC
     assumptions = [
         Assumption(text="Homojen zemin, hidrostatik su (sızma yok)", source=SRC_CONSERVATIVE),
         Assumption(text="Rankine aktif/pasif, duvar sürtünmesi ihmal", source=SRC_CONSERVATIVE),
-        Assumption(text=f"Pasif basınçlar {PASSIVE_FS_BASIC} ile bölündü; tanφ′ ve c′ de {PASSIVE_FS_BASIC} ile bölünerek "
-                 "bulunan pasif basınç daha küçükse o alındı (yüksek φ′; USACE EM 1110-2-2504 5-2d)", source=SRC_SHEET_PASSIVE),
+        Assumption(text=f"Pasif basınçlar {fs_passive} ile bölündü; tanφ′ ve c′ de {fs_passive} ile bölünerek "
+                 "bulunan pasif basınç daha küçükse o alındı (yüksek φ′; USACE EM 1110-2-2504 5-2d)"
+                 + ("; drenajsız (ince daneli, Q durumu) için EM 2504 Tablo 5-1 değeri 2.0" if fs_passive == PASSIVE_FS_FINE else ""),
+                   source=SRC_SHEET_PASSIVE),
     ]
     beta = inp.backfill_slope
     kw: dict = dict(surcharge=surcharge_per_horizontal(inp.surcharge, beta, inp.surcharge_basis),
-                    passive_factor=PASSIVE_FS_BASIC, passive_strength_reduction=True, drainage=inp.drainage,
+                    passive_factor=fs_passive, passive_strength_reduction=True, drainage=inp.drainage,
                     allowable_stress_mpa=inp.allowable_stress_mpa, backfill_slope=beta)
     if beta:
         assumptions.append(Assumption(
