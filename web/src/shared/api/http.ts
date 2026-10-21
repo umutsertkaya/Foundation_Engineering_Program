@@ -201,3 +201,33 @@ export async function request_blob(method: string, path: string, body?: unknown)
     filename: filenameFromDisposition(response.headers.get("Content-Disposition")),
   };
 }
+
+/** POST a non-JSON body (raw file or multipart form); the response is JSON. Not available against the mock. */
+export async function request_upload<T>(path: string, body: BodyInit, headers: Record<string, string> = {}): Promise<T> {
+  if (isMockMode()) {
+    throw new ApiError(501, {
+      code: "not_implemented", message: "File upload is not available in mock mode.", details: {}, missing_factors: [],
+    });
+  }
+  let response: Response;
+  try {
+    response = await fetch(`${BASE_URL}${path}`, { method: "POST", headers: { Accept: "application/json", ...headers }, body });
+  } catch (err) {
+    throw new ApiError(0, {
+      code: "network", message: err instanceof Error ? err.message : "Network request failed",
+      details: {}, missing_factors: [],
+    });
+  }
+  const text = await response.text();
+  let parsed: unknown = null;
+  if (text) {
+    try {
+      parsed = JSON.parse(text);
+    } catch {
+      parsed = text;
+    }
+  }
+  if (!response.ok) throw parseApiError(response.status, parsed);
+  notifyMutation("POST", path);
+  return parsed as T;
+}

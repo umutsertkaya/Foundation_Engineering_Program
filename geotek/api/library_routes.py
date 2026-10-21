@@ -9,11 +9,13 @@ session inside ``session.lock`` so a concurrent library switch cannot interleave
 from __future__ import annotations
 
 import logging
+import tempfile
 from collections.abc import Callable
 from pathlib import Path
 from typing import Annotated, TypeVar
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Request
+from fastapi.responses import FileResponse
 from pydantic import ValidationError
 
 from geotek.api import registry
@@ -174,6 +176,42 @@ def import_library_project(
     with session.lock:
         file = _guard(lambda: session.library.import_file(source))
         return _entry(_guard(lambda: session.library.entry(file)))
+
+
+MAX_PROJECT_UPLOAD_BYTES = 50 * 1024 * 1024
+
+
+@router.post("/library/upload", response_model=dto.LibraryEntryDTO,
+             operation_id="upload_library_project")
+async def upload_library_project(
+    request: Request, session: SessionDep, name: str = "project.gtk",
+) -> dto.LibraryEntryDTO:
+    """Import a project file sent as the raw request body (browser file picker).
+
+    ``name`` only seeds the library file name; it is never used as a server path.
+    """
+    body = bytearray()
+    async for chunk in request.stream():
+        if len(body) + len(chunk) > MAX_PROJECT_UPLOAD_BYTES:
+            api_error(422, "validation", "Project file is too large.")
+        body.extend(chunk)
+    if not body:
+        api_error(422, "validation", "A non-empty project file is required.")
+    stem = Path(name.replace("\\", "/")).stem.strip() or "project"
+    with tempfile.TemporaryDirectory(prefix="geotek-upload-") as tmp:
+        source = Path(tmp) / f"{stem}.gtk"
+        source.write_bytes(bytes(body))
+        with session.lock:
+            file = _guard(lambda: session.library.import_file(source))
+            return _entry(_guard(lambda: session.library.entry(file)))
+
+
+@router.get("/library/{file}/download", operation_id="download_library_project")
+def download_library_project(file: str, session: SessionDep) -> FileResponse:
+    """Send the stored project file to the browser as a download."""
+    with session.lock:
+        path = _path(session, file)
+    return FileResponse(path, media_type="application/octet-stream", filename=path.name)
 
 
 @router.post("/library/{file}/open", response_model=dto.SessionInfo,

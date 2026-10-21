@@ -105,6 +105,17 @@ export function LauncherPage() {
   const defaultCode = codes[0]?.id ?? "";
   const codeOptions = useMemo(() => codes.map((c) => ({ value: c.id, label: c.name })), [codes]);
 
+  const SITE_CLASSES = ["ZA", "ZB", "ZC", "ZD", "ZE", "ZF"];
+  const currentSiteClass = project?.site.site_class ?? "";
+  const siteClassOptions = useMemo(() => {
+    const options = SITE_CLASSES.map((c) => ({ value: c, label: t(`launcher.site_class.${c}`) }));
+    // A value saved earlier as free text stays selectable instead of silently disappearing.
+    if (currentSiteClass && !SITE_CLASSES.includes(currentSiteClass)) {
+      options.push({ value: currentSiteClass, label: currentSiteClass });
+    }
+    return options;
+  }, [currentSiteClass, t]);
+
   // Site seismic form state
   const initialSiteDraft: SiteDraft = {
     pga_g: project?.site.pga_g ?? "",
@@ -449,12 +460,17 @@ export function LauncherPage() {
                     />
                   </SimpleGrid>
 
-                  <TextInput
+                  <Select
                     size="xs"
                     label={t("launcher.site_class")}
-                    value={siteDraft.site_class}
-                    onChange={(e) => updateSiteField("site_class", e.currentTarget.value)}
-                    onBlur={() => void handleSaveSite()}
+                    description={t("launcher.site_class_hint")}
+                    data={siteClassOptions}
+                    value={siteDraft.site_class || null}
+                    clearable
+                    onChange={(value) => {
+                      updateSiteField("site_class", value ?? "");
+                      void handleSaveSite();
+                    }}
                   />
                 </Stack>
               </Card>

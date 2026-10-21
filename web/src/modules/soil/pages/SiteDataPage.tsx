@@ -1,20 +1,29 @@
 import { useCallback, useEffect, useState } from "react";
 import {
+  ActionIcon,
   Alert,
   Badge,
+  Button,
   Card,
+  FileInput,
   Group,
+  Modal,
+  Select,
   SimpleGrid,
   Stack,
   Table,
   Text,
+  TextInput,
   Title,
 } from "@mantine/core";
+import { notifications } from "@mantine/notifications";
+import { IconFileImport, IconTrash } from "@tabler/icons-react";
 import { useTranslation } from "react-i18next";
 import { ApiError } from "../../../shared/api/client";
-import { list_investigations } from "../api";
+import { delete_borehole, delete_cpt, import_cpt, import_spt, list_investigations } from "../api";
 import type { InvestigationsDTO } from "../types";
 import { EmptyState } from "../../../shared/components/EmptyState";
+import { ErrorAlert } from "../../../shared/components/ErrorAlert";
 
 export function SiteDataPage() {
   const { t } = useTranslation();
@@ -41,6 +50,59 @@ export function SiteDataPage() {
     void loadInvestigations();
   }, [loadInvestigations]);
 
+  const [importKind, setImportKind] = useState<"cpt" | "spt" | null>(null);
+  const [file, setFile] = useState<File | null>(null);
+  const [recordId, setRecordId] = useState("");
+  const [qcUnit, setQcUnit] = useState<"MPa" | "kPa">("MPa");
+  const [delimiter, setDelimiter] = useState(";");
+  const [decimal, setDecimal] = useState(",");
+  const [busy, setBusy] = useState(false);
+  const [importError, setImportError] = useState<unknown>(null);
+  const [fileMissing, setFileMissing] = useState(false);
+  const [idMissing, setIdMissing] = useState(false);
+
+  const openImport = (kind: "cpt" | "spt") => {
+    setImportKind(kind);
+    setFile(null);
+    setRecordId("");
+    setImportError(null);
+    setFileMissing(false);
+    setIdMissing(false);
+  };
+
+  const submitImport = async () => {
+    const id = recordId.trim();
+    setFileMissing(file === null);
+    setIdMissing(id === "");
+    if (!file || !id || !importKind) return;
+    setBusy(true);
+    setImportError(null);
+    try {
+      if (importKind === "cpt") {
+        await import_cpt({ file, sounding_id: id, qc_unit: qcUnit, delimiter, decimal });
+      } else {
+        await import_spt(file, id);
+      }
+      setImportKind(null);
+      notifications.show({ message: t("web.site.import_done", { id }), color: "green" });
+      await loadInvestigations();
+    } catch (err) {
+      setImportError(err);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const removeRecord = async (kind: "cpt" | "spt", id: string) => {
+    if (!window.confirm(t("web.site.delete_confirm", { id }))) return;
+    try {
+      await (kind === "cpt" ? delete_cpt(id) : delete_borehole(id));
+      await loadInvestigations();
+    } catch (err) {
+      if (err instanceof ApiError) setError(err);
+    }
+  };
+
   if (loading && !data) {
     return <Text size="sm">{t("web.common.loading")}</Text>;
   }
@@ -57,6 +119,79 @@ export function SiteDataPage() {
           {t("web.site.subtitle")}
         </Text>
       </div>
+
+      <Group gap="xs">
+        <Button leftSection={<IconFileImport size={16} />} onClick={() => openImport("cpt")}>
+          {t("web.site.import_cpt")}
+        </Button>
+        <Button variant="light" leftSection={<IconFileImport size={16} />} onClick={() => openImport("spt")}>
+          {t("web.site.import_spt")}
+        </Button>
+      </Group>
+
+      <Modal
+        opened={importKind !== null}
+        onClose={() => setImportKind(null)}
+        title={importKind === "cpt" ? t("web.site.import_cpt") : t("web.site.import_spt")}
+        size="md"
+      >
+        <Stack gap="sm">
+          {importError != null && <ErrorAlert error={importError} />}
+          <Text size="xs" c="dimmed">
+            {importKind === "cpt" ? t("web.site.import_cpt_hint") : t("web.site.import_spt_hint")}
+          </Text>
+          <FileInput
+            label={t("web.site.import_file")}
+            placeholder={t("web.site.import_file_placeholder")}
+            accept=".csv,.txt,text/csv,text/plain"
+            value={file}
+            onChange={(f) => { setFile(f); setFileMissing(false); }}
+            error={fileMissing ? t("web.site.import_file_required") : null}
+          />
+          <TextInput
+            label={importKind === "cpt" ? t("web.site.cpt_id") : t("web.site.borehole_id")}
+            value={recordId}
+            onChange={(e) => { setRecordId(e.currentTarget.value); setIdMissing(false); }}
+            error={idMissing ? t("web.site.import_id_required") : null}
+          />
+          {importKind === "cpt" && (
+            <Group grow align="flex-start">
+              <Select
+                label={t("web.site.qc_unit")}
+                data={["MPa", "kPa"]}
+                allowDeselect={false}
+                value={qcUnit}
+                onChange={(v) => setQcUnit(v === "kPa" ? "kPa" : "MPa")}
+              />
+              <Select
+                label={t("web.site.delimiter")}
+                data={[
+                  { value: ";", label: t("web.site.delim_semicolon") },
+                  { value: ",", label: t("web.site.delim_comma") },
+                  { value: "\t", label: t("web.site.delim_tab") },
+                ]}
+                allowDeselect={false}
+                value={delimiter}
+                onChange={(v) => setDelimiter(v ?? ";")}
+              />
+              <Select
+                label={t("web.site.decimal")}
+                data={[
+                  { value: ",", label: t("web.site.dec_comma") },
+                  { value: ".", label: t("web.site.dec_point") },
+                ]}
+                allowDeselect={false}
+                value={decimal}
+                onChange={(v) => setDecimal(v ?? ",")}
+              />
+            </Group>
+          )}
+          <Group justify="flex-end" gap="xs">
+            <Button variant="default" onClick={() => setImportKind(null)}>{t("start.new.cancel")}</Button>
+            <Button loading={busy} onClick={() => void submitImport()}>{t("web.site.import_submit")}</Button>
+          </Group>
+        </Stack>
+      </Modal>
 
       {error && (
         <Alert color="red" title={t(`error.${error.code}`)}>
@@ -85,9 +220,18 @@ export function SiteDataPage() {
                         <Text fw={700} ff="monospace">
                           {cpt.id}
                         </Text>
-                        <Badge size="xs" color="blue" variant="light">
-                          {t("web.site.points_count", { count: cpt.depth.length })}
-                        </Badge>
+                        <Group gap={6}>
+                          <Badge size="xs" color="blue" variant="light">
+                            {t("web.site.points_count", { count: cpt.depth.length })}
+                          </Badge>
+                          <ActionIcon
+                            size="sm" color="red" variant="subtle"
+                            aria-label={t("web.site.delete", { id: cpt.id })}
+                            onClick={() => void removeRecord("cpt", cpt.id)}
+                          >
+                            <IconTrash size={14} />
+                          </ActionIcon>
+                        </Group>
                       </Group>
                       <Group gap="md">
                         <Text size="xs" c="dimmed">
@@ -132,6 +276,13 @@ export function SiteDataPage() {
                           <Badge size="xs" color="grape" variant="light">
                             {t("web.site.lab_count", { count: labCount })}
                           </Badge>
+                          <ActionIcon
+                            size="sm" color="red" variant="subtle"
+                            aria-label={t("web.site.delete", { id: bh.id })}
+                            onClick={() => void removeRecord("spt", bh.id)}
+                          >
+                            <IconTrash size={14} />
+                          </ActionIcon>
                         </Group>
                       </Group>
 
