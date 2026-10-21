@@ -28,7 +28,7 @@ export const topic: Topic = {
     "Robertson, P.K. & Wride, C.E. (1998). Evaluating cyclic liquefaction potential using the cone penetration test. Can. Geotech. J., 35(3), 442-459.",
     "Seed, H.B. & Idriss, I.M. (1971). Simplified procedure for evaluating soil liquefaction potential. J. SMFE ASCE, 97(9).",
     "Liao, S.S.C. & Whitman, R.V. (1986). Overburden correction factors for SPT in sand. J. Geotech. Eng., 112(3).",
-    "Iwasaki, T. vd. (1978; 1982). Liquefaction potential index (LPI) yaklaşımı ve tehlike kategorileri.",
+    "Iwasaki, T. vd. (1978; 1984). Liquefaction potential index (LPI) yaklaşımı ve tehlike kategorileri. Yıl ikincil kaynaktan; özgün makaleden doğrulanmadı.",
   ],
   blocks: [
     {

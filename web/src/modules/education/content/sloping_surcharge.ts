@@ -22,8 +22,8 @@ export const topic: Topic = {
   ],
   sources: [
     "Rankine (1857) ve Coulomb (1776) eğimli dolgu katsayıları: kod kapalı formları Das (HATIRLANAN, kitap bu incelemede açılamadı).",
-    "Mononobe-Okabe (1929) deprem artışı ve Ebeling & Morrison (1992) gömülü perdeler: ERİŞİLEMEDİ (G9 raporunda 'HATIRLANAN').",
-    "TBDY 2018, Denk. 16.24b (β > φ′ − ψ) ve Bölüm 16.12.2.8 (palplanş/duvar deprem yayılışı): ERİŞİLEMEDİ; yönetmelik metni Umut'tan istenecek.",
+    "Mononobe-Okabe (1929) deprem artışı: kaynak bu incelemede kontrol edilmedi. Ebeling & Morrison (1992/1993), Technical Report ITL-92-11: künye doğrulandı, içerik teyit edilmedi.",
+    "TBDY 2018, Denk. 16.24b (β > φ′ − ψ) ve Bölüm 16.12.2.8: madde numaraları kodda anıldığı gibidir, yönetmelik metni ile karşılaştırılmadı (açık kalem). Palplanş deprem dağılımı için KDYY Tasarım El Kitabı esas alındı.",
     "EN 1998-5:2004 Ek E, Denk. E.3: TBDY 16.24b ile karşılaştırma için. ERİŞİLEMEDİ.",
     "Das, B.M., sürşarj ve palplanş örnekleri. HATIRLANAN; kitap bu incelemede açılamadı.",
   ],

@@ -15,13 +15,13 @@ export const student: Block[] = [
   {
     type: "p",
     text: {
-      tr: "Temelin zemine yaptığı basınç q ile gösterilir ve birimi kPa = kN/m²'dir. Şerit temelde (uzunluğu çok büyük, her metre için aynı kesit) yük birim uzunluk başına kN/m olarak verilir; bu durumda kapasite de kN/m çıkar. Sığ temelin tabanı, yüzeyden derinlik D kadar aşağıdadır ve D ile B arasındaki oran D/B, derinliğin göreli büyüklüğünü söyler. Genel bir kural olarak D/B küçükse temel sığ kabul edilir; bu sınır kaynaktan kaynağa biraz değişir, bu yüzden kesin bir eşik vermiyoruz ve Das'ın sığ/derin temel tanımına bakmanızı öneririz. GeoTek'in bu konudaki hesabı sığ temel içindir; kazıklı ya da derin temel bu modülün kapsamı dışındadır.",
+      tr: "Temelin zemine yaptığı basınç q ile gösterilir ve birimi kPa = kN/m²'dir. Şerit temelde (uzunluğu çok büyük, her metre için aynı kesit) yük birim uzunluk başına kN/m olarak verilir; bu durumda kapasite de kN/m çıkar. Sığ temelin tabanı, yüzeyden derinlik D kadar aşağıdadır ve D ile B arasındaki oran D/B, derinliğin göreli büyüklüğünü söyler. Genel bir kural olarak D/B küçükse temel sığ kabul edilir; bu sınır kaynaktan kaynağa biraz değişir, bu yüzden kesin bir eşik vermiyoruz ve Das'ın sığ/derin temel tanımına bakmanızı öneririz. GeoTek'in bu konudaki hesabı sığ temel içindir; kazıklı ya da derin temel bu modülün kapsamı dışındadır.", en: "The pressure the footing exerts on the soil, q, is in kPa = kN/m². For a strip footing (very long, same section along its length) the load is given per unit length in kN/m, and the capacity then also comes out in kN/m. The base of a shallow footing lies at depth D below the surface, and the ratio D/B indicates the relative size of the depth. As a general rule, a footing with a small D/B is considered shallow; this boundary varies somewhat from source to source, so we do not give a precise threshold, and we recommend checking Das's definition of shallow and deep foundations. GeoTek's calculation here is for shallow foundations; piled or deep foundations are outside the scope of this module.",
     },
   },
   {
     type: "p",
     text: {
-      tr: "Taşıma gücü (q_ult), zeminin kırılmadan taşıyabileceği en büyük temel basıncıdır. Bu değer bir 'son' değerdir: zemin bu basınçta ani bir göçme yaşar ve temel ciddi biçimde oturur ya da devrilir. Gündelik hayattaki karşılığı, bir kayanın yüzeyine ağırlık koyup yavaşça artırmaktır; bir noktada yüzey aniden içe ya da yana çöker. Mühendislikte bu son değeri doğrudan kullanmayız, bir emniyet sayısına bölerek izin verilebilir basınç q_all üretiriz (bölüm 8). Yani tasarım, zeminin sınırına hiç yaklaşmamayı hedefler. Kapasite her zaman zemin özelliklerine (φ, c, γ), temel boyutlarına (B, D) ve yüke (eğim, eksantrisite) bağlıdır; hiçbiri tek başına yeterli değildir.",
+      tr: "Taşıma gücü (q_ult), zeminin kırılmadan taşıyabileceği en büyük temel basıncıdır. Bu değer bir 'son' değerdir: zemin bu basınçta ani bir göçme yaşar ve temel ciddi biçimde oturur ya da devrilir. Gündelik hayattaki karşılığı, bir kayanın yüzeyine ağırlık koyup yavaşça artırmaktır; bir noktada yüzey aniden içe ya da yana çöker. Mühendislikte bu son değeri doğrudan kullanmayız, bir emniyet sayısına bölerek izin verilebilir basınç q_all üretiriz (bölüm 8). Yani tasarım, zeminin sınırına hiç yaklaşmamayı hedefler. Kapasite her zaman zemin özelliklerine (φ, c, γ), temel boyutlarına (B, D) ve yüke (eğim, eksantrisite) bağlıdır; hiçbiri tek başına yeterli değildir.", en: "Bearing capacity (q_ult) is the greatest footing pressure the soil can carry without failing. This value is an 'ultimate' value: at this pressure the soil fails suddenly and the footing settles or tilts severely. In everyday terms, it is like placing weight on a rock surface and gradually increasing it; at some point the surface suddenly caves in or pushes sideways. In engineering we do not use this ultimate value directly; we divide it by a factor of safety to get the allowable pressure q_all (section 8). In other words, design aims to stay well away from the limit of the soil. Capacity always depends on the soil properties (φ, c, γ), the footing dimensions (B, D) and the load (inclination, eccentricity); none of these alone is sufficient.",
     },
   },
   {
@@ -42,7 +42,7 @@ export const student: Block[] = [
   {
     type: "p",
     text: {
-      tr: "Bu üç biçim, kapasite hesabında doğrudan kullanılan bir sınıflandırma değildir ama ne tür bir hesabın hangi durumda anlamlı olduğunu seçmenize yardım eder. Genel kayma varsayımına dayanan Terzaghi ve Vesic bağıntıları, sıkı zeminlerde iyi sonuç verir; gevşek ya da yumuşak zeminde göçme lokal ya da delme biçiminde olduğu için aynı bağıntılar muhafazakâr ya da eksik kalabilir. Bu yüzden laboratuvar ya da arazi deneyinden elde edilen φ ve c değerinin hangi zemin durumuna ait olduğu önemlidir. Uygulamada mühendis, göçme biçimi konusunda zemin raporunu ve arazi gözlemini değerlendirir. Program bu seçimi kendisi yapmaz; girdi olarak aldığı φ ve c değerlerini kabul eder.",
+      tr: "Bu üç biçim, kapasite hesabında doğrudan kullanılan bir sınıflandırma değildir ama ne tür bir hesabın hangi durumda anlamlı olduğunu seçmenize yardım eder. Genel kayma varsayımına dayanan Terzaghi ve Vesic bağıntıları, sıkı zeminlerde iyi sonuç verir; gevşek ya da yumuşak zeminde göçme lokal ya da delme biçiminde olduğu için aynı bağıntılar muhafazakâr ya da eksik kalabilir. Bu yüzden laboratuvar ya da arazi deneyinden elde edilen φ ve c değerinin hangi zemin durumuna ait olduğu önemlidir. Uygulamada mühendis, göçme biçimi konusunda zemin raporunu ve arazi gözlemini değerlendirir. Program bu seçimi kendisi yapmaz; girdi olarak aldığı φ ve c değerlerini kabul eder.", en: "These three modes are not a classification used directly in the capacity calculation, but they help you choose which kind of calculation is meaningful in which situation. The Terzaghi and Vesic equations, which assume general shear, give good results in dense soils; in loose or soft soils, because failure is local or punching, the same equations may be conservative or insufficient. That is why it matters which soil condition the φ and c values from laboratory or field tests belong to. In practice, the engineer assesses the failure mode from the soil report and field observation. The program does not make this choice itself; it accepts the φ and c values given as input.",
     },
   },
   {
@@ -77,8 +77,8 @@ export const student: Block[] = [
     expr: "q_ult = c·N_c + q·N_q + ½·γ·B·N_γ      (şerit temel, Terzaghi biçimi)",
     caption: { tr: "Terzaghi'nin şerit temel için genel bağıntısı; GeoTek bu biçimi genelleştirerek kullanır", en: "Terzaghi's strip footing equation" },
     where: [
-      { tr: "c: kohezyon [kPa]; q: temel tabanı seviyesindeki efektif üstyük [kPa]; γ: taban altındaki birim hacim ağırlığı [kN/m³]" },
-      { tr: "B: temel genişliği [m]; N_c, N_q, N_γ: boyutsuz taşıma faktörleri (φ'nin fonksiyonu)" },
+      { tr: "c: kohezyon [kPa]; q: temel tabanı seviyesindeki efektif üstyük [kPa]; γ: taban altındaki birim hacim ağırlığı [kN/m³]", en: "c: cohesion [kPa]; q: effective overburden at the footing base level [kPa]; γ: unit weight below the base [kN/m³]" },
+      { tr: "B: temel genişliği [m]; N_c, N_q, N_γ: boyutsuz taşıma faktörleri (φ'nin fonksiyonu)", en: "B: footing width [m]; N_c, N_q, N_γ: dimensionless bearing capacity factors (functions of φ')" },
     ],
   },
   {
@@ -105,7 +105,7 @@ export const student: Block[] = [
   {
     type: "p",
     text: {
-      tr: "Üç terimin neden birlikte toplandığını bir cümleyle söylemek gerekirse: zemin üç kaynaktan direnç gösterir, kohezyondan, üstündeki yükten ve kendi ağırlığından; her biri farklı bir zemin özelliğine ve farklı bir geometriye bağlıdır. Bu üç kaynağın her birini bir faktörle (N_c, N_q, N_γ) çarpmak, sürtünme açısının bu üç katkı üzerindeki farklı etkisini yakalamanın yoludur. Kohezyonsuz kumda ilk terim sıfır, killi zeminde ilk terim baskın olabilir. Bu düşünce, sonraki bölümlerdeki her faktörün neden orada olduğunu anlamanıza yardım eder.",
+      tr: "Üç terimin neden birlikte toplandığını bir cümleyle söylemek gerekirse: zemin üç kaynaktan direnç gösterir, kohezyondan, üstündeki yükten ve kendi ağırlığından; her biri farklı bir zemin özelliğine ve farklı bir geometriye bağlıdır. Bu üç kaynağın her birini bir faktörle (N_c, N_q, N_γ) çarpmak, sürtünme açısının bu üç katkı üzerindeki farklı etkisini yakalamanın yoludur. Kohezyonsuz kumda ilk terim sıfır, killi zeminde ilk terim baskın olabilir. Bu düşünce, sonraki bölümlerdeki her faktörün neden orada olduğunu anlamanıza yardım eder.", en: "To state in one sentence why the three terms are added: the soil resists from three sources (cohesion, overburden and its own weight), and each depends on a different soil property and a different geometry. Multiplying each of these sources by a factor (N_c, N_q, N_γ) is the way to capture the different effect of the friction angle on these three contributions. In cohesionless sand the first term is zero; in clayey soil the first term can dominate. This reasoning helps you understand why each factor in the later sections is there.",
     },
   },
   {
@@ -132,8 +132,8 @@ export const student: Block[] = [
     expr: "N_q = e^(π·tan φ) · tan²(45° + φ/2)\nN_c = (N_q − 1) / tan φ",
     caption: { tr: "Prandtl–Reissner taşıma faktörleri (kodda φ > 0 için bu formüller kullanılır; φ = 0 için N_c = 5.14, N_q = 1)", en: "Prandtl-Reissner factors" },
     where: [
-      { tr: "φ derece cinsinden girilir; formüldeki tan, e^(…) ve tan² fonksiyonları için φ radyana çevrilerek hesaplanır" },
-      { tr: "Program φ için 0 ≤ φ < 50° aralığını kabul eder; bu sınırın dışında hata verir" },
+      { tr: "φ derece cinsinden girilir; formüldeki tan, e^(…) ve tan² fonksiyonları için φ radyana çevrilerek hesaplanır", en: "φ is entered in degrees; for the tan, e^(…) and tan² functions in the formula, φ is converted to radians before computing" },
+      { tr: "Program φ için 0 ≤ φ < 50° aralığını kabul eder; bu sınırın dışında hata verir", en: "The program accepts φ in the range 0 ≤ φ < 50°; outside this limit it raises an error" },
     ],
   },
   {
@@ -174,7 +174,7 @@ export const student: Block[] = [
   {
     type: "p",
     text: {
-      tr: "Sınırlar: Prandtl–Reissner N_q ve N_c, sığ temelde kayma yüzeyinin tam geliştiği genel kayma varsayımına dayanır. Bu nedenle bölüm 1'de anlatılan lokal ve delme kayması durumlarında bu değerler kapasiteyi fazla tahmin edebilir. Ayrıca N_γ'nın üç biçiminin de kaynaktan kaynağa farklı yorumlandığını bilin; bu metindeki ifadeler kodun kullandığı biçimlerdir ve kaynaklarınızdaki tablolarla kontrol edilmelidir. Hansen ve Vesic'in N_γ'larında φ'nin 0 olduğu uç durumda değerler sıfıra iner; bunu bölüm 7'de ayrıca ele alacağız.",
+      tr: "Sınırlar: Prandtl–Reissner N_q ve N_c, sığ temelde kayma yüzeyinin tam geliştiği genel kayma varsayımına dayanır. Bu nedenle bölüm 1'de anlatılan lokal ve delme kayması durumlarında bu değerler kapasiteyi fazla tahmin edebilir. Ayrıca N_γ'nın üç biçiminin de kaynaktan kaynağa farklı yorumlandığını bilin; bu metindeki ifadeler kodun kullandığı biçimlerdir ve kaynaklarınızdaki tablolarla kontrol edilmelidir. Hansen ve Vesic'in N_γ'larında φ'nin 0 olduğu uç durumda değerler sıfıra iner; bunu bölüm 7'de ayrıca ele alacağız.", en: "Limits: the Prandtl–Reissner N_q and N_c rely on the general shear assumption, in which the shear surface fully develops under the shallow footing. Therefore, in the local and punching shear situations described in section 1, these values may overestimate the capacity. Also note that the three forms of N_γ are interpreted differently across sources; the expressions in this text are the forms the code uses and should be checked against your own source tables. For the Hansen and Vesic N_γ, the values drop to zero in the extreme case where φ is 0; we address this separately in section 7.",
     },
   },
 
@@ -185,7 +185,7 @@ export const student: Block[] = [
   {
     type: "p",
     text: {
-      tr: "Gerçek bir temel her zaman şerit değildir; dikdörtgen ya da kare olabilir ve üstündeki yük her zaman dik olmayabilir. Bu durumlar için taşıma faktörlerinin yanına üç düzeltme çarpanı konur: şekil (s), derinlik (d) ve eğim (i) faktörleri. Şekil faktörü, temelin köşelerinin ve kenarlarının kayma yüzeyini nasıl değiştirdiğini anlatır; dikdörtgenin uzunluk/genişlik oranı B/L ile ifade edilir ve şerit için B/L = 0 alınır. Derinlik faktörü, temelin ne kadar gömülü olduğunu, yani üstteki zeminin yan direncinin ne kadar devreye girdiğini anlatır. Eğim faktörü, yükün dikeyle yaptığı açıyı, yani yatay bileşen H'nin dikey V'ye oranını kullanır.",
+      tr: "Gerçek bir temel her zaman şerit değildir; dikdörtgen ya da kare olabilir ve üstündeki yük her zaman dik olmayabilir. Bu durumlar için taşıma faktörlerinin yanına üç düzeltme çarpanı konur: şekil (s), derinlik (d) ve eğim (i) faktörleri. Şekil faktörü, temelin köşelerinin ve kenarlarının kayma yüzeyini nasıl değiştirdiğini anlatır; dikdörtgenin uzunluk/genişlik oranı B/L ile ifade edilir ve şerit için B/L = 0 alınır. Derinlik faktörü, temelin ne kadar gömülü olduğunu, yani üstteki zeminin yan direncinin ne kadar devreye girdiğini anlatır. Eğim faktörü, yükün dikeyle yaptığı açıyı, yani yatay bileşen H'nin dikey V'ye oranını kullanır.", en: "A real footing is not always a strip; it may be rectangular or square, and the load above it is not always vertical. For these cases, three correction factors are added to the bearing factors: shape (s), depth (d) and inclination (i) factors. The shape factor describes how the corners and edges of the footing change the shear surface; for a rectangle it is expressed by the ratio B/L, and for a strip B/L = 0. The depth factor describes how deeply the footing is embedded, i.e. how much the lateral resistance of the overlying soil is mobilised. The inclination factor uses the ratio of the horizontal component H to the vertical V, which relates to the angle the load makes with the vertical.",
     },
   },
   {
@@ -240,10 +240,10 @@ export const student: Block[] = [
     type: "worked",
     title: { tr: "Örnek 1: φ = 30°, c = 0, B = 2 m, D = 1 m (Vesic, şerit)", en: "Example 1: phi = 30 deg, c = 0, B = 2 m, D = 1 m (Vesic, strip)" },
     given: [
-      { tr: "Şerit temel, B = 2 m, D = 1 m" },
-      { tr: "φ = 30°, c = 0 (kohezyonsuz kum)" },
-      { tr: "γ = 18 kN/m³; q = γ·D = 18 × 1 = 18 kPa" },
-      { tr: "Yük yok (H = 0, e = 0), yöntem Vesic" },
+      { tr: "Şerit temel, B = 2 m, D = 1 m", en: "Strip footing, B = 2 m, D = 1 m" },
+      { tr: "φ = 30°, c = 0 (kohezyonsuz kum)", en: "φ = 30°, c = 0 (cohesionless sand)" },
+      { tr: "γ = 18 kN/m³; q = γ·D = 18 × 1 = 18 kPa", en: "γ = 18 kN/m³; q = γ·D = 18 × 1 = 18 kPa" },
+      { tr: "Yük yok (H = 0, e = 0), yöntem Vesic", en: "No load (H = 0, e = 0), method Vesic" },
     ],
     steps: [
       { label: { tr: "Taşıma faktörleri", en: "Bearing factors" }, expr: "N_q = e^(π·0.5774)·tan²(60°) = 6.134 × 3", result: "N_q = 18.40; N_c = 30.14" },
@@ -271,7 +271,7 @@ export const student: Block[] = [
   {
     type: "p",
     text: {
-      tr: "Bir temelin üstündeki yük her zaman merkezde olmaz. Bir kolon, temelin tam ortasına değil, bir kenara yakın oturabilir; ya da bir istinat duvarının devrilme momenti yükün merkezini kaydırır. Yükün temel merkezinden olan uzaklığına eksantrisite e denir ve birimi metredir. Eksantrik yük, temel altında basıncı eşit dağıtmaz: yükün olduğu tarafta basınç artar, karşı tarafta azalır. Sezgisel bir benzetme, bir tahta sıranın bir ucuna oturmaktır: ağırlık o uca yakın durduğunda o ucun altındaki zemin daha fazla basınca maruz kalır.",
+      tr: "Bir temelin üstündeki yük her zaman merkezde olmaz. Bir kolon, temelin tam ortasına değil, bir kenara yakın oturabilir; ya da bir istinat duvarının devrilme momenti yükün merkezini kaydırır. Yükün temel merkezinden olan uzaklığına eksantrisite e denir ve birimi metredir. Eksantrik yük, temel altında basıncı eşit dağıtmaz: yükün olduğu tarafta basınç artar, karşı tarafta azalır. Sezgisel bir benzetme, bir tahta sıranın bir ucuna oturmaktır: ağırlık o uca yakın durduğunda o ucun altındaki zemin daha fazla basınca maruz kalır.", en: "A load on a footing is not always central. A column may sit not at the exact centre of the footing but near one edge; or the overturning moment of a retaining wall shifts the resultant load. The distance of the load from the footing centre is called the eccentricity e, and its unit is metres. An eccentric load does not distribute pressure evenly under the footing: pressure increases on the side where the load acts and decreases on the opposite side. An intuitive analogy is a plank seesaw sitting on one end: when the weight is near one end, the soil under that end experiences more pressure.",
     },
   },
   {
@@ -307,7 +307,7 @@ export const student: Block[] = [
   {
     type: "p",
     text: {
-      tr: "Eksantrisite, kapasitede iki yerde ortaya çıkar. Birincisi, kapasite formülündeki B (ve L) yerine B' (ve L') kullanılmasıdır; bu, γ·B'·N_γ terimini azaltır. İkincisi, şekil faktörleri de B'/L' oranına bağlandığı için dolaylı bir etki yaratır. Program bu iki etkiyi birlikte hesaplar. Eksantrisite ayrıca temel tabanı basıncının dağılımını değiştirir: B/6 sınırı içinde (|e| ≤ B/6) temel tabanının tamamı basınç altındadır ve q_max = V/B·(1 + 6e/B), q_min = V/B·(1 − 6e/B) ifadeleri geçerlidir.",
+      tr: "Eksantrisite, kapasitede iki yerde ortaya çıkar. Birincisi, kapasite formülündeki B (ve L) yerine B' (ve L') kullanılmasıdır; bu, γ·B'·N_γ terimini azaltır. İkincisi, şekil faktörleri de B'/L' oranına bağlandığı için dolaylı bir etki yaratır. Program bu iki etkiyi birlikte hesaplar. Eksantrisite ayrıca temel tabanı basıncının dağılımını değiştirir: B/6 sınırı içinde (|e| ≤ B/6) temel tabanının tamamı basınç altındadır ve q_max = V/B·(1 + 6e/B), q_min = V/B·(1 − 6e/B) ifadeleri geçerlidir.", en: "Eccentricity affects capacity in two places. First, B (and L) in the capacity formula are replaced by B' (and L'), which reduces the γ·B'·N_γ term. Second, since the shape factors depend on the ratio B'/L', it has an indirect effect. The program computes both effects together. Eccentricity also changes the distribution of pressure under the footing base: within the B/6 limit (|e| ≤ B/6) the entire footing base is under pressure, and the expressions q_max = V/B·(1 + 6e/B) and q_min = V/B·(1 − 6e/B) apply.",
     },
   },
   {
@@ -315,8 +315,8 @@ export const student: Block[] = [
     expr: "q_max = (V/B)·(1 + 6e/B),   q_min = (V/B)·(1 − 6e/B)     (|e| ≤ B/6 için)",
     caption: { tr: "Basınç dağılımı; |e| > B/6 ise q_min = 0 olur ve dağılım üçgendir", en: "Eccentric pressure distribution" },
     where: [
-      { tr: "V: düşey yük [kN/m] (şerit), B: gerçek genişlik [m], e: eksantrisite [m]" },
-      { tr: "Birimler: V/B kPa, q_max ve q_min kPa" },
+      { tr: "V: düşey yük [kN/m] (şerit), B: gerçek genişlik [m], e: eksantrisite [m]", en: "V: vertical load [kN/m] (strip), B: actual width [m], e: eccentricity [m]" },
+      { tr: "Birimler: V/B kPa, q_max ve q_min kPa", en: "Units: V/B in kPa; q_max and q_min in kPa" },
     ],
   },
   {
@@ -341,7 +341,7 @@ export const student: Block[] = [
   {
     type: "p",
     text: {
-      tr: "Yeraltı suyu, taşıma gücünü iki yoldan etkiler. Birincisi, su seviyesinin altındaki zeminin birim ağırlığı kaldırma kuvveti nedeniyle azalır; bu yüzden kendi ağırlığından gelen terim, doğal birim ağırlık γ yerine batık birim ağırlık γ' = γ_sat − γ_w ile hesaplanır. İkincisi, su seviyesi temel tabanının üstünde ya da altında olmasına göre üstyük q'nun değeri değişir. Su seviyesi yüzeyde ise, taban seviyesindeki efektif üstyük q = γ'·D olur. Bu iki etkinin birlikte düşünülmesi gerekir; biri yalnız q'ya, diğeri yalnız γ terimine etki eder.",
+      tr: "Yeraltı suyu, taşıma gücünü iki yoldan etkiler. Birincisi, su seviyesinin altındaki zeminin birim ağırlığı kaldırma kuvveti nedeniyle azalır; bu yüzden kendi ağırlığından gelen terim, doğal birim ağırlık γ yerine batık birim ağırlık γ' = γ_sat − γ_w ile hesaplanır. İkincisi, su seviyesi temel tabanının üstünde ya da altında olmasına göre üstyük q'nun değeri değişir. Su seviyesi yüzeyde ise, taban seviyesindeki efektif üstyük q = γ'·D olur. Bu iki etkinin birlikte düşünülmesi gerekir; biri yalnız q'ya, diğeri yalnız γ terimine etki eder.", en: "Groundwater affects bearing capacity in two ways. First, the unit weight of the soil below the water table is reduced by buoyancy, so the term from its own weight is computed with the submerged unit weight γ' = γ_sat − γ_w instead of the natural unit weight γ. Second, the value of the overburden q changes depending on whether the water table is above or below the footing base. If the water table is at the surface, the effective overburden at the base level is q = γ'·D. These two effects must be considered together: one affects only q, the other only the γ term.",
     },
   },
   {
@@ -357,7 +357,7 @@ export const student: Block[] = [
     expr: "γ_eff = γ' + (d_w/B)·(γ − γ')     (su seviyesi taban altında d_w derinlikte ve d_w < B ise, yaklaşım)",
     caption: { tr: "Ara durum için yaklaşık ifade (Das); kullanmadan önce kaynakta doğrulayın", en: "Approximate water-table interpolation" },
     where: [
-      { tr: "d_w: temel tabanından su seviyesine olan mesafe [m]; γ' = γ_sat − γ_w [kN/m³]" },
+      { tr: "d_w: temel tabanından su seviyesine olan mesafe [m]; γ' = γ_sat − γ_w [kN/m³]", en: "d_w: distance from the footing base to the water table [m]; γ' = γ_sat − γ_w [kN/m³]" },
     ],
   },
   {
@@ -397,9 +397,9 @@ export const student: Block[] = [
     type: "worked",
     title: { tr: "Örnek 2: φ = 0, c_u = 50 kPa, B = 2 m, D = 1 m (şerit)", en: "Example 2: phi = 0, c_u = 50 kPa, B = 2 m, D = 1 m (strip)" },
     given: [
-      { tr: "Şerit temel, B = 2 m, D = 1 m; φ = 0 (drenajsız killi zemin), c_u = s_u = 50 kPa" },
-      { tr: "γ verilmedi; bu örnekte varsayım olarak γ = 18 kN/m³ alındı, bu yüzden q = γ·D = 18 kPa. Gerçek γ'yı zemin raporundan alın." },
-      { tr: "Yük yok (H = 0, e = 0), yöntem Vesic" },
+      { tr: "Şerit temel, B = 2 m, D = 1 m; φ = 0 (drenajsız killi zemin), c_u = s_u = 50 kPa", en: "Strip footing, B = 2 m, D = 1 m; φ = 0 (undrained clayey soil), c_u = s_u = 50 kPa" },
+      { tr: "γ verilmedi; bu örnekte varsayım olarak γ = 18 kN/m³ alındı, bu yüzden q = γ·D = 18 kPa. Gerçek γ'yı zemin raporundan alın.", en: "γ was not given; for this example γ = 18 kN/m³ is assumed, so q = γ·D = 18 kPa. Take the actual γ from the soil report." },
+      { tr: "Yük yok (H = 0, e = 0), yöntem Vesic", en: "No load (H = 0, e = 0), method Vesic" },
     ],
     steps: [
       { label: { tr: "Faktörler (φ = 0)", en: "Factors at phi = 0" }, expr: "N_c = 5.14,   N_q = 1,   N_γ = 0", result: "N_γ terimi düşer" },
@@ -432,18 +432,18 @@ export const student: Block[] = [
   {
     type: "p",
     text: {
-      tr: "Zemin kapasitesi, tasarım yükünü doğrudan taşımaz; belirsizlikler (zemin özelliklerinin değişkenliği, yük tahmini, yöntem farkı) için bir emniyet payı bırakılır. Bu payı ifade eden sayı, güvenlik sayısı FS'dir. İzin verilebilir basınç, son kapasitenin güvenlik sayısına bölünmesiyle elde edilir: q_all = q_ult / FS. Duvar ya da temel kontrolünde ise bileşke yüke bakılır: FS_b = Q_ult / V, burada V, temel altındaki toplam düşey yüktür. Her iki kontrol de aynı sayıya ulaşmalıdır; ama q_ult ve Q_ult'un birimleri farklıdır, bu nedenle birim tutarlılığı kontrol edilmelidir.",
+      tr: "Zemin kapasitesi, tasarım yükünü doğrudan taşımaz; belirsizlikler (zemin özelliklerinin değişkenliği, yük tahmini, yöntem farkı) için bir emniyet payı bırakılır. Bu payı ifade eden sayı, güvenlik sayısı FS'dir. İzin verilebilir basınç, son kapasitenin güvenlik sayısına bölünmesiyle elde edilir: q_all = q_ult / FS. Duvar ya da temel kontrolünde ise bileşke yüke bakılır: FS_b = Q_ult / V, burada V, temel altındaki toplam düşey yüktür. Her iki kontrol de aynı sayıya ulaşmalıdır; ama q_ult ve Q_ult'un birimleri farklıdır, bu nedenle birim tutarlılığı kontrol edilmelidir.", en: "Soil capacity does not directly carry the design load; a safety margin is left for uncertainties (variability of soil properties, load estimation, method differences). The number expressing this margin is the factor of safety FS. The allowable pressure is obtained by dividing the ultimate capacity by the factor of safety: q_all = q_ult / FS. In wall or footing checks the resultant load is considered: FS_b = Q_ult / V, where V is the total vertical load below the footing. Both checks should reach the same number, but q_ult and Q_ult have different units, so unit consistency must be checked.",
     },
   },
   {
     type: "steps",
     title: { tr: "Hesap adımları", en: "Calculation steps" },
     items: [
-      { tr: "Temel boyutlarını (B, L), D, φ veya s_u, c, γ ve q değerlerini girin; yöntemi (Vesic varsayılan) seçin." },
-      { tr: "V, H ve eksantrisiteleri belirleyin; B' = B − 2|e_B| ve (dikdörtgen için) L' = L − 2|e_L| hesaplayın." },
-      { tr: "N_c, N_q, N_γ ve şekil, derinlik, eğim faktörlerini seçilen yönteme göre hesaplayın." },
-      { tr: "q_ult genel denklemle bulunur; Q_ult = q_ult × A' (şeritte A' = B') hesaplanır." },
-      { tr: "FS_b = Q_ult / V ve izin verilebilir basınç q_all = q_ult / FS hesaplanır; FS değeri yönetmelik ve proje şartnamesinden alınır." },
+      { tr: "Temel boyutlarını (B, L), D, φ veya s_u, c, γ ve q değerlerini girin; yöntemi (Vesic varsayılan) seçin.", en: "Enter the footing dimensions (B, L), D, φ or s_u, c, γ and q; select the method (Vesic by default)." },
+      { tr: "V, H ve eksantrisiteleri belirleyin; B' = B − 2|e_B| ve (dikdörtgen için) L' = L − 2|e_L| hesaplayın.", en: "Determine V, H and the eccentricities; compute B' = B − 2|e_B| and (for rectangles) L' = L − 2|e_L|." },
+      { tr: "N_c, N_q, N_γ ve şekil, derinlik, eğim faktörlerini seçilen yönteme göre hesaplayın.", en: "Compute N_c, N_q, N_γ and the shape, depth and inclination factors according to the selected method." },
+      { tr: "q_ult genel denklemle bulunur; Q_ult = q_ult × A' (şeritte A' = B') hesaplanır.", en: "q_ult is found from the general equation; Q_ult = q_ult × A' (for a strip, A' = B') is computed." },
+      { tr: "FS_b = Q_ult / V ve izin verilebilir basınç q_all = q_ult / FS hesaplanır; FS değeri yönetmelik ve proje şartnamesinden alınır.", en: "FS_b = Q_ult / V and the allowable pressure q_all = q_ult / FS are computed; the FS value is taken from the regulation and project specification." },
     ],
   },
   {
@@ -464,15 +464,15 @@ export const student: Block[] = [
   {
     type: "mistakes",
     items: [
-      { tr: "Eksantrisiteyi unutup tam B üzerinden kapasite hesabı yapmak; kapasite formülünde B' kullanılmalıdır." },
-      { tr: "Derinlik oranında D/B yerine D/B' yazmak; derinlik faktörü gerçek genişlikle hesaplanır." },
-      { tr: "Terzaghi'nin tablo değerleri ile Prandtl–Reissner ya da Vesic değerlerini karıştırmak; her yöntemin kendi N_γ ifadesi vardır." },
-      { tr: "φ = 0'da N_c değerini φ'den hesaplamaya çalışmak; drenajsız durumda N_c = 5.14, N_q = 1 ve N_γ = 0 kullanılır." },
-      { tr: "Yeraltı suyu altında doğal γ kullanmak; bu durumda batık birim ağırlık γ' ile çalışılmalıdır." },
-      { tr: "Şekil faktörlerinde B/L yerine L/B yazmak; oran her zaman B'/L' ile ve küçük olanı büyük olana bölerek kullanılır." },
-      { tr: "Yüzeyde yük olan (H > 0) durumda V = 0 ile çalışmaya çalışmak; kod bunu fiziksel olarak tanımsız sayar ve hata verir." },
-      { tr: "q_ult (kPa) ile Q_ult (kN/m) arasında birim karışıklığı yapmak, özellikle FS_b = Q_ult / V hesabında." },
-      { tr: "Yöntem farkını önemsiz saymak: φ = 30°, B = 2, D = 1 örneğinde Vesic ile Hansen arasında yaklaşık 130 kPa fark vardır." },
+      { tr: "Eksantrisiteyi unutup tam B üzerinden kapasite hesabı yapmak; kapasite formülünde B' kullanılmalıdır.", en: "Forgetting the eccentricity and calculating capacity over the full B; the capacity formula must use B'." },
+      { tr: "Derinlik oranında D/B yerine D/B' yazmak; derinlik faktörü gerçek genişlikle hesaplanır.", en: "Writing D/B' instead of D/B in the depth ratio; the depth factor is computed with the actual width." },
+      { tr: "Terzaghi'nin tablo değerleri ile Prandtl–Reissner ya da Vesic değerlerini karıştırmak; her yöntemin kendi N_γ ifadesi vardır.", en: "Mixing Terzaghi's table values with the Prandtl–Reissner or Vesic values; each method has its own N_γ expression." },
+      { tr: "φ = 0'da N_c değerini φ'den hesaplamaya çalışmak; drenajsız durumda N_c = 5.14, N_q = 1 ve N_γ = 0 kullanılır.", en: "Trying to compute N_c from φ when φ = 0; in the undrained case N_c = 5.14, N_q = 1 and N_γ = 0 are used." },
+      { tr: "Yeraltı suyu altında doğal γ kullanmak; bu durumda batık birim ağırlık γ' ile çalışılmalıdır.", en: "Using the natural γ below the groundwater table; in this case work with the submerged unit weight γ'." },
+      { tr: "Şekil faktörlerinde B/L yerine L/B yazmak; oran her zaman B'/L' ile ve küçük olanı büyük olana bölerek kullanılır.", en: "Writing L/B instead of B/L in the shape factors; the ratio is always used as B'/L', with the smaller divided by the larger." },
+      { tr: "Yüzeyde yük olan (H > 0) durumda V = 0 ile çalışmaya çalışmak; kod bunu fiziksel olarak tanımsız sayar ve hata verir.", en: "Trying to work with V = 0 when there is a load with H > 0; the code treats this as physically undefined and raises an error." },
+      { tr: "q_ult (kPa) ile Q_ult (kN/m) arasında birim karışıklığı yapmak, özellikle FS_b = Q_ult / V hesabında.", en: "Confusing units between q_ult (kPa) and Q_ult (kN/m), especially in the FS_b = Q_ult / V calculation." },
+      { tr: "Yöntem farkını önemsiz saymak: φ = 30°, B = 2, D = 1 örneğinde Vesic ile Hansen arasında yaklaşık 130 kPa fark vardır.", en: "Treating the method difference as negligible: in the example φ = 30°, B = 2, D = 1, there is roughly a 130 kPa difference between Vesic and Hansen." },
     ],
   },
   { type: "h", text: { tr: "Kendinizi sınayın", en: "Check yourself" } },
@@ -524,29 +524,29 @@ export const student: Block[] = [
   {
     type: "glossary",
     items: [
-      { term: { tr: "Sığ temel", en: "Shallow foundation" }, def: { tr: "Derinliği genişliğine göre küçük olan, genellikle yüzeye yakın yerleşen temel (ayak, şerit, radye)." } },
-      { term: { tr: "Taşıma gücü (q_ult)", en: "Ultimate bearing capacity" }, def: { tr: "Zeminin kırılmadan taşıyabileceği en büyük temel basıncı [kPa]. Son değerdir; tasarımda emniyet sayısına bölünür." } },
-      { term: { tr: "İzin verilebilir basınç (q_all)", en: "Allowable bearing pressure" }, def: { tr: "Taşıma gücünün emniyet sayısına bölünmesiyle elde edilen tasarım basıncı [kPa]." } },
-      { term: { tr: "Güvenlik sayısı (FS)", en: "Factor of safety" }, def: { tr: "Son kapasitenin tasarım yüküne oranı; belirsizlikler için bırakılan boşluk. Değeri yönetmelikten alınır." } },
-      { term: { tr: "Genel kayma", en: "General shear failure" }, def: { tr: "Kayma yüzeylerinin yüzeye kadar uzandığı, zeminin kabardığı ve göçmenin ani olduğu biçim; sıkı zeminde görülür." } },
-      { term: { tr: "Lokal kayma", en: "Local shear failure" }, def: { tr: "Kayma yüzeylerinin yüzeye tam ulaşmadığı, zeminin ezilip oturduğu ve göçmenin yavaş olduğu biçim." } },
-      { term: { tr: "Delme kayması", en: "Punching shear failure" }, def: { tr: "Temelin altındaki zeminin düşey olarak batması; yanlarda kabarma yoktur. Gevşek kum ve yumuşak killerde görülür." } },
-      { term: { tr: "Aktif kama", en: "Active wedge" }, def: { tr: "Terzaghi mekanizmasında temel tabanının hemen altında oluşan üçgen zemin bölgesi; temelle birlikte aşağı iter." } },
-      { term: { tr: "Kohezyon (c)", en: "Cohesion" }, def: { tr: "Tanelerin birbirine yapışmasından gelen kayma direnci bileşeni [kPa]; kumda sıfırdır." } },
-      { term: { tr: "Drenajsız kayma dayanımı (s_u, c_u)", en: "Undrained shear strength" }, def: { tr: "Kısa dönemde, boşluk suyu dışarı çıkamadığında killerin kayma dayanımı [kPa]; φ = 0 kabul edilir." } },
-      { term: { tr: "Sürtünme açısı (φ)", en: "Friction angle" }, def: { tr: "Zeminin kayma direncinin sürtünmeden gelen kısmını ifade eden açı [°]." } },
-      { term: { tr: "Efektif üstyük (q)", en: "Effective overburden" }, def: { tr: "Temel tabanı seviyesindeki efektif düşey gerilme [kPa]; yeraltı suyu varsa su payı düşülür." } },
-      { term: { tr: "Birim hacim ağırlık (γ)", en: "Unit weight" }, def: { tr: "Zeminin birim hacminin ağırlığı [kN/m³]." } },
-      { term: { tr: "Batık birim ağırlık (γ')", en: "Submerged unit weight" }, def: { tr: "Su seviyesinin altındaki zeminin kaldırma kuvveti düşülmüş birim ağırlığı: γ' = γ_sat − γ_w [kN/m³]." } },
-      { term: { tr: "Taşıma faktörleri (N_c, N_q, N_γ)", en: "Bearing capacity factors" }, def: { tr: "Sürtünme açısına bağlı, kohezyon, üstyük ve birim ağırlık terimlerini kapasiteye çeviren boyutsuz katsayılar." } },
-      { term: { tr: "Şekil faktörü (s)", en: "Shape factor" }, def: { tr: "Dikdörtgen temelin uzunluk/genişlik oranına bağlı düzeltme çarpanı; şeritte 1." } },
-      { term: { tr: "Derinlik faktörü (d)", en: "Depth factor" }, def: { tr: "Temelin gömülü derinliğinin yan dirençteki artışını anlatan çarpan; D/B oranına bağlıdır." } },
-      { term: { tr: "Eğim faktörü (i)", en: "Inclination factor" }, def: { tr: "Eğik yükün yatay bileşeninin kapasiteyi azaltmasını anlatan çarpan; 0–1 arasındadır." } },
-      { term: { tr: "Eksantrisite (e)", en: "Eccentricity" }, def: { tr: "Bileşke yükün temel merkezinden uzaklığı [m]." } },
-      { term: { tr: "Etkin genişlik (B')", en: "Effective width" }, def: { tr: "Eksantrik yükte kapasite hesabında kullanılan genişlik: B' = B − 2e [m]." } },
-      { term: { tr: "Yeraltı suyu seviyesi (GWT)", en: "Groundwater table" }, def: { tr: "Boşluk suyu basıncının atmosfer basıncına eşit olduğu seviye; γ ve q hesabını etkiler." } },
-      { term: { tr: "Drenajlı analiz", en: "Drained analysis" }, def: { tr: "Boşluk suyunun dışarı çıktığı, efektif gerilmelerle (c', φ') yapılan uzun dönem analizi." } },
-      { term: { tr: "Çekirdek bölgesi (B/6 sınırı)", en: "Middle third (B/6 limit)" }, def: { tr: "Eksantrisitenin B/6 içinde olduğu bölge; bu bölgede temel tabanının tamamı basınç altındadır." } },
+      { term: { tr: "Sığ temel", en: "Shallow foundation" }, def: { tr: "Derinliği genişliğine göre küçük olan, genellikle yüzeye yakın yerleşen temel (ayak, şerit, radye).", en: "A footing whose depth is small relative to its width, usually placed near the surface (pad, strip, raft)." } },
+      { term: { tr: "Taşıma gücü (q_ult)", en: "Ultimate bearing capacity" }, def: { tr: "Zeminin kırılmadan taşıyabileceği en büyük temel basıncı [kPa]. Son değerdir; tasarımda emniyet sayısına bölünür.", en: "The greatest footing pressure the soil can carry without failure [kPa]. It is an ultimate value; it is divided by a factor of safety in design." } },
+      { term: { tr: "İzin verilebilir basınç (q_all)", en: "Allowable bearing pressure" }, def: { tr: "Taşıma gücünün emniyet sayısına bölünmesiyle elde edilen tasarım basıncı [kPa].", en: "The design pressure obtained by dividing the bearing capacity by the factor of safety [kPa]." } },
+      { term: { tr: "Güvenlik sayısı (FS)", en: "Factor of safety" }, def: { tr: "Son kapasitenin tasarım yüküne oranı; belirsizlikler için bırakılan boşluk. Değeri yönetmelikten alınır.", en: "The ratio of the ultimate capacity to the design load; the margin left for uncertainties. Its value is taken from the regulation." } },
+      { term: { tr: "Genel kayma", en: "General shear failure" }, def: { tr: "Kayma yüzeylerinin yüzeye kadar uzandığı, zeminin kabardığı ve göçmenin ani olduğu biçim; sıkı zeminde görülür.", en: "The mode in which shear surfaces extend to the surface, the soil heaves and failure is sudden; seen in dense soils." } },
+      { term: { tr: "Lokal kayma", en: "Local shear failure" }, def: { tr: "Kayma yüzeylerinin yüzeye tam ulaşmadığı, zeminin ezilip oturduğu ve göçmenin yavaş olduğu biçim.", en: "The mode in which shear surfaces do not fully reach the surface; the soil is crushed and settles, and failure is slow." } },
+      { term: { tr: "Delme kayması", en: "Punching shear failure" }, def: { tr: "Temelin altındaki zeminin düşey olarak batması; yanlarda kabarma yoktur. Gevşek kum ve yumuşak killerde görülür.", en: "The soil under the footing sinks vertically with no heave at the sides. Seen in loose sand and soft clays." } },
+      { term: { tr: "Aktif kama", en: "Active wedge" }, def: { tr: "Terzaghi mekanizmasında temel tabanının hemen altında oluşan üçgen zemin bölgesi; temelle birlikte aşağı iter.", en: "In the Terzaghi mechanism, the triangular soil zone that forms directly below the footing base; it moves downward together with the footing." } },
+      { term: { tr: "Kohezyon (c)", en: "Cohesion" }, def: { tr: "Tanelerin birbirine yapışmasından gelen kayma direnci bileşeni [kPa]; kumda sıfırdır.", en: "The component of shear resistance from particles sticking together [kPa]; zero in sand." } },
+      { term: { tr: "Drenajsız kayma dayanımı (s_u, c_u)", en: "Undrained shear strength" }, def: { tr: "Kısa dönemde, boşluk suyu dışarı çıkamadığında killerin kayma dayanımı [kPa]; φ = 0 kabul edilir.", en: "The shear strength of clays in the short term, when pore water cannot escape [kPa]; φ = 0 is assumed." } },
+      { term: { tr: "Sürtünme açısı (φ)", en: "Friction angle" }, def: { tr: "Zeminin kayma direncinin sürtünmeden gelen kısmını ifade eden açı [°].", en: "The angle representing the frictional part of the soil's shear resistance [°]." } },
+      { term: { tr: "Efektif üstyük (q)", en: "Effective overburden" }, def: { tr: "Temel tabanı seviyesindeki efektif düşey gerilme [kPa]; yeraltı suyu varsa su payı düşülür.", en: "The effective vertical stress at the footing base level [kPa]; if groundwater is present, the water share is subtracted." } },
+      { term: { tr: "Birim hacim ağırlık (γ)", en: "Unit weight" }, def: { tr: "Zeminin birim hacminin ağırlığı [kN/m³].", en: "The weight of soil per unit volume [kN/m³]." } },
+      { term: { tr: "Batık birim ağırlık (γ')", en: "Submerged unit weight" }, def: { tr: "Su seviyesinin altındaki zeminin kaldırma kuvveti düşülmüş birim ağırlığı: γ' = γ_sat − γ_w [kN/m³].", en: "The unit weight of soil below the water table after subtracting the buoyant force: γ' = γ_sat − γ_w [kN/m³]." } },
+      { term: { tr: "Taşıma faktörleri (N_c, N_q, N_γ)", en: "Bearing capacity factors" }, def: { tr: "Sürtünme açısına bağlı, kohezyon, üstyük ve birim ağırlık terimlerini kapasiteye çeviren boyutsuz katsayılar.", en: "Dimensionless coefficients, depending on the friction angle, that convert the cohesion, overburden and unit weight terms into capacity." } },
+      { term: { tr: "Şekil faktörü (s)", en: "Shape factor" }, def: { tr: "Dikdörtgen temelin uzunluk/genişlik oranına bağlı düzeltme çarpanı; şeritte 1.", en: "A correction multiplier depending on the length/width ratio of a rectangular footing; equal to 1 for a strip." } },
+      { term: { tr: "Derinlik faktörü (d)", en: "Depth factor" }, def: { tr: "Temelin gömülü derinliğinin yan dirençteki artışını anlatan çarpan; D/B oranına bağlıdır.", en: "A multiplier describing the increase in lateral resistance due to the embedment depth of the footing; depends on the D/B ratio." } },
+      { term: { tr: "Eğim faktörü (i)", en: "Inclination factor" }, def: { tr: "Eğik yükün yatay bileşeninin kapasiteyi azaltmasını anlatan çarpan; 0–1 arasındadır.", en: "A multiplier describing how the horizontal component of an inclined load reduces capacity; between 0 and 1." } },
+      { term: { tr: "Eksantrisite (e)", en: "Eccentricity" }, def: { tr: "Bileşke yükün temel merkezinden uzaklığı [m].", en: "The distance of the resultant load from the footing centre [m]." } },
+      { term: { tr: "Etkin genişlik (B')", en: "Effective width" }, def: { tr: "Eksantrik yükte kapasite hesabında kullanılan genişlik: B' = B − 2e [m].", en: "The width used in the capacity calculation under an eccentric load: B' = B − 2e [m]." } },
+      { term: { tr: "Yeraltı suyu seviyesi (GWT)", en: "Groundwater table" }, def: { tr: "Boşluk suyu basıncının atmosfer basıncına eşit olduğu seviye; γ ve q hesabını etkiler.", en: "The level at which pore water pressure equals atmospheric pressure; affects the calculation of γ and q." } },
+      { term: { tr: "Drenajlı analiz", en: "Drained analysis" }, def: { tr: "Boşluk suyunun dışarı çıktığı, efektif gerilmelerle (c', φ') yapılan uzun dönem analizi.", en: "A long-term analysis carried out with effective stresses (c', φ'), in which pore water has been able to drain out." } },
+      { term: { tr: "Çekirdek bölgesi (B/6 sınırı)", en: "Middle third (B/6 limit)" }, def: { tr: "Eksantrisitenin B/6 içinde olduğu bölge; bu bölgede temel tabanının tamamı basınç altındadır.", en: "The zone in which the eccentricity lies within B/6; in this zone the entire footing base is under pressure." } },
     ],
   },
   {

@@ -25,7 +25,7 @@ export const topic: Topic = {
     "Rankine, W.J.M. (1857). On the stability of loose earth. Phil. Trans. Royal Society.",
     "Coulomb, C.A. (1776). Essai sur une application des règles de maximis et minimis.",
     "Mononobe, N. & Matsuo, H. (1929); Okabe, S. (1926). Earth pressure during earthquakes.",
-    "Seed, H.B. & Whitman, R.V. (1970). Design of earth retaining structures for dynamic loads.",
+    "Seed, H.B. & Whitman, R.V. (1970). Design of gravity retaining structures for dynamic loads. ASCE Specialty Conf. on Lateral Stresses in the Ground and Design of Earth-Retaining Structures. Başlık arama sonucundan; özgün metin açılmadı.",
     "Das, B.M. Principles of Foundation Engineering, Ch. 7 (toprak basıncı).",
     "FHWA GEC-3 (FHWA-NHI-11-032), sismik toprak basinci: kodun atif yaptigi kaynak; bolum numarasi dogrulanamadi.",
     "TBDY 2018, Denklem 16.22, 16.24b ve Tablo 16.7; EN 1998-5 Ek E (kodun atıf yaptığı maddeler).",
@@ -44,37 +44,37 @@ export const topic: Topic = {
     {
       type: "formula",
       expr: "K_a = tan²(45° − φ/2)   (β = 0)\nK_p = tan²(45° + φ/2)   (β = 0)",
-      caption: { tr: "Yatay zemin için Rankine katsayıları" },
+      caption: { tr: "Yatay zemin için Rankine katsayıları", en: "Rankine coefficients for horizontal ground" },
     },
     {
       type: "formula",
       expr: "K_a = cos β · (cos β − √(cos²β − cos²φ)) / (cos β + √(cos²β − cos²φ))\nK_p = cos β · (cos β + √(cos²β − cos²φ)) / (cos β − √(cos²β − cos²φ))",
-      caption: { tr: "Eğimli dolgu (β ≤ φ) için kodun kullandığı kapalı biçim" },
-      where: [{ tr: "β > φ ise kod hata verir (Rankine için β ≤ φ zorunlu)." }],
+      caption: { tr: "Eğimli dolgu (β ≤ φ) için kodun kullandığı kapalı biçim", en: "Closed form used by the code for sloping backfill (β ≤ φ)" },
+      where: [{ tr: "β > φ ise kod hata verir (Rankine için β ≤ φ zorunlu).", en: "If β > φ the code raises an error (β ≤ φ is mandatory for Rankine)." }],
     },
     {
       type: "formula",
       expr: "σ'_h = K_h (σ'_v + q) − 2 c' √K   (aktif, en az 0)\nσ'_h = K_h (σ'_v + q) + 2 c' √K   (pasif)\nσ'_h = K_0 (σ'_v + q),  K_0 = 1 − sin φ'   (sükunet, Jaky)",
-      caption: { tr: "Katman başına yatay efektif basınç; kod sükunet için yalnız yatay dolguda çalışır" },
+      caption: { tr: "Katman başına yatay efektif basınç; kod sükunet için yalnız yatay dolguda çalışır", en: "Horizontal effective pressure per layer; the code applies to at-rest conditions only for horizontal backfill." },
       where: [
-        { tr: "σ'_v: efektif düşey gerilme (stresses.py, su tablasına göre); q: sürşarj" },
-        { tr: "Toplam yatay basınç = σ'_h + u (hidrostatik boşluk suyu basıncı)" },
+        { tr: "σ'_v: efektif düşey gerilme (stresses.py, su tablasına göre); q: sürşarj", en: "σ'_v: effective vertical stress (stresses.py, according to the water table); q: surcharge" },
+        { tr: "Toplam yatay basınç = σ'_h + u (hidrostatik boşluk suyu basıncı)", en: "Total horizontal pressure = σ'_h + u (hydrostatic pore water pressure)" },
       ],
     },
     { type: "h", text: { tr: "3. Coulomb ve kayma yüzeyi", en: "3. Coulomb and the sliding surface" } },
     {
       type: "formula",
       expr: "K_a = cos²(φ − θ) / [cos²θ · cos(δ + θ) · (1 + √( sin(φ + δ) sin(φ − β) / (cos(δ + θ) cos(θ − β)) ))²]",
-      caption: { tr: "Coulomb aktif katsayısı (kod: coulomb_ka)" },
+      caption: { tr: "Coulomb aktif katsayısı (kod: coulomb_ka)", en: "Coulomb active coefficient (code: coulomb_ka)" },
       where: [
-        { tr: "δ: duvar–zemin arayüz sürtünmesi; θ: duvar yüzünün düşeyden eğimi (pozitif ise yüzün üstü zeminin üzerine taşacak şekilde, zeminden uzağa eğimlidir; kod işaret kuralı coefficients.py başlığında); β: dolgu eğimi (pozitif yukarı, duvardan uzağa)" },
-        { tr: "Yatay bileşen K·cos(δ + θ) ile çarpılarak yatay basınç elde edilir; kuvvet δ kadar eğiktir." },
+        { tr: "δ: duvar–zemin arayüz sürtünmesi; θ: duvar yüzünün düşeyden eğimi (pozitif ise yüzün üstü zeminin üzerine taşacak şekilde, zeminden uzağa eğimlidir; kod işaret kuralı coefficients.py başlığında); β: dolgu eğimi (pozitif yukarı, duvardan uzağa)", en: "δ: wall–soil interface friction; θ: inclination of the wall face from the vertical (positive when the top of the face overhangs the soil, i.e. leans away from the soil; the code's sign convention is in the header of coefficients.py); β: backfill slope (positive upward, away from the wall)" },
+        { tr: "Yatay bileşen K·cos(δ + θ) ile çarpılarak yatay basınç elde edilir; kuvvet δ kadar eğiktir.", en: "The horizontal component is obtained by multiplying by K·cos(δ + θ); the force is inclined at δ." },
       ],
     },
     {
       type: "formula",
       expr: "K_p = cos²(φ + θ) / [cos²θ · cos(δ − θ) · (1 − √( sin(φ + δ) sin(φ + β) / (cos(δ − θ) cos(β − θ)) ))²]",
-      caption: { tr: "Coulomb pasif katsayısı (düzlem yüzey)" },
+      caption: { tr: "Coulomb pasif katsayısı (düzlem yüzey)", en: "Coulomb passive coefficient (planar surface)" },
     },
     {
       type: "p",
@@ -94,15 +94,15 @@ export const topic: Topic = {
     {
       type: "formula",
       expr: "P = ½ γ H² K_a   (aktif, tek katman yaklaşımı)\nSürşarj kaynaklı itki: P_q = K_a · q · H (duvar yüksekliğinin yarısında uygulanır)",
-      caption: { tr: "Basit basınç bileşenleri; kod sürşarj bileşenini ayrı kuvvet olarak ekler (LS)" },
+      caption: { tr: "Basit basınç bileşenleri; kod sürşarj bileşenini ayrı kuvvet olarak ekler (LS)", en: "Simple pressure components; the code adds the surcharge component as a separate force (LS)" },
     },
     { type: "h", text: { tr: "5. Sismik basınç (Mononobe-Okabe ve TBDY)", en: "5. Seismic pressure (Mononobe-Okabe and TBDY)" } },
     {
       type: "formula",
       expr: "ψ = atan( k_h / (1 − k_v) )\nK_AE = cos²(φ − θ − ψ) / [cos ψ · cos²θ · cos(δ + θ + ψ) · (1 + √( sin(φ + δ) sin(φ − β − ψ) / (cos(δ + θ + ψ) cos(β − θ)) ))²]\nP_AE = ½ γ H² (1 − k_v) K_AE",
-      caption: { tr: "Mononobe-Okabe aktif; kodda mononobe_okabe_kae" },
+      caption: { tr: "Mononobe-Okabe aktif; kodda mononobe_okabe_kae", en: "Mononobe-Okabe active; in the code: mononobe_okabe_kae" },
       where: [
-        { tr: "Çözüm yalnız φ − β − ψ ≥ 0 iken vardır; aksi halde kod hata verir ve genelleştirilmiş kama (trial wedge) gerekir." },
+        { tr: "Çözüm yalnız φ − β − ψ ≥ 0 iken vardır; aksi halde kod hata verir ve genelleştirilmiş kama (trial wedge) gerekir.", en: "A solution exists only when φ − β − ψ ≥ 0; otherwise the code raises an error and a generalised trial wedge is required." },
       ],
     },
     {
@@ -115,7 +115,7 @@ export const topic: Topic = {
     {
       type: "formula",
       expr: "k_h = 0.4 S_DS / r,   k_v = 0.5 k_h   (TBDY 2018 Denk. 16.22; r: Tablo 16.7 duvar hareketi)\nk_h = F_pga · PGA · f   (GEC-3 yaklaşımı; f = 0.5 ya da 1.0)",
-      caption: { tr: "Sismik katsayılar; hangi yöntemin seçildiği kullanıcı girdisine bağlıdır" },
+      caption: { tr: "Sismik katsayılar; hangi yöntemin seçildiği kullanıcı girdisine bağlıdır", en: "Seismic coefficients; which method is selected depends on the user input." },
     },
     {
       type: "p",
@@ -160,10 +160,10 @@ export const topic: Topic = {
     {
       type: "formula",
       expr: "FS_ot = M_R / M_O  (devrilme)\nFS_sl = (ΣV · tan δ_b + c_a · B') / ΣH  (kayma; pasif direnç yalnız use_passive ile)\ne = B/2 − x_R;  e/B ≤ 1/6 (zemin, statik)\nFS_b = Q_ult / ΣV  (taşıma)",
-      caption: { tr: "Duvar kontrolleri (base.py, evaluate_checks)" },
+      caption: { tr: "Duvar kontrolleri (base.py, evaluate_checks)", en: "Wall checks (base.py, evaluate_checks)" },
       where: [
-        { tr: "M_R ve M_O: toe (ön uç) etrafında düşey ve yatay bileşenlerin momentleri (kNm/m)" },
-        { tr: "Taşıma kontrolünde e > B/6 ise q_min = 0 ve üçgen basınç dağılımı kullanılır; |e| ≥ B/2 durumunda kontrol başarısızdır." },
+        { tr: "M_R ve M_O: toe (ön uç) etrafında düşey ve yatay bileşenlerin momentleri (kNm/m)", en: "M_R and M_O: moments of the vertical and horizontal components about the toe (front edge) (kNm/m)" },
+        { tr: "Taşıma kontrolünde e > B/6 ise q_min = 0 ve üçgen basınç dağılımı kullanılır; |e| ≥ B/2 durumunda kontrol başarısızdır.", en: "In the bearing check, if e > B/6 then q_min = 0 and a triangular pressure distribution is used; in the case |e| ≥ B/2 the check fails." },
       ],
     },
     {
