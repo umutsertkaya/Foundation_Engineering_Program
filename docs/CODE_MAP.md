@@ -533,7 +533,7 @@ Test sütunu: o dosyayı doğrudan import eden `tests/` dosyaları (yoksa `—`)
 |---|---:|---|---|---|
 | `modules/anchored_wall/__init__.py` | 23 | `core.models.anchors`, `core.modules`, `modules.anchored_wall.api`, `modules.anchored_wall.report` | — | — |
 | `modules/anchored_wall/api.py` | 185 | `api.calculation_jobs`, `api.common`, `api.jobs`, `api.session`, `core.errors`, `core.models.anchors`, `core.models.structures`, `core.module_state`, `engine`, `engine.anchor_tables`, `engine.anchored_wall`, `engine.anchors`, `modules.anchored_wall.schemas` | `modules.anchored_wall`, `modules.anchored_wall.report` | — |
-| `modules/anchored_wall/report.py` | 187 | `core.errors`, `core.models.anchors`, `core.module_state`, `core.modules`, `i18n`, `modules.anchored_wall.api` | `modules.anchored_wall` | — |
+| `modules/anchored_wall/report.py` | 190 | `core.errors`, `core.models.anchors`, `core.module_state`, `core.modules`, `i18n`, `modules.anchored_wall.api` | `modules.anchored_wall` | — |
 | `modules/anchored_wall/schemas.py` | 63 | `api.schemas`, `core.models.anchors` | `modules.anchored_wall.api` | — |
 
 #### `geotek.modules.liquefaction`
@@ -677,7 +677,7 @@ Testler yalnız **Kullanan** sütununda görünür; “Test” sütunu o dosyay�
 | `modules/anchored_wall/components/AnalysisForm.tsx` | 246 | `modules/anchored_wall/api.ts`, `modules/anchored_wall/components/AnchorFields.tsx`, `modules/anchored_wall/components/NumField.tsx`, `modules/anchored_wall/format.ts`, `modules/anchored_wall/inputs.ts`, `modules/anchored_wall/types.ts`, `shared/api/core.ts`, `shared/api/types.ts`, `shared/components/ErrorAlert.tsx` | `modules/anchored_wall/pages/AnalysisPage.tsx` | — |
 | `modules/anchored_wall/components/AnchorFields.tsx` | 210 | `modules/anchored_wall/components/NumField.tsx`, `modules/anchored_wall/format.ts`, `modules/anchored_wall/inputs.ts`, `modules/anchored_wall/types.ts` | `modules/anchored_wall/components/AnalysisForm.tsx`, `modules/anchored_wall/pages/AnchorPage.tsx` | — |
 | `modules/anchored_wall/components/MissingList.tsx` | 27 | — | `modules/anchored_wall/pages/AnalysisPage.tsx`, `modules/anchored_wall/pages/AnchorPage.tsx` | — |
-| `modules/anchored_wall/components/Notices.tsx` | 86 | `modules/anchored_wall/types.ts`, `shared/api/client.ts` | `modules/anchored_wall/components/ResultViews.tsx`, `modules/anchored_wall/pages/AnalysisPage.tsx`, `modules/anchored_wall/pages/AnchorPage.tsx` | — |
+| `modules/anchored_wall/components/Notices.tsx` | 88 | `modules/anchored_wall/types.ts`, `shared/api/client.ts` | `modules/anchored_wall/components/ResultViews.tsx`, `modules/anchored_wall/pages/AnalysisPage.tsx`, `modules/anchored_wall/pages/AnchorPage.tsx` | — |
 | `modules/anchored_wall/components/NumField.tsx` | 19 | `modules/anchored_wall/inputs.ts` | `modules/anchored_wall/components/AnalysisForm.tsx`, `modules/anchored_wall/components/AnchorFields.tsx`, `modules/anchored_wall/pages/AnchorPage.tsx` | — |
 | `modules/anchored_wall/components/ResultViews.tsx` | 173 | `modules/anchored_wall/components/Notices.tsx`, `modules/anchored_wall/components/WallSection.tsx`, `modules/anchored_wall/format.ts`, `modules/anchored_wall/types.ts` | `modules/anchored_wall/pages/AnalysisPage.tsx`, `modules/anchored_wall/pages/AnchorPage.tsx` | — |
 | `modules/anchored_wall/components/WallSection.tsx` | 135 | `modules/anchored_wall/format.ts`, `modules/anchored_wall/types.ts` | `modules/anchored_wall/components/ResultViews.tsx` | — |

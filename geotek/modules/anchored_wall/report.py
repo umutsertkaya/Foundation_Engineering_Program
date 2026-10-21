@@ -53,7 +53,10 @@ def _num(value, digits: int = 2) -> str:
 
 
 def _notice(w, kind: str, notice: Notice) -> str:
-    return w.coded(f"anchored_wall.{kind}.{notice.code}", notice.params, notice.code)
+    params = dict(notice.params)
+    if isinstance(params.get("kind"), str):  # envelope type id -> translated name
+        params["kind"] = w.tr(f"anchored_wall.envelope.{params['kind']}")
+    return w.coded(f"anchored_wall.{kind}.{notice.code}", params, notice.code)
 
 
 def _notices(w, items: list[Notice], kind: str, prefix: str = "") -> list[str]:
