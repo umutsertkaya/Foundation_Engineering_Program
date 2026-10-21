@@ -113,8 +113,11 @@ def main() -> int:
     def stop() -> None:
         holder["server"].should_exit = True
 
+    # The limit matters: without it uvicorn waits forever for connections an open browser tab
+    # still holds, so the quit button stops serving but leaves the process running.
     server = uvicorn.Server(
-        uvicorn.Config(build_app(shutdown=stop), host=HOST, port=port, log_level="warning"))
+        uvicorn.Config(build_app(shutdown=stop), host=HOST, port=port, log_level="warning",
+                       timeout_graceful_shutdown=2))
     holder["server"] = server
 
     def open_when_ready() -> None:
