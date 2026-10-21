@@ -542,5 +542,13 @@
   "web.site.lab.c_eff": "c′ [kPa]",
   "web.site.lab.phi_eff": "φ′ [°]",
   "web.site.lab.su": "su [kPa]",
-  "web.site.template": "Download sample CSV template"
+  "web.site.template": "Download sample CSV template",
+  "shell.quit": "Quit program",
+  "shell.quit_confirm": "Quit GeoTek?",
+  "shell.quit_unsaved_confirm": "There are unsaved changes. Quit GeoTek anyway?",
+  "shell.stopped_title": "GeoTek has stopped",
+  "shell.stopped_desc": "You can close this tab. Run GeoTek.exe again to restart.",
+  "shell.disconnected_title": "Cannot reach the program",
+  "shell.disconnected_desc": "GeoTek may have been closed or stopped. Restart it and reload the page; unsaved changes may be lost.",
+  "shell.reload": "Reload page"
 }

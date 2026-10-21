@@ -41,6 +41,13 @@ function notifyMutation(method: string, path: string): void {
   }
 }
 
+/** Fired when the local server cannot be reached at all (the program was closed or crashed). */
+export const NETWORK_ERROR_EVENT = "geotek:network-error";
+
+function reportNetworkFailure(): void {
+  if (typeof window !== "undefined") window.dispatchEvent(new Event(NETWORK_ERROR_EVENT));
+}
+
 export class ApiError extends Error implements ApiErrorDTO {
   readonly status: number;
   readonly code: string;
@@ -118,6 +125,7 @@ export async function request<T>(method: string, path: string, body?: unknown): 
       body: body !== undefined ? JSON.stringify(body) : undefined,
     });
   } catch (err) {
+    reportNetworkFailure();
     throw new ApiError(0, {
       code: "network",
       message: err instanceof Error ? err.message : "Network request failed",
@@ -177,6 +185,7 @@ export async function request_blob(method: string, path: string, body?: unknown)
       body: body !== undefined ? JSON.stringify(body) : undefined,
     });
   } catch (err) {
+    reportNetworkFailure();
     throw new ApiError(0, {
       code: "network",
       message: err instanceof Error ? err.message : "Network request failed",
@@ -213,6 +222,7 @@ export async function request_upload<T>(path: string, body: BodyInit, headers: R
   try {
     response = await fetch(`${BASE_URL}${path}`, { method: "POST", headers: { Accept: "application/json", ...headers }, body });
   } catch (err) {
+    reportNetworkFailure();
     throw new ApiError(0, {
       code: "network", message: err instanceof Error ? err.message : "Network request failed",
       details: {}, missing_factors: [],

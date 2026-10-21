@@ -542,5 +542,13 @@
   "web.site.lab.c_eff": "c′ [kPa]",
   "web.site.lab.phi_eff": "φ′ [°]",
   "web.site.lab.su": "su [kPa]",
-  "web.site.template": "Örnek CSV şablonunu indir"
+  "web.site.template": "Örnek CSV şablonunu indir",
+  "shell.quit": "Programı kapat",
+  "shell.quit_confirm": "GeoTek kapatılsın mı?",
+  "shell.quit_unsaved_confirm": "Kaydedilmemiş değişiklikler var. Yine de GeoTek kapatılsın mı?",
+  "shell.stopped_title": "GeoTek kapatıldı",
+  "shell.stopped_desc": "Bu sekmeyi kapatabilirsiniz. Yeniden başlatmak için GeoTek.exe'yi çalıştırın.",
+  "shell.disconnected_title": "Programa bağlanılamıyor",
+  "shell.disconnected_desc": "GeoTek kapatılmış veya durmuş olabilir. Yeniden başlatıp sayfayı yenileyin; kaydedilmemiş değişiklikler kaybolmuş olabilir.",
+  "shell.reload": "Sayfayı yenile"
 }
