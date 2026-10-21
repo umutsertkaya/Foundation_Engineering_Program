@@ -84,7 +84,7 @@ export function EpMohrRankine() {
       {() => (
         <>
           <Ln x1={X(0)} y1={Y(0)} x2={X(330)} y2={Y(0)} w={1.8} /><Ln x1={X(0)} y1={Y(0)} x2={X(0)} y2={Y(190)} w={1.8} />
-          <Tx x={X(330)} y={Y(0) + 34} a="end" b>σ′ (kPa)</Tx><Tx x={X(0) + 8} y={Y(190) + 6} b>τ (kPa)</Tx>
+          <Tx x={X(330)} y={Y(0) + 56} a="end" b>σ′ (kPa)</Tx><Tx x={X(0) + 8} y={Y(190) + 6} b>τ (kPa)</Tx>
           <Ln x1={X(0)} y1={Y(0)} x2={X(330)} y2={Y(330 * tphi)} c={K.orange} w={2.6} />
           <Tx x={X(235)} y={Y(235 * tphi) - 14} c={K.orange} b>kırılma zarfı  τ = σ′ tan φ′</Tx>
           <Tx x={X(235)} y={Y(235 * tphi) + 4} c={K.orange}>(c′ = 0, φ′ = 30°)</Tx>
@@ -96,9 +96,9 @@ export function EpMohrRankine() {
           <Tx x={X(66.7)} y={Y(52)} a="middle" c={K.blue} b>aktif</Tx><Tx x={X(200)} y={Y(40)} a="middle" c={K.red} b>pasif</Tx>
           <Ln x1={X(200 / 3)} y1={Y(0)} x2={X(200 / 3) + (100 / 3) * s * Math.cos(rad(120))} y2={Y(0) - (100 / 3) * s * Math.sin(rad(120))} c={K.blue} w={1.4} />
           <circle cx={X(200 / 3) + (100 / 3) * s * Math.cos(rad(120))} cy={Y(0) - (100 / 3) * s * Math.sin(rad(120))} r={4} fill={K.blue} />
-          <Ang x={X(200 / 3)} y={Y(0)} r={26} from={0} to={120} label="2θ = 90° + φ′" c={K.blue} />
-          <Tx x={X(0) + 10} y={Y(185)} a="start">Daire zarfa teğet olduğunda zemin kırılır.</Tx>
-          <Tx x={X(0) + 10} y={Y(185) + 18} a="start">Aynı σv için iki sınır: σh = Ka·σv ve σh = Kp·σv.</Tx>
+          <Ang x={X(200 / 3)} y={Y(0)} r={26} from={0} to={120} c={K.blue} /><Tx x={X(70)} y={Y(88)} c={K.blue} s={13}>2θ = 90° + φ′</Tx>
+          <Tx x={X(0) + 14} y={Y(160)} a="start">Daire zarfa teğet olduğunda zemin kırılır.</Tx>
+          <Tx x={X(0) + 14} y={Y(160) + 18} a="start">Aynı σv için iki sınır: σh = Ka·σv ve σh = Kp·σv.</Tx>
         </>
       )}
     </Fig>

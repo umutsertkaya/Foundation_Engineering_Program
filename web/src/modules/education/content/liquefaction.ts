@@ -28,7 +28,7 @@ export const topic: Topic = {
     "Robertson, P.K. & Wride, C.E. (1998). Evaluating cyclic liquefaction potential using the cone penetration test. Can. Geotech. J., 35(3), 442-459.",
     "Seed, H.B. & Idriss, I.M. (1971). Simplified procedure for evaluating soil liquefaction potential. J. SMFE ASCE, 97(9).",
     "Liao, S.S.C. & Whitman, R.V. (1986). Overburden correction factors for SPT in sand. J. Geotech. Eng., 112(3).",
-    "Iwasaki, T. vd. (1978; 1982). Liquefaction potential index (LPI) yaklaşımı ve tehlike kategorileri.",
+    "Iwasaki, T. vd. (1978; 1984). Liquefaction potential index (LPI) yaklaşımı ve tehlike kategorileri. Yıl ikincil kaynaktan; özgün makaleden doğrulanmadı.",
   ],
   blocks: [
     {
@@ -130,8 +130,8 @@ export const topic: Topic = {
       type: "formula",
       expr: "LPI = ∫(0 → 20 m) F(z) · w(z) dz,   F = 1 - FS (FS < 1 ise, değilse 0),   w(z) = 10 - 0,5 z",
       caption: {
-        tr: "Iwasaki vd. LPI; kod her aralığı doğrusal ağırlığın tam integraliyle toplar, sonlu olmayan FS 0 sayılır. Sınıflar: 0 çok düşük; <= 5 düşük; <= 15 yüksek; > 15 çok yüksek. Bu bir ön tarama göstergesidir.",
-        en: "Iwasaki LPI. Categories: 0 very low, up to 5 low, up to 15 high, above 15 very high.",
+        tr: "Iwasaki vd. LPI; kod her aralığı doğrusal ağırlığın tam integraliyle toplar, sonlu olmayan FS 0 sayılır. İlk test noktası 2 m veya daha sığsa ilk aralık yüzeye uzatılır (GWT biliniyorsa en fazla GWT derinliğine kadar); 2 m eşiği programın seçimidir, kaynaktan gelmez. Sınıflar: 0 çok düşük; <= 5 düşük; <= 15 yüksek; > 15 çok yüksek. Bu bir ön tarama göstergesidir.",
+        en: "Iwasaki LPI; the code sums each interval with the exact integral of the linear weight, and non-finite FS counts as 0. If the first test point is at 2 m or shallower, the first interval is extended to the surface (at most to the GWT depth when known); the 2 m threshold is a program choice, not from a source. Categories: 0 very low, up to 5 low, up to 15 high, above 15 very high. This is a screening indicator.",
       },
     },
     { type: "figure", id: "liq-csr-crr", caption: { tr: "Derinliğe göre CSR ve CRR eğrileri ve FS = CRR/CSR ilişkisi.", en: "CSR and CRR versus depth and FS = CRR/CSR." } },

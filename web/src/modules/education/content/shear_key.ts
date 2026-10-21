@@ -19,10 +19,10 @@ export const topic: Topic = {
     "geotek/services/walls_basic.py",
   ],
   sources: [
-    "USACE EM 1110-2-2502 (1989), Retaining and Flood Walls: kayma dişi ve çoklu kama kontrolü. ERİŞİLEMEDİ (kaynak bu incelemede açılamadı; G9 raporu 'HATIRLANAN').",
+    "USACE EM 1110-2-2502 (29 Eylül 1989), Retaining and Flood Walls: kayma dişi ve çoklu kama kontrolü. Künye DTIC kaydından doğrulandı.",
     "Das, B.M., Principles of Foundation Engineering, taban dişi bölümü (D1 = D + diş derinliği ile pasif). HATIRLANAN; kitap bu incelemede açılamadı.",
     "ODTÜ CE366 Recitation 5 P1: diş pasifi örneği (P_p = 65D + 32.5D², FS_p = 2). Program bu örnekle bire bir uyumludur (K_p yuvarlaması farkı hariç).",
-    "Mononobe-Okabe pasif ve aktif artımı ve TBDY 2018 Denk. 16.24b: kod içi uygulama; kaynak metinleri bu incelemede ERİŞİLEMEDİ.",
+    "Mononobe-Okabe pasif ve aktif artımı ve TBDY 2018 Denk. 16.24b: kod içi uygulama; kaynak metinleri karşılaştırılmadı (TBDY madde metni açık kalem).",
   ],
   blocks: [
     {

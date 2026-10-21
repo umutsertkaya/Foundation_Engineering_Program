@@ -1,4 +1,6 @@
-import { useId, type ReactNode } from "react";
+import { Fragment, useId, type ReactNode } from "react";
+import { useTranslation } from "react-i18next";
+import { EN_LABELS } from "./labels";
 
 /** Drawing kit for the education figures: 640x400 canvas, soil/concrete hatching, dimension lines, force arrows. */
 export const W = 640;
@@ -54,12 +56,30 @@ export function Fig({ label, children, h = H, w = W }: { label: string; children
   );
 }
 
+/** English rendering of a figure label: dictionary lookup per text chunk, decimal comma -> point. */
+function enText(c: ReactNode): ReactNode {
+  if (typeof c === "string") {
+    const m = /^(\s*)([\s\S]*?)(\s*)$/.exec(c);
+    const core = m ? m[2] : c, hit = EN_LABELS[core];
+    const out = hit ?? core.replace(/(\d),(\d)/g, "$1.$2");
+    return m ? m[1] + out + m[3] : out;
+  }
+  if (Array.isArray(c)) return c.map((x, i) => <Fragment key={i}>{enText(x)}</Fragment>);
+  return c;
+}
+function useLabel() {
+  const { i18n } = useTranslation();
+  const en = (i18n.language ?? "tr").startsWith("en");
+  return (c: ReactNode) => (en ? enText(c) : c);
+}
+
 /** Text with a background-coloured halo so it stays legible over hatching and lines. */
 export function Tx(p: { x: number; y: number; children: ReactNode; a?: "start" | "middle" | "end"; c?: string; s?: number; b?: boolean; i?: boolean }) {
+  const lab = useLabel();
   return (
     <text x={p.x} y={p.y} textAnchor={p.a ?? "start"} fill={p.c ?? K.ink} fontSize={p.s ?? 15} fontWeight={p.b ? 700 : 400} fontStyle={p.i ? "italic" : undefined}
       stroke={K.bg} strokeWidth={3.5} paintOrder="stroke" strokeLinejoin="round">
-      {p.children}
+      {lab(p.children)}
     </text>
   );
 }
@@ -140,6 +160,7 @@ export function Chart(p: {
   logX?: boolean; logY?: boolean; flipY?: boolean; xt?: number[]; yt?: number[]; fmt?: (v: number) => string;
   extra?: (sx: (x: number) => number, sy: (y: number) => number, c: Ctx) => ReactNode;
 }) {
+  const lab = useLabel();
   const L = 76, R = 616, T0 = 24, B0 = 330;
   const f = (v: number, r: [number, number], lg?: boolean) => (lg ? (Math.log10(v) - Math.log10(r[0])) / (Math.log10(r[1]) - Math.log10(r[0])) : (v - r[0]) / (r[1] - r[0]));
   const sx = (x: number) => L + f(x, p.xr, p.logX) * (R - L);
@@ -158,14 +179,14 @@ export function Chart(p: {
           {yt.map((v) => <g key={`y${v}`}><Ln x1={L} y1={sy(v)} x2={R} y2={sy(v)} c={K.grid} w={0.7} /><Tx x={L - 8} y={sy(v) + 4} a="end">{fmt(v)}</Tx></g>)}
           <Ln x1={L} y1={T0} x2={L} y2={B0} w={1.8} /><Ln x1={L} y1={B0} x2={R} y2={B0} w={1.8} />
           <Tx x={(L + R) / 2} y={B0 + 44} a="middle" b>{p.xl}</Tx>
-          <text transform={`translate(18 ${(T0 + B0) / 2}) rotate(-90)`} textAnchor="middle" fontWeight={700} fill={K.ink}>{p.yl}</text>
+          <text transform={`translate(18 ${(T0 + B0) / 2}) rotate(-90)`} textAnchor="middle" fontWeight={700} fill={K.ink}>{lab(p.yl)}</text>
           {p.series.map((s, i) => (
             <g key={i}>
               <polyline fill="none" stroke={s.c} strokeWidth={s.w ?? 2.6} strokeDasharray={s.d} strokeLinejoin="round" points={s.pts.map(([x, y]) => `${sx(x)},${sy(y)}`).join(" ")} />
             </g>
           ))}
           {p.series.filter((s) => s.label).map((s, i) => (
-            <g key={`l${i}`}><Ln x1={R - 190} y1={T0 + 16 + i * 20} x2={R - 160} y2={T0 + 16 + i * 20} c={s.c} w={3} d={s.d} /><Tx x={R - 154} y={T0 + 20 + i * 20}>{s.label}</Tx></g>
+            <g key={`l${i}`}><Ln x1={R - 250} y1={T0 + 16 + i * 20} x2={R - 220} y2={T0 + 16 + i * 20} c={s.c} w={3} d={s.d} /><Tx x={R - 214} y={T0 + 20 + i * 20}>{s.label}</Tx></g>
           ))}
           {p.extra?.(sx, sy, c)}
         </>
@@ -175,3 +196,12 @@ export function Chart(p: {
 }
 
 export const linspace = (a: number, b: number, n: number) => Array.from({ length: n + 1 }, (_, i) => a + ((b - a) * i) / n);
+
+/** Picks the Turkish or English label for figure text; `t.n` formats a number with the locale decimal separator. */
+export function useT() {
+  const { i18n } = useTranslation();
+  const en = (i18n.language ?? "tr").startsWith("en");
+  const t = (tr: string, e: string) => (en ? e : tr);
+  t.n = (v: number, d = 2) => (en ? v.toFixed(d) : v.toFixed(d).replace(".", ","));
+  return t;
+}
