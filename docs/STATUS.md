@@ -21,7 +21,7 @@ Compact veya devir öncesi yalnız bu üç satır güncellenir (kural: [WORKFLOW
 | Duvar | Katmanlı motor, öner/kontrol, iş takibi/iptal, analiz seçenekleri, sonuç kartları, SVG kesit. |
 | Sıvılaşma | Motor/API, iş takibi, kayıtlı sonuç, GS ve CSR/CRR grafikleri, ayrıntı tablosu. |
 | Palplanş | Motor/API, oluşturma, tasarım işi, sonuç paneli, çevrilebilir uyarı/varsayım kodları. |
-| Ankraj | `anchored_wall` modülü: ankraj tasarımı (GEC-4), tek/çok seviyeli ankrajlı duvar analizi, web iki sayfa, rapor bölümleri. Kayma dişi (G3/G4) bekliyor. Kabul: [G8-kabul](qa/G8-kabul.md). |
+| Ankraj | `anchored_wall` modülü: ankraj tasarımı (GEC-4), tek/çok seviyeli ankrajlı duvar analizi (GEC-4 trapez/Henkel zarfları, kilde taban kabarması), web iki sayfa, rapor bölümleri. Kayma dişi (G3/G4) bekliyor. Kabul: [G8-kabul](qa/G8-kabul.md); mühendislik kontrolü 2026-10-21: [ankraj-muhendislik-kontrolu](qa/ankraj-muhendislik-kontrolu.md). Dış stabilite/Kranz yok (zorunlu uyarı). |
 | Rapor | docx (`POST /api/m/report/docx`); PDF ve grafik yok. |
 | Paket | `geotek/launcher.py` (API + `web/dist`, tarayıcıyı açar), `tools/build_exe.ps1` ve `.github/workflows/build-exe.yml` (windows-latest, PyInstaller, artifact `GeoTek-windows-exe`). Arayüz yalnız web; PySide6 yolu kaldırıldı. |
 

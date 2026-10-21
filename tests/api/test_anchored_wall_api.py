@@ -136,7 +136,7 @@ def test_analysis_runs_without_a_project_and_refuses_save(shell):
     assert response.status_code == 200, response.text
     data = response.json()
     assert data["method"] == "apparent_hinge"
-    assert data["levels"][0]["horizontal_load_per_m"] == pytest.approx(131.625, abs=0.01)
+    assert data["levels"][0]["horizontal_load_per_m"] == pytest.approx(120.625, abs=0.01)
     assert shell.post(f"{BASE}/analysis/run?save=true", json=ANALYSIS).status_code == 409
 
 
@@ -153,7 +153,7 @@ def test_analysis_save_state_and_stale(shell, open_project):
     assert shell.post(f"{BASE}/analysis/run?save=true", json=ANALYSIS).status_code == 200
     state = shell.get(f"{BASE}/state").json()
     assert state["analysis_result_stale"] is False and state["analysis_soil_stale"] is False
-    assert state["state"]["analysis"]["result"]["base_reaction"] == pytest.approx(48.75, abs=0.01)
+    assert state["state"]["analysis"]["result"]["base_reaction"] == pytest.approx(27.083, abs=0.01)
     # a stored result that no longer matches its inputs is rejected
     state["state"]["analysis"]["inputs"]["excavation_height"] = 11.0
     assert shell.put(f"{BASE}/state", json=state["state"]).status_code == 422

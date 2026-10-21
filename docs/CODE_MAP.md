@@ -87,8 +87,9 @@ graph LR
   geotek_core_models -->|2| geotek_config
   geotek_core_models -->|4| geotek_core
   geotek_core_models -->|1| geotek_engine_stresses
-  geotek_engine_anchored_wall -->|2| geotek_core
+  geotek_engine_anchored_wall -->|1| geotek_core
   geotek_engine_anchored_wall -->|2| geotek_core_models
+  geotek_engine_anchored_wall -->|1| geotek_engine
   geotek_engine_anchored_wall -->|1| geotek_engine_anchors
   geotek_engine_anchored_wall -->|1| geotek_engine_earth_pressure
   geotek_engine_anchored_wall -->|1| geotek_engine_sheet_pile
@@ -199,7 +200,7 @@ graph LR
 | `geotek.core.models` | 8 | `geotek.config`, `geotek.core`, `geotek.engine.stresses` |
 | `geotek.engine` | 1 | — |
 | `geotek.engine.anchor_tables` | 1 | — |
-| `geotek.engine.anchored_wall` | 1 | `geotek.core`, `geotek.core.models`, `geotek.engine.anchors`, `geotek.engine.earth_pressure`, `geotek.engine.sheet_pile` |
+| `geotek.engine.anchored_wall` | 1 | `geotek.core`, `geotek.core.models`, `geotek.engine`, `geotek.engine.anchors`, `geotek.engine.earth_pressure`, `geotek.engine.sheet_pile` |
 | `geotek.engine.anchors` | 1 | `geotek.core`, `geotek.core.models`, `geotek.engine`, `geotek.engine.anchor_tables` |
 | `geotek.engine.bearing` | 1 | `geotek.core` |
 | `geotek.engine.classification` | 4 | `geotek.core.models` |
@@ -252,8 +253,8 @@ Yer sütunu işleyicinin `def` satırıdır; çok satırlı dekoratörler AST il
 | POST | `/api/library/{file}/rename` | `geotek/api/library_routes.py:203` | `rename_library_project` | `web/src/shared/api/core.ts` |
 | POST | `/api/m/anchored_wall/analysis/run` | `geotek/modules/anchored_wall/api.py:128` | `run_wall_analysis` | — |
 | POST | `/api/m/anchored_wall/anchor/design` | `geotek/modules/anchored_wall/api.py:109` | `design_ground_anchor` | — |
-| GET | `/api/m/anchored_wall/anchor/reference` | `geotek/modules/anchored_wall/api.py:166` | `anchor_reference` | — |
-| GET | `/api/m/anchored_wall/soil/{profile_id}` | `geotek/modules/anchored_wall/api.py:153` | `soil_from_profile` | — |
+| GET | `/api/m/anchored_wall/anchor/reference` | `geotek/modules/anchored_wall/api.py:169` | `anchor_reference` | — |
+| GET | `/api/m/anchored_wall/soil/{profile_id}` | `geotek/modules/anchored_wall/api.py:156` | `soil_from_profile` | — |
 | GET | `/api/m/anchored_wall/state` | `geotek/modules/anchored_wall/api.py:84` | `get_module_state` | — |
 | PUT | `/api/m/anchored_wall/state` | `geotek/modules/anchored_wall/api.py:95` | `put_module_state` | — |
 | GET | `/api/m/liquefaction/result` | `geotek/modules/liquefaction/api.py:93` | `get_liquefaction_result` | `web/src/modules/liquefaction/api.ts` |
@@ -351,7 +352,7 @@ Test sütunu: o dosyayı doğrudan import eden `tests/` dosyaları (yoksa `—`)
 | Dosya | Satır | Bağımlı olduğu | Kullanan | Test |
 |---|---:|---|---|---|
 | `core/__init__.py` | 1 | — | — | — |
-| `core/constants.py` | 13 | — | `core.models.investigations`, `core.models.profile`, `core.models.structures`, `engine.anchored_wall`, `engine.correlations.physical`, `engine.correlations.stiffness` +15 | `unit/test_earth_pressure.py`, `unit/test_layering_spt.py`, `unit/test_stresses.py` +5 |
+| `core/constants.py` | 13 | — | `core.models.investigations`, `core.models.profile`, `core.models.structures`, `engine.correlations.physical`, `engine.correlations.stiffness`, `engine.correlations.strength` +14 | `unit/test_earth_pressure.py`, `unit/test_layering_spt.py`, `unit/test_stresses.py` +5 |
 | `core/errors.py` | 89 | `services.walls_advanced` | `api.app`, `api.calculation_jobs`, `api.jobs`, `api.library_routes`, `api.registry`, `config.codes` +28 | `api/test_jobs_api.py`, `unit/test_anchored_wall.py`, `unit/test_anchors.py` +25 |
 | `core/module_state.py` | 54 | `core.errors`, `core.models.project` | `modules.anchored_wall.api`, `modules.anchored_wall.report` | `api/test_anchored_wall_api.py`, `unit/test_module_report_hook.py`, `unit/test_project_io_13.py` |
 | `core/modules.py` | 76 | `core.errors` | `api.registry`, `modules.anchored_wall`, `modules.anchored_wall.report`, `modules.liquefaction`, `modules.report`, `modules.sheet_pile` +2 | `unit/test_module_registry.py`, `unit/test_module_report_hook.py`, `unit/test_new_module.py` |
@@ -363,7 +364,7 @@ Test sütunu: o dosyayı doğrudan import eden `tests/` dosyaları (yoksa `—`)
 | Dosya | Satır | Bağımlı olduğu | Kullanan | Test |
 |---|---:|---|---|---|
 | `core/models/__init__.py` | 51 | `core.models.investigations`, `core.models.parameters`, `core.models.profile`, `core.models.project`, `core.models.structures` | — | `api/test_anchored_wall_api.py`, `conftest.py`, `unit/test_anchored_wall.py` +20 |
-| `core/models/anchors.py` | 364 | `core.models.structures` | `engine.anchored_wall`, `engine.anchors`, `modules.anchored_wall`, `modules.anchored_wall.api`, `modules.anchored_wall.report`, `modules.anchored_wall.schemas` | `api/test_anchored_wall_api.py`, `unit/test_anchored_wall.py`, `unit/test_anchors.py` +1 |
+| `core/models/anchors.py` | 404 | `core.models.structures` | `engine.anchored_wall`, `engine.anchors`, `modules.anchored_wall`, `modules.anchored_wall.api`, `modules.anchored_wall.report`, `modules.anchored_wall.schemas` | `api/test_anchored_wall_api.py`, `unit/test_anchored_wall.py`, `unit/test_anchors.py` +1 |
 | `core/models/investigations.py` | 161 | `core.constants` | `core.models`, `core.models.project`, `engine.classification.uscs`, `engine.insitu.cpt`, `engine.insitu.spt`, `engine.layering.spt` +5 | `api/test_liquefaction_api.py`, `api/test_report_api.py`, `unit/test_layering_cpt.py` +2 |
 | `core/models/parameters.py` | 76 | — | `core.models`, `core.models.profile`, `engine.correlations.registry`, `modules.soil.api`, `modules.soil.schemas`, `modules.soil.service` +1 | `unit/test_parameters_service.py` |
 | `core/models/profile.py` | 159 | `core.constants`, `core.errors`, `core.models.parameters`, `engine.stresses` | `api.schemas`, `core.models`, `core.models.project`, `core.models.structures`, `engine.anchored_wall`, `engine.earth_pressure.distribution` +23 | `api/job_helpers.py`, `api/test_system_check_api.py`, `unit/test_layering_conversion.py` +9 |
@@ -375,25 +376,25 @@ Test sütunu: o dosyayı doğrudan import eden `tests/` dosyaları (yoksa `—`)
 
 | Dosya | Satır | Bağımlı olduğu | Kullanan | Test |
 |---|---:|---|---|---|
-| `engine/__init__.py` | 1 | — | `engine.anchors`, `modules.anchored_wall.api` | `unit/test_anchors.py`, `unit/test_module_report_hook.py`, `unit/test_structures_service.py` +1 |
+| `engine/__init__.py` | 1 | — | `engine.anchored_wall`, `engine.anchors`, `modules.anchored_wall.api` | `unit/test_anchors.py`, `unit/test_module_report_hook.py`, `unit/test_structures_service.py` +1 |
 
 #### `geotek.engine.anchor_tables`
 
 | Dosya | Satır | Bağımlı olduğu | Kullanan | Test |
 |---|---:|---|---|---|
-| `engine/anchor_tables.py` | 100 | — | `engine.anchors`, `modules.anchored_wall.api` | `unit/test_anchors.py` |
+| `engine/anchor_tables.py` | 108 | — | `engine.anchors`, `modules.anchored_wall.api` | `unit/test_anchors.py` |
 
 #### `geotek.engine.anchored_wall`
 
 | Dosya | Satır | Bağımlı olduğu | Kullanan | Test |
 |---|---:|---|---|---|
-| `engine/anchored_wall.py` | 380 | `core.constants`, `core.errors`, `core.models.anchors`, `core.models.profile`, `engine.anchors`, `engine.earth_pressure.coefficients`, `engine.sheet_pile` | `modules.anchored_wall.api` | `unit/test_anchored_wall.py`, `unit/test_module_report_hook.py` |
+| `engine/anchored_wall.py` | 605 | `core.errors`, `core.models.anchors`, `core.models.profile`, `engine`, `engine.anchors`, `engine.earth_pressure.coefficients`, `engine.sheet_pile` | `modules.anchored_wall.api` | `unit/test_anchored_wall.py`, `unit/test_module_report_hook.py` |
 
 #### `geotek.engine.anchors`
 
 | Dosya | Satır | Bağımlı olduğu | Kullanan | Test |
 |---|---:|---|---|---|
-| `engine/anchors.py` | 280 | `core.errors`, `core.models.anchors`, `engine`, `engine.anchor_tables` | `engine.anchored_wall`, `modules.anchored_wall.api` | `unit/test_anchors.py`, `unit/test_module_report_hook.py` |
+| `engine/anchors.py` | 307 | `core.errors`, `core.models.anchors`, `engine`, `engine.anchor_tables` | `engine.anchored_wall`, `modules.anchored_wall.api` | `unit/test_anchors.py`, `unit/test_module_report_hook.py` |
 
 #### `geotek.engine.bearing`
 
@@ -532,8 +533,8 @@ Test sütunu: o dosyayı doğrudan import eden `tests/` dosyaları (yoksa `—`)
 | Dosya | Satır | Bağımlı olduğu | Kullanan | Test |
 |---|---:|---|---|---|
 | `modules/anchored_wall/__init__.py` | 23 | `core.models.anchors`, `core.modules`, `modules.anchored_wall.api`, `modules.anchored_wall.report` | — | — |
-| `modules/anchored_wall/api.py` | 185 | `api.calculation_jobs`, `api.common`, `api.jobs`, `api.session`, `core.errors`, `core.models.anchors`, `core.models.structures`, `core.module_state`, `engine`, `engine.anchor_tables`, `engine.anchored_wall`, `engine.anchors`, `modules.anchored_wall.schemas` | `modules.anchored_wall`, `modules.anchored_wall.report` | — |
-| `modules/anchored_wall/report.py` | 190 | `core.errors`, `core.models.anchors`, `core.module_state`, `core.modules`, `i18n`, `modules.anchored_wall.api` | `modules.anchored_wall` | — |
+| `modules/anchored_wall/api.py` | 188 | `api.calculation_jobs`, `api.common`, `api.jobs`, `api.session`, `core.errors`, `core.models.anchors`, `core.models.structures`, `core.module_state`, `engine`, `engine.anchor_tables`, `engine.anchored_wall`, `engine.anchors`, `modules.anchored_wall.schemas` | `modules.anchored_wall`, `modules.anchored_wall.report` | — |
+| `modules/anchored_wall/report.py` | 258 | `core.errors`, `core.models.anchors`, `core.module_state`, `core.modules`, `i18n`, `modules.anchored_wall.api` | `modules.anchored_wall` | — |
 | `modules/anchored_wall/schemas.py` | 63 | `api.schemas`, `core.models.anchors` | `modules.anchored_wall.api` | — |
 
 #### `geotek.modules.liquefaction`
@@ -674,18 +675,18 @@ Testler yalnız **Kullanan** sütununda görünür; “Test” sütunu o dosyay�
 |---|---:|---|---|---|
 | `modules/anchored_wall/Root.tsx` | 13 | `modules/anchored_wall/pages/AnalysisPage.tsx`, `modules/anchored_wall/pages/AnchorPage.tsx` | `modules/anchored_wall/manifest.ts` | — |
 | `modules/anchored_wall/api.ts` | 35 | `modules/anchored_wall/types.ts`, `shared/api/http.ts` | `modules/anchored_wall/components/AnalysisForm.tsx`, `modules/anchored_wall/pages/AnalysisPage.tsx`, `modules/anchored_wall/pages/AnchorPage.tsx` | — |
-| `modules/anchored_wall/components/AnalysisForm.tsx` | 246 | `modules/anchored_wall/api.ts`, `modules/anchored_wall/components/AnchorFields.tsx`, `modules/anchored_wall/components/NumField.tsx`, `modules/anchored_wall/format.ts`, `modules/anchored_wall/inputs.ts`, `modules/anchored_wall/types.ts`, `shared/api/core.ts`, `shared/api/types.ts`, `shared/components/ErrorAlert.tsx` | `modules/anchored_wall/pages/AnalysisPage.tsx` | — |
+| `modules/anchored_wall/components/AnalysisForm.tsx` | 266 | `modules/anchored_wall/api.ts`, `modules/anchored_wall/components/AnchorFields.tsx`, `modules/anchored_wall/components/NumField.tsx`, `modules/anchored_wall/format.ts`, `modules/anchored_wall/inputs.ts`, `modules/anchored_wall/types.ts`, `shared/api/core.ts`, `shared/api/types.ts`, `shared/components/ErrorAlert.tsx` | `modules/anchored_wall/pages/AnalysisPage.tsx` | — |
 | `modules/anchored_wall/components/AnchorFields.tsx` | 210 | `modules/anchored_wall/components/NumField.tsx`, `modules/anchored_wall/format.ts`, `modules/anchored_wall/inputs.ts`, `modules/anchored_wall/types.ts` | `modules/anchored_wall/components/AnalysisForm.tsx`, `modules/anchored_wall/pages/AnchorPage.tsx` | — |
 | `modules/anchored_wall/components/MissingList.tsx` | 27 | — | `modules/anchored_wall/pages/AnalysisPage.tsx`, `modules/anchored_wall/pages/AnchorPage.tsx` | — |
-| `modules/anchored_wall/components/Notices.tsx` | 88 | `modules/anchored_wall/types.ts`, `shared/api/client.ts` | `modules/anchored_wall/components/ResultViews.tsx`, `modules/anchored_wall/pages/AnalysisPage.tsx`, `modules/anchored_wall/pages/AnchorPage.tsx` | — |
+| `modules/anchored_wall/components/Notices.tsx` | 91 | `modules/anchored_wall/types.ts`, `shared/api/client.ts` | `modules/anchored_wall/components/ResultViews.tsx`, `modules/anchored_wall/pages/AnalysisPage.tsx`, `modules/anchored_wall/pages/AnchorPage.tsx` | — |
 | `modules/anchored_wall/components/NumField.tsx` | 19 | `modules/anchored_wall/inputs.ts` | `modules/anchored_wall/components/AnalysisForm.tsx`, `modules/anchored_wall/components/AnchorFields.tsx`, `modules/anchored_wall/pages/AnchorPage.tsx` | — |
-| `modules/anchored_wall/components/ResultViews.tsx` | 173 | `modules/anchored_wall/components/Notices.tsx`, `modules/anchored_wall/components/WallSection.tsx`, `modules/anchored_wall/format.ts`, `modules/anchored_wall/types.ts` | `modules/anchored_wall/pages/AnalysisPage.tsx`, `modules/anchored_wall/pages/AnchorPage.tsx` | — |
+| `modules/anchored_wall/components/ResultViews.tsx` | 194 | `modules/anchored_wall/components/Notices.tsx`, `modules/anchored_wall/components/WallSection.tsx`, `modules/anchored_wall/format.ts`, `modules/anchored_wall/types.ts` | `modules/anchored_wall/pages/AnalysisPage.tsx`, `modules/anchored_wall/pages/AnchorPage.tsx` | — |
 | `modules/anchored_wall/components/WallSection.tsx` | 135 | `modules/anchored_wall/format.ts`, `modules/anchored_wall/types.ts` | `modules/anchored_wall/components/ResultViews.tsx` | — |
 | `modules/anchored_wall/format.ts` | 8 | `app/i18n.ts` | `modules/anchored_wall/components/AnalysisForm.tsx`, `modules/anchored_wall/components/AnchorFields.tsx`, `modules/anchored_wall/components/ResultViews.tsx`, `modules/anchored_wall/components/WallSection.tsx` | — |
-| `modules/anchored_wall/inputs.ts` | 342 | `modules/anchored_wall/types.ts` | `modules/anchored_wall/components/AnalysisForm.tsx`, `modules/anchored_wall/components/AnchorFields.tsx`, `modules/anchored_wall/components/NumField.tsx`, `modules/anchored_wall/pages/AnalysisPage.tsx`, `modules/anchored_wall/pages/AnchorPage.tsx` | — |
+| `modules/anchored_wall/inputs.ts` | 370 | `modules/anchored_wall/types.ts` | `modules/anchored_wall/components/AnalysisForm.tsx`, `modules/anchored_wall/components/AnchorFields.tsx`, `modules/anchored_wall/components/NumField.tsx`, `modules/anchored_wall/pages/AnalysisPage.tsx`, `modules/anchored_wall/pages/AnchorPage.tsx` | — |
 | `modules/anchored_wall/manifest.ts` | 18 | `modules/anchored_wall/Root.tsx`, `shared/moduleTypes.ts` | — | — |
 | `modules/anchored_wall/mock.ts` | 214 | `modules/anchored_wall/types.ts`, `shared/api/mock/core.ts`, `shared/api/mock/dispatcher.ts`, `shared/api/mock/hash.ts`, `shared/api/mock/store.ts`, `shared/api/types.ts` | — | `modules/anchored_wall/__tests__/anchored_wall.test.tsx` |
-| `modules/anchored_wall/pages/AnalysisPage.tsx` | 101 | `modules/anchored_wall/api.ts`, `modules/anchored_wall/components/AnalysisForm.tsx`, `modules/anchored_wall/components/MissingList.tsx`, `modules/anchored_wall/components/Notices.tsx`, `modules/anchored_wall/components/ResultViews.tsx`, `modules/anchored_wall/inputs.ts`, `modules/anchored_wall/types.ts`, `shared/components/ErrorAlert.tsx` | `modules/anchored_wall/Root.tsx` | `modules/anchored_wall/__tests__/anchored_wall.test.tsx` |
+| `modules/anchored_wall/pages/AnalysisPage.tsx` | 102 | `modules/anchored_wall/api.ts`, `modules/anchored_wall/components/AnalysisForm.tsx`, `modules/anchored_wall/components/MissingList.tsx`, `modules/anchored_wall/components/Notices.tsx`, `modules/anchored_wall/components/ResultViews.tsx`, `modules/anchored_wall/inputs.ts`, `modules/anchored_wall/types.ts`, `shared/components/ErrorAlert.tsx` | `modules/anchored_wall/Root.tsx` | `modules/anchored_wall/__tests__/anchored_wall.test.tsx` |
 | `modules/anchored_wall/pages/AnchorPage.tsx` | 122 | `modules/anchored_wall/api.ts`, `modules/anchored_wall/components/AnchorFields.tsx`, `modules/anchored_wall/components/MissingList.tsx`, `modules/anchored_wall/components/Notices.tsx`, `modules/anchored_wall/components/NumField.tsx`, `modules/anchored_wall/components/ResultViews.tsx`, `modules/anchored_wall/inputs.ts`, `modules/anchored_wall/types.ts`, `shared/components/ErrorAlert.tsx` | `modules/anchored_wall/Root.tsx` | `modules/anchored_wall/__tests__/anchored_wall.test.tsx` |
 | `modules/anchored_wall/types.ts` | 16 | — | `modules/anchored_wall/api.ts`, `modules/anchored_wall/components/AnalysisForm.tsx`, `modules/anchored_wall/components/AnchorFields.tsx`, `modules/anchored_wall/components/Notices.tsx`, `modules/anchored_wall/components/ResultViews.tsx` +5 | — |
 
@@ -794,7 +795,7 @@ Testler yalnız **Kullanan** sütununda görünür; “Test” sütunu o dosyay�
 | `shared/api/mock/hash.ts` | 36 | `shared/api/types.ts` | `modules/anchored_wall/mock.ts`, `shared/api/mock/coreRoutes.ts`, `shared/api/mock/store.ts` | — |
 | `shared/api/mock/index.ts` | 26 | `shared/api/mock/core.ts`, `shared/api/mock/coreRoutes.ts`, `shared/api/mock/dispatcher.ts`, `shared/api/mock/store.ts` | `shared/api/http.ts` | `modules/anchored_wall/__tests__/anchored_wall.test.tsx`, `modules/liquefaction/__tests__/liquefaction.test.tsx`, `modules/sheet_pile/__tests__/sheet_pile.test.tsx` +16 |
 | `shared/api/mock/store.ts` | 149 | `shared/api/mock/data.ts`, `shared/api/mock/hash.ts`, `shared/api/types.ts` | `modules/anchored_wall/mock.ts`, `modules/liquefaction/mock.ts`, `modules/sheet_pile/mock.ts`, `modules/soil/mock.ts`, `modules/walls/mock.ts` +3 | `modules/liquefaction/__tests__/liquefaction.test.tsx`, `modules/sheet_pile/__tests__/sheet_pile.test.tsx`, `modules/soil/__tests__/soil_mock.test.ts` +3 |
-| `shared/api/schema.d.ts` | 11700 | — | — | — |
+| `shared/api/schema.d.ts` | 11743 | — | — | — |
 | `shared/api/types.ts` | 775 | — | `app/ModuleShell.tsx`, `app/ProjectProvider.tsx`, `app/i18n.ts`, `app/pages/LauncherPage.tsx`, `app/pages/SettingsPage.tsx` +61 | `modules/liquefaction/__tests__/liquefaction.test.tsx`, `modules/liquefaction/__tests__/results.test.tsx`, `modules/sheet_pile/__tests__/result-contract.test.tsx` +14 |
 | `shared/components/EmptyState.tsx` | 26 | — | `app/ModuleShell.tsx`, `app/pages/LauncherPage.tsx`, `app/pages/StartPage.tsx`, `modules/liquefaction/pages/ResultsPage.tsx`, `modules/report/pages/HomePage.tsx` +9 | — |
 | `shared/components/ErrorAlert.tsx` | 36 | `shared/api/errorMessage.ts` | `app/ModuleShell.tsx`, `app/RequireProject.tsx`, `app/pages/LauncherPage.tsx`, `app/pages/SettingsPage.tsx`, `app/pages/StartPage.tsx` +13 | `test/error_alert.test.tsx` |

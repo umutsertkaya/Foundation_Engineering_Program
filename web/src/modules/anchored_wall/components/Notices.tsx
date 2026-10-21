@@ -19,9 +19,12 @@ function useNoticeText() {
   };
 }
 
+/** A notice, optionally labelled with the anchor level it belongs to. */
+export type LabelledNotice = Notice & { prefix?: string };
+
 interface NoticesProps {
-  warnings: Notice[];
-  assumptions: Notice[];
+  warnings: LabelledNotice[];
+  assumptions: LabelledNotice[];
   sources?: string[];
 }
 
@@ -35,7 +38,7 @@ export function Notices({ warnings, assumptions, sources }: NoticesProps) {
         <Alert color="yellow" variant="light" icon={<IconAlertTriangle size={16} />} title={t("anchored_wall.notice.warnings")}>
           <List size="sm" data-testid="aw-warnings">
             {warnings.map((n, i) => (
-              <List.Item key={`${n.code}-${i}`}>{text("warning", n.code, n.params)}</List.Item>
+              <List.Item key={`${n.code}-${i}`}>{n.prefix ? `${n.prefix}: ` : ""}{text("warning", n.code, n.params)}</List.Item>
             ))}
           </List>
         </Alert>
@@ -44,7 +47,7 @@ export function Notices({ warnings, assumptions, sources }: NoticesProps) {
         <Alert color="blue" variant="light" icon={<IconInfoCircle size={16} />} title={t("anchored_wall.notice.assumptions")}>
           <List size="sm" data-testid="aw-assumptions">
             {assumptions.map((n, i) => (
-              <List.Item key={`${n.code}-${i}`}>{text("assumption", n.code, n.params)}</List.Item>
+              <List.Item key={`${n.code}-${i}`}>{n.prefix ? `${n.prefix}: ` : ""}{text("assumption", n.code, n.params)}</List.Item>
             ))}
           </List>
         </Alert>

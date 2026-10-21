@@ -9357,6 +9357,16 @@
             "type": "array",
             "title": "Checks"
           },
+          "basal_heave": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/BasalHeaveResult"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "z": {
             "items": {
               "type": "number"
@@ -10003,6 +10013,17 @@
             "type": "number",
             "title": "Beyond Wedge"
           },
+          "beyond_wedge_along_anchor": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Beyond Wedge Along Anchor"
+          },
           "free_length_required": {
             "type": "number",
             "title": "Free Length Required"
@@ -10310,10 +10331,16 @@
             "default": "horizontal"
           },
           "passive_factor": {
-            "type": "number",
-            "minimum": 1.0,
-            "title": "Passive Factor",
-            "default": 1.0
+            "anyOf": [
+              {
+                "type": "number",
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Passive Factor"
           },
           "depth_increase": {
             "anyOf": [
@@ -10354,6 +10381,69 @@
             "minimum": 0.2,
             "title": "Stiff Clay Coefficient",
             "default": 0.3
+          },
+          "service": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "temporary",
+                  "permanent"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Service"
+          },
+          "excavation_width": {
+            "anyOf": [
+              {
+                "type": "number",
+                "exclusiveMinimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Excavation Width"
+          },
+          "excavation_length": {
+            "anyOf": [
+              {
+                "type": "number",
+                "exclusiveMinimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Excavation Length"
+          },
+          "stiff_layer_depth": {
+            "anyOf": [
+              {
+                "type": "number",
+                "exclusiveMinimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Stiff Layer Depth"
+          },
+          "henkel_depth": {
+            "anyOf": [
+              {
+                "type": "number",
+                "exclusiveMinimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Henkel Depth"
           },
           "pile_spacing": {
             "anyOf": [
@@ -10548,6 +10638,70 @@
           "max"
         ],
         "title": "AxisRangeDTO"
+      },
+      "BasalHeaveResult": {
+        "properties": {
+          "b_eff": {
+            "type": "number",
+            "title": "B Eff"
+          },
+          "b_eff_basis": {
+            "type": "string",
+            "enum": [
+              "width",
+              "stiff_layer"
+            ],
+            "title": "B Eff Basis"
+          },
+          "nc": {
+            "type": "number",
+            "title": "Nc"
+          },
+          "su_below": {
+            "type": "number",
+            "title": "Su Below"
+          },
+          "su_retained": {
+            "type": "number",
+            "title": "Su Retained"
+          },
+          "gamma": {
+            "type": "number",
+            "title": "Gamma"
+          },
+          "surcharge": {
+            "type": "number",
+            "title": "Surcharge"
+          },
+          "fs": {
+            "type": "number",
+            "title": "Fs"
+          },
+          "fs_required": {
+            "type": "number",
+            "title": "Fs Required"
+          },
+          "ok": {
+            "type": "boolean",
+            "title": "Ok"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "b_eff",
+          "b_eff_basis",
+          "nc",
+          "su_below",
+          "su_retained",
+          "gamma",
+          "surcharge",
+          "fs",
+          "fs_required",
+          "ok"
+        ],
+        "title": "BasalHeaveResult",
+        "description": "Bottom heave of a cut in clay, GEC-4 5.8.2.2 eq. 34-36 (Terzaghi et al. 1996)."
       },
       "Borehole": {
         "properties": {
@@ -11504,6 +11658,28 @@
             },
             "type": "array",
             "title": "P"
+          },
+          "ns": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ns"
+          },
+          "su_below": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Su Below"
           }
         },
         "additionalProperties": false,

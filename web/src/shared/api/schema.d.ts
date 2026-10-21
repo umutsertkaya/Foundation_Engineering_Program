@@ -1469,6 +1469,7 @@ export interface components {
             required_section_modulus_cm3: number | null;
             /** Checks */
             checks: components["schemas"]["AnchorCheck"][];
+            basal_heave?: components["schemas"]["BasalHeaveResult"] | null;
             /** Z */
             z: number[];
             /** Shear */
@@ -1688,6 +1689,8 @@ export interface components {
             wedge_length: number;
             /** Beyond Wedge */
             beyond_wedge: number;
+            /** Beyond Wedge Along Anchor */
+            beyond_wedge_along_anchor?: number | null;
             /** Free Length Required */
             free_length_required: number;
             /** Free Length Minimum */
@@ -1809,11 +1812,8 @@ export interface components {
              * @enum {string}
              */
             surcharge_basis: "horizontal" | "inclined";
-            /**
-             * Passive Factor
-             * @default 1
-             */
-            passive_factor: number;
+            /** Passive Factor */
+            passive_factor?: number | null;
             /** Depth Increase */
             depth_increase?: number | null;
             /** Front Water Depth */
@@ -1829,6 +1829,16 @@ export interface components {
              * @default 0.3
              */
             stiff_clay_coefficient: number;
+            /** Service */
+            service?: ("temporary" | "permanent") | null;
+            /** Excavation Width */
+            excavation_width?: number | null;
+            /** Excavation Length */
+            excavation_length?: number | null;
+            /** Stiff Layer Depth */
+            stiff_layer_depth?: number | null;
+            /** Henkel Depth */
+            henkel_depth?: number | null;
             /** Pile Spacing */
             pile_spacing?: number | null;
             /** Passive Width */
@@ -1897,6 +1907,35 @@ export interface components {
             min: number;
             /** Max */
             max: number;
+        };
+        /**
+         * BasalHeaveResult
+         * @description Bottom heave of a cut in clay, GEC-4 5.8.2.2 eq. 34-36 (Terzaghi et al. 1996).
+         */
+        BasalHeaveResult: {
+            /** B Eff */
+            b_eff: number;
+            /**
+             * B Eff Basis
+             * @enum {string}
+             */
+            b_eff_basis: "width" | "stiff_layer";
+            /** Nc */
+            nc: number;
+            /** Su Below */
+            su_below: number;
+            /** Su Retained */
+            su_retained: number;
+            /** Gamma */
+            gamma: number;
+            /** Surcharge */
+            surcharge: number;
+            /** Fs */
+            fs: number;
+            /** Fs Required */
+            fs_required: number;
+            /** Ok */
+            ok: boolean;
         };
         /** Borehole */
         Borehole: {
@@ -2237,6 +2276,10 @@ export interface components {
             z: number[];
             /** P */
             p: number[];
+            /** Ns */
+            ns?: number | null;
+            /** Su Below */
+            su_below?: number | null;
         };
         /**
          * ExportRequest

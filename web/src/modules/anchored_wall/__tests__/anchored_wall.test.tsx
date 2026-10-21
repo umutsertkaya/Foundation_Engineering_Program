@@ -35,6 +35,19 @@ describe("anchored wall analysis page", () => {
     expect(await screen.findByTestId("aw-status")).toHaveTextContent(i18n.t("anchored_wall.status.no_result"));
     expect(screen.getByRole("button", { name: i18n.t("anchored_wall.action.run") })).toBeDisabled();
     expect(screen.getByTestId("aw-missing")).toHaveTextContent(i18n.t("anchored_wall.missing.soil"));
+    // no default factor of safety on the passive resistance (GEC-4 1.5 is only a suggestion)
+    expect(screen.getByTestId("aw-missing")).toHaveTextContent(i18n.t("anchored_wall.missing.passive_factor"));
+    expect(screen.getByLabelText(i18n.t("anchored_wall.input.passive_factor"))).toHaveValue("");
+  });
+
+  it("asks for the basal heave inputs when the analysis is undrained", async () => {
+    renderPage(<AnalysisPage />);
+    await screen.findByTestId("aw-status");
+    fireEvent.click(screen.getByRole("textbox", { name: i18n.t("anchored_wall.input.drainage") }));
+    fireEvent.click(await screen.findByRole("option", { name: i18n.t("anchored_wall.drainage.undrained") }));
+    const missing = await screen.findByTestId("aw-missing");
+    await waitFor(() => expect(missing).toHaveTextContent(i18n.t("anchored_wall.missing.excavation_width")));
+    expect(missing).toHaveTextContent(i18n.t("anchored_wall.missing.service"));
   });
 
   it("loads a project profile, runs the analysis and shows result, section and a translated warning", async () => {
@@ -43,6 +56,7 @@ describe("anchored wall analysis page", () => {
     fireEvent.change(screen.getByLabelText(i18n.t("anchored_wall.input.excavation_height")), { target: { value: "6" } });
     fireEvent.change(screen.getByLabelText(`${i18n.t("anchored_wall.report.level_depth")} 1`), { target: { value: "2" } });
     fireEvent.change(screen.getByLabelText(`${i18n.t("anchored_wall.report.level_spacing")} 1`), { target: { value: "2.5" } });
+    fireEvent.change(screen.getByLabelText(i18n.t("anchored_wall.input.passive_factor")), { target: { value: "1.5" } });
     fireEvent.click(screen.getByRole("textbox", { name: i18n.t("anchored_wall.input.profile") }));
     fireEvent.click((await screen.findAllByRole("option"))[0]);
     fireEvent.click(screen.getByRole("button", { name: i18n.t("anchored_wall.action.load_soil") }));

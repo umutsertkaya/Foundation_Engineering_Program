@@ -42,10 +42,11 @@ export function AnalysisPage() {
 
   const record = stored?.state.analysis ?? null;
   const missing = useMemo(() => [...analysisMissing(form)], [form]);
-  const gaps = soilGaps(form.soil, form.drainage, form.excavation_height);
+  const gaps = soilGaps(form.soil, form.drainage);
   const dirty = record != null && !sameInputs(form, analysisFromPayload(record.inputs));
   const hasResult = record?.result != null;
-  const stale = hasResult && (stored?.analysis_result_stale === true || dirty);
+  const soilStale = stored?.analysis_soil_stale === true;
+  const stale = hasResult && (stored?.analysis_result_stale === true || soilStale || dirty);
 
   if (loading && !stored) return <Text size="sm">{t("web.common.loading")}</Text>;
   if (loadError != null) return <ErrorAlert error={loadError} onRetry={() => void load()} />;
@@ -74,11 +75,11 @@ export function AnalysisPage() {
       <Text size="sm" c="dimmed">{t("anchored_wall.analysis.intro")}</Text>
       {stale && (
         <Alert color="yellow" variant="light" title={t("anchored_wall.status.stale_title")}>
-          <Text size="sm">{t(dirty ? "anchored_wall.status.stale_edited" : "anchored_wall.status.stale_stored")}</Text>
+          <Text size="sm">{t(dirty ? "anchored_wall.status.stale_edited" : soilStale ? "anchored_wall.status.stale_soil" : "anchored_wall.status.stale_stored")}</Text>
         </Alert>
       )}
 
-      <AnalysisFormView value={form} onChange={setForm} reference={reference} soilStale={stored?.analysis_soil_stale === true} />
+      <AnalysisFormView value={form} onChange={setForm} reference={reference} soilStale={soilStale} />
 
       <MissingList keys={missing} />
       {gaps.length > 0 && (
