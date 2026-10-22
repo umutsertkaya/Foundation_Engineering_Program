@@ -17,6 +17,7 @@ from geotek.core.errors import GeoTekError
 from geotek.core.models.profile import DesignParameters, GroundwaterCondition, SoilLayer, SoilProfile
 from geotek.core.models.walls import Backfill, FoundationSoil, ShearKey, WallLoads, WallSettings
 from geotek.core.warning_codes import format_warning
+from geotek.core.errors import BearingFailureError
 from geotek.engine.bearing import BearingResult, bearing_capacity
 from geotek.engine.earth_pressure.coefficients import mononobe_okabe_kpe, rankine_kp
 from geotek.engine.earth_pressure.distribution import lateral_pressure, resultant
@@ -132,6 +133,18 @@ class WallAnalysis:
     @property
     def passed(self) -> bool:
         return all(c.passed for c in self.checks.values())
+
+
+def try_bearing_capacity(func, **kwargs) -> tuple[BearingResult | None, str | None]:
+    """Bearing capacity, or (None, reason) when the trial cannot carry the load at all.
+
+    Lets a wall analysis report a failed bearing check (capacity 0) and still return its
+    other checks, instead of aborting on e.g. a horizontal load beyond the capacity.
+    """
+    try:
+        return func(**kwargs), None
+    except BearingFailureError as exc:
+        return None, str(exc)
 
 
 def polygon_area_centroid(points) -> tuple[float, float, float]:
@@ -512,16 +525,20 @@ def evaluate_checks(
     if abs(e) < width / 2:
         phi = 0.0 if foundation.drainage == "undrained" else foundation.phi
         c = foundation.su if foundation.drainage == "undrained" else foundation.c
-        bearing = bearing_capacity(
+        bearing, failure = try_bearing_capacity(
+            bearing_capacity,
             method=settings.bearing_method, B=width, D=embedment, phi=phi, c=c,
             gamma=foundation.gamma, q=foundation.overburden, V=sum_v, H=max(sum_h, 0.0), e_B=e,
         )
-        fs_b = bearing.Q_ult / sum_v
         req = log.value(f"safety.bearing_capacity.{case}")
-        checks["bearing"] = CheckResult(
-            "bearing", fs_b, req, fs_b >= req,
-            f"q_ult = {bearing.q_ult:.0f} kPa on B' = {bearing.B_eff:.2f} m; q_eff = {sum_v / bearing.B_eff:.0f} kPa",
-        )
+        if bearing is None:
+            checks["bearing"] = CheckResult("bearing", 0.0, req, False, f"Bearing capacity exhausted: {failure}")
+        else:
+            fs_b = bearing.Q_ult / sum_v
+            checks["bearing"] = CheckResult(
+                "bearing", fs_b, req, fs_b >= req,
+                f"q_ult = {bearing.q_ult:.0f} kPa on B' = {bearing.B_eff:.2f} m; q_eff = {sum_v / bearing.B_eff:.0f} kPa",
+            )
     else:
         checks["bearing"] = CheckResult("bearing", 0.0, log.value(f"safety.bearing_capacity.{case}"), False,
                                         "Resultant outside the base")

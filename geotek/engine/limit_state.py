@@ -45,6 +45,7 @@ from geotek.engine.bearing import bearing_capacity
 from geotek.engine.sheet_pile import SheetPileResult, anchored_sheet_pile, cantilever_sheet_pile
 from geotek.engine.stability import SoilBand
 from geotek.engine.walls.base import (
+    try_bearing_capacity,
     CheckResult, Force, KeySliding, WallAnalysis, attach_without_key, key_result, key_sliding_basic,
     overturning_moments, passive_force, seismic_passive_ratio, strip_key,
 )
@@ -284,10 +285,15 @@ def verify_wall(
         if abs(eb) < B / 2:
             phi = 0.0 if fd_d.drainage == "undrained" else fd_d.phi
             c = fd_d.su if fd_d.drainage == "undrained" else fd_d.c
-            bearing = bearing_capacity(method=settings.bearing_method, B=B, D=wf.embedment, phi=phi, c=c,
-                                       gamma=fd_d.gamma, q=fd_d.overburden, V=vb, H=max(hb, 0.0), e_B=eb)
-            checks["bearing"] = _odf("bearing", bearing.Q_ult / case.r_bearing, vb,
-                                     f"q_ult = {bearing.q_ult:.0f} kPa on B' = {bearing.B_eff:.2f} m")
+            bearing, failure = try_bearing_capacity(
+                bearing_capacity,
+                method=settings.bearing_method, B=B, D=wf.embedment, phi=phi, c=c,
+                gamma=fd_d.gamma, q=fd_d.overburden, V=vb, H=max(hb, 0.0), e_B=eb)
+            if bearing is None:
+                checks["bearing"] = CheckResult("bearing", 0.0, 1.0, False, f"Bearing capacity exhausted: {failure}")
+            else:
+                checks["bearing"] = _odf("bearing", bearing.Q_ult / case.r_bearing, vb,
+                                         f"q_ult = {bearing.q_ult:.0f} kPa on B' = {bearing.B_eff:.2f} m")
         else:
             checks["bearing"] = CheckResult("bearing", 0.0, 1.0, False, "Resultant outside the base")
 
@@ -542,14 +548,18 @@ def verify_wall_layered(geometry, soil, loads, settings, *, seismic: bool,
         vb = _bearing_vertical_load(unf, fd)
         bearing = None
         if abs(eb) < B / 2:
-            bearing = bearing_capacity(
+            bearing, failure = try_bearing_capacity(
+                bearing_capacity,
                 method=settings.bearing_method, B=B, D=wf.embedment,
                 phi=0.0 if fd.drainage == "undrained" else fd.phi,
                 c=fd.su if fd.drainage == "undrained" else fd.c,
                 gamma=fd.gamma, q=fd.overburden, V=vb, H=max(hb, 0.0), e_B=eb,
             )
-            checks["bearing"] = _odf("bearing", bearing.Q_ult / case.r_bearing, vb,
-                                     f"q_ult = {bearing.q_ult:.3f} kPa, B' = {bearing.B_eff:.3f} m")
+            if bearing is None:
+                checks["bearing"] = CheckResult("bearing", 0.0, 1.0, False, f"Bearing capacity exhausted: {failure}")
+            else:
+                checks["bearing"] = _odf("bearing", bearing.Q_ult / case.r_bearing, vb,
+                                         f"q_ult = {bearing.q_ult:.3f} kPa, B' = {bearing.B_eff:.3f} m")
         else:
             checks["bearing"] = CheckResult("bearing", 0.0, 1.0, False, "Resultant outside the base")
         qmax = (vb_contact / B * (1 + 6 * abs(eb) / B) if abs(eb) <= B / 6 else

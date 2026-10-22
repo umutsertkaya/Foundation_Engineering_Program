@@ -97,9 +97,11 @@ def trial_wedge(
     sign = 1.0 if state == "active" else -1.0
     objective = -sign * forces
     i = int(np.nanargmin(np.where(ok, objective, np.nan)))
-    if state == "active" and i == 0:
+    psi = math.atan(kh / (1.0 - kv)) if kv < 1.0 else math.pi / 2
+    if state == "active" and i == 0 and b > p - psi + 1e-6:
         # Active force still grows toward the lower search bound (rho -> beta+): the wedge that
-        # maximises it is unbounded (beta >= phi - psi), so no finite critical wedge exists.
+        # maximises it is unbounded (beta > phi - psi), so no finite critical wedge exists.
+        # Exactly beta = phi - psi has a finite limit (e.g. K = cos^2 phi), so it is accepted.
         raise GeoTekError(
             "No finite critical wedge: the backfill slope is too steep for the friction angle and the "
             "seismic coefficient (beta >= phi - psi); the active force is unbounded")
