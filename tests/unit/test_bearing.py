@@ -77,3 +77,30 @@ def test_errors():
         bearing_capacity(method="vesic", B=2, D=0, phi=30, gamma=18, q=0, e_B=1.0)
     with pytest.raises(GeoTekError, match="exceeds"):
         bearing_capacity(method="hansen", B=2, D=0, phi=0, c=10, gamma=18, q=0, V=100, H=50)
+
+
+def test_nc_is_stable_for_tiny_friction_angle():
+    """ENG-B-006: Nc -> pi + 2 = 5.14159 as phi -> 0 (analytic limit of (Nq-1)/tan phi)."""
+    for phi in (1e-16, 1e-10, 1e-6):
+        nc, nq, ng = bearing_factors(phi, "vesic")
+        assert nc == pytest.approx(math.pi + 2, abs=1e-6)
+        assert nq == pytest.approx(1.0, abs=1e-6)
+    # nominal values are textbook (Bowles): Nc = 14.83, 30.14, 75.31 for 20, 30, 40 deg
+    for phi, nc_ref in ((20, 14.83), (30, 30.14), (40, 75.31)):
+        assert bearing_factors(phi, "hansen")[0] == pytest.approx(nc_ref, abs=0.01)
+
+
+def test_bearing_guards():
+    with pytest.raises(GeoTekError):
+        bearing_factors(30, "terzaghi")
+    with pytest.raises(GeoTekError):
+        bearing_capacity(method="terzaghi", B=2, D=0, phi=30, gamma=18, q=0)
+    for bad in (dict(B=float("nan")), dict(gamma=float("inf")), dict(gamma=-1.0), dict(L=float("inf"))):
+        kw = dict(method="vesic", B=2, D=0, phi=30, gamma=18, q=0)
+        kw.update(bad)
+        with pytest.raises(GeoTekError):
+            bearing_capacity(**kw)
+    # Vesic, c = 20, V = 10, H = 100: base = V + B c / tan(phi) = 79.28 < H -> i_q = 0 and
+    # i_c = -1/(Nq - 1) < 0, so q_ult would be negative.
+    with pytest.raises(GeoTekError, match="Horizontal load exceeds"):
+        bearing_capacity(method="vesic", B=2, D=0, phi=30, c=20, gamma=18, q=0, V=10, H=100)

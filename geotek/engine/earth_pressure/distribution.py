@@ -122,7 +122,9 @@ def _layer_coefficients(layer: SoilLayer, state, method, delta, beta, drainage, 
             k = coulomb_ka(phi, delta, theta, beta) if state == "active" else coulomb_kp(phi, delta, theta, beta)
         if state == "passive" and delta > phi / 2:
             warnings.append(f"Layer {layer.id}: Coulomb passive with delta > phi/2 is unconservative")
-        return k * math.cos(math.radians(delta + theta)), k, 0.0
+        # Horizontal projection of the wall force: cos(delta + theta) active, cos(delta - theta) passive.
+        proj = delta + theta if state == "active" else delta - theta
+        return k * math.cos(math.radians(proj)), k, 0.0
     if method == "log_spiral":
         if state != "passive" or beta:
             raise GeoTekError("Log-spiral is implemented for passive pressure, horizontal backfill")
@@ -182,6 +184,9 @@ def lateral_pressure(
     ``submerged_kh`` optionally supplies equivalent M-O kh by layer below GWT:
     psi=atan(kh_equivalent/(1-kv)); face lean ``theta`` is unchanged.
     ``steep_seismic`` permits TBDY 16.24b retaining delta beyond the M-O slope limit.
+    ``surcharge`` is applied as a vertical stress per horizontal length. For a battered face or
+    sloping ground the caller must apply the geometric factor 1 / (1 + tan(theta) tan(beta))
+    to it (as ``walls/layered.py`` does); this function does not.
     ``slope_cohesion="ignore"`` lets a Rankine layer with c' > 0 and sloping backfill drop c'
     (conservative, with a warning) instead of raising.
     """

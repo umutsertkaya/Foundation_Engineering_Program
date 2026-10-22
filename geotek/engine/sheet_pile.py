@@ -297,6 +297,14 @@ def _iterate_toe(solve, toe_of, kwargs: dict):
     raise GeoTekError("Seismic toe-depth iteration did not converge; check the seismic parameters")
 
 
+def _check_design_inputs(depth_increase, allowable_stress_mpa):
+    if not math.isfinite(depth_increase) or depth_increase < 0:
+        raise GeoTekError("depth_increase must be a finite, non-negative number")
+    if allowable_stress_mpa is not None and (
+            not math.isfinite(allowable_stress_mpa) or allowable_stress_mpa <= 0):
+        raise GeoTekError("Allowable stress must be a finite, positive number")
+
+
 def cantilever_sheet_pile(
     profile: SoilProfile,
     H: float,
@@ -305,6 +313,7 @@ def cantilever_sheet_pile(
     allowable_stress_mpa: float | None = None,
     **pressure_kwargs,
 ) -> SheetPileResult:
+    _check_design_inputs(depth_increase, allowable_stress_mpa)
     return _iterate_toe(
         lambda kw: _cantilever_once(profile, H, depth_increase, allowable_stress_mpa, kw),
         lambda r: r.H + r.D0, pressure_kwargs)
@@ -348,6 +357,7 @@ def anchored_sheet_pile(
 ) -> SheetPileResult:
     if not 0 <= anchor_depth < H:
         raise GeoTekError("Anchor must lie between the top of the wall and the dredge line")
+    _check_design_inputs(depth_increase, allowable_stress_mpa)
     return _iterate_toe(
         lambda kw: _anchored_once(profile, H, anchor_depth, depth_increase, allowable_stress_mpa,
                                   anchor_spacing, anchor_inclination, kw),
