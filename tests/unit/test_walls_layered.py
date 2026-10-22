@@ -899,7 +899,7 @@ def test_frozen_legacy_default_two_layer_lateral_pressure():
 
 
 @pytest.mark.parametrize("seismic,expected", [
-    (False, 1.7624732507127798),  # pre-E4 1.77138 was a probe-grid root error; converged value 1.762473 (ENG-B-004)
+    (False, 1.7624732507127798),  # pre-E4 1.77138; vertex probing (ENG-B-004) lands on a different search optimum; that critical circle gives 1.76247 in the old code too
     (True, 1.2941297669813243),  # pre-E4 1.29858; now with surface vertices probed (ENG-B-004) and true centroid arm (ENG-B-002)
 ])
 def test_frozen_legacy_global_default_basic_B460(seismic, expected):
@@ -1090,3 +1090,20 @@ def test_gravity_geometry_rejects_non_finite_and_embedment_not_below_height(bad)
     with pytest.raises(ValueError):
         GravityGeometry(**base)
     GravityGeometry(height=3.0, base_width=2.0, top_width=0.6, embedment=1.0)
+
+
+def test_trial_wedge_accepts_the_exact_unbounded_boundary_beta_equals_phi_minus_psi():
+    """beta = phi = 30 deg, kh = 0: the limit is finite, K = cos^2(phi) = 0.75 (Rankine-type)."""
+    res = trial_wedge(H=6, gamma=18, phi=30, beta=30)
+    assert res.K == pytest.approx(math.cos(math.radians(30)) ** 2, rel=2e-2)
+
+
+def test_wall_analysis_reports_failed_bearing_check_when_horizontal_load_exceeds_capacity(monkeypatch):
+    from geotek.engine.walls import base
+
+    def boom(**kwargs):
+        from geotek.core.errors import BearingFailureError
+        raise BearingFailureError("Horizontal load exceeds the bearing capacity")
+
+    res, failure = base.try_bearing_capacity(boom, B=2)
+    assert res is None and "Horizontal load exceeds" in failure

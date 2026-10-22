@@ -22,7 +22,7 @@ from geotek.engine.earth_pressure.distribution import PressureDistribution, late
 from geotek.engine.sheet_pile import _evaluate
 from geotek.engine.stability import SoilBand
 from geotek.engine.walls.base import (
-    CheckResult, Force, KeySliding, WallAnalysis, attach_without_key, clip_polygon_y, evaluate_checks,
+    CheckResult, Force, KeySliding, try_bearing_capacity, WallAnalysis, attach_without_key, clip_polygon_y, evaluate_checks,
     key_band_force, key_passive_from_diagram, key_warnings, key_weight_forces, seismic_passive_ratio,
     strip_key, weight_forces,
 )
@@ -638,17 +638,23 @@ def analyze_wall_layered(geometry, soil, loads, settings, *, seismic, backfill_s
         # V (inclination and demand) uses total stress, without subtracting U.
         if abs(result.eccentricity) < wf.width / 2:
             v = _bearing_vertical_load(forces, foundation)
-            bearing = bearing_capacity(
+            bearing, failure = try_bearing_capacity(
+                bearing_capacity,
                 method=settings.bearing_method, B=wf.width, D=wf.embedment, phi=0.0, c=foundation.su,
                 gamma=foundation.gamma, q=foundation.overburden, V=v, H=result.sum_h,
                 e_B=result.eccentricity,
             )
-            value = bearing.Q_ult / v
             required = result.checks["bearing"].required
-            result.bearing = bearing
-            result.checks["bearing"] = CheckResult(
-                "bearing", value, required, value >= required,
-                f"q_ult = {bearing.q_ult:.0f} kPa on B' = {bearing.B_eff:.2f} m; "
-                f"q_total = {v / bearing.B_eff:.0f} kPa (V without uplift deduction)",
-            )
+            if bearing is None:
+                result.bearing = None
+                result.checks["bearing"] = CheckResult(
+                    "bearing", 0.0, required, False, f"Bearing capacity exhausted: {failure}")
+            else:
+                value = bearing.Q_ult / v
+                result.bearing = bearing
+                result.checks["bearing"] = CheckResult(
+                    "bearing", value, required, value >= required,
+                    f"q_ult = {bearing.q_ult:.0f} kPa on B' = {bearing.B_eff:.2f} m; "
+                    f"q_total = {v / bearing.B_eff:.0f} kPa (V without uplift deduction)",
+                )
     return result

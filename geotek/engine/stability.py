@@ -131,7 +131,8 @@ def _slip_interval(model: SlopeModel, xc, yc, R, n_probe=600):
     x0, x1 = max(model._sx[0], xc - R), min(model._sx[-1], xc + R)
     if x1 <= x0:
         return None
-    # Surface vertices are probed explicitly so a narrow re-emergence at a breakpoint is not missed.
+    # Surface vertices are probed explicitly: the depth surface - arc is concave on each linear
+    # segment, so probing the vertices splits below-ground runs correctly at breakpoints.
     verts = model._sx[(model._sx > x0) & (model._sx < x1)]
     x = np.unique(np.concatenate([np.linspace(x0, x1, n_probe), verts]))
     ybot = yc - np.sqrt(np.maximum(R**2 - (x - xc) ** 2, 0.0))
@@ -144,12 +145,6 @@ def _slip_interval(model: SlopeModel, xc, yc, R, n_probe=600):
     starts, ends = edges[::2], edges[1::2] - 1
     k = int(np.argmax(ends - starts))
     i, j = starts[k], ends[k]
-    # The arc must stay below ground at every surface vertex between its first and last
-    # below-ground probe; otherwise it re-emerges (or grazes the surface) inside the mass.
-    first, last = int(starts[0]), int(ends[-1])
-    vert_idx = np.flatnonzero(np.isin(x, verts))
-    if np.any(~pos[vert_idx[(vert_idx > first) & (vert_idx < last)]]):
-        return None
     if i == 0 or j == x.size - 1:
         # The arc is still below ground at the model boundary (or the centre is below the
         # surface): part of the sliding mass would be cut off, so the circle is rejected.
@@ -189,8 +184,9 @@ def bishop(model: SlopeModel, xc: float, yc: float, R: float, *, n_slices: int =
     # Seismic moment arm of the soil column: true centroid of the layered column weight.
     Ms = np.array([model.column_moment(yb, yt) for yb, yt in zip(ybot, ytop)]) * b
     yg = np.where(Ws > 0, Ms / np.where(Ws > 0, Ws, 1.0), 0.5 * (ybot + ytop))
-    # Assumption (conservative, kept from earlier behaviour): the inertia of the surface load
-    # is included in kh * W, acting at the ground surface ytop.
+    # Assumption: the inertia of the surface load is included in kh * W and acts at the ground
+    # surface ytop, the physical location of a surface load's mass (not a conservative choice
+    # relative to the old mid-height arm: yc - ytop < yc - mid-height).
     arm_s, arm_q = yc - yg, yc - ytop
     sin_a = (xm - xc) / R
     cos_a = np.sqrt(np.maximum(1 - sin_a**2, 0.0))

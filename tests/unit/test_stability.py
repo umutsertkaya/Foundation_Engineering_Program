@@ -107,7 +107,8 @@ def test_seismic_moment_arm_uses_layered_column_centroid():
 
 
 def test_seismic_surface_load_inertia_acts_at_surface():
-    """Surface load inertia arm is yc - ytop (larger moment than at mid-height of the column)."""
+    """Surface load inertia acts at the ground surface (arm yc - ytop), its physical location;
+    this is not a conservative choice versus the old mid-height arm."""
     base = dict(surface=[(-30, 0), (0, 0), (20, 10), (50, 10)], layers=[SoilBand(top=10, gamma=18, c=10, phi=20)])
     loaded = SlopeModel(**base, loads=[SurfaceLoad(x1=10, x2=50, q1=30, q2=30)], kh=0.2)
     still = SlopeModel(**base, loads=[SurfaceLoad(x1=10, x2=50, q1=30, q2=30)], kh=0.0)
@@ -116,17 +117,29 @@ def test_seismic_surface_load_inertia_acts_at_surface():
     assert a.fs < b.fs
 
 
-def test_circle_reemerging_at_a_narrow_surface_notch_is_rejected():
-    """ENG-B-004: the arc rises above a 0.2 m wide notch between two surface vertices.
+def test_slip_interval_keeps_longest_run_when_arc_reemerges_at_narrow_notch():
+    """ENG-B-004: surface vertices are probed, so the notch splits the runs; the longest run is kept.
 
-    Circle centre (0, 10), R = 10: arc bottom y = 10 - sqrt(100 - x^2); at x = 5 it is 1.34.
-    The surface sits at y = 1.0 only in the notch x in [4.9, 5.1] (< one probe spacing), so
-    the arc is above the ground at the notch vertices while below it everywhere else.
+    Circle centre (0, 10), R = 10: the arc is above the 0.2 m wide notch (surface y = 1.0 for
+    x in [4.9, 5.1], arc 1.28..1.34), so the mass left of the notch is the longest run.
     """
     surface = [(-20, 5), (4.8, 5), (4.9, 1.0), (5.1, 1.0), (5.2, 5), (20, 5)]
     model = SlopeModel(surface=surface, layers=[SoilBand(top=5, gamma=18, c=5, phi=25)])
-    # arc at x=4.9..5.1 is 1.28..1.34 > 1.0 (re-emerged); elsewhere ybot < 5
     assert 10 - math.sqrt(100 - 4.9**2) > 1.0
     assert 10 - math.sqrt(100 - 5.1**2) > 1.0
     from geotek.engine.stability import _slip_interval
-    assert _slip_interval(model, 0.0, 10.0, 10.0, n_probe=40) is None
+    xa, xb = _slip_interval(model, 0.0, 10.0, 10.0, n_probe=40)
+    assert xa == pytest.approx(-math.sqrt(75), abs=0.05)   # arc crosses y = 5 at x = -8.66
+    assert 4.8 < xb < 4.9                                    # exits at the notch wall, not beyond it
+
+
+def test_second_below_ground_run_does_not_discard_the_toe_to_crest_circle():
+    """Counter-example (review D1): a ditch-like surface step; the critical circle stays admissible.
+
+    Search over the same grid gave 1.7197 before vertex probing; the critical FS must stay there.
+    """
+    model = SlopeModel(surface=[(-40, 4), (-8, 4), (-6, 0), (0, 0), (20, 10), (60, 10)],
+                       layers=[SoilBand(top=10, gamma=18, c=8, phi=28)])
+    r = search_critical_circle(model, x_range=(-10, 30), y_range=(10, 40), tangent_range=(-10, 9.5),
+                               min_width=1.0)
+    assert r.fs == pytest.approx(1.7197, abs=3e-3)
