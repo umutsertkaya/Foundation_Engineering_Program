@@ -143,6 +143,8 @@ class StructureSummary(DTO):
     kind: StructureKind
     wall_type: WallType | None
     stale: bool
+    source_stale: bool = False
+    """True only when the source soil profile changed (or vanished) since the copy was made."""
     has_result: bool
 
 

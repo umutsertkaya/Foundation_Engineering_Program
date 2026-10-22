@@ -46,7 +46,7 @@ export const student: Block[] = [
   {
     type: "p",
     text: {
-      tr: "Dilimlerin α açısı, merkezin dikey hizasından ölçülen taban eğimidir: merkezin solundaki dilimler negatif α, sağındakiler pozitif α ile çalışır (yani sin α = (x − x_c)/R). Bu işaret, Bishop formülünde sürükleyici ve direnç katkısını ayırır. Program sürükleyici kuvveti Σ W sin α ile hesaplar ve kütlenin −x yönüne hareket ettiğini kabul eder: yani kret sağda, toe solda olan bir kesit bu varsayımla uyumludur. Bu sözleşme ters çevrildiğinde program hata vermez; yanlış bir FS döndürür (bkz. bölüm 4 uyarısı). Dilim sayısı n_slices varsayılan olarak 40'tır ve kayma yüzeyinin giriş ile çıkış noktası arasında eşit genişlikte bölünür.", en: "The angle α of a slice is the base inclination measured from the vertical through the centre: slices to the left of the centre have negative α and those to the right positive α (i.e. sin α = (x − x_c)/R). This sign separates the driving and resisting contributions in Bishop's formula. The program computes the driving force as Σ W sin α and assumes the mass moves in the −x direction: a section with the crest on the right and the toe on the left is consistent with this assumption. If this convention is reversed, the program does not raise an error; it returns a wrong FS (see the warning in section 4). The number of slices n_slices is 40 by default and they are divided into equal widths between the entry and exit points of the slip surface.",
+      tr: "Dilimlerin α açısı, merkezin dikey hizasından ölçülen taban eğimidir: merkezin solundaki dilimler negatif α, sağındakiler pozitif α ile çalışır (yani sin α = (x − x_c)/R). Bu işaret, Bishop formülünde sürükleyici ve direnç katkısını ayırır. Program sürükleyici kuvveti Σ W sin α ile hesaplar ve kütlenin −x yönüne hareket ettiğini kabul eder: yani kret sağda, toe solda olan bir kesit bu varsayımla uyumludur. Kesit ters yönlüyse (kret solda, toe sağda) kritik daire araması bunu tanır ve 'x koordinatlarını aynalayın' türünde açık bir hata verir; bu durumda yanlış bir FS döndürülmez (bkz. bölüm 6). Dilim sayısı n_slices varsayılan olarak 40'tır ve kayma yüzeyinin giriş ile çıkış noktası arasında eşit genişlikte bölünür.", en: "The angle α of a slice is the base inclination measured from the vertical through the centre: slices to the left of the centre have negative α and those to the right positive α (i.e. sin α = (x − x_c)/R). This sign separates the driving and resisting contributions in Bishop's formula. The program computes the driving force as Σ W sin α and assumes the mass moves in the −x direction: a section with the crest on the right and the toe on the left is consistent with this assumption. If the section is reversed (crest on the left, toe on the right), the critical-circle search recognises it and raises an explicit 'mirror the x coordinates' error instead of returning a wrong FS (see section 6). The number of slices n_slices is 40 by default and they are divided into equal widths between the entry and exit points of the slip surface.",
     },
   },
   {
@@ -75,7 +75,7 @@ export const student: Block[] = [
     ],
     program: {
       input: "bishop(model, xc=5.2488, yc=14.5392, R=17.9867, n_slices=4) ve n_slices=40 aynı daire",
-      output: "n = 4: FS = 0.5534;  n = 40: FS = 0.6325 (aramanın kritik dairesi); giriş x = 11.60, çıkış x ≈ 0",
+      output: "n = 4: FS = 0.5534;  n = 40: FS = 0.6325 (aramanın kritik dairesi); çıkış x ≈ −10.00 (sol düz zemin, y = 5), giriş x ≈ 22.65 (kret üstü düz zemin, y = 10)",
       note: { tr: "El hesabı (n = 4) programın n = 4 sonucunu doğruluyor. Dilim sayısı 4'ten 40'a çıkınca FS yaklaşık %14 arttı; yani kaba dilimleme FS'yi düşük çıkarır. Bu yüzden programın varsayılanı 40 dilimdir.", en: "The hand calculation (n = 4) confirms the program's n = 4 result. When the number of slices is increased from 4 to 40, the FS increased by about 14%; i.e., coarse slicing gives a lower FS. This is why the program default is 40 slices." },
     },
   },
@@ -134,7 +134,7 @@ export const student: Block[] = [
     ],
     steps: [
       { label: { tr: "Arama", en: "Search" }, expr: "ızgarada en düşük FS'li daire bulunur, sonra (x_c, y_c, R) üç değişkenli Nelder-Mead ile iyileştirilir", result: "kritik daire: x_c = 2.61, y_c = 14.89, R = 10.23 m" },
-      { label: { tr: "Giriş/çıkış", en: "Entry and exit" }, expr: "daire yüzeyle kretin sol kısmında (x ≈ 11.60) ve toe'da (x ≈ 0) kesişir", result: "x_giriş = 11.60, x_çıkış ≈ 0" },
+      { label: { tr: "Giriş/çıkış", en: "Entry and exit" }, expr: "daire, toe'un solundaki düz zemin çizgisini (y = 5) x_c − √(R² − (y_c − 5)²) = −10.00'da, kretin sağındaki düz zemin çizgisini (y = 10) x_c + √(R² − (y_c − 10)²) = 22.65'te keser", result: "x_çıkış ≈ −10.00, x_giriş ≈ 22.65" },
       { label: { tr: "Sonuç", en: "Result" }, expr: "FS minimum daire üzerinde", result: "FS = 2.163 (7 iterasyon)" },
     ],
     program: {

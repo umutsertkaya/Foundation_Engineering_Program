@@ -6,6 +6,7 @@ import { factorPathLabel } from "../labels";
 import { WallCheckCards } from "./WallCheckCards";
 import { ShearKeyResult } from "./ShearKeyResult";
 import { WallCrossSection } from "./WallCrossSection";
+import { useAssumptionText } from "../../../shared/hooks/useAssumptionText";
 import { useWarningText } from "../../../shared/hooks/useWarningText";
 
 export interface WallResultViewProps {
@@ -35,6 +36,7 @@ export function StaleNotice({ reason }: { reason: "inputs" | "job" }) {
 export function WallResultView({ result, stale = false, staleReason = "inputs" }: WallResultViewProps) {
   const { t } = useTranslation();
   const warningText = useWarningText();
+  const assumptionText = useAssumptionText();
   const basis = resultSectionBasis(result.geometry);
   return (
     <Stack gap="sm" data-stale={stale || undefined}>
@@ -132,7 +134,7 @@ export function WallResultView({ result, stale = false, staleReason = "inputs" }
               <Table.Tbody>
                 {result.assumptions.map((a, idx) => (
                   <Table.Tr key={`assumption-${idx}`}>
-                    <Table.Td fz="xs">{a.text}</Table.Td>
+                    <Table.Td fz="xs">{assumptionText(a)}</Table.Td>
                     <Table.Td fz="xs">{a.source}</Table.Td>
                   </Table.Tr>
                 ))}

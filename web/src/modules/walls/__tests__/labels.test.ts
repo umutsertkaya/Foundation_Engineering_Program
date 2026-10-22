@@ -106,3 +106,16 @@ describe("governing check (structured fields)", () => {
     expect(criticalCheck([check("static", "bearing", 1.4, 1.4), broken])?.name).toBe("sliding");
   });
 });
+
+describe("localizeCheckDetail", () => {
+  it("translates the fixed engine phrases and leaves numbers and symbols alone", async () => {
+    const { localizeCheckDetail } = await import("../labels");
+    const map: Record<string, string> = {
+      "walls.detail.bishop_centre": "Bishop dairesi merkezi",
+      "walls.detail.required": "gerekli ",
+    };
+    const tt: Translate = (key) => map[key] ?? key;
+    expect(localizeCheckDetail("Bishop circle centre (1.00, 2.00), R = 5.00 m", tt)).toBe("Bishop dairesi merkezi (1.00, 2.00), R = 5.00 m");
+    expect(localizeCheckDetail("F_d = 0.9, required 1.1; M_R = 5", tt)).toBe("F_d = 0.9, gerekli 1.1; M_R = 5");
+  });
+});

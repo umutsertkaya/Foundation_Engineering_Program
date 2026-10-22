@@ -3,6 +3,7 @@ import { Card, Text } from "@mantine/core";
 import { useTranslation } from "react-i18next";
 import { spreadLabels } from "../../../shared/soil/axis";
 import { useSoilScheme } from "../../../shared/soil/SoilPatternDefs";
+import { truncate } from "../../../shared/soil/format";
 import { soilStyle, type SoilScheme } from "../../../shared/soil/soilStyle";
 import { buildSectionLayout, type Pt, type SectionInput, type SectionLayout } from "./sectionLayout";
 
@@ -98,8 +99,14 @@ export function WallCrossSection({ title, scheme: schemeProp, ...input }: WallCr
   const mid = (b: { y0: number; y1: number }) => (Math.max(b.y0, plot.y0) + b.y1) / 2;
   const rightYs = spreadLabels(right.map(mid), 26, plot.y0 + 8, plot.y1 - 8);
 
+  // Layer ids are internal (often 32-char UUIDs): show description, then USCS, then a short ordinal.
+  const layerOrder = [...new Set(layout.bands.map((b) => b.layerId))];
+  const bandName = (b: (typeof layout.bands)[number], maxChars: number) => {
+    const text = b.layer.description?.trim() || b.layer.uscs || `${t("web.section.layer_short")} ${layerOrder.indexOf(b.layerId) + 1}`;
+    return truncate(text, maxChars);
+  };
   const bandTitle = (b: (typeof layout.bands)[number]) =>
-    `${b.layerId} (${t(b.origin === "fill" ? "web.section.origin.fill" : "web.section.origin.profile")}) · z ${b.top.toFixed(2)}–${b.bottom.toFixed(2)} m`;
+    `${b.layer.description?.trim() || b.layer.uscs || bandName(b, 40)} (${t(b.origin === "fill" ? "web.section.origin.fill" : "web.section.origin.profile")}) · z ${b.top.toFixed(2)}–${b.bottom.toFixed(2)} m`;
 
   return (
     <Card withBorder padding="xs" radius="sm" data-testid="wall-section">
@@ -227,7 +234,7 @@ export function WallCrossSection({ title, scheme: schemeProp, ...input }: WallCr
             <g key={`l-${b.key}`} data-part="layer-label" data-layer-id={b.layerId}>
               <line x1={plot.x1} y1={mid(b)} x2={gutterX} y2={y - 3} stroke={DIM} strokeWidth={0.8} />
               <text x={gutterX + 2} y={y} fontSize={11} fontWeight={600} fill={TEXT}>
-                {b.layerId}
+                {bandName(b, 18)}
                 {b.origin === "fill" ? ` ${t("web.section.fill_tag")}` : ""}
               </text>
               <text x={gutterX + 2} y={y + 11} fontSize={9.5} fill={DIM}>
@@ -238,7 +245,7 @@ export function WallCrossSection({ title, scheme: schemeProp, ...input }: WallCr
         })}
         {left.map((b) => (
           <text key={`lf-${b.key}`} x={plot.x0 + 4} y={mid(b) + 4} fontSize={10} fontWeight={600} fill={soilStyle(b.layer, scheme).ink} data-part="layer-label" data-layer-id={b.layerId}>
-            {b.layerId}
+            {bandName(b, 12)}
           </text>
         ))}
       </svg>

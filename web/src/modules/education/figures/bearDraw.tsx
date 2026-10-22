@@ -248,7 +248,17 @@ export function LiqSptCorrelation() {
         { pts: pts(15), c: K.green, label: "FC = %15" },
         { pts: pts(35), c: K.red, label: "FC ≥ %35" },
       ]}
-      extra={(sx, sy) => <g><Ln x1={sx(30)} y1={sy(0)} x2={sx(30)} y2={sy(0.6)} c={K.orange} w={2} d="6 4" /><Tx x={sx(30) - 6} y={sy(0.03)} a="end" c={K.orange} b>(N1)60cs ≥ 30: sıvılaşmaz</Tx></g>}
+      extra={(sx, sy) => (
+        <g>
+          {/* (N1)60cs = 30 is the dense limit; in (N1)60 it sits at (30 − a) / b, which depends on FC. */}
+          {[[5, K.blue], [15, K.green], [35, K.red]].map(([fc, c]) => {
+            const [a, b] = fcShift(fc as number);
+            const x = (30 - a) / b;
+            return x <= 29.5 ? <Ln key={fc as number} x1={sx(x)} y1={sy(0)} x2={sx(x)} y2={sy(0.6)} c={c as string} w={1.4} d="6 4" /> : null;
+          })}
+          <Tx x={sx(29.5)} y={sy(0.03)} a="end" c={K.orange} b>kesikli: (N1)60cs = 30 (FC'ye göre (N1)60 değeri değişir)</Tx>
+        </g>
+      )}
     />
   );
 }
@@ -257,12 +267,13 @@ export function LiqMsfCurve() {
   const m = linspace(5.5, 8.5, 30);
   return (
     <Chart
-      label="Magnitude scaling factor" xr={[5.5, 8.5]} yr={[0.5, 2]} xl="moment büyüklüğü Mw" yl="deprem büyüklüğü ölçek faktörü MSF"
+      label="Magnitude scaling factor" xr={[5.5, 8.5]} yr={[0.5, 3]} xl="moment büyüklüğü Mw" yl="deprem büyüklüğü ölçek faktörü MSF"
       series={[
-        { pts: m.map((x) => [x, Math.min(1.8, 6.9 * Math.exp(-x / 4) - 0.058)]), c: K.blue, label: "Idriss" },
-        { pts: m.map((x) => [x, Math.min(1.8, (x / 7.5) ** -2.56)]), c: K.red, d: "7 4", label: "Andrus–Stokoe" },
+        // Same equations as the text and the engine (Youd 2001): no clipping inside the axis range.
+        { pts: m.map((x) => [x, 10 ** 2.24 / x ** 2.56]), c: K.blue, label: "Youd (Idriss) 10^2,24 / M^2,56" },
+        { pts: m.map((x) => [x, (x / 7.5) ** -3.3]), c: K.red, d: "7 4", label: "Andrus–Stokoe (M/7,5)^−3,3" },
       ]}
-      extra={(sx, sy) => <g><Ln x1={sx(7.5)} y1={sy(0.5)} x2={sx(7.5)} y2={sy(2)} c={K.mut} w={1} d="4 4" /><Tx x={sx(7.5) + 8} y={sy(0.62)}>Mw = 7,5 için MSF = 1</Tx></g>}
+      extra={(sx, sy) => <g><Ln x1={sx(7.5)} y1={sy(0.5)} x2={sx(7.5)} y2={sy(3)} c={K.mut} w={1} d="4 4" /><Tx x={sx(7.5) + 8} y={sy(0.62)}>Mw = 7,5 için MSF = 1</Tx></g>}
     />
   );
 }
@@ -298,6 +309,16 @@ export function LiqLpiWeight() {
 
 /* ───────────── Classification ───────────── */
 
+/** Diameter at which the (log-x linear) curve reaches `percent` finer: the D10 / D30 / D60 helper lines sit on the curve. */
+function diameterAt(pts: [number, number][], percent: number): number {
+  for (let i = 1; i < pts.length; i += 1) {
+    const [d0, p0] = pts[i - 1];
+    const [d1, p1] = pts[i];
+    if (percent >= p0 && percent <= p1) return d0 * (d1 / d0) ** ((percent - p0) / (p1 - p0));
+  }
+  return pts[pts.length - 1][0];
+}
+
 export function ClsGradingCurve() {
   const pts: [number, number][] = [[0.01, 3], [0.075, 8], [0.2, 18], [0.5, 40], [1, 62], [2, 80], [4.75, 94], [10, 100]];
   return (
@@ -306,7 +327,7 @@ export function ClsGradingCurve() {
       series={[{ pts, c: K.blue }]}
       extra={(sx, sy) => (
         <g>
-          {[[10, 0.075], [30, 0.35], [60, 0.8]].map(([p, d]) => (
+          {[10, 30, 60].map((p) => [p, diameterAt(pts, p)]).map(([p, d]) => (
             <g key={p}><Ln x1={sx(0.01)} y1={sy(p)} x2={sx(d)} y2={sy(p)} c={K.orange} w={1.4} d="4 4" /><Ln x1={sx(d)} y1={sy(p)} x2={sx(d)} y2={sy(0)} c={K.orange} w={1.4} d="4 4" />
               <Tx x={sx(d) + 5} y={sy(0) - 8} c={K.orange} b>D{p}</Tx></g>
           ))}
@@ -329,7 +350,8 @@ export function ClassUscsPlasticity() {
       ]}
       extra={(sx, sy) => (
         <g>
-          <rect x={sx(10)} y={sy(7)} width={sx(29.5) - sx(10)} height={sy(4) - sy(7)} fill={K.orange} opacity={0.4} />
+          {/* CL-ML: PI 4-7, right of the U-line end (LL 16) and above the A-line (PI >= 0,73 (LL − 20)) */}
+          <polygon points={[[16, 4], [20 + 4 / 0.73, 4], [20 + 7 / 0.73, 7], [16, 7]].map(([x, y]) => `${sx(x)},${sy(y)}`).join(" ")} fill={K.orange} opacity={0.4} />
           <Tx x={sx(31)} y={sy(5)} c={K.orange} b>CL-ML</Tx>
           <Ln x1={sx(50)} y1={sy(0)} x2={sx(50)} y2={sy(60)} c={K.mut} w={1.2} d="4 4" /><Tx x={sx(25)} y={sy(52)} a="middle" b>düşük plastisite</Tx><Tx x={sx(52)} y={sy(9)}>A: PI = 0,73 (LL − 20)</Tx><Tx x={sx(52)} y={sy(4)}>U: PI = 0,9 (LL − 8)</Tx><Tx x={sx(75)} y={sy(52)} a="middle" b>yüksek plastisite</Tx>
           <Tx x={sx(34)} y={sy(22)} c={K.green} b>CL</Tx><Tx x={sx(70)} y={sy(44)} c={K.green} b>CH</Tx><Tx x={sx(32)} y={sy(2.3)} c={K.violet} b>ML / OL</Tx><Tx x={sx(70)} y={sy(14)} c={K.violet} b>MH / OH</Tx>

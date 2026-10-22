@@ -71,6 +71,7 @@ def _summary(project: Project) -> dto.ProjectSummary:
             dto.StructureSummary(
                 id=item.id, name=item.name, kind=item.kind,
                 wall_type=getattr(item, "wall_type", None),
+                source_stale=item.soil.is_stale(profiles.get(item.soil.source_profile_id)),
                 stale=(item.soil.is_stale(profiles.get(item.soil.source_profile_id))
                        or (item.result_hash is not None
                            and item.result_hash != calculation_fingerprint(project, item))),

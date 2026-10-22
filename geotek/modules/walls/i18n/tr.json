@@ -201,5 +201,19 @@
   "walls.key.col_demand_m": "Diş moment istemi M (kNm/m)",
   "walls.key.governing.base": "taban",
   "walls.key.governing.deep": "diş ucu",
-  "walls.key.result_note": "Dişli güvenlik sayısı iki aday kayma yüzeyinden küçüğüdür; dişin kaymayı azaltması mümkündür, bu durumda uyarı verilir."
+  "walls.key.result_note": "Dişli güvenlik sayısı iki aday kayma yüzeyinden küçüğüdür; dişin kaymayı azaltması mümkündür, bu durumda uyarı verilir.",
+  "walls.detail.bishop_centre": "Bishop dairesi merkezi",
+  "walls.detail.resultant_outside": "Bileşke taban dışında",
+  "walls.detail.reduced_passive": "+ azaltılmış pasif",
+  "walls.detail.key_passive": "+ diş pasifi",
+  "walls.detail.key_passive_design": "+ diş pasifi P_p,d",
+  "walls.detail.governing_base": "yöneten yüzey: taban",
+  "walls.detail.governing_deep": "yöneten yüzey: diş ucu",
+  "walls.detail.paren_base": "(taban ",
+  "walls.detail.key_tip": "diş ucu ",
+  "walls.detail.v_without_uplift": "(V kaldırma düşülmeden)",
+  "walls.detail.q_ult_on": "q_ult = {value}, etkin B'",
+  "walls.detail.required": "gerekli ",
+  "walls.detail.eb_limit": "(e/B sınırı ",
+  "walls.detail.limit": "(sınır "
 }

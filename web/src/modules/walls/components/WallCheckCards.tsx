@@ -8,6 +8,7 @@ import {
   checkNameLabel,
   comboLabel,
   deriveGoverning,
+  localizeCheckDetail,
   stripKvPrefix,
   splitCase,
   stateLabel,
@@ -41,7 +42,7 @@ export function WallCheckCard({ check, governing, governingKind }: WallCheckCard
   const { t } = useTranslation();
   const { state, combo } = splitCase(check.case);
   const kvSign = check.kv_sign ?? null;
-  const detail = stripKvPrefix(check.detail, kvSign);
+  const detail = localizeCheckDetail(stripKvPrefix(check.detail, kvSign), t);
   const percent = utilisationPercent(check);
   const color = utilisationColor(check.utilisation);
   const symbol = check.comparison === ">=" ? "≥" : "≤";

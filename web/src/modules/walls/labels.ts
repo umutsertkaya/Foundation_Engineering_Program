@@ -77,6 +77,37 @@ export function stripKvPrefix(detail: string, sign: KvDirection | null | undefin
   return detail.startsWith(prefix) ? detail.slice(prefix.length) : detail;
 }
 
+/**
+ * The engine writes check details as English formula text with a few fixed phrases. Those phrases are
+ * shown in the UI language; numbers, symbols and units stay as the engine wrote them.
+ */
+const DETAIL_PHRASES: Array<[RegExp, string]> = [
+  [/Bishop circle centre/g, "walls.detail.bishop_centre"],
+  [/Resultant outside the base/g, "walls.detail.resultant_outside"],
+  [/\+ reduced passive/g, "walls.detail.reduced_passive"],
+  [/\+ key passive/g, "walls.detail.key_passive"],
+  [/\+ key P_p,d/g, "walls.detail.key_passive_design"],
+  [/governing surface: base/g, "walls.detail.governing_base"],
+  [/governing surface: deep/g, "walls.detail.governing_deep"],
+  [/\(base (?=\d)/g, "walls.detail.paren_base"],
+  [/key tip (?=\d)/g, "walls.detail.key_tip"],
+  [/\(V without uplift deduction\)/g, "walls.detail.v_without_uplift"],
+  [/q_ult = (.+?) on B'/g, "walls.detail.q_ult_on"],
+  [/required (?=\d)/g, "walls.detail.required"],
+  [/\(e\/B limit /g, "walls.detail.eb_limit"],
+  [/\(limit (?=\d)/g, "walls.detail.limit"],
+];
+
+export function localizeCheckDetail(detail: string, t: Translate): string {
+  let out = detail;
+  for (const [pattern, key] of DETAIL_PHRASES) {
+    out = out.replace(pattern, (...match) => {
+      return key === "walls.detail.q_ult_on" ? String(t(key, { replace: { value: String(match[1]) } })) : String(t(key));
+    });
+  }
+  return out;
+}
+
 export type GoverningKind = "failing" | "sizing" | "critical" | "minimum_width";
 
 export interface GoverningInfo {

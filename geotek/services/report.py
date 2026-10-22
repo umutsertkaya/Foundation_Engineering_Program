@@ -349,6 +349,32 @@ def _governing_line(w: _Writer, result: dict) -> str:
             f"({_fmt(top['utilisation'], 2)})")
 
 
+def _structure_basis(w: _Writer, structure, design_code: str, sds, r=None) -> list[tuple[str, str]]:
+    """Rows stating what the structure itself was calculated with (not the project defaults)."""
+    rows = [
+        (w.tr("report.struct.design_code"), w.code_label(design_code)),
+        (w.tr("report.struct.analysis_level"), w.enum("ui.level", structure.analysis_level)),
+        (w.tr("report.struct.sds"), _fmt(sds, 3)),
+    ]
+    if r is not None:
+        rows.append((w.tr("report.struct.r"), _fmt(r, 2)))
+    return rows
+
+
+def _structure_gwt_rows(w: _Writer, structure) -> list[tuple[str, str]]:
+    """Retained / front water depths (design and seismic) the calculation used; fall back to the profile's."""
+    soil = structure.soil
+    rows: list[tuple[str, str]] = []
+    for side, gwt in (("retained", soil.gwt_retained or soil.profile.gwt),
+                      ("front", soil.gwt_front or soil.profile.gwt)):
+        rows.append((w.tr(f"report.struct.gwt_{side}_design"), _fmt(gwt.depth_design)))
+        rows.append((w.tr(f"report.struct.gwt_{side}_seismic"), _fmt(gwt.depth_seismic)))
+    front_override = getattr(structure, "front_water_depth", None)
+    if front_override is not None:
+        rows.append((w.tr("report.struct.front_water_depth"), _fmt(front_override)))
+    return rows
+
+
 def _wall_section(w: _Writer, structure, result: dict) -> None:
     w.heading(w.tr("report.section.wall", name=structure.name or structure.id))
     inputs = structure.inputs
@@ -360,6 +386,8 @@ def _wall_section(w: _Writer, structure, result: dict) -> None:
         (w.tr("report.wall.surcharge_basis"), w.enum("report.surcharge_basis", inputs.surcharge_basis)),
         (w.tr("report.wall.gwt_case"), w.enum("web.soil.gwt", f"{inputs.gwt_case}_short")),
         (w.tr("report.wall.approach"), structure.approach or DASH),
+        *_structure_basis(w, structure, structure.settings.design_code, inputs.sds, inputs.r),
+        *_structure_gwt_rows(w, structure),
         (w.tr("report.wall.kh"), _fmt(result.get("kh"), 3)),
         (w.tr("report.wall.kv"), _fmt(result.get("kv"), 3)),
     ])
@@ -402,6 +430,18 @@ def _wall_section(w: _Writer, structure, result: dict) -> None:
     _evidence(w, result)
 
 
+def _anchor_rows(w: _Writer, structure, result: dict) -> list[tuple[str, str]]:
+    """Per-anchor load, spacing and inclination actually used (anchored support only)."""
+    if structure.support != "anchored":
+        return []
+    return [
+        (w.tr("report.pile.anchor_force_per_anchor"), _fmt(result.get("anchor_force_per_anchor"), 1)),
+        (w.tr("report.pile.anchor_spacing"), _fmt(result.get("anchor_spacing_used", structure.anchor_spacing))),
+        (w.tr("report.pile.anchor_inclination"),
+         _fmt(result.get("anchor_inclination_used", structure.anchor_inclination), 1)),
+    ]
+
+
 def _sheet_pile_section(w: _Writer, structure, result: dict) -> None:
     w.heading(w.tr("report.section.sheet_pile", name=structure.name or structure.id))
     w.key_values([
@@ -410,12 +450,15 @@ def _sheet_pile_section(w: _Writer, structure, result: dict) -> None:
         (w.tr("report.pile.surcharge"), _fmt(structure.surcharge)),
         (w.tr("report.pile.surcharge_basis"), w.enum("report.surcharge_basis", structure.surcharge_basis)),
         (w.tr("report.wall.approach"), structure.approach or DASH),
+        *_structure_basis(w, structure, structure.design_code, structure.sds),
+        *_structure_gwt_rows(w, structure),
         (w.tr("report.pile.H"), _fmt(result.get("H"))),
         (w.tr("report.pile.D0"), _fmt(result.get("D0"))),
         (w.tr("report.pile.D"), _fmt(result.get("D"))),
         (w.tr("report.pile.total_length"), _fmt(result.get("total_length"))),
         (w.tr("report.pile.anchor_depth"), _fmt(result.get("anchor_depth"))),
         (w.tr("report.pile.anchor_force"), _fmt(result.get("anchor_force"), 1)),
+        *_anchor_rows(w, structure, result),
         (w.tr("report.pile.toe_force"), _fmt(abs(result["toe_force"]) if isinstance(result.get("toe_force"), (int, float)) else None, 1)),
         (w.tr("report.pile.M_max"), _fmt(result.get("M_max"), 1)),
         (w.tr("report.pile.z_M_max"), _fmt(result.get("z_M_max"))),

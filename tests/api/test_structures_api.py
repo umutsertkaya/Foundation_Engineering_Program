@@ -108,7 +108,7 @@ def test_list_filter_and_summary_freshness(shell, opened):
     rows = shell.get("/api/structures").json()
     assert [row["id"] for row in rows] == [wall["id"], pile["id"]]
     assert rows[0] == {"id": wall["id"], "name": "Wall", "kind": "retaining_wall",
-                       "wall_type": "cantilever", "stale": False, "has_result": True}
+                       "wall_type": "cantilever", "stale": False, "source_stale": False, "has_result": True}
     assert rows[1]["wall_type"] is None and rows[1]["has_result"] is False
     for kind in ("sheet_pile", "retaining_wall"):
         filtered = shell.get("/api/structures", params={"kind": kind}).json()

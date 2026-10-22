@@ -43,6 +43,7 @@ import { ErrorAlert } from "../../../shared/components/ErrorAlert";
 import { MissingFactorsForm } from "../../../shared/components/MissingFactorsForm";
 import { StructureSoilSection } from "../../../shared/structureSoil/StructureSoilSection";
 import { useJob } from "../../../shared/hooks/useJob";
+import { usePreSaveHook } from "../../../shared/hooks/usePreSaveHook";
 import { useUndoable } from "../../../shared/hooks/useUndoable";
 import { validateGwt, validateStructureSoil } from "../../../shared/soil/layerOps";
 import type { GwtCase } from "../../../shared/soil/zones";
@@ -128,6 +129,9 @@ export function WallWizardPage() {
   /** Inputs signature at the moment the shown result was produced (see `inputSignature`). */
   const [resultSig, setResultSig] = useState<string | null>(null);
   const [captureSig, setCaptureSig] = useState<boolean>(false);
+  /** Inputs signature of what the stored structure holds; differs from `inputSignature` while a draft is unsaved. */
+  const [savedSig, setSavedSig] = useState<string | null>(null);
+  const [captureSaved, setCaptureSaved] = useState<boolean>(false);
 
   const job = useJob<WallResultDTO>();
 
@@ -198,6 +202,7 @@ export function WallWizardPage() {
       setLastResult(stored);
       setResultFromStore(stored !== null);
       if (stored) setCaptureSig(true);
+      setCaptureSaved(true);
     } catch (err) {
       if (err instanceof ApiError) {
         setLoadError(err);
@@ -218,6 +223,7 @@ export function WallWizardPage() {
       setLastResult(job.result);
       setResultFromStore(false);
       setCaptureSig(true);
+      setCaptureSaved(true);
       if (lastRunMode === "suggest") {
         if ("stem_bottom" in job.result.geometry) {
           setCantileverGeo({ ...job.result.geometry });
@@ -298,6 +304,16 @@ export function WallWizardPage() {
     }
   }, [captureSig, inputSignature]);
 
+  // The stored structure now equals the form (after load, a run's own save, or the top Save).
+  useEffect(() => {
+    if (captureSaved) {
+      setSavedSig(inputSignature);
+      setCaptureSaved(false);
+    }
+  }, [captureSaved, inputSignature]);
+
+  const formDirty = savedSig !== null && !captureSaved && savedSig !== inputSignature;
+
   const handleCantileverEdit = (field: keyof CantileverGeometry, val: string | number) => {
     const num = typeof val === "number" ? val : Number.parseFloat(val);
     if (!Number.isFinite(num)) return;
@@ -350,8 +366,18 @@ export function WallWizardPage() {
     const saved = (await update_structure(structure.id, updated)) as RetainingWallStructure;
     setStructure(saved);
     if (soilDraft.dirty) soilDraft.reset(saved.soil);
+    setCaptureSaved(true);
     return saved;
   };
+
+  /** Top project Save: persist the on-screen load/seismic/geometry draft into the structure first. */
+  usePreSaveHook(async () => {
+    if (!structure || !formDirty) return;
+    if (seismicInvalid) throw new Error(t("web.wizard.save_blocked_seismic"));
+    const saved = await syncStructureBeforeRun();
+    if (!saved) throw new Error(t("web.wizard.save_blocked_soil"));
+    void refreshStale();
+  });
 
   const passiveUnconfirmed = () => analysisLevel === "advanced" && analysisOptions.use_passive && !passiveConfirmed;
   const seismicInvalid = !sdsInRange(sds) || !rInRange(rFactor);
