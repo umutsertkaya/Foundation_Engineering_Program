@@ -198,6 +198,22 @@ describe("finished job result", () => {
   });
 });
 
+describe("liquefaction LPI summary", () => {
+  it("shows LPI and category per sounding and flags incomplete coverage", async () => {
+    renderResults({
+      per_sounding: {
+        "BH-1": { depth: [1, 2], CSR: [0.2, 0.3], CRR: [0.1, 0.2], FS: [0.5, null], status: ["liquefiable", "invalid"], warnings: [], LPI: 9.2, LPI_category: "high", LPI_incomplete: true },
+        "BH-2": { depth: [1], CSR: [0.2], CRR: [0.2], FS: [null], status: ["invalid"], warnings: [], LPI: null, LPI_category: null, LPI_incomplete: false },
+      },
+      errors: {},
+    });
+    expect(await screen.findByTestId("liq-lpi-BH-1")).toHaveTextContent("9.20 *");
+    expect(screen.getByText(tr["liquefaction.results.lpi_category.high"])).toBeInTheDocument();
+    expect(screen.getByTestId("liq-lpi-BH-2")).toHaveTextContent("—");
+    expect(screen.getByTestId("liq-lpi-incomplete")).toBeInTheDocument();
+  });
+});
+
 describe("liquefaction result details", () => {
   it("preserves the summary, displays DTO rows and two labelled charts, and selects soundings", async () => {
     const { container } = renderResults();

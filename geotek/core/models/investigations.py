@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from typing import Literal
 
+import math
+
 import numpy as np
 from pydantic import BaseModel, Field, field_validator, model_validator
 
@@ -36,6 +38,8 @@ class LabRecord(BaseModel):
 
     @model_validator(mode="after")
     def _plasticity_index(self) -> LabRecord:
+        if self.FC is not None and self.gravel is not None and self.FC + self.gravel > 100.0 + 1e-9:
+            raise ValueError(f"Fines ({self.FC}) + gravel ({self.gravel}) cannot exceed 100 %")
         if self.LL is not None and self.PL is not None:
             if self.PL > self.LL:
                 raise ValueError(f"PL ({self.PL}) cannot exceed LL ({self.LL})")
@@ -121,7 +125,8 @@ class CPTSounding(BaseModel):
     depth: list[float]
     qc: list[float]
     fs: list[float]
-    u2: list[float] | None = None
+    u2: list[float | None] | None = None
+    """Pore pressure u2 [kPa]; ``None`` entries are cells missing in the source (not measured zeros)."""
 
     @model_validator(mode="after")
     def _check_arrays(self) -> CPTSounding:
@@ -131,9 +136,10 @@ class CPTSounding(BaseModel):
         for name in ("qc", "fs") + (("u2",) if self.u2 is not None else ()):
             if len(getattr(self, name)) != n:
                 raise ValueError(f"CPT column {name!r} length differs from depth")
-        columns = ("depth", "qc", "fs") + (("u2",) if self.u2 is not None else ())
-        if not all(np.isfinite(getattr(self, name)).all() for name in columns):
+        if not all(np.isfinite(getattr(self, name)).all() for name in ("depth", "qc", "fs")):
             raise ValueError("CPT columns must contain only finite numbers")
+        if self.u2 is not None and not all(v is None or math.isfinite(v) for v in self.u2):
+            raise ValueError("CPT u2 must contain finite numbers or null for missing cells")
         if np.any(np.diff(self.depth) <= 0):
             raise ValueError("CPT depths must be strictly increasing")
         if self.depth[0] < 0:
@@ -145,7 +151,7 @@ class CPTSounding(BaseModel):
     def arrays(self) -> dict[str, np.ndarray]:
         out = {k: np.asarray(getattr(self, k), dtype=float) for k in ("depth", "qc", "fs")}
         if self.u2 is not None:
-            out["u2"] = np.asarray(self.u2, dtype=float)
+            out["u2"] = np.array([np.nan if v is None else v for v in self.u2], dtype=float)
         return out
 
 

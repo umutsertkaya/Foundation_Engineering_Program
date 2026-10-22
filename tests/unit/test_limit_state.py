@@ -211,3 +211,37 @@ def test_sheet_pile_anchored_and_guard():
     assert d.anchor_force_design == max(c.anchor_force for c in d.cases.values())
     with pytest.raises(GeoTekError, match="passive_factor"):
         design_sheet_pile(_sand_profile(), 5.0, code="ec7", passive_factor=1.5)
+
+
+def _tbdy_gravity_sliding(code_id, delta_base=None):
+    from geotek.config.codes import FactorOverride
+    from geotek.core.models.walls import Backfill, FoundationSoil, GravityGeometry, WallLoads, WallSettings
+    from geotek.engine.limit_state import verify_wall
+    overrides = {}
+    if code_id == "tbdy2018":
+        overrides = {f"TBDY-static.{block}.{key}": FactorOverride(value=1, note="explicit unity for test")
+                     for block, keys in (("load", ["G_unfav", "G_fav", "Q_unfav"]),
+                                         ("material", ["tan_phi", "c_eff", "su"])) for key in keys}
+    geometry = GravityGeometry(height=6, base_width=4, top_width=1)
+    result = verify_wall(geometry, Backfill(gamma=18, phi=30, delta=0),
+                         FoundationSoil(phi=40, gamma=18, delta_base=delta_base),
+                         loads=WallLoads(surcharge=45),
+                         settings=WallSettings(design_code=code_id, factor_overrides=overrides))
+    return result[0].checks["sliding"]
+
+
+def test_tbdy_caps_base_friction_at_tan_delta_0_6():
+    """ENG-C-002. Hand calc: V = (1+4)/2*6*24 = 360 kN/m (delta=0 -> no vertical earth force);
+    H = 0.5*(1/3)*18*6^2 + (1/3)*45*6 = 108 + 90 = 198 kN/m;
+    R_d = 360*0.6/1.1 = 196.36 kN/m (gammaRh = 1.1), ratio = 196.36/198 = 0.9917 (fails)."""
+    check = _tbdy_gravity_sliding("tbdy2018")
+    assert check.value == pytest.approx(360 * 0.6 / 1.1 / 198, rel=1e-4)
+    assert not check.passed
+    assert "Tablo 16.3" in check.detail
+
+
+def test_tbdy_cap_takes_the_smaller_user_delta_base():
+    # tan(20 deg) = 0.364 < 0.6: the user value stays; no cap text.
+    check = _tbdy_gravity_sliding("tbdy2018", delta_base=20.0)
+    assert check.value == pytest.approx(360 * math.tan(math.radians(20)) / 1.1 / 198, rel=1e-4)
+    assert "Tablo 16.3" not in check.detail

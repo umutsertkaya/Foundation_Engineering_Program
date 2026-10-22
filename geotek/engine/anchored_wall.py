@@ -552,8 +552,6 @@ def run_analysis(inputs: AnchoredWallAnalysisInputs) -> AnalysisResult:
         vb = base_reaction + (F[below] - f_h)
         mb = base_reaction * (zb - H) + (F[below] - f_h) * zb - (Fz[below] - fz_h)
         crossing = np.flatnonzero(np.sign(vb) != np.sign(base_reaction))
-        n_keep = int(crossing[0]) + 1 if crossing.size else len(vb)
-        v_max = float(max(np.max(np.abs(vh)), np.max(np.abs(vb[:n_keep]))))
         toe_residual = float(abs(vb[-1])) if crossing.size else 0.0
         if toe_residual > 1e-6:
             warnings.append(Notice(code="toe_force_not_balanced",
@@ -561,12 +559,15 @@ def run_analysis(inputs: AnchoredWallAnalysisInputs) -> AnalysisResult:
         z = np.concatenate([zh, zb])
         shear = np.concatenate([vh, vb])
         moment = np.concatenate([mh, mb])
+        # Largest |V| over the whole returned diagram (the toe-residual part included), so it is conservative.
+        v_max = float(np.max(np.abs(shear)))
         m_max, z_m = _envelope_moment(z, moment)
         assumptions += [
             Notice(code="apparent_envelope_empirical", params={"kind": envelope.kind}),
             Notice(code=f"load_method_{inputs.load_method}"),
             Notice(code="embedment_from_base_reaction"),
         ]
+
         if envelope.kind == "sand" and inputs.surcharge:
             assumptions.append(Notice(code="sand_surcharge_uniform"))
         if inputs.depth_increase is None:

@@ -455,10 +455,15 @@ def _liquefaction_section(w: _Writer, project: Project, data: dict) -> None:
         rows.append([
             sounding_id, _fmt(low[0]) if low else DASH, _fmt(low[1]) if low else DASH,
             str(sum(s == "liquefiable" for s in status)), str(sum(s == "marginal" for s in status)),
+            _fmt(series.get("LPI")) + (" *" if series.get("LPI_incomplete") else ""),
+            w.tr(f"report.liq.lpi_category.{series['LPI_category']}") if series.get("LPI_category") else DASH,
         ])
     w.table([w.tr("report.liq.sounding"), w.tr("report.liq.min_fs"), w.tr("report.liq.min_fs_depth"),
-             w.tr("report.liq.n_liquefiable"), w.tr("report.liq.n_marginal")], rows)
-    notes = [f"{sid}: {w.message(msg)}" for sid, series in (data["result"].get("per_sounding") or {}).items()
+             w.tr("report.liq.n_liquefiable"), w.tr("report.liq.n_marginal"),
+             w.tr("report.liq.lpi"), w.tr("report.liq.lpi_category")], rows)
+    notes = [f"{sid}: {w.tr('report.liq.lpi_incomplete')}" for sid, series in (data["result"].get("per_sounding") or {}).items()
+             if series.get("LPI_incomplete")]
+    notes += [f"{sid}: {w.message(msg)}" for sid, series in (data["result"].get("per_sounding") or {}).items()
              for msg in series.get("warnings") or []]
     if notes:
         w.heading(w.tr("report.warnings"), 3)

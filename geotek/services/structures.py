@@ -743,17 +743,31 @@ def design_sheet_pile_structure(project: Project, structure_id: str, progress: P
     reporter = _Progress(progress)
     reporter.emit(0.0, "job.step.static_checks")
     if code.approach == "global_fs":
-        seismic = structure.sds is not None
-        if seismic:
-            reporter.emit(0.3, "job.step.seismic_checks")
+        has_seismic = structure.sds is not None
         log = FactorLog(code)
         # Preserve the basic sheet-pile convention (FS=static 1.5 even with seismic action).
         # EM 1110-2-2504 Table 5-1: fine-grained (undrained, Q-case) front soil needs the larger factor.
         fine = any(layer.behaviour == "undrained" and layer.bottom > structure.retained_height
                    for layer in structure.soil.front_profile().layers)
         factor = log.value("safety.sheet_pile_passive_fine.static" if fine else "safety.sheet_pile_passive.static")
-        result, kh = _sheet_case(structure, structure.soil, seismic=seismic, passive_factor=factor,
-                                 strength_reduction=True)
+        # The static case is always run: the seismic case uses its own (seismic) groundwater levels and may be
+        # less severe, so the seismic result alone must never stand for the whole design.
+        asd_cases: dict[str, tuple[SheetPileResult, float | None]] = {}
+        for seismic in ([False, True] if has_seismic else [False]):
+            if seismic:
+                reporter.emit(0.3, "job.step.seismic_checks")
+            asd_cases["seismic" if seismic else "static"] = _sheet_case(
+                structure, structure.soil, seismic=seismic, passive_factor=factor, strength_reduction=True)
+        gd = max(asd_cases, key=lambda k: asd_cases[k][0].D)
+        gm = max(asd_cases, key=lambda k: asd_cases[k][0].M_max)
+        depth, moment = asd_cases[gd][0], asd_cases[gm][0]
+        anchors = [r.anchor_force for r, _ in asd_cases.values() if r.anchor_force is not None]
+        # Same envelope convention as the partial-factor branch: embedment and toe force from the embedment case,
+        # moment, curves and section modulus from the moment case, anchor force the maximum over the cases.
+        result = replace(moment, D0=depth.D0, D=depth.D, toe_force=depth.toe_force,
+                         anchor_force=max(anchors) if anchors else None,
+                         warnings=list(dict.fromkeys([*depth.warnings, *moment.warnings])))
+        kh = asd_cases["seismic"][1] if has_seismic else None
         assumptions = [
             Assumption(text="Katmanlı Rankine aktif/pasif; ön/arka profil ve YASS ayrı; hidrostatik su; sızma yok",
                        source="Rankine (1857); P1 §1", code="sheet_pile.layered_rankine"),
@@ -768,12 +782,17 @@ def design_sheet_pile_structure(project: Project, structure_id: str, progress: P
             # The user-set increase replaces the default 20 % cantilever statement.
             assumptions = [a for a in assumptions if a.code != "sheet_pile.support_method"]
         assumptions.extend(_sheet_assumptions(structure))
-        if seismic:
+        if has_seismic:
             assumptions.append(Assumption(text="r=1; KDYY dinamik artımı: duvar boyunca (0..uç) düzgün ½·ΔK_ad·σ′v(uç) + "
                                                 "sürşarj için üçgen 2·q·ΔK_ad·(1−z/uç), uç derinliği yinelemeyle; "
                                                 "katman başına pasif M-O/Rankine oranı en çok 1; drenajsız deprem durdurulur; "
                                                 "hidrodinamik ve fazla boşluk suyu basıncı yok", source=SRC_TBDY_SEISMIC,
                                                 code="sheet_pile.seismic", params={"r": 1, "passive_ratio_max": 1}))
+        if has_seismic:
+            assumptions.append(Assumption(
+                text=f"Embedment and toe force: {gd}; moment, curves and section modulus: {gm}; anchor force: case envelope.",
+                source="geotek.services.structures.design_sheet_pile_structure (static and seismic cases)",
+                code="sheet_pile.governing_cases", params={"embedment": gd, "moment": gm}))
         reporter.emit(1.0, "job.step.sizing")
         return StructureBasicSheetPileResult(
             result=result, assumptions=assumptions, kh=kh, warnings=list(result.warnings),

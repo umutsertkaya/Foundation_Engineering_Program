@@ -83,3 +83,17 @@ def test_combine_excludes_invalid_then_falls_back():
     assert combine([a, b]).value == pytest.approx(b.value)
     only_bad = combine([a])
     assert not only_bad.validity_ok and only_bad.warnings
+
+
+def test_negative_strength_and_dr_above_100_are_marked_invalid():
+    from geotek.engine.correlations.registry import evaluate
+    # su = (q_t - sigma_v0) / N_kt = (50 - 100) / 14 = -3.571 kPa -> not physical
+    neg = evaluate("CPT_su_Nkt", {"qt": 50.0, "sigma_v": 100.0, "Ic": 3.0})
+    assert neg.value == pytest.approx(-50.0 / 14.0)
+    assert not neg.validity_ok and any("Negative su" in w for w in neg.warnings)
+    # Dr = 100 sqrt(N1_60 / Cd) = 100 sqrt(90 / 60) = 122.47 % -> above 100 %
+    dr = evaluate("Skempton1986_Dr_SPT", {"N1_60": 90.0})
+    assert dr.value == pytest.approx(100 * (90 / 60) ** 0.5)
+    assert not dr.validity_ok and any("exceeds 100" in w for w in dr.warnings)
+    ok = evaluate("Skempton1986_Dr_SPT", {"N1_60": 30.0})
+    assert ok.value == pytest.approx(100 * 0.5 ** 0.5) and ok.validity_ok

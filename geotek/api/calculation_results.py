@@ -153,10 +153,16 @@ def sheet_pile_result(id: str, result) -> dto.SheetPileResultDTO:
 
 def liquefaction_result(result) -> dto.LiquefactionResultDTO:
     """Keep independent sounding errors and depth-aligned triggering statuses."""
-    return dto.LiquefactionResultDTO(
-        per_sounding={id: dto.SoundingLiquefactionDTO(
+    def one(item) -> dto.SoundingLiquefactionDTO:
+        summary = item.summary()
+        return dto.SoundingLiquefactionDTO(
             depth=item.depth.tolist(), CSR=item.csr.tolist(), CRR=item.crr.tolist(),
             FS=item.fs.tolist(), status=item.status.tolist(), warnings=item.warnings,
-        ) for id, item in result.liquefaction.items()},
+            LPI=summary["LPI"], LPI_category=summary["LPI_category"],
+            LPI_incomplete=summary["LPI_incomplete"],
+        )
+
+    return dto.LiquefactionResultDTO(
+        per_sounding={id: one(item) for id, item in result.liquefaction.items()},
         errors=result.errors,
     )
