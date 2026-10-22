@@ -245,3 +245,13 @@ def test_tbdy_cap_takes_the_smaller_user_delta_base():
     check = _tbdy_gravity_sliding("tbdy2018", delta_base=20.0)
     assert check.value == pytest.approx(360 * math.tan(math.radians(20)) / 1.1 / 198, rel=1e-4)
     assert "Tablo 16.3" not in check.detail
+
+
+def test_tbdy_cap_applies_to_characteristic_coefficient_before_material_factor():
+    """phi=40 (tan 0.839), gammaRphi=1.25: tan(delta_d) = min(0.839, 0.6)/1.25 = 0.48, not 0.6 (cap on reduced value)."""
+    from geotek.engine.limit_state import _base_friction_angle
+    from geotek.core.models.walls import FoundationSoil
+    fd = FoundationSoil(phi=math.degrees(math.atan(math.tan(math.radians(40)) / 1.25)), gamma=18)
+    db, capped = _base_friction_angle("tbdy2018", fd, 1.25)
+    assert capped and math.tan(math.radians(db)) == pytest.approx(0.48)
+    assert _base_friction_angle("ec7", fd, 1.25)[1] is False
