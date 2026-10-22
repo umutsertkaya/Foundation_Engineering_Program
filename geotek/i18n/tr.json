@@ -467,6 +467,7 @@
   "layering.warning.log_missing": "Sondajın logu yok; tabakalama laboratuvar USCS ve N değerlerine göre yapıldı.",
   "layering.warning.similar_merged": "Aynı zemin davranışına sahip komşu tabakalar birleştirildi.",
   "parameters.warning.phi_cv_assumed_equal_phi_eff": "Kritik hal içsel sürtünme açısı (φ'cv) modellenmemiştir; yerine φ' = {phi_eff}° kullanılmıştır. φ' pik değer ise bu kabul güvensiz taraftadır.",
+  "parameters.warning.layer_behaviour_mismatch": "{method_id} yöntemi yalnız {scope} zeminler içindir; bu tabaka {layer} olarak biliniyor, değer önerilmez.",
   "parameters.warning.value_not_computable": "{method_id} yöntemi bu girdiler için hesaplanamıyor.",
   "web.common.deleted_profile": "silinmiş profil",
   "error.detail.slope_exceeds_phi": "Arka zemin eğimi β = {slope}°, tasarım içsel sürtünme açısı φ′ = {phi}° değerini aşıyor; aktif basınç çözümü yok.",

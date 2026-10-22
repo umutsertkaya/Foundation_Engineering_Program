@@ -467,6 +467,7 @@
   "layering.warning.log_missing": "The borehole has no log; layering used laboratory USCS and N values instead.",
   "layering.warning.similar_merged": "Adjacent layers of the same soil behaviour were merged.",
   "parameters.warning.phi_cv_assumed_equal_phi_eff": "phi'cv is not modelled; phi' = {phi_eff} deg is used in its place, which is unconservative for a peak value.",
+  "parameters.warning.layer_behaviour_mismatch": "{method_id} applies only to {scope} soils; this layer is known to be {layer}, so the value is not proposed.",
   "parameters.warning.value_not_computable": "Value is not computable for method {method_id} with these inputs.",
   "web.common.deleted_profile": "deleted profile",
   "error.detail.slope_exceeds_phi": "Backfill slope β = {slope}° exceeds the design friction angle φ′ = {phi}°; the active pressure has no solution.",

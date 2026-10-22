@@ -15,7 +15,7 @@ import {
   type SelectionDraft,
   validCandidates,
 } from "../parameterState";
-import { displayUnit } from "../units";
+import { displayUnit, KEY_UNITS } from "../units";
 import { WarningList } from "./WarningList";
 
 const STATE_COLOR = { approved: "green", stale: "orange", unapproved: "gray" } as const;
@@ -119,7 +119,7 @@ export function ParameterKeyCard({ selection, busy, onApply, onApprove, onDirtyC
   }, [stamp]);
 
   const state = approvalState(selection);
-  const unit = displayUnit(selection.selected?.unit ?? selection.suggested?.unit ?? selection.candidates?.[0]?.unit ?? "");
+  const unit = displayUnit(KEY_UNITS[key] || selection.selected?.unit || selection.suggested?.unit || selection.candidates?.[0]?.unit || "");
   const hasSuggestion = Boolean(selection.suggested);
   const candidates = selection.candidates ?? [];
   const statisticPossible = validCandidates(selection).length > 0;

@@ -538,3 +538,18 @@ def test_mixed_fine_and_sand_samples_do_not_suggest_zero_cohesion(fines, limits,
         project.investigations.boreholes[0].lab[1].c_eff = measured
         suggestion = refresh_profile(project, "P").layers[0].selections["c_eff"].suggested
         assert suggestion.value == measured and suggestion.method_id == "lab_c_eff"
+
+
+def test_sand_only_correlations_not_proposed_for_undrained_clay_layer():
+    bh = Borehole(id="BH", spt=[SPTRecord(depth=2, n_field=20), SPTRecord(depth=5, n_field=12)])
+    layer = _layer(top=0, bottom=12, gamma=20, behaviour="undrained", source_ids=["BH"])
+    project = _project(boreholes=[bh], layers=[layer])
+    refreshed = refresh_profile(project, "P").layers[0]
+    for key in ("phi_eff", "E"):
+        selection = refreshed.selections[key]
+        sand_only = [c for c in selection.candidates
+                     if c.source != "lab" and not c.validity_ok]
+        assert sand_only, key
+        assert all(any("layer_behaviour_mismatch" in w or "known to be" in w or "bilini" in w
+                       for w in c.warnings) for c in sand_only), key
+        assert selection.suggested is None or selection.suggested.method_id.startswith("lab")
