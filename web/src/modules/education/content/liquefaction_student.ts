@@ -149,8 +149,8 @@ export const student: Block[] = [
     type: "figure",
     id: "liq-spt-correlation",
     caption: {
-      tr: "CRR7,5 ile düzeltilmiş (N1)60 ilişkisi. İnce dane oranı FC arttıkça aynı (N1)60 için direnç artar, eğri yukarı kayar. Turuncu kesikli çizgi (N1)60cs = 30 yoğun sınırıdır; bunun ötesinde FS hesaplanmaz.",
-      en: "CRR7.5 versus corrected (N1)60. A higher fines content FC raises the resistance for the same (N1)60, shifting the curve upward. The orange dashed line is the dense limit (N1)60cs = 30; beyond it no FS is computed.",
+      tr: "CRR7,5 ile düzeltilmiş (N1)60 ilişkisi. İnce dane oranı FC arttıkça aynı (N1)60 için direnç artar, eğri yukarı kayar. Renkli kesikli dikey çizgiler (N1)60cs = 30 yoğun sınırının her FC eğrisi için düştüğü (N1)60 değerini gösterir ((N1)60 = (30 − α)/β; FC ≤ %5 için sınır eksenin dışındadır); bunun ötesinde FS hesaplanmaz.",
+      en: "CRR7.5 versus corrected (N1)60. A higher fines content FC raises the resistance for the same (N1)60, shifting the curve upward. The coloured dashed vertical lines mark where the dense limit (N1)60cs = 30 falls in (N1)60 for each FC curve ((N1)60 = (30 − α)/β; for FC ≤ 5 percent it lies outside the axis); beyond it no FS is computed.",
     },
   },
   {
@@ -214,8 +214,8 @@ export const student: Block[] = [
     type: "figure",
     id: "liq-msf-curve",
     caption: {
-      tr: "Deprem büyüklüğü ölçekleme faktörü MSF, M = 7,5'te 1'dir. Mavi: Idriss; kırmızı kesikli: Andrus-Stokoe. M < 7,5'te MSF > 1, M > 7,5'te MSF < 1 olur.",
-      en: "Magnitude scaling factor MSF equals 1 at M = 7.5. Blue: Idriss; red dashed: Andrus-Stokoe. MSF > 1 for M < 7.5 and < 1 for M > 7.5.",
+      tr: "Deprem büyüklüğü ölçekleme faktörü MSF, M = 7,5'te 1'dir. Mavi: Youd (Idriss) 10^2,24 / M^2,56; kırmızı kesikli: Andrus-Stokoe (M/7,5)^−3,3. M < 7,5'te MSF > 1, M > 7,5'te MSF < 1 olur.",
+      en: "Magnitude scaling factor MSF equals 1 at M = 7.5. Blue: Youd (Idriss) 10^2.24 / M^2.56; red dashed: Andrus-Stokoe (M/7.5)^−3.3. MSF > 1 for M < 7.5 and < 1 for M > 7.5.",
     },
   },
   {
@@ -418,8 +418,8 @@ export const student: Block[] = [
         a: { tr: "FS = 0,15 / 0,20 = 0,75 < 1: sıvılaşabilir (liquefiable).", en: "FS = 0.75; liquefiable." },
       },
       {
-        q: { tr: "Dört noktalı LPI örneğinde (FS = 0,9; 0,7; 1,2; 0,8) ilk noktanın (z = 2 m, FS = 0,9) katkısını (iki basamak) hesaplayın. Aralığı [1, 3] m'dir.", en: "In the four-point LPI example, compute the contribution of the first point (z = 2 m, FS = 0.9). Its interval is [1, 3] m." },
-        a: { tr: "F = 0,1; ∫[1,3](10 − 0,5 z) dz = 20 − 0,25·8 = 18; katkı = 0,1 · 18 = 1,80.", en: "Contribution = 1.80." },
+        q: { tr: "Dört noktalı LPI örneğinde (FS = 0,9; 0,7; 1,2; 0,8) ilk noktanın (z = 2 m, FS = 0,9) katkısını (iki basamak) hesaplayın. İlk aralık yüzeye uzatıldığı için aralığı [0, 3] m'dir (yukarıdaki çözümlü örnekteki hücre tanımı).", en: "In the four-point LPI example, compute the contribution of the first point (z = 2 m, FS = 0.9). Its interval is [0, 3] m, because the first interval is extended to the surface (the cell definition of the worked example above)." },
+        a: { tr: "F = 0,1; ∫[0,3](10 − 0,5 z) dz = 30 − 0,25·9 = 27,75; katkı = 0,1 · 27,75 = 2,775.", en: "F = 0.1; integral over [0, 3] = 30 - 0.25·9 = 27.75; contribution = 2.775." },
       },
       {
         q: { tr: "LPI = 9 ise tehlike kategorisi nedir?", en: "If LPI = 9, what is the hazard category?" },

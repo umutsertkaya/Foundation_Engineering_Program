@@ -3898,6 +3898,11 @@ export interface components {
             wall_type: ("cantilever" | "gravity") | null;
             /** Stale */
             stale: boolean;
+            /**
+             * Source Stale
+             * @default false
+             */
+            source_stale: boolean;
             /** Has Result */
             has_result: boolean;
         };

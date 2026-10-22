@@ -31,11 +31,15 @@ import {
   validationError,
 } from "./store";
 
-function isStructureStale(s: Structure): boolean {
-  const sourceStale = Boolean(s.soil.source_profile_id && (() => {
+function isSourceStale(s: Structure): boolean {
+  return Boolean(s.soil.source_profile_id && (() => {
     const source = getMockStore().profiles.find((p) => p.id === s.soil.source_profile_id);
     return !source || mockProfileHash(source) !== s.soil.source_hash;
   })());
+}
+
+function isStructureStale(s: Structure): boolean {
+  const sourceStale = isSourceStale(s);
   if ((s.kind ?? "retaining_wall") === "sheet_pile") {
     const pile = s as SheetPileStructure & { mock_result_snapshot?: string };
     return sourceStale || Boolean(pile.result_hash && pile.mock_result_snapshot !== JSON.stringify({ ...pile, result_hash: undefined, mock_result_snapshot: undefined }));
@@ -59,6 +63,7 @@ function toStructureSummary(s: Structure): StructureSummary {
     kind: (s.kind ?? "retaining_wall") as "retaining_wall" | "sheet_pile",
     wall_type: wall ? wall.wall_type : null,
     stale,
+    source_stale: isSourceStale(s),
     has_result: Boolean(s.result_hash),
   };
 }

@@ -405,7 +405,7 @@
   "launcher.profiles_count": "{count} profiles",
   "launcher.structures_count": "{count} structures",
   "shell.back_to_menu": "Back to main menu",
-  "shell.save": "Save",
+  "shell.save": "Save project file",
   "shell.saved": "Saved",
   "shell.unsaved": "Unsaved changes",
   "shell.project_label": "Project: {name}",
@@ -556,5 +556,12 @@
   "soil.error.gwt_missing_link": "Go to site data",
   "ui.geo.stem_height": "Stem height",
   "ui.geo.embedment": "Embedment D",
-  "ui.geo.height": "Height H"
+  "ui.geo.height": "Height H",
+  "web.wizard.save_blocked_soil": "The soil step has errors; the structure draft was not saved and the project file was not written.",
+  "web.wizard.save_blocked_seismic": "S_DS or R is outside its valid range; the structure draft was not saved and the project file was not written.",
+  "web.section.layer_short": "Layer",
+  "wall.warning.kv_envelope": "The vertical seismic coefficient ±kv envelope was applied (TBDY 16.12.2.3); the governing sign is stated per check in the detail.",
+  "wall.warning.pore_pressure_r": "coefficients.py note: TBDY 2018 16.12.2.2 — r ≤ 1 may be required where pore pressure build-up is possible; check the r value.",
+  "wall.warning.submerged_fill_r": "Submerged backfill: TBDY Eq. 16.20 dynamic water and 16.26 assume r=1 (water_kh=0.4·S_DS); reducing the soil thrust with r>1 must be justified by the engineer.",
+  "wall.warning.source_profile_stale": "The soil profile copied into the structure is out of date relative to its source profile; the calculation used the structure copy."
 }

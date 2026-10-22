@@ -16414,6 +16414,11 @@
             "type": "boolean",
             "title": "Stale"
           },
+          "source_stale": {
+            "type": "boolean",
+            "title": "Source Stale",
+            "default": false
+          },
           "has_result": {
             "type": "boolean",
             "title": "Has Result"

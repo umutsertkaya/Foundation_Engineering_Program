@@ -460,6 +460,8 @@ export interface StructureSummary {
   kind: StructureKind;
   wall_type: WallType | null;
   stale: boolean;
+  /** True only when the source soil profile really changed since the copy; `stale` also covers changed inputs. */
+  source_stale?: boolean;
   has_result: boolean;
 }
 

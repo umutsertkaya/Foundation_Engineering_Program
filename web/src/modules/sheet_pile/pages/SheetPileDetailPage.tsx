@@ -10,10 +10,11 @@ import {
   resync_structure_soil,
   update_structure,
 } from "../../../shared/api/client";
-import type { SheetPileStructure, StructureSummary } from "../../../shared/api/types";
+import type { GroundwaterCondition, SheetPileStructure, StructureSummary } from "../../../shared/api/types";
 import { EmptyState } from "../../../shared/components/EmptyState";
 import { ErrorAlert } from "../../../shared/components/ErrorAlert";
 import { useProfileName } from "../../../shared/hooks/useProfileName";
+import { usePreSaveHook } from "../../../shared/hooks/usePreSaveHook";
 import { design_sheet_pile } from "../api";
 import { InputsForm } from "../components/InputsForm";
 import { JobPanel } from "../components/JobPanel";
@@ -23,6 +24,43 @@ import { applyInputs, fromStructure, missingInputs, missingSoilInputs, type Pile
 
 /** Display-only rounding; stored values keep full precision. */
 const round = (v: number, digits: number): number => Number(v.toFixed(digits));
+
+/** Read-only view of the water levels the calculation actually uses (design/seismic default to in-situ). */
+function GroundwaterSummary({ soil }: { soil: SheetPileStructure["soil"] }) {
+  const { t } = useTranslation();
+  const rows: Array<{ key: string; gw: GroundwaterCondition; own: boolean }> = [
+    { key: "retained", gw: soil.gwt_retained ?? soil.profile.gwt, own: Boolean(soil.gwt_retained) },
+    { key: "front", gw: soil.gwt_front ?? soil.profile.gwt, own: Boolean(soil.gwt_front) },
+  ];
+  const fmt = (v: number) => round(v, 2);
+  return (
+    <Stack gap={4} data-testid="gwt-summary">
+      <Text size="sm" fw={600}>{t("sheet_pile.detail.gw_title")}</Text>
+      <Table withTableBorder>
+        <Table.Thead>
+          <Table.Tr>
+            <Table.Th>{t("sheet_pile.detail.gw_side")}</Table.Th>
+            <Table.Th>{t("sheet_pile.detail.gw_insitu")}</Table.Th>
+            <Table.Th>{t("sheet_pile.detail.gw_design")}</Table.Th>
+            <Table.Th>{t("sheet_pile.detail.gw_seismic")}</Table.Th>
+            <Table.Th>{t("sheet_pile.detail.gw_origin")}</Table.Th>
+          </Table.Tr>
+        </Table.Thead>
+        <Table.Tbody>
+          {rows.map(({ key, gw, own }) => (
+            <Table.Tr key={key}>
+              <Table.Td>{t(`sheet_pile.detail.gw_${key}`)}</Table.Td>
+              <Table.Td>{fmt(gw.depth_insitu)}</Table.Td>
+              <Table.Td>{fmt(gw.depth_design ?? gw.depth_insitu)}</Table.Td>
+              <Table.Td>{fmt(gw.depth_seismic ?? gw.depth_insitu)}</Table.Td>
+              <Table.Td>{t(own ? "sheet_pile.detail.gw_own" : "sheet_pile.detail.gw_profile")}</Table.Td>
+            </Table.Tr>
+          ))}
+        </Table.Tbody>
+      </Table>
+    </Stack>
+  );
+}
 
 export function SheetPileDetailPage() {
   const { t } = useTranslation();
@@ -100,6 +138,20 @@ export function SheetPileDetailPage() {
     () => (structure && inputs ? JSON.stringify(inputs) !== JSON.stringify(fromStructure(structure)) : false),
     [structure, inputs],
   );
+
+  const inputsSaveBlocked = Boolean(inputs) && (
+    (inputs ? missingInputs(inputs, null).length > 0 : false) || missing.some((key) => key.startsWith("range:"))
+  );
+
+  /** Top project Save: write the on-screen structure inputs into the structure first (or block with a message). */
+  usePreSaveHook(async () => {
+    if (!structure || !inputs || !dirty) return;
+    if (inputsSaveBlocked) throw new Error(t("sheet_pile.detail.save_blocked"));
+    const saved = (await update_structure(structure.id, applyInputs(structure, inputs))) as SheetPileStructure;
+    setStructure(saved);
+    setInputs(fromStructure(saved));
+    await refreshSummary();
+  });
 
   const back = (
     <Button size="xs" variant="subtle" leftSection={<IconArrowLeft size={14} />} onClick={() => navigate("/m/sheet_pile")}>
@@ -197,7 +249,7 @@ export function SheetPileDetailPage() {
           <Text size="sm">{t("sheet_pile.detail.result_stale")}</Text>
         </Alert>
       )}
-      {summary?.stale && source && (
+      {summary?.source_stale && source && (
         <Alert color="blue" variant="light" title={t("sheet_pile.detail.source_stale_title")}>
           <Group justify="space-between">
             <Text size="sm">{t("sheet_pile.detail.stale_desc")}</Text>
@@ -217,6 +269,7 @@ export function SheetPileDetailPage() {
           ? t("sheet_pile.detail.soil_from_profile", { name: sourceName ?? "" })
           : t("sheet_pile.detail.soil_manual")}
       </Text>
+      <GroundwaterSummary soil={soil} />
       <Table withTableBorder>
         <Table.Thead>
           <Table.Tr>

@@ -405,7 +405,7 @@
   "launcher.profiles_count": "{count} profil",
   "launcher.structures_count": "{count} yapı",
   "shell.back_to_menu": "Ana menüye dön",
-  "shell.save": "Kaydet",
+  "shell.save": "Proje dosyasını kaydet",
   "shell.saved": "Kaydedildi",
   "shell.unsaved": "Kaydedilmemiş değişiklikler",
   "shell.project_label": "Proje: {name}",
@@ -556,5 +556,12 @@
   "soil.error.gwt_missing_link": "Arazi verilerine git",
   "ui.geo.stem_height": "Gövde yüksekliği",
   "ui.geo.embedment": "Gömülme D",
-  "ui.geo.height": "Yükseklik H"
+  "ui.geo.height": "Yükseklik H",
+  "web.wizard.save_blocked_soil": "Zemin adımında hatalar var; yapı taslağı kaydedilmedi ve proje dosyası yazılmadı.",
+  "web.wizard.save_blocked_seismic": "S_DS veya R geçerli aralığın dışında; yapı taslağı kaydedilmedi ve proje dosyası yazılmadı.",
+  "web.section.layer_short": "Katman",
+  "wall.warning.kv_envelope": "Düşey deprem katsayısı ±kv zarfı uygulandı (TBDY 16.12.2.3); yöneten işaret kontrol bazında detayda belirtilmiştir.",
+  "wall.warning.pore_pressure_r": "coefficients.py notu: TBDY 2018 16.12.2.2 — boşluk suyu basıncı artışı olabilecek durumlarda r ≤ 1 gerekebilir; r değerini kontrol edin.",
+  "wall.warning.submerged_fill_r": "Su altındaki dolgu: TBDY Denk. 16.20 dinamik su ve 16.26 r=1 varsayar (water_kh=0.4·S_DS); r>1 ile zemin itkisinin azaltılması mühendis tarafından gerekçelendirilmelidir.",
+  "wall.warning.source_profile_stale": "Yapıya kopyalanan zemin profili kaynak profile göre bayat; yapı kopyasıyla hesaplandı"
 }

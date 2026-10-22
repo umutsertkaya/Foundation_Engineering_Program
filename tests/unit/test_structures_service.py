@@ -172,7 +172,7 @@ def test_downward_kv_sizes_same_wall_to_450():
     assert project.model_dump_json() == before
     assert result.passed and result.geometry.width == pytest.approx(4.50)
     assert result.kv == -abs(result.kh) / 2
-    assert not any("±kv zarfı" in w for w in result.warnings)
+    assert not any("kv_envelope" in w for w in result.warnings)
 
 
 @pytest.mark.parametrize("advanced,code", [(False, "asd"), (True, "asd"), (True, "aashto_lrfd")])
@@ -220,9 +220,8 @@ def test_check_kv_envelope_selects_each_check_and_keeps_governing_forces_and_pre
         assert analysis.warnings == reference.warnings
         assert (analysis.sum_v, analysis.sum_h, analysis.q_max) == (reference.sum_v, reference.sum_h, reference.q_max)
         assert envelope.pressures[f"{key}:retained"].K == pytest.approx(signed[sign].pressures[f"{key}:retained"].K)
-    warnings = [w for w in envelope.warnings if "±kv zarfı" in w]
-    assert warnings == ["Düşey deprem katsayısı ±kv zarfı uygulandı (TBDY 16.12.2.3); "
-                        "yöneten işaret kontrol bazında detayda belirtilmiştir."]
+    warnings = [w for w in envelope.warnings if "kv_envelope" in w]
+    assert warnings == ["wall.warning.kv_envelope"]
 
 
 def test_kv_envelope_runs_global_stability_for_each_sign_and_keeps_worst_slip(monkeypatch):
@@ -267,7 +266,7 @@ def test_zero_kv_runs_seismic_analysis_once_without_envelope_warning(monkeypatch
     monkeypatch.setattr(service, "verify_wall_layered", capture)
     result = check_structure(project, "wall")
     assert captured == [(False, 0.0), (True, 0.0)]
-    assert not any("±kv zarfı" in w for w in result.warnings)
+    assert not any("kv_envelope" in w for w in result.warnings)
 
 
 @pytest.mark.parametrize("kv_sign", ["envelope", "up", "down"])
@@ -683,10 +682,10 @@ def test_tbdy_default_r_warning_for_wet_retained_or_foundation_layer(water_side,
     setattr(structure.soil, f"gwt_{water_side}", GroundwaterCondition(
         depth_insitu=100, depth_design=100, depth_seismic=depth))
     result = check_structure(project, "wall")
-    warnings = [w for w in result.warnings if "16.12.2.2" in w]
+    warnings = [w for w in result.warnings if "pore_pressure_r" in w]
     assert bool(warnings) == (r is None and depth < structure.soil.profile.bottom)
     if warnings:
-        assert "coefficients.py" in warnings[0] and "r ≤ 1" in warnings[0]
+        assert warnings[0] == "wall.warning.pore_pressure_r"
     assert result.kh == pytest.approx(0.4 * 0.5 / 1.5)  # warning never changes r
 
 
@@ -743,11 +742,10 @@ def test_default_r_warning_uses_seismic_layer_overlap_and_preserves_input(sds, r
     structure.soil.gwt_retained = structure.soil.gwt_front = None
     before = project.model_dump_json()
     result = check_structure(project, "wall")
-    warnings = [w for w in result.warnings if "16.12.2.2" in w]
+    warnings = [w for w in result.warnings if "pore_pressure_r" in w]
     assert len(warnings) == int(expected_warning)
     if warnings:
-        assert ("TBDY 2018 16.12.2.2 — boşluk suyu basıncı artışı olabilecek durumlarda "
-                "r ≤ 1 gerekebilir; r değerini kontrol edin.") in warnings[0]
+        assert warnings[0] == "wall.warning.pore_pressure_r"
     assert project.model_dump_json() == before
     if sds is None:
         assert result.kh is None and result.kv is None
@@ -830,11 +828,10 @@ def test_submerged_r_reduction_warning_includes_explicit_r(sds, r, side, depth, 
     setattr(structure.soil, f"gwt_{side}", GroundwaterCondition(depth_insitu=100., depth_seismic=depth))
     before = project.model_dump_json()
     result = check_structure(project, "wall")
-    warnings = [w for w in result.warnings if "r>1" in w]
+    warnings = [w for w in result.warnings if "submerged_fill_r" in w]
     assert len(warnings) == int(expected)
     if warnings:
-        assert "16.20" in warnings[0] and "16.26" in warnings[0] and "water_kh=0.4·S_DS" in warnings[0]
-        assert "gerekçelendirilmelidir" in warnings[0]
+        assert warnings[0] == "wall.warning.submerged_fill_r"
     assert project.model_dump_json() == before
 
 
@@ -856,14 +853,14 @@ def test_governing_check_ids_match_failing_checks_for_narrow_wall():
 
 
 def test_aashto_wall_makes_ls_extreme_assumption_visible():
-    from geotek.services.structures import LS_EXTREME_ASSUMPTION
+    ls_warning = "report.assumption.wall.ls_extreme_i"
 
     result = check_structure(_project(advanced=True, code="aashto_lrfd"), "wall")
     assert any(f.path == "load.LS.extreme_I" for f in result.factors_used)
     assert any(a.code == "wall.ls_extreme_i" and "0.50" in a.text for a in result.assumptions)
-    assert LS_EXTREME_ASSUMPTION in result.warnings
+    assert ls_warning in result.warnings
     other = check_structure(_project(advanced=True, code="asd"), "wall")
-    assert LS_EXTREME_ASSUMPTION not in other.warnings
+    assert ls_warning not in other.warnings
 
 
 def test_sizing_treats_a_bearing_failure_as_a_failed_trial_width(monkeypatch):

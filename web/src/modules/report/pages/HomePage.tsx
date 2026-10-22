@@ -28,6 +28,15 @@ function saveBlob(blob: Blob, filename: string): void {
 
 export function HomePage() {
   const { t, i18n } = useTranslation();
+  /** Module sections (`<module>:<entry>`) are named from the UI language, not the project language the server used. */
+  const sectionLabel = (section: { id: string; kind: string; name: string }): string => {
+    if (section.kind === "module") {
+      const [moduleId, entry] = section.id.split(":");
+      const key = `${moduleId}.report.${entry}`;
+      if (entry && i18n.exists(key)) return t(key);
+    }
+    return section.name || t(`report.section.${section.kind}`);
+  };
   const [sections, setSections] = useState<ReportSection[] | null>(null);
   const [loadError, setLoadError] = useState<unknown>(null);
   const [selected, setSelected] = useState<Set<string>>(new Set());
@@ -107,7 +116,7 @@ export function HomePage() {
             return (
               <Group key={section.id} justify="space-between" wrap="nowrap">
                 <Checkbox
-                  label={section.name || t(`report.section.${section.kind}`)}
+                  label={sectionLabel(section)}
                   checked={selected.has(section.id)}
                   disabled={!usable || busy}
                   onChange={(event) => toggle(section.id, event.currentTarget.checked)}

@@ -13,6 +13,8 @@ import { theme } from "../../../app/theme";
 import { manifest } from "../manifest";
 import { ResultPanel } from "../components/ResultPanel";
 import Root from "../Root";
+import { mockProfileHash } from "../../../shared/api/mock/hash";
+import { runPreSaveHooks } from "../../../shared/hooks/usePreSaveHook";
 
 function Loc() {
   return <div data-testid="loc">{useLocation().pathname}</div>;
@@ -173,9 +175,32 @@ describe("sheet_pile shell (mock)", () => {
     fireEvent.click(await screen.findByRole("button", { name: "Tasarımı çalıştır" }));
     await screen.findByTestId("sheet-pile-result", {}, { timeout: 5000 });
     fireEvent.change(screen.getByLabelText(/^Sürşarj \(kPa\)/), { target: { value: "12" } });
-    fireEvent.click(screen.getByRole("button", { name: "Kaydet" }));
+    fireEvent.click(screen.getByRole("button", { name: "Yapı girdilerini kaydet" }));
     expect(await screen.findByText(/Girdiler değişti/)).toBeInTheDocument();
     expect(screen.getByTestId("sheet-pile-result").parentElement).toHaveStyle({ opacity: "0.5" });
+  });
+
+  it("top project Save flushes the on-screen inputs into the structure first", async () => {
+    seedSheetPile("sp-presave", "Perde PreSave");
+    renderAt("/m/sheet_pile/s/sp-presave");
+    fireEvent.change(await screen.findByLabelText(/^Sürşarj \(kPa\)/), { target: { value: "20" } });
+    await runPreSaveHooks();
+    const stored = getMockStore().structures.find((x) => x.id === "sp-presave") as unknown as { surcharge: number };
+    expect(stored.surcharge).toBe(20);
+  });
+
+  it("shows the source-soil warning only when the source hash really differs", async () => {
+    seedSheetPile("sp-src", "Perde Src");
+    const stored = getMockStore().structures.find((x) => x.id === "sp-src") as unknown as { soil: { source_hash: string } };
+    stored.soil.source_hash = mockProfileHash(getMockStore().profiles[0]);
+    renderAt("/m/sheet_pile/s/sp-src");
+    fireEvent.click(await screen.findByRole("button", { name: "Tasarımı çalıştır" }));
+    await screen.findByTestId("sheet-pile-result", {}, { timeout: 5000 });
+    fireEvent.change(screen.getByLabelText(/^Sürşarj \(kPa\)/), { target: { value: "12" } });
+    fireEvent.click(screen.getByRole("button", { name: "Yapı girdilerini kaydet" }));
+    expect(await screen.findByText(/Girdiler değişti/)).toBeInTheDocument();
+    expect(screen.queryByText("Kaynak zemin profili güncel değil")).not.toBeInTheDocument();
+    expect(screen.getByTestId("gwt-summary")).toBeInTheDocument();
   });
 
   it("preserves form edits made while the job is running", async () => {
@@ -211,7 +236,7 @@ describe("sheet_pile shell (mock)", () => {
     fireEvent.click(await screen.findByRole("button", { name: "Tasarımı çalıştır" }));
     await screen.findByTestId("sheet-pile-result", {}, { timeout: 5000 });
     fireEvent.change(screen.getByLabelText(/^Sürşarj \(kPa\)/), { target: { value: "12" } });
-    fireEvent.click(screen.getByRole("button", { name: "Kaydet" }));
+    fireEvent.click(screen.getByRole("button", { name: "Yapı girdilerini kaydet" }));
     expect(await screen.findByText(/Girdiler değişti/)).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Kaynak profille eşitle" })).not.toBeInTheDocument();
   });
@@ -264,7 +289,7 @@ describe("sheet_pile shell (mock)", () => {
     expect(runHash).not.toBe("before-the-run");
     await waitFor(() => expect(screen.getByRole("button", { name: "Tasarımı çalıştır" })).toBeEnabled());
     fireEvent.change(screen.getByLabelText(/^Sürşarj \(kPa\)/), { target: { value: "12" } });
-    fireEvent.click(screen.getByRole("button", { name: "Kaydet" }));
+    fireEvent.click(screen.getByRole("button", { name: "Yapı girdilerini kaydet" }));
     expect(await screen.findByText(/Girdiler değişti/)).toBeInTheDocument();
     expect(stored().result_hash).toBe(runHash);
   });
