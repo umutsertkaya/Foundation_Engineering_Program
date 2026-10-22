@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Alert, Badge, Button, Card, Group, Modal, NativeSelect, Paper, Stack, Text, Title, Tooltip, UnstyledButton } from "@mantine/core";
+import { Alert, Anchor, Badge, Button, Card, Group, Modal, NativeSelect, Paper, Stack, Text, Title, Tooltip, UnstyledButton } from "@mantine/core";
 import { IconWand } from "@tabler/icons-react";
+import { Link, useInRouterContext } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { get_project } from "../../../shared/api/client";
 import type { DesignKey, ParameterSelection, ProfileSummary, SoilProfile } from "../../../shared/api/types";
@@ -37,6 +38,7 @@ function layerCounts(selections: ParameterSelection[]): { approved: number; stal
 
 export function ParametersPage() {
   const { t } = useTranslation();
+  const inRouter = useInRouterContext();
   const [profiles, setProfiles] = useState<ProfileSummary[]>([]);
   const [loaded, setLoaded] = useState<Loaded | null>(null);
   const [loading, setLoading] = useState(true);
@@ -262,6 +264,16 @@ export function ParametersPage() {
                   </Tooltip>
                 </Group>
               </Card>
+              {(loaded.profile.source_ids ?? []).length === 0 && !(loaded.profile.layers.find((l) => l.id === layerId)?.source_ids ?? []).length && (
+                <Alert color="orange" variant="light" data-testid="params-no-sources">
+                  {t("soil.params.no_sources_banner")}{" "}
+                  {inRouter && (
+                    <Anchor component={Link} to="/m/soil/profiles" size="sm">
+                      {t("soil.params.no_sources_link")}
+                    </Anchor>
+                  )}
+                </Alert>
+              )}
               {selections.length > 0 && selections.every((s) => !s.suggested && (s.candidates ?? []).length === 0) && (
                 <Alert color="orange" variant="light" data-testid="params-no-data">
                   {t("soil.params.no_data_banner")}

@@ -22,6 +22,18 @@ export function ErrorAlert({ error, onClose }: { error: unknown; onClose?: () =>
       </Alert>
     );
   }
+  if (error instanceof ApiError && error.message.includes("SPT processing needs a soil profile")) {
+    return (
+      <Alert color="orange" title={t("soil.error.spt_profile_title")} data-testid="soil-error">
+        <Text size="xs">{t("soil.error.spt_profile")}</Text>
+        {inRouter && (
+          <Anchor component={Link} to="/m/soil/profiles" size="xs">
+            {t("soil.error.spt_profile_link")}
+          </Anchor>
+        )}
+      </Alert>
+    );
+  }
   const message = errorMessage(error, t);
   return (
     <Alert
