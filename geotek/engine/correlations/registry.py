@@ -45,6 +45,9 @@ class Correlation:
 
 REGISTRY: dict[str, Correlation] = {}
 
+NON_NEGATIVE_PARAMETERS = ("su", "E", "sigma_p")
+"""Parameters whose correlation results must not be negative (negative -> validity_ok False)."""
+
 
 def register(
     *,
@@ -114,6 +117,10 @@ def evaluate(correlation_id: str, inputs: Mapping[str, float], **options: float)
     warnings = list(c.check(inputs, opts)) if c.check else []
     if not math.isfinite(value):
         warnings.append("Value not computable for these inputs")
+    elif value < 0 and c.parameter in NON_NEGATIVE_PARAMETERS:
+        warnings.append(f"Negative {c.parameter} ({value:.4g}) is not physical; result marked invalid")
+    elif c.parameter == "Dr" and value > 100.0:
+        warnings.append(f"Dr = {value:.1f} % exceeds 100 %; result marked invalid")
     return DerivedParameter(
         value=value, unit=c.unit, method_id=c.id, reference=c.reference, source=c.source,
         inputs_used={**args, **opts}, validity_ok=not warnings, warnings=warnings,

@@ -21,11 +21,15 @@ from geotek.core.models.investigations import Borehole
 from geotek.core.models.profile import SoilProfile
 
 CN_MAX = 1.7
+BOREHOLE_DIAMETER_RANGE_MM = (65.0, 200.0)
+"""Diameters tabulated for C_B (Youd et al. 2001, Table 2); outside it the factor is an extrapolation."""
 
 
 def rod_length_factor(rod_length):
     """C_R by rod length [m] (Youd et al. 2001, Table 2)."""
     L = np.asarray(rod_length, dtype=float)
+    if not np.all(np.isfinite(L)) or np.any(L < 0):
+        raise ValueError("SPT rod length must be finite and non-negative")
     out = np.select(
         [L < 3.0, L < 4.0, L < 6.0, L < 10.0],
         [0.75, 0.80, 0.85, 0.95],
@@ -124,6 +128,11 @@ def process_borehole(
         ))
     if np.any(sigma_eff > 200.0):
         warnings.append(format_warning("insitu.warning.spt_cn_out_of_range"))
+    lo, hi = BOREHOLE_DIAMETER_RANGE_MM
+    if not lo <= borehole.borehole_diameter_mm <= hi:
+        warnings.append(format_warning(
+            "insitu.warning.spt_borehole_diameter_out_of_range",
+            diameter=float(borehole.borehole_diameter_mm), minimum=lo, maximum=hi))
 
     return SPTProcessed(
         borehole_id=borehole.id, depth=depth, n_field=n_field, refusal=refusal,

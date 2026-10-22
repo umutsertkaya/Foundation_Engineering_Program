@@ -32,11 +32,11 @@ from geotek.engine.correlations.physical import (
 
 
 def corrected_tip_resistance(qc, u2, area_ratio: float):
-    """q_t = q_c + u2 (1 - a). Without u2, q_t = q_c."""
+    """q_t = q_c + u2 (1 - a). Without u2 (or at NaN = missing cells), q_t = q_c."""
     qc = np.asarray(qc, dtype=float)
     if u2 is None:
         return qc.copy()
-    return qc + np.asarray(u2, dtype=float) * (1.0 - area_ratio)
+    return qc + np.nan_to_num(np.asarray(u2, dtype=float), nan=0.0) * (1.0 - area_ratio)
 
 
 def stress_exponent(Ic, sigma_v_eff):
@@ -156,6 +156,9 @@ def process_cpt(
     qt = corrected_tip_resistance(qc, u2, sounding.area_ratio)
     if u2 is None:
         warnings.append(format_warning("insitu.warning.cpt_no_u2"))
+    elif np.isnan(u2).any():
+        # Missing u2 cells are not measured zeros: q_t falls back to q_c there and Bq stays undefined.
+        warnings.append(format_warning("insitu.warning.cpt_u2_missing", count=int(np.isnan(u2).sum())))
 
     gamma = None
     if profile is not None:

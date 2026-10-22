@@ -116,7 +116,7 @@ export interface CPTSounding {
   depth: number[];
   qc: number[];
   fs: number[];
-  u2?: number[] | null;
+  u2?: (number | null)[] | null;
 }
 
 export interface ShearKey {

@@ -2149,7 +2149,7 @@ export interface components {
             /** Fs */
             fs: number[];
             /** U2 */
-            u2?: number[] | null;
+            u2?: (number | null)[] | null;
         };
         /**
          * CantileverGeometry
