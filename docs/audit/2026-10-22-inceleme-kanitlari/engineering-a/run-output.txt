@@ -1,0 +1,15 @@
+{"total": 668, "passed": 654, "failed": 14, "probes": 63}
+{"name": "LPI water clipping ([1.5, 2.5], 1.4)", "status": "FAIL", "actual": 9.0, "expected": 7.120000000000001, "atol": 1e-09, "rtol": 1e-09, "note": ""}
+{"name": "LPI water clipping ([1, 3], 2.5)", "status": "FAIL", "actual": 8.5, "expected": 6.28125, "atol": 1e-09, "rtol": 1e-09, "note": ""}
+{"name": "LPI water clipping ([5], 4)", "status": "FAIL", "actual": 21.875, "expected": 3.875, "atol": 1e-09, "rtol": 1e-09, "note": ""}
+{"name": "EDU LiqMsfCurve Idriss 5.5", "status": "FAIL", "actual": 1.6865932110527506, "expected": 2.2114214353149433, "atol": 1e-09, "rtol": 1e-09, "note": ""}
+{"name": "EDU LiqMsfCurve AS 5.5", "status": "FAIL", "actual": 1.8, "expected": 2.7829492965922533, "atol": 1e-09, "rtol": 1e-09, "note": ""}
+{"name": "EDU LiqMsfCurve Idriss 6.5", "status": "FAIL", "actual": 1.300690558908939, "expected": 1.4419221291650135, "atol": 1e-09, "rtol": 1e-09, "note": ""}
+{"name": "EDU LiqMsfCurve AS 6.5", "status": "FAIL", "actual": 1.4424429362903273, "expected": 1.603570625889867, "atol": 1e-09, "rtol": 1e-09, "note": ""}
+{"name": "EDU LiqMsfCurve Idriss 7.5", "status": "FAIL", "actual": 1.0001492712300064, "expected": 0.9996389409159898, "atol": 1e-09, "rtol": 1e-09, "note": ""}
+{"name": "EDU LiqMsfCurve Idriss 8.5", "status": "FAIL", "actual": 0.7660874810403654, "expected": 0.7255837539524674, "atol": 1e-09, "rtol": 1e-09, "note": ""}
+{"name": "EDU LiqMsfCurve AS 8.5", "status": "FAIL", "actual": 0.7258458271819623, "expected": 0.6616368941764318, "atol": 1e-09, "rtol": 1e-09, "note": ""}
+{"name": "EDU quiz first interval contribution", "status": "FAIL", "actual": 2.7750000000000004, "expected": 1.8, "atol": 1e-09, "rtol": 1e-09, "note": "liquefaction_student.ts:421-422 uses old [1,3] cell despite Example2 extending to0."}
+{"name": "EDU CLML shaded rectangle LL29 PI4.5", "status": "FAIL", "actual": "M", "expected": "CL-ML", "atol": 1e-09, "rtol": 1e-09, "note": "Rectangle includes point; engine/independent A-line(.73*9=6.57) places it in M. Figure overstates hatched region."}
+{"name": "EDU grading D10 guide at .075", "status": "FAIL", "actual": 8, "expected": 10, "atol": 1e-09, "rtol": 1e-09, "note": "Graph curve explicitly gives8% at .075mm; D10 arrow nevertheless points there."}
+{"name": "EDU SPT FC35 dense boundary x coordinate", "status": "FAIL", "actual": 20.833333333333336, "expected": 30, "atol": 1e-09, "rtol": 1e-09, "note": "Graph x axis is N1_60, vertical line at30 labeled Ncs30; FC35 threshold is20.8333 on plotted x axis."}

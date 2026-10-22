@@ -1,0 +1,21 @@
+GeoTek
+
+Geoteknik tasarım ve analiz
+
+TR
+EN
+Yeni proje
+İçe aktar (.gtk)
+Proje kütüphanesi
+Kütüphanede henüz proje yok. Yeni bir proje oluşturarak başlayın.
+
+Kütüphane: /tmp/geotek-audit/ux/library
+
+Yeni proje
+Proje adı *
+Proje no
+Mühendis
+Rapor dili
+Tasarım yönetmeliği
+İptal
+Oluştur

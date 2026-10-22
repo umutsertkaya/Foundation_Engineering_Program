@@ -1,0 +1,299 @@
+{
+  "date": "2026-10-22",
+  "checkout": "b9392f9",
+  "role": "Independent second engineering review",
+  "primary_sources_consulted": false,
+  "production_files_modified": false,
+  "findings": [
+    {
+      "id": "ENG-A-001",
+      "verdict": "Onay, doğrudan importer",
+      "evidence": "review.py / A_import_unknown_qc_header",
+      "scope": "5000kPa yerine5e6kPa; qc_unit=kPa override5000 doğru. HTTP/UI qc_unit zorunlu olduğundan aynı UI birim bozulması gösterilmedi.",
+      "source_anchors": [
+        "geotek/io/tabular.py:39",
+        "geotek/io/tabular.py:92"
+      ]
+    },
+    {
+      "id": "ENG-A-002",
+      "verdict": "Onay",
+      "evidence": "results.json / clay_suggestions",
+      "scope": "Gerçek CL/undrained SPT projesinde phi37.186211355/E12766.95 ve validity_ok=True. Sorun öneri/uygulanabilirlik; otomatik tasarım onayı iddia edilmez.",
+      "source_anchors": [
+        "geotek/engine/correlations/checks.py:13",
+        "geotek/services/parameters.py:419"
+      ]
+    },
+    {
+      "id": "ENG-A-003",
+      "verdict": "Onay, muhafazakâr yönde",
+      "evidence": "results.json / A_LPI_GWT_*",
+      "scope": "z1.5/2.5,GWT1.4 için9 yerine7.12; single5/GWT4 için21.875/very_high yerine3.875/low. Kuru zon fazladan sayılıyor. Mevcut web DTO LPI taşımıyor.",
+      "source_anchors": [
+        "geotek/engine/liquefaction/common.py:82"
+      ]
+    },
+    {
+      "id": "ENG-A-004",
+      "verdict": "Onay, eğitim",
+      "evidence": "results.json / A_edu_*",
+      "scope": "MSF çizimi iki adlandırılmış motor/metin denklemiyle uyuşmuyor. M5.5 beklenen2.21142/2.78295, çizilen1.68659/1.8.",
+      "source_anchors": [
+        "web/src/modules/education/figures/bearDraw.tsx:262"
+      ]
+    },
+    {
+      "id": "ENG-A-005",
+      "verdict": "Onay, validity sözleşmesi",
+      "evidence": "supplement.json / A_registry_physical_domain",
+      "scope": "Negatif su/E/sigma_p ve Dr141.42% doğru aritmetik ama valid=True. Sentetik/fiziksel tutarsız girişler; negatif su/E için son tasarım model onay koruması var.",
+      "source_anchors": [
+        "geotek/engine/correlations/registry.py:115"
+      ]
+    },
+    {
+      "id": "ENG-A-006",
+      "verdict": "Onay, eksik girdi izi",
+      "evidence": "supplement.json / A_partial_u2",
+      "scope": "Boş u2 ölçülmüş0 ile aynı saklanıyor; maske/uyarı alanı yok. q_t/Bq/u2 temelli adaylar etkilenebilir; belli bir bilinmeyen u2 değeri varsayılmadı.",
+      "source_anchors": [
+        "geotek/io/tabular.py:120"
+      ]
+    },
+    {
+      "id": "ENG-A-007",
+      "verdict": "Onay, library summary",
+      "evidence": "domain-probes.json / invalid_pipeline_summary",
+      "scope": "Gerçek CPT pipeline status=[invalid,invalid], minFS=null iken LPI0/very_low. Status sayımı ayrıca invalid bilgisini koruyor; HTTP DTO LPI taşımıyor.",
+      "source_anchors": [
+        "geotek/engine/liquefaction/common.py:85",
+        "geotek/engine/liquefaction/common.py:153"
+      ]
+    },
+    {
+      "id": "ENG-A-008",
+      "verdict": "Onay, yüzey sınırında",
+      "evidence": "supplement.json / A_CPT_unconverged",
+      "scope": "Default50iter ilk n=.882114475/Ic2.212836314; bağımsız Brent n=.786209501/Ic2.457110806. Warning var; finite FS ve liquefiable yine taşınıyor. z=.01m, normal saha genellemesi yok.",
+      "source_anchors": [
+        "geotek/engine/insitu/cpt.py:198",
+        "geotek/engine/liquefaction/analysis.py:212"
+      ]
+    },
+    {
+      "id": "ENG-A-009",
+      "verdict": "Kısmen",
+      "evidence": "supplement.json / A_oversize_borehole",
+      "scope": "Borehole1000mm kabul ve CB1.15 teyit. Açıklanan tablo aralığı dışında sessiz extrapolasyon kaydı onay; rod>30 için1 olması tek başına yanlış katsayı kanıtı değildir; unknown sampler normal modelce engellenir.",
+      "source_anchors": [
+        "geotek/engine/insitu/spt.py:37",
+        "geotek/core/models/investigations.py:86"
+      ]
+    },
+    {
+      "id": "ENG-A-010",
+      "verdict": "Onay, ortak girdi modeli",
+      "evidence": "supplement.json / A_lab_grain_sum",
+      "scope": "Gerçek LabRecord FC20+gravel90 kabul, kum−10 ve GC. Tekil0..100 sınırları toplam kontrolü sağlamıyor.",
+      "source_anchors": [
+        "geotek/core/models/investigations.py:27",
+        "geotek/engine/classification/uscs.py:77"
+      ]
+    },
+    {
+      "id": "ENG-A-011",
+      "verdict": "Kısmen, anlatım tutarlılığı",
+      "evidence": "supplement.json / A_education",
+      "scope": "Açıkça [1,3] verilen sorunun1.8 integrali doğru. Aynı örneğe referans verilirse motor/metindeki [0,3] katkısı2.775 ile interval sözleşmesi çelişiyor; aritmetik hata diye sunulmasın.",
+      "source_anchors": [
+        "web/src/modules/education/content/liquefaction_student.ts:421"
+      ]
+    },
+    {
+      "id": "ENG-A-012",
+      "verdict": "Onay, statik şekil geometrisi",
+      "evidence": "supplement.json / A_education",
+      "scope": "LL29/PI4.5 A-line6.57 altında M; CLML boyaması içinde. D10.075mm eğride8% ama etiket10%; FC35 Ncs30 eşiği N1=20.8333, evrenselx30 çizgisi yanıltıcı.",
+      "source_anchors": [
+        "web/src/modules/education/figures/bearDraw.tsx:309",
+        "web/src/modules/education/figures/bearDraw.tsx:332"
+      ]
+    },
+    {
+      "id": "ENG-A-013",
+      "verdict": "Kısmen, temsilî guardlar",
+      "evidence": "domain-probes.json",
+      "scope": "SBTn inf→2, FCNaN→17, CsigmaNaN→.3, infsigma phi0valid, unsortedLPI−24.75 bağımsız tekrarlandı. Bütün public fonksiyonlar/üst UI yolları tek tek koşulmadı; kütüphane sertleştirme kapsamı.",
+      "source_anchors": [
+        "geotek/engine/correlations/registry.py:94",
+        "geotek/engine/liquefaction/common.py:79"
+      ]
+    },
+    {
+      "id": "ENG-B-001",
+      "verdict": "Onay",
+      "evidence": "results.json / wedge",
+      "scope": "Düz duvar skaler kuvvet dengesinde rho→beta+ için1967→1.7156e8kN/m artıyor. Production299682.4/rho25.0057296 sabitkesim. Sonsuz dolgu altında finite optimum yok.",
+      "source_anchors": [
+        "geotek/engine/earth_pressure/wedge.py:86"
+      ]
+    },
+    {
+      "id": "ENG-B-002",
+      "verdict": "Onay",
+      "evidence": "results.json / bishop",
+      "scope": "Üretimin aynı slice geometrisinde bağımsız kütle ve birinci moment+Brent ref1.211442108, actual1.222776980; homojen ref.982327581/actual.982327705 eşleşiyor. B analitik endpoint referans1.211304678 ile küçük fark geometri probundan; centroid kusuru sabit.",
+      "source_anchors": [
+        "geotek/engine/stability.py:168"
+      ]
+    },
+    {
+      "id": "ENG-B-003",
+      "verdict": "Onay, genel dağılım",
+      "evidence": "supplement.json / B_passive_projection",
+      "scope": "Pasif Pdir=cosδ n−sinδ t, yataycos(δ−θ). theta−10 actual2556.344875/ref2402.178415 +6.42%; theta+10−6.03%. Mevcut ön pasif UI çağırıcıları theta0 olduğundan tüm UI sonuçları etkileniyor denemez.",
+      "source_anchors": [
+        "geotek/engine/earth_pressure/distribution.py:125"
+      ]
+    },
+    {
+      "id": "ENG-B-004",
+      "verdict": "Onay çekirdek; etki sınırlı",
+      "evidence": "supplement.json / B_wall_global_gap; global-grid.json",
+      "scope": "Grid4 seçilen yay taban içinde0.00621m yukarı çıkıyor,4 gerçek crossing var ama tek interval dönüyor. Grid8/varsayılan12 aynı girdide bu gap yok. Geçerli alternatif globalFS ve emniyet yönü belirlenmedi; varsayılan UI hata örneği gibi sunulmasın.",
+      "source_anchors": [
+        "geotek/engine/stability.py:118",
+        "geotek/engine/walls/global_stability.py:151"
+      ]
+    },
+    {
+      "id": "ENG-B-005",
+      "verdict": "Onay, genel dağılım",
+      "evidence": "supplement.json / B_battered_surcharge",
+      "scope": "Bağımsız kama alanı/yüzey yükü theta+10:165.297897/ref163.282373; theta−10:99.523180/ref100.857049. q düzeltmesi1/(1+tanθtanβ). Layered wall çağırıcısı ayrıca düzeltiyor; aynı UI wall hatası yok.",
+      "source_anchors": [
+        "geotek/engine/earth_pressure/distribution.py:248"
+      ]
+    },
+    {
+      "id": "ENG-B-006",
+      "verdict": "Onay, patolojik sayısal sınır",
+      "evidence": "results.json / B_Nc_near_zero",
+      "scope": "phi1e−16° Nc−127.222187 yerine pi+2=5.14159265. Exact0 dalı ve20/30/40° nominal üç yöntem bu genellemeye dahil değil.",
+      "source_anchors": [
+        "geotek/engine/bearing.py:35"
+      ]
+    },
+    {
+      "id": "ENG-B-007",
+      "verdict": "Kısmen, temsilî kütüphane probları",
+      "evidence": "b-education.json / B007",
+      "scope": "Unknownmethod phi0 kabul; negatifgamma negatifcapacity; badstate pasifkama; RankineNaN teyit. Listedeki tüm kombinasyonlar bağımsız yeniden koşulmadı; üst Pydantic/UI güvenliği hakkında toplu sonuç yok.",
+      "source_anchors": [
+        "geotek/engine/bearing.py:86",
+        "geotek/engine/earth_pressure/wedge.py:95"
+      ]
+    },
+    {
+      "id": "ENG-B-008",
+      "verdict": "Onay, eğitim geometrisi",
+      "evidence": "b-education.json / B008",
+      "scope": "Bağımsız yatay doğru/daire kökleri−9.999971762/22.653312066; metindeki0/11.60 başka geometri. n4/n40 üretim FS yaklaşık.55336/.63250; endpoint hatası motorFS hatası değildir.",
+      "source_anchors": [
+        "web/src/modules/education/content/slope_student.ts:78"
+      ]
+    },
+    {
+      "id": "ENG-B-009",
+      "verdict": "Onay, davranış metni",
+      "evidence": "b-education.json / B009",
+      "scope": "Kendi ters slope araması mirror GeoTekError verdi. Vesic H30>A_su20 iken q21.4/Q42.8 döndü. Metin-kod farkı teyit; doğru normatif Vesic limitini birincil kaynaktan seçmedik.",
+      "source_anchors": [
+        "web/src/modules/education/content/slope_student.ts:49",
+        "web/src/modules/education/content/bearing.ts:142"
+      ]
+    },
+    {
+      "id": "ENG-B-010",
+      "verdict": "Onay, statik kuvvet yönü",
+      "evidence": "b-education.json / B010",
+      "scope": "Taban ekran vektörü(90,−20), S(−38,9), skalerçarpım−3600. Etiket direnç ve kütle sola/aşağı kabulünde kuvvet ters; pixelrender değil kaynak koordinatı incelendi.",
+      "source_anchors": [
+        "web/src/modules/education/figures/spDraw.tsx:211"
+      ]
+    },
+    {
+      "id": "ENG-C-001",
+      "verdict": "Onay, kritik zarf eksikliği",
+      "evidence": "results.json / static_envelope",
+      "scope": "Ayrı wetpressure quad+Brent statik D18.9085960725/M2399.835292; servis statik aynı. SDS.1 tekcase D8.039288389/M436.945004. Geçerli farklı design/seismic su profiliyle statik durum eksik. UI kanıtı root functional ajanının; fixture APIseed sınırı korunmalı.",
+      "source_anchors": [
+        "geotek/services/structures.py:745"
+      ]
+    },
+    {
+      "id": "ENG-C-002",
+      "verdict": "Onay; kaynak=knowledge/config",
+      "evidence": "results.json / tbdy; layered-cap.json",
+      "scope": "Legacy actual sliding1.38694/allpassed vs.6cap.991736. Layered real-engine actual1.384545602/allpassed vs.990022317; ayrı V450.298347/H248.092670. Hem motor path teyit; canlı API/UI falsepass bu S4te koşulmadı. Orijinal TBDY PDF görülmedi.",
+      "source_anchors": [
+        "geotek/engine/limit_state.py:257",
+        "geotek/engine/limit_state.py:519"
+      ]
+    },
+    {
+      "id": "ENG-C-003",
+      "verdict": "Onay, model/diyagram tutarlılığı",
+      "evidence": "results.json / multi",
+      "scope": "Tributary ilan edilen reaksiyonlarla V2=−45, diagram−53.12499; hinge V2 dengeyi tutuyor. Tributary ampirik yüklerinin globalmoment artığı tek başına yöntemin geçersizliği değildir.",
+      "source_anchors": [
+        "geotek/engine/anchored_wall.py:344"
+      ]
+    },
+    {
+      "id": "ENG-C-004",
+      "verdict": "Kısmen, sözleşme kesin",
+      "evidence": "results.json / multi",
+      "scope": "vmax87.0833/81.09375 vs dönen dizimax257.9409/241.01559 teyit. Kod ilk tabanaltı shear sıfırından sonrasını bilerek dışlıyor ve toe_force_not_balanced uyarısı veriyor. Alan docstring largestwholewall ile çelişir; fiziksel altuçtalebi doğruluğu kaynak/model doğrulaması gerektirir.",
+      "source_anchors": [
+        "geotek/engine/anchored_wall.py:554",
+        "geotek/core/models/anchors.py:377"
+      ]
+    },
+    {
+      "id": "ENG-C-005",
+      "verdict": "Onay, eğitim/motor farkı",
+      "evidence": "domain-probes.json / C_education_soft_clay_area",
+      "scope": "SVG rampa+plateau+alt-rampa alan.75pH; motordaki üst-rampa+plateau.875pH. H8p29.92:179.52/209.44. Ns=gammaH/Su_b ve henkel_default=basal.b_eff kodu metinle farkı destekliyor; kaynakşekil doğrulanmadı.",
+      "source_anchors": [
+        "web/src/modules/education/figures/spDraw.tsx:373",
+        "geotek/engine/anchored_wall.py:309"
+      ]
+    },
+    {
+      "id": "ENG-C-006",
+      "verdict": "Onay, alt seviye domain",
+      "evidence": "domain-probes.json / C_low_level_pile_domain",
+      "scope": "depthincrease−2 ile D−4.629270464; allowstressNaN ile sectionnan. Gravitygeometry infheight/embed7>height6 kabul. Normal SheetPileStructure depthincrease>=0 koruması var; bütün UI akışlarına erişim gösterilmedi.",
+      "source_anchors": [
+        "geotek/engine/sheet_pile.py:325",
+        "geotek/engine/sheet_pile.py:278"
+      ]
+    }
+  ],
+  "artifacts": [
+    "review.py",
+    "results.json",
+    "supplement.py",
+    "supplement.json",
+    "domain-probes.py",
+    "domain-probes.json",
+    "b-education.py",
+    "b-education.json",
+    "layered-cap.py",
+    "layered-cap.json",
+    "global-grid.py",
+    "global-grid.json"
+  ]
+}

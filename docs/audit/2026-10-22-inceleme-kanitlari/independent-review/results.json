@@ -1,0 +1,413 @@
+{
+  "checks": [
+    {
+      "name": "A_nominal_stress_5m",
+      "actual": [
+        98.0,
+        29.43,
+        68.57
+      ],
+      "expected": [
+        98.0,
+        29.43,
+        68.57
+      ],
+      "pass_check": true,
+      "note": ""
+    },
+    {
+      "name": "A_nominal_SPT_N60",
+      "actual": 25.704,
+      "expected": 25.704,
+      "pass_check": true,
+      "note": ""
+    },
+    {
+      "name": "A_nominal_CRR_Youd_N12",
+      "actual": 0.1311799816345271,
+      "expected": 0.1311799816345271,
+      "pass_check": true,
+      "note": ""
+    },
+    {
+      "name": "A_LPI_GWT_[1.5, 2.5]",
+      "actual": 9.0,
+      "expected": 7.120000000000001,
+      "pass_check": false,
+      "note": ""
+    },
+    {
+      "name": "A_LPI_GWT_[1, 3]",
+      "actual": 18.0,
+      "expected": 6.28125,
+      "pass_check": false,
+      "note": ""
+    },
+    {
+      "name": "A_LPI_GWT_[5]",
+      "actual": 21.875,
+      "expected": 3.875,
+      "pass_check": false,
+      "note": ""
+    },
+    {
+      "name": "A_LPI_invalid_all_NaN",
+      "actual": 0.0,
+      "expected": 0.0,
+      "pass_check": true,
+      "note": "Arithmetic zero confirmed; interpretation requires statuses/completeness, not a formula-only assertion."
+    },
+    {
+      "name": "A_import_unknown_qc_header",
+      "actual": [
+        5000000.0
+      ],
+      "expected": [
+        5000.0
+      ],
+      "pass_check": false,
+      "note": "Direct import only; HTTP endpoint requires explicit qc_unit and overrides header."
+    },
+    {
+      "name": "A_import_explicit_kPa",
+      "actual": [
+        5000.0
+      ],
+      "expected": [
+        5000.0
+      ],
+      "pass_check": true,
+      "note": ""
+    },
+    {
+      "name": "A_edu_Idriss_5.5",
+      "actual": 1.6865932110527506,
+      "expected": 2.2114214353149433,
+      "pass_check": false,
+      "note": ""
+    },
+    {
+      "name": "A_edu_AS_5.5",
+      "actual": 1.8,
+      "expected": 2.7829492965922533,
+      "pass_check": false,
+      "note": ""
+    },
+    {
+      "name": "A_edu_Idriss_7.5",
+      "actual": 1.0001492712300064,
+      "expected": 0.9996389409159898,
+      "pass_check": false,
+      "note": ""
+    },
+    {
+      "name": "A_edu_AS_7.5",
+      "actual": 1.0,
+      "expected": 1.0,
+      "pass_check": true,
+      "note": ""
+    },
+    {
+      "name": "A_edu_Idriss_8.5",
+      "actual": 0.7660874810403654,
+      "expected": 0.7255837539524674,
+      "pass_check": false,
+      "note": ""
+    },
+    {
+      "name": "A_edu_AS_8.5",
+      "actual": 0.7258458271819623,
+      "expected": 0.6616368941764318,
+      "pass_check": false,
+      "note": ""
+    },
+    {
+      "name": "B_nominal_Rankine_0",
+      "actual": [
+        0.9999999999999998,
+        0.9999999999999998
+      ],
+      "expected": [
+        1.0,
+        1.0
+      ],
+      "pass_check": true,
+      "note": ""
+    },
+    {
+      "name": "B_nominal_Rankine_20",
+      "actual": [
+        0.49029059656570206,
+        2.0396067291614743
+      ],
+      "expected": [
+        0.4902905965657023,
+        2.0396067291614743
+      ],
+      "pass_check": true,
+      "note": ""
+    },
+    {
+      "name": "B_nominal_Rankine_30",
+      "actual": [
+        0.3333333333333334,
+        2.9999999999999982
+      ],
+      "expected": [
+        0.3333333333333333,
+        3.0
+      ],
+      "pass_check": true,
+      "note": ""
+    },
+    {
+      "name": "B_nominal_Rankine_40",
+      "actual": [
+        0.21744283205399903,
+        4.59890993211339
+      ],
+      "expected": [
+        0.21744283205399909,
+        4.598909932113389
+      ],
+      "pass_check": true,
+      "note": ""
+    },
+    {
+      "name": "B_nominal_bearing_meyerhof",
+      "actual": 951.4434570681974,
+      "expected": 951.4434570681979,
+      "pass_check": true,
+      "note": ""
+    },
+    {
+      "name": "B_nominal_bearing_hansen",
+      "actual": 940.675372413036,
+      "expected": 940.6753724130365,
+      "pass_check": true,
+      "note": ""
+    },
+    {
+      "name": "B_nominal_bearing_vesic",
+      "actual": 1072.6634751692463,
+      "expected": 1072.6634751692468,
+      "pass_check": true,
+      "note": ""
+    },
+    {
+      "name": "B_Nc_near_zero",
+      "actual": -127.22218725854067,
+      "expected": 5.141592653589793,
+      "pass_check": false,
+      "note": "Pathological numeric boundary; exact zero branch works. Do not generalize to normal soils."
+    },
+    {
+      "name": "B_wedge_force_balance_at_production_rho",
+      "actual": 299682.402023445,
+      "expected": 299682.4020233891,
+      "pass_check": true,
+      "note": ""
+    },
+    {
+      "name": "B_Bishop_uniform",
+      "actual": 0.9823277045137905,
+      "expected": 0.9823275807904978,
+      "pass_check": true,
+      "note": ""
+    },
+    {
+      "name": "B_Bishop_layered",
+      "actual": 1.2227769796256274,
+      "expected": 1.2114421083578568,
+      "pass_check": false,
+      "note": ""
+    },
+    {
+      "name": "C_nominal_wall_equilibrium",
+      "actual": [
+        360.0,
+        108.00000000000004,
+        936.0,
+        216.00000000000009,
+        1.9245008972987516
+      ],
+      "expected": [
+        360.0,
+        108.0,
+        936.0,
+        216.0,
+        1.9245008972987523
+      ],
+      "pass_check": true,
+      "note": ""
+    },
+    {
+      "name": "C_TBDY_base_friction_cap",
+      "actual": 1.3869415391359994,
+      "expected": 0.9917355371900826,
+      "pass_check": false,
+      "note": ""
+    },
+    {
+      "name": "C_nominal_pile_equilibrium",
+      "actual": [
+        6.119047926763601,
+        356.96935049999973
+      ],
+      "expected": [
+        6.119047841726765,
+        356.9693845669907
+      ],
+      "pass_check": true,
+      "note": ""
+    },
+    {
+      "name": "C_nominal_anchor",
+      "actual": [
+        266.044443118978,
+        36.39702342662023,
+        4.06170644754298,
+        7.527517903025054
+      ],
+      "expected": [
+        266.044443118978,
+        36.39702342662024,
+        4.061706447542981,
+        7.527517903025054
+      ],
+      "pass_check": true,
+      "note": ""
+    },
+    {
+      "name": "C_multi_hinge_force",
+      "actual": 390.0000000000032,
+      "expected": 390.0,
+      "pass_check": true,
+      "note": ""
+    },
+    {
+      "name": "C_multi_hinge_shear_z2",
+      "actual": -53.1249900000022,
+      "expected": -53.124990000003436,
+      "pass_check": true,
+      "note": ""
+    },
+    {
+      "name": "C_multi_tributary_force",
+      "actual": 390.0000000000032,
+      "expected": 390.0,
+      "pass_check": true,
+      "note": ""
+    },
+    {
+      "name": "C_multi_tributary_shear_z2",
+      "actual": -53.12499000000218,
+      "expected": -44.99999999999939,
+      "pass_check": false,
+      "note": ""
+    },
+    {
+      "name": "C_wet_static_service_vs_independent",
+      "actual": [
+        15.757163433941514,
+        2399.8352312946377
+      ],
+      "expected": [
+        15.757163393745458,
+        2399.835292167507
+      ],
+      "pass_check": true,
+      "note": ""
+    }
+  ],
+  "summary": {
+    "total": 35,
+    "passed": 22,
+    "differing": 13
+  },
+  "clay_suggestions": {
+    "phi_eff": {
+      "value": 37.1862113554326,
+      "validity_ok": true,
+      "method": "mean(HU1996_phi_SPT,KM1990_phi_SPT,PHT1974_phi_SPT)"
+    },
+    "su": {
+      "value": 117.2625166507537,
+      "validity_ok": true,
+      "method": "mean(Hara1974_su_SPT,Stroud1974_su_SPT)"
+    },
+    "E": {
+      "value": 12766.95,
+      "validity_ok": true,
+      "method": "mean(KM1990_E_SPT)"
+    }
+  },
+  "wedge": {
+    "production_force": 299682.402023445,
+    "rho": 25.005729577951307,
+    "unbounded_reference": {
+      "1": 1967.0408315041702,
+      "0.1": 17409.902290584036,
+      "0.01": 171813.90644176738,
+      "0.001": 1715851.4836553282,
+      "0.0001": 17156227.00923027,
+      "1e-05": 171559982.22927234
+    }
+  },
+  "bishop": {
+    "uniform": {
+      "actual": 0.9823277045137905,
+      "reference": 0.9823275807904978,
+      "relative_error": 1.2594911824592714e-07,
+      "reference_equilibrium_residual": 1.1368683772161603e-13
+    },
+    "layered": {
+      "actual": 1.2227769796256274,
+      "reference": 1.2114421083578568,
+      "relative_error": 0.009356510880355051,
+      "reference_equilibrium_residual": 9.094947017729282e-13
+    }
+  },
+  "tbdy": {
+    "actual_passed": true,
+    "sliding": 1.3869415391359994,
+    "capped_sliding": 0.9917355371900826,
+    "note": "Cap read from repository code metadata; no original TBDY consulted by this reviewer."
+  },
+  "multi": {
+    "hinge": {
+      "reactions": [
+        120.62499000000344,
+        126.87501000000785,
+        115.41667866238313,
+        27.083321337608776
+      ],
+      "moment_residual": -1.0668827599147335e-08,
+      "actual_v2": -53.1249900000022,
+      "expected_v2": -53.124990000003436,
+      "v_max": 87.0833213376089,
+      "max_abs_returned_shear": 257.9409186623908
+    },
+    "tributary": {
+      "reactions": [
+        112.49999999999939,
+        135.0000000000109,
+        121.40624999999292,
+        21.093749999999943
+      ],
+      "moment_residual": -9.401041666661513,
+      "actual_v2": -53.12499000000218,
+      "expected_v2": -44.99999999999939,
+      "v_max": 81.09375000000006,
+      "max_abs_returned_shear": 241.01558999999975
+    }
+  },
+  "static_envelope": {
+    "static_D": 18.908596120729815,
+    "static_M": 2399.8352312946377,
+    "sds_D": 8.039288389090913,
+    "sds_M": 436.9450040015868,
+    "independent_static_D": 18.90859607249455,
+    "independent_static_M": 2399.835292167507
+  }
+}

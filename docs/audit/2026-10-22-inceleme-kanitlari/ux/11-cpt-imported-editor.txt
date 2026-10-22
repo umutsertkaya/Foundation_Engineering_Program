@@ -1,0 +1,45 @@
+Zemin etüdü ve parametreler
+
+Proje: UX Araştırma 2026
+
+KAYDEDİLMEMİŞ DEĞİŞİKLİKLER
+Kaydet
+TR
+EN
+Ana menüye dön
+Arazi verileri
+Zemin profilleri
+Mühendislik parametreleri
+Sınıflandırma
+Arazi Verileri
+
+CPT deneyleri, SPT sondajları ve saha sondaj logları.
+
+CPT verisi içe aktar (CSV)
+SPT verisi içe aktar (CSV)
+Yeni sondaj (elle)
+CPT Deneyleri
+
+CPT-UX-MPa
+
+299 ÖLÇÜM NOKTASI
+
+Maks. derinlik: 15.0 m
+
+Yeraltı su seviyesi (YASS): —
+
+Koni alan oranı a: 0.8
+
+Sondajlar (SPT ve Log)
+CPT-UX-MPa içe aktarıldı.
+Arazi kaydını düzenle
+Kimlik
+YASS derinliği [m]
+
+Ölçülen yeraltı su seviyesi; boş bırakılırsa projedeki değer kullanılır.
+
+Zemin kotu [m]
+Koni alan oranı a
+Ön delme derinliği [m]
+İptal
+Kaydet

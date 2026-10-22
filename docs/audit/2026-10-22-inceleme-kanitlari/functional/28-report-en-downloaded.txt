@@ -1,0 +1,37 @@
+Report
+
+Project: QA İŞLEV GeoTek
+
+Save
+TR
+EN
+Back to main menu
+Report
+Report
+
+Builds a Word (docx) report from stored results. Stale or result-less sections are not included.
+
+QA İŞLEV GeoTek
+CURRENT
+QA Kum 0-40m (kaynak test)
+CURRENT
+QA Sulu iki tabaka
+CURRENT
+QA Konsol 5m
+CURRENT
+QA Konsol palplanş
+CURRENT
+QA Ankrajlı palplanş
+CURRENT
+QA Ağırlık sulu 5m
+CURRENT
+Soil classification
+CURRENT
+Liquefaction analysis
+CURRENT
+Ankrajlı duvar analizi
+CURRENT
+Zemin ankrajı tasarımı
+CURRENT
+Build and download report
+Refresh

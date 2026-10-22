@@ -1,0 +1,65 @@
+{
+  "url": "http://127.0.0.1:8771/m/education/gallery",
+  "viewport": {
+    "w": 1440,
+    "h": 900
+  },
+  "scroll": {
+    "w": 1440,
+    "h": 36979
+  },
+  "inputs": [
+    {
+      "tag": "INPUT",
+      "type": "radio",
+      "id": "mantine-gwg7ougsv-tr",
+      "aria": null,
+      "ph": "",
+      "value": "tr",
+      "labels": [
+        "TR"
+      ],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "radio",
+      "id": "mantine-gwg7ougsv-en",
+      "aria": null,
+      "ph": "",
+      "value": "en",
+      "labels": [
+        "EN"
+      ],
+      "testid": null
+    }
+  ],
+  "buttons": [
+    {
+      "text": "",
+      "aria": "Toggle navigation menu",
+      "disabled": false
+    },
+    {
+      "text": "Save",
+      "aria": null,
+      "disabled": false
+    },
+    {
+      "text": "",
+      "aria": "Toggle theme",
+      "disabled": false
+    },
+    {
+      "text": "Back to main menu",
+      "aria": null,
+      "disabled": false
+    }
+  ],
+  "links": [
+    {
+      "text": "Topics",
+      "href": "/m/education"
+    }
+  ]
+}

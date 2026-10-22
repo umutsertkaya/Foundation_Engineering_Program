@@ -1,0 +1,257 @@
+İstinat duvarı
+
+Proje: QA İŞLEV GeoTek
+
+KAYDEDİLMEMİŞ DEĞİŞİKLİKLER
+Kaydet
+TR
+EN
+Ana menüye dön
+Duvarlar
+Yeni duvar
+Listeye dön
+QA Konsol 5m
+İSTİNAT DUVARI
+TASLAK
+İLERİ
+TBDY2018
+Tip/geometri
+Zemin
+Yükler/deprem
+4
+Öner/Kontrol
+5
+Sonuç
+
+Kesit boyutları (Taslak)
+
+'Boyut öner' bu alanları doldurur. Değerleri değiştirip 'Kontrol et' ile kendi kesitinizi tahkik edebilirsiniz.
+
+Boyut öner
+Kontrol et
+Ön ayak
+Topuk
+Taban kalınlığı
+Gövde üst genişliği
+Gövde alt genişliği
+
+Hesap durumu: Başarısız
+
+0%
+
+Eksik katsayılar
+
+9 EKSİK
+
+Seçilen kod bu katsayılara değer vermiyor. Hesap için değerleri siz girmelisiniz; program varsayılan atamaz.
+
+TBDY-static.load.G_unfav
+
+KAYNAKTA YOK
+
+TBDY değer vermez (16.7.3.1). TS 500 uygulamasında 1.4G + 1.6Q + 1.6H ve 0.9G + 1.6H kullanıldığı görülmektedir (TS 500 metni ile doğrulanmadı).
+
+Kaynak: TBDY 2018 16.7.3.1 — statik birleşimler ilgili yönetmelikten (TBDY değer vermez)
+
+TBDY-static.load.G_unfav
+
+TBDY-static.load.G_fav
+
+KAYNAKTA YOK
+
+TBDY değer vermez (16.7.3.1). TS 500 uygulamasında 1.4G + 1.6Q + 1.6H ve 0.9G + 1.6H kullanıldığı görülmektedir (TS 500 metni ile doğrulanmadı).
+
+Kaynak: TBDY 2018 16.7.3.1 — statik birleşimler ilgili yönetmelikten (TBDY değer vermez)
+
+TBDY-static.load.G_fav
+
+TBDY-static.load.Q_unfav
+
+KAYNAKTA YOK
+
+TBDY değer vermez (16.7.3.1). TS 500 uygulamasında 1.4G + 1.6Q + 1.6H ve 0.9G + 1.6H kullanıldığı görülmektedir (TS 500 metni ile doğrulanmadı).
+
+Kaynak: TBDY 2018 16.7.3.1 — statik birleşimler ilgili yönetmelikten (TBDY değer vermez)
+
+TBDY-static.load.Q_unfav
+
+TBDY-static.material.tan_phi
+
+KAYNAKTA YOK
+
+TBDY değer vermez. Karşılaştırma için EC7 M2: tanφ' 1.25, c' 1.25, c_u 1.4 (bunlar EC7 değeridir, TBDY değil).
+
+Kaynak: TBDY 2018 16.0, 16.13.3 — γRφ, γRc tanımlı, değer verilmemiş
+
+TBDY-static.material.tan_phi
+
+TBDY-static.material.c_eff
+
+KAYNAKTA YOK
+
+TBDY değer vermez. Karşılaştırma için EC7 M2: tanφ' 1.25, c' 1.25, c_u 1.4 (bunlar EC7 değeridir, TBDY değil).
+
+Kaynak: TBDY 2018 16.0, 16.13.3 — γRφ, γRc tanımlı, değer verilmemiş
+
+TBDY-static.material.c_eff
+
+TBDY-static.material.su
+
+KAYNAKTA YOK
+
+TBDY değer vermez. Karşılaştırma için EC7 M2: tanφ' 1.25, c' 1.25, c_u 1.4 (bunlar EC7 değeridir, TBDY değil).
+
+Kaynak: TBDY 2018 16.0, 16.13.3 — γRφ, γRc tanımlı, değer verilmemiş
+
+TBDY-static.material.su
+
+TBDY-seismic.material.tan_phi
+
+KAYNAKTA YOK
+
+TBDY değer vermez. Karşılaştırma için EC7 M2: tanφ' 1.25, c' 1.25, c_u 1.4 (bunlar EC7 değeridir, TBDY değil).
+
+Kaynak: TBDY 2018 16.0, 16.13.3 — γRφ, γRc tanımlı, değer verilmemiş
+
+TBDY-seismic.material.tan_phi
+
+TBDY-seismic.material.c_eff
+
+KAYNAKTA YOK
+
+TBDY değer vermez. Karşılaştırma için EC7 M2: tanφ' 1.25, c' 1.25, c_u 1.4 (bunlar EC7 değeridir, TBDY değil).
+
+Kaynak: TBDY 2018 16.0, 16.13.3 — γRφ, γRc tanımlı, değer verilmemiş
+
+TBDY-seismic.material.c_eff
+
+TBDY-seismic.material.su
+
+KAYNAKTA YOK
+
+TBDY değer vermez. Karşılaştırma için EC7 M2: tanφ' 1.25, c' 1.25, c_u 1.4 (bunlar EC7 değeridir, TBDY değil).
+
+Kaynak: TBDY 2018 16.0, 16.13.3 — γRφ, γRc tanımlı, değer verilmemiş
+
+TBDY-seismic.material.su
+Katsayıları kaydet
+
+Son hesap tamamlanmadı (hata, iptal veya sürüyor); gösterilen sonuç önceki çalıştırmaya aittir.
+
+Duvar Kesiti (Ölçekli)
+
+Ön zemin
+Tutulan zemin (arka)
+Gövde
+Taban plağı
+Ön ayak
+Topuk
+Taban B = 4.60 m
+H = 5.00 m
+D = 0.60 m
+bec4ae2b3c0d490e9c8b20d2e5350403
+0.00–5.00 m
+bec4ae2b3c0d490e9c8b20d2e5350403
+5.00–40.00 m
+bec4ae2b3c0d490e9c8b20d2e5350403
+
+En kritik tahkik (en yüksek kullanım oranı): Statik · Toptan göçme
+
+Devrilme
+
+STATİK
+UYGUN
+
+HESAPLANAN
+
+7.65
+
+GEREKLİ EN AZ
+
+≥ 2.00
+
+KULLANIM ORANI
+
+26%
+
+M_R = 956.2, M_O = 125.0 kNm/m
+
+Kayma
+
+STATİK
+UYGUN
+
+HESAPLANAN
+
+2.75
+
+GEREKLİ EN AZ
+
+≥ 1.50
+
+KULLANIM ORANI
+
+54%
+
+V tan(30) + c_a B'
+
+Eksantrisite (e/B)
+
+STATİK
+UYGUN
+
+HESAPLANAN
+
+0.005
+
+İZİN VERİLEN EN ÇOK
+
+≤ 0.167
+
+KULLANIM ORANI
+
+3%
+
+e = -0.024 m (e/B limit 0.167)
+
+Taşıma gücü
+
+STATİK
+UYGUN
+
+HESAPLANAN
+
+7.40
+
+GEREKLİ EN AZ
+
+≥ 3.00
+
+KULLANIM ORANI
+
+41%
+
+q_ult = 582 kPa on B' = 4.55 m; q_eff = 79 kPa
+
+Toptan göçme
+
+STATİK
+UYGUN
+
+HESAPLANAN
+
+1.91
+
+GEREKLİ EN AZ
+
+≥ 1.50
+
+KULLANIM ORANI
+
+78%
+
+Bishop circle centre (0.36, 9.20), R = 10.12 m
+
+EN KRİTİK
+Önceki adım
+Sonraki adım

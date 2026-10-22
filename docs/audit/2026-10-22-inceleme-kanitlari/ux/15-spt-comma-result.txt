@@ -1,0 +1,79 @@
+Zemin etüdü ve parametreler
+
+Proje: UX Araştırma 2026
+
+KAYDEDİLMEMİŞ DEĞİŞİKLİKLER
+Kaydet
+TR
+EN
+Ana menüye dön
+Arazi verileri
+Zemin profilleri
+Mühendislik parametreleri
+Sınıflandırma
+Arazi Verileri
+
+CPT deneyleri, SPT sondajları ve saha sondaj logları.
+
+CPT verisi içe aktar (CSV)
+SPT verisi içe aktar (CSV)
+Yeni sondaj (elle)
+CPT Deneyleri
+
+CPT-UX-MPa
+
+299 ÖLÇÜM NOKTASI
+
+Maks. derinlik: 15.0 m
+
+Yeraltı su seviyesi (YASS): 2.5 m
+
+Koni alan oranı a: 0.8
+
+CPT-UX-kPa
+
+299 ÖLÇÜM NOKTASI
+
+Maks. derinlik: 15.0 m
+
+Yeraltı su seviyesi (YASS): 2.5 m
+
+Koni alan oranı a: 0.8
+
+Sondajlar (SPT ve Log)
+
+BH-UX-dot
+
+9 SPT DARBE KAYDI
+0 LABORATUVAR KAYDI
+
+Yeraltı su seviyesi (YASS): 2.5 m
+
+BH-UX-comma
+
+5 SPT DARBE KAYDI
+0 LABORATUVAR KAYDI
+
+Yeraltı su seviyesi (YASS): —
+
+BH-UX-dot içe aktarıldı.
+BH-UX-comma içe aktarıldı.
+Arazi kaydını düzenle
+Genel
+SPT
+Sondaj logu
+Laboratuvar
+Kimlik
+YASS derinliği [m]
+
+Ölçülen yeraltı su seviyesi; boş bırakılırsa projedeki değer kullanılır.
+
+Zemin kotu [m]
+Çekiç enerji oranı ER [%]
+
+SPT N60 düzeltmesi için; çekiç tipine göre girin (örn. emniyetli çekiç ≈ 60).
+
+Sondaj çapı [mm]
+Örnekleyici
+İptal
+Kaydet

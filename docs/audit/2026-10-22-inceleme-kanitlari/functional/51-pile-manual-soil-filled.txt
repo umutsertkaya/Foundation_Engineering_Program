@@ -1,0 +1,55 @@
+Palplanş / iksa
+
+Proje: QA İŞLEV GeoTek
+
+Kaydet
+TR
+EN
+Ana menüye dön
+Perdeler
+Listeye dön
+Yeni palplanş perdesi
+Girdiler
+Ad
+
+Mesnet
+
+Konsol
+Tek ankrajlı
+Tutulan yükseklik H (m)
+Arka zemin eğimi β (°)
+
+Boş bırakılırsa 0 (yatay). 45° altında olmalı; β > φ′ ise hesap durdurulur. Ön taraf yatay kalır.
+
+Sürşarj (kPa)
+
+Boş bırakılırsa 0 alınır.
+
+Sürşarj tabanı
+
+Yalnız eğimli zeminde fark eder.
+
+S_DS (isteğe bağlı)
+
+Boşsa depremli durum hesaplanmaz.
+
+İzin verilen gerilme (MPa)
+
+Boşsa kesit modülü hesaplanmaz.
+
+Gelişmiş girdiler
+Zemin
+Projeden profil kopyala
+Elle gir
+Yeraltı suyu derinliği (m)
+Üst (m)	Alt (m)	γ (kN/m³)	φ' (°)	c' (kPa)	
+
+	
+	
+	
+	
+	
+Tabaka ekle
+Oluştur
+
+Profil seçilirse zemin yapıya özel kopyalanır; kaynak profil değişmez.

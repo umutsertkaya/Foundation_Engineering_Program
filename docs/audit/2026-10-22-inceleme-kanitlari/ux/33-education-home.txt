@@ -1,0 +1,79 @@
+Eğitim
+
+Proje: UX Araştırma 2026
+
+KAYDEDİLMEMİŞ DEĞİŞİKLİKLER
+Kaydet
+TR
+EN
+Ana menüye dön
+Konular
+Eğitim
+
+Programın gerçekte kullandığı yöntemler: formüller, varsayımlar, kaynaklar ve şekiller. Bu bölüm hesapları değiştirmez.
+
+Zemin sınıflandırması: USCS ve CPT (SBTn, I_c)
+
+ORTA
+
+Programın USCS grup sembolünü laboratuvar verisinden, CPT tabanlı SBTn bölgesini ve I_c davranış indeksini nasıl hesapladığını ve ince dane yüzdesini I_c'den nasıl tahmin ettiğini anlatır.
+
+Yanal toprak basıncı ve istinat duvarı kontrolleri
+
+İLERİ
+
+Rankine, Coulomb, Mononobe-Okabe ve sayısal kama yöntemleri; sürşarj, eğimli zemin, kayma dişi ve duvar devrilme, kayma, taşıma ve global stabilite kontrolleri.
+
+Sığ temel taşıma gücü
+
+ORTA
+
+GeoTek'in q_ult hesabının Meyerhof, Hansen ve Vesic yöntemleriyle nasıl yapıldığı, faktörler, eksantrisite ve sınırlar.
+
+Sıvılaşma tetiklenmesi (SPT ve CPT)
+
+İLERİ
+
+Programın Youd 2001 ve Boulanger-Idriss 2014 yöntemlerinde talep (CSR), direnç (CRR), güvenlik katsayısı ve LPI nasıl hesapladığını adım adım anlatır.
+
+Palplanş: konsol gömülme ve moment hesabı
+
+ORTA
+
+Programın tek sıra konsol palplanşta net basınç, Blum tipi denge, gömülme artışı ve maksimum momenti nasıl hesapladığı.
+
+Ankrajlı palplanş: serbest zemin desteği ve ankraj kuvveti
+
+ORTA
+
+Programın tek seviyeli ankrajlı palplanş modeli: ankraj derinliği, moment dengesi, ankraj kuvveti ve birim ankraj yükü. Ankraj kapasitesi kontrolü bu modelde yoktur.
+
+Zemin ankrajı tasarımı: serbest boy, kök boyu ve tendon
+
+İLERİ
+
+Programın FHWA GEC-4 ile ankraj yükünü, kama geometrisine göre serbest boyu, kök boyunu, tendon sınırlarını ve deneme yükünü nasıl hesapladığını anlatır.
+
+Ankrajlı iksa: görünür basınç zarfı, ankraj yükleri ve taban kabarması
+
+İLERİ
+
+Programın FHWA GEC-4 bölüm 5 ile ankrajlı iksa iç kuvvetlerini nasıl bulduğunu anlatır: kum, sert kil ve yumuşak kil zarfları, menteşe ve katkı alanı yöntemleri, tek seviyede serbest zemin desteği ve kil kazıda taban kabarması.
+
+İstinat duvarında kayma dişi
+
+İLERİ
+
+Kayma dişinin pasif direncini, diş ucu düzleminden kayma kontrolünü, diş bölgesindeki arka itkiyi ve deprem, su ile sürşarj etkilerini programın gerçekte uyguladığı biçimde anlatır.
+
+Eğimli zemin (β) ve sürşarj
+
+İLERİ
+
+Programın eğimli dolgu (β) için Rankine ve Coulomb katsayılarını, Mononobe-Okabe deprem artışını, β > φ′ − ψ durumunda TBDY 16.24b'yi, sürşarj yayılışını ve palplanşta bu etkilerin uygulanışını anlatır.
+
+Şev stabilitesi: Bishop yöntemi
+
+İLERİ
+
+Programın dairesel kayma yüzeyleri için Bishop basitleştirilmiş yöntemini, tabakalı zemini, su ve yük etkisini ve kritik daireyi arama yöntemini anlatır.

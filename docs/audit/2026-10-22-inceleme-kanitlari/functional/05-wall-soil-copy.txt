@@ -1,0 +1,127 @@
+İstinat duvarı
+
+Proje: QA İŞLEV GeoTek
+
+KAYDEDİLMEMİŞ DEĞİŞİKLİKLER
+Kaydet
+TR
+EN
+Ana menüye dön
+Duvarlar
+Yeni duvar
+Listeye dön
+QA Konsol 5m
+İSTİNAT DUVARI
+TASLAK
+TEMEL
+ASD
+Tip/geometri
+2
+Zemin
+3
+Yükler/deprem
+4
+Öner/Kontrol
+5
+Sonuç
+
+Kaynak proje profiliQA Kum 0-40m (kaynak test)
+
+GÜNCEL
+
+Kopya, proje profiliyle güncel.
+
+Proje profilinden yeniden kopyala
+
+Kesit: katmanlar, bölgeler ve su
+
+B = 4.60 m · gövde yüksekliği 4.50 m · D = 0.60 m
+
+Ön zemin
+Tutulan zemin (arka)
+Arka dolgu bölgesi
+Temel bölgesi
+profil z = 40.00 m'ye kadar devam ediyor ↓
+z (m)
+0
+2
+4
+6
+8
+4.40
+5.00
+0.00–40.00 m · Kum
+φ' 30° · γ 18.0
+0.00–40.00 m · Kum
+φ' 30° · γ 18.0
+0.00–40.00 m · K…
+0.90
+3.20
+Taban B = 4.60 m
+H = 5.00 m
+
+Zemin modeli
+
+GEÇERLİ
+Vazgeç
+Zemini kaydet
+
+Yeraltı suyu seviyeleri
+
+Arazi
+Tasarım
+Deprem
+
+Tutulan taraf suyu
+
+Profille aynı
+YASS (arazi)
+YASS (tasarım)
+YASS (deprem)
+
+z, tutulan zemin yüzeyinden (m)
+
+Ön taraf suyu
+
+Profille aynı
+YASS (arazi)
+YASS (tasarım)
+YASS (deprem)
+
+z, tutulan zemin yüzeyinden (m)
+
+Lejant
+
+Kum
+
+YASS (arazi)
+
+YASS (tasarım)
+
+YASS (deprem)
+
+Arka dolgu
+0
+Yapı profili
+1
+
+Arka dolgu katmanları z = 0'dan (tutulan zemin yüzeyi) başlar, kesintisizdir ve yalnız tutulan tarafta profilin yerini alır; ön taraf ve temel her zaman yapı profilini kullanır.
+
+Arka dolgu yok
+
+Dolgu yoksa tutulan tarafta da yapı profili kullanılır. Dolgu z = 0'dan başlar ve yalnız tutulan tarafta profilin yerini alır.
+
+Dolgu katmanı ekle
+
+Zemin geçirimliliği (k)
+
+Hidrolik iletkenlik k [m/s], Yükler/deprem adımındaki “Geçirimliliğe göre” seçeneği için gereklidir. Bilimsel gösterim kullanın (örn. 1e-5); boş hücre “k girilmedi” demektir. Sınıflandırmayı hesap motoru yapar ve sonuçta uyarıları verir.
+
+Katman	Kaynak	Derinlik (m)	k (m/s)
+	
+
+yapı profili
+
+	0.00–40.00	
+Önceki adım
+Sonraki adım

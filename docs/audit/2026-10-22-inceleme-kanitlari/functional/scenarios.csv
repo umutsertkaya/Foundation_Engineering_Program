@@ -1,0 +1,35 @@
+scenario,status,method,evidence
+New project/Persistent library,PASS,real browser,02-project-created-ui.png
+Cantilever wall create/Pick copied profile,PASS,real browser,03/04 screenshots
+Gravity wall/wet two-layer profile,PASS,real browser,25/26 screenshots
+Five-step wizard,PASS,real browser,04/05/06/07/10 screenshots
+Missing TBDY engineering factors,PASS expected 422,real browser,08-wall-missing-factor-block.png
+Wall check/advanced options/shear key,PASS job done,real browser,09/10 screenshots
+Wall sizing,PASS job done,real browser,jobs-summary.json
+Cantilever sheet pile design/3 diagrams,PASS job done,real browser,18-pile-False-result.png
+Anchored sheet pile design/3 diagrams,PASS job done,real browser,18-pile-True-result.png
+Manual sheet pile soil create and design,PASS job done,real browser,51/52 screenshots
+Wall/Sheet pile global Save includes local form,FAIL,real browser,FUN-001
+ASD static/seismic envelope,FAIL,API seed then real browser,FUN-002
+Sheet pile dirty design disabled,PASS,real browser,33-pile-local-dirty-before-save.png
+Sheet pile source warning after q-only edit,FAIL,real browser,FUN-003
+Three-level anchored wall analysis,PASS,real browser,20-anchor-multilevel-result.png
+Standalone anchor design,PASS,real browser,22-anchor-design-result.png
+Liquefaction BI2014 SPT+CPT,PASS job done,real browser,24-liquefaction-Boulanger-result.png
+Liquefaction Youd2001 SPT+CPT,PASS job done,real browser,24-liquefaction-Youd-result.png
+TR+EN DOCX browser download/ZIP/XML/python-docx,PASS,real browser and document extraction,docx-inspection.json
+TR+EN 805 table-cell number sequences,PASS,document comparison,docx-inspection.json
+API DTO to DOCX 43 numerical values,PASS,API and document comparison,docx-dto-comparison.json
+EN engineering warnings fully localized,FAIL,real browser and DOCX,FUN-004
+Per-structure design-code DOCX provenance,FAIL,real browser and DOCX,FUN-006
+Result/hash save-open roundtrip,PASS,API lifecycle,lifecycle.json
+Source profile edit preserves structure copy,PASS,API mutation and real browser,lifecycle.json
+UI source resync applies edited gamma,PASS,real browser,41-source-resynced-pile.png
+Stale report rejection,PASS expected 409,API and real browser,44-report-stale-disabled.png
+Running job + project reopened,PASS discarded,real browser start and API reopen,discard-job.json
+Wall job cancellation,PASS cancelled,real browser,cancel-job.json
+Queued sheet pile cancellation,PASS cancelled,real browser with real worker queue,pile-cancel-job.json
+800px EN/dark four module navigation,PASS with usability findings,real browser,narrow-metrics.json
+Word/LibreOffice visual page rendering,UNRUN,,
+640px/mobile,UNRUN,,
+Existing t10/g8 runner scripts,UNRUN,,

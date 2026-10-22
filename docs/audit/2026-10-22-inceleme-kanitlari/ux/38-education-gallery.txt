@@ -1,0 +1,1152 @@
+Learn
+
+Project: UX Araştırma 2026
+
+UNSAVED CHANGES
+Save
+TR
+EN
+Back to main menu
+Topics
+Figure gallery
+
+liq-mechanism
+
+1 Before shaking
+u ≈ hydrostatic
+2 Shaking starts
+u rising
+3 u = σv
+σ′ = σ − u → 0
+The inter-granular contact stress (σ′) decreases by the pore pressure u.
+When σ′ drops to zero the grains no longer carry each other and the soil behaves like a liquid.
+Transparent tubes on the right (piezometers): the water level rises as u increases.
+The opening of grain spacing is not a volume increase but a loss of contact (no drainage).
+
+liq-csr-crr
+
+0
+0.1
+0.2
+0.3
+0.4
+0.5
+0
+5
+10
+cyclic stress ratio
+depth z (m)
+CSR (demand)
+CRR (resistance)
+CRR < CSR ⇒ FS < 1
+liquefaction expected
+dense sand layer: high CRR
+
+liq-rd-depth
+
+0.4
+0.5
+0.6
+0.7
+0.8
+0.9
+1
+0
+10
+20
+30
+stress reduction coefficient rd
+depth z (m)
+Youd et al. 2001
+BI 2014, M = 6.5
+BI 2014, M = 7.5
+BI 2014, M = 8.5
+
+liq-fs-profile
+
+0
+1
+2
+3
+0
+5
+10
+factor of safety FS
+depth z (m)
+FS = 1
+● FS < 1: liquefiable
+● 1 ≤ FS < 1.2: marginal
+● FS ≥ 1.2: safe
+
+liq-spt-correlation
+
+0
+5
+10
+15
+20
+25
+30
+0
+0.1
+0.2
+0.3
+0.4
+0.5
+0.6
+corrected SPT blow count (N1)60
+CRR (Mw = 7.5, σ′v = 1 atm)
+fines FC ≤ 5 %
+FC = 15 %
+FC ≥ 35 %
+(N1)60cs ≥ 30: not liquefiable
+
+liq-msf-curve
+
+5.5
+6
+6.5
+7
+7.5
+8
+8.5
+0.5
+1
+1.5
+2
+moment magnitude Mw
+magnitude scaling factor MSF
+Idriss
+Andrus–Stokoe
+MSF = 1 for Mw = 7.5
+
+liq-lpi-weight
+
+0
+2
+4
+6
+8
+10
+0
+5
+10
+15
+20
+depth weight w(z)
+depth z (m)
+w(z) = 10 − 0.5·z
+∫w = 27.75 · F = 0.1
+∫w = 16.00 · F = 0.3
+∫w = 14.00 · F = 0.0
+∫w = 12.00 · F = 0.2
+w = 0 (z ≥ 20 m)
+first point at 2 m: first interval extended to the surface
+LPI = ∫ F(z)·w(z) dz
+0.1·27.75 + 0.3·16 + 0.2·12
+= 9.975
+
+class-uscs-plasticity
+
+0
+10
+20
+30
+40
+50
+60
+70
+80
+90
+100
+0
+10
+20
+30
+40
+50
+60
+liquid limit LL (%)
+plasticity index PI (%)
+A-line
+U-line
+CL-ML
+low plasticity
+A: PI = 0.73 (LL − 20)
+U: PI = 0.9 (LL − 8)
+high plasticity
+CL
+CH
+ML / OL
+MH / OH
+
+class-ic-chart
+
+0.1
+1
+10
+1
+10
+100
+1000
+normalised friction ratio Fr (%)
+normalised tip resistance Qtn
+Ic = 1.31
+2.05
+2.60
+2.95
+3.60
+coarse-grained (sand, gravel)
+fine-grained (clay)
+example: Fr = 1 %, Qtn = 50 ⇒ Ic = 2.15
+
+class-fc-from-ic
+
+1.5
+2
+2.5
+3
+3.5
+0
+20
+40
+60
+80
+100
+soil behaviour type index Ic
+estimated fines content FC (%)
+Ic ≤ 1.71: FC = 0
+Ic ≥ 2.96: FC = %100
+FC = 80·(Ic + C_FC) − 137
+
+cls-grading-curve
+
+0.01
+0.1
+1
+10
+0
+20
+40
+60
+80
+100
+grain size (mm, logarithmic)
+percent passing (%)
+D10
+D30
+D60
+No. 4 sieve: gravel | sand
+No. 200: sand | fines
+Cu = D60 / D10
+Cc = D30² / (D10·D60)
+
+cls-plasticity-chart
+
+0
+10
+20
+30
+40
+50
+60
+70
+80
+90
+100
+0
+10
+20
+30
+40
+50
+60
+liquid limit LL (%)
+plasticity index PI (%)
+A-line
+U-line
+CL-ML
+low plasticity
+A: PI = 0.73 (LL − 20)
+U: PI = 0.9 (LL − 8)
+high plasticity
+CL
+CH
+ML / OL
+MH / OH
+
+cls-robertson-chart
+
+0.1
+1
+10
+1
+10
+100
+1000
+normalised friction ratio Fr (%)
+normalised tip resistance Qtn
+Ic = 1.31
+2.05
+2.60
+2.95
+3.60
+coarse-grained (sand, gravel)
+fine-grained (clay)
+example: Fr = 1 %, Qtn = 50 ⇒ Ic = 2.15
+
+bear-failure-wedge
+
+Q
+I
+II
+III
+I active wedge · II radial zone · III passive wedge
+α = 45° + φ′/2
+α
+D
+B
+q = γ·D
+General shear failure (dense soil)
+The three zones move together; the ground surface heaves.
+q_u = c·N_c + q·N_q + ½·γ·B·N_γ
+bearing pressure q
+settlement s
+q_u
+dense: peak
+loose: no peak
+
+bear-terzaghi-zones
+
+Q
+q = γ·D
+the soil above the base acts as a surcharge
+D
+I
+II
+II
+III
+III
+φ
+B
+I: active wedge (the soil is pressed down under the footing)
+II: radial shear zone (logarithmic spiral)
+III: passive wedge (pushed sideways and upward)
+q_ult = c·Nc + q·Nq + ½·γ·B·Nγ (cohesion + surcharge + soil weight)
+
+bear-factor-trend
+
+0
+5
+10
+15
+20
+25
+30
+35
+40
+45
+1
+10
+100
+1000
+internal friction angle φ′ (°)
+bearing capacity factors N
+Nc
+Nq
+Nγ (Vesic)
+φ = 30°
+Nc = 30.1
+Nq = 18.4
+Nγ = 22.4
+
+bear-factor-tables
+
+φ′ (°)
+Nc
+Nq
+Nγ Vesic
+Nγ Hansen
+Nγ Meyerhof
+0
+5.14
+1.00
+0.00
+0.00
+0.00
+10
+8.34
+2.47
+1.22
+0.39
+0.37
+20
+14.83
+6.40
+5.39
+2.95
+2.87
+25
+20.72
+10.66
+10.88
+6.76
+6.77
+30
+30.14
+18.40
+22.40
+15.07
+15.67
+35
+46.12
+33.30
+48.03
+33.92
+37.15
+40
+75.31
+64.20
+109.41
+79.54
+93.69
+Nq = e^(π tan φ′)·tan²(45° + φ′/2), Nc = (Nq − 1)·cot φ′ (φ′ = 0: Nc = 5.14)
+Nγ = 2(Nq+1)tanφ′ (Vesic), 1.5(Nq−1)tanφ′ (Hansen), (Nq−1)tan(1.4φ′) (Meyerhof)
+
+bear-eccentric-width
+
+Q
+e
+q_min
+q_max
+B (footing width)
+B′ = B − 2e (effective width)
+e = M / Q (distance of the load from the centre)
+q = Q/B · (1 ± 6e/B) e ≤ B/6 ⇒ trapezoid, e > B/6 ⇒ base partly separates
+Bearing capacity is computed for a footing of width B′ with the load at its centre.
+
+bear-water-cases
+
+1 Above the base
+B
+q = γ·D − (γ′ for the submerged part)
+Nγ term: γ′ is used
+2 Between D and D+B
+B
+q = γ·D (su yok)
+γ_eff = γ′ + (zw/B)(γ − γ′)
+3 D+B'den derin
+B
+q = γ·D
+Nγ term: γ is used
+
+ep-active-passive
+
+active wedge: 45° + φ/2
+passive wedge: 45° − φ/2
+σa = Ka·σ′v
+σp = Kp·σ′v
+wall moves away → active
+wall pushed → passive
+retained soil
+excavation side
+
+ep-states-movement
+
+-5
+-4
+-3
+-2
+-1
+0
+1
+0
+0.5
+1
+1.5
+2
+2.5
+3
+3.5
+wall movement (% H): toward the soil ← → away from the soil
+K = σ′h / σ′v
+Kp = 3.00 passive (large movement needed)
+K0 = 0.50 at rest (no movement)
+Ka = 0.33 active (small movement suffices)
+start
+example curve for φ = 30° (schematic)
+
+ep-ka-phi
+
+15
+20
+25
+30
+35
+40
+45
+0
+1
+2
+3
+4
+5
+6
+internal friction angle φ′ (°)
+K
+Kp = tan²(45° + φ/2)
+K0 = 1 − sin φ
+Ka = tan²(45° − φ/2)
+φ=30°: Ka = 0.33
+φ=30°: Kp = 3.00
+
+ep-mohr-rankine
+
+σ′ (kPa)
+τ (kPa)
+failure envelope τ = σ′ tan φ′
+(c′ = 0, φ′ = 30°)
+σh,a
+33.3
+σv
+100
+σh,p
+300
+active
+passive
+2θ = 90° + φ′
+The soil fails when the circle touches the envelope.
+Two limits for the same σv: σh = Ka·σv and σh = Kp·σv.
+
+ep-rankine-diagram
+
+q = 10 kPa
+3.33 kPa = Ka·q
+33.33 kPa
+P₁ = 16.67
+(z = 2.50 m)
+P₂ = 75.0
+(z = 1.67 m)
+Pa = 91.67 kN/m
+H = 5 m
+z̄ = 1.82
+γ = 18 kN/m³, φ′ = 30°, c′ = 0 ⇒ Ka = 1/3
+Pa = P₁ + P₂ = 16.67 + 75.0 = 91.67 kN/m
+
+ep-cohesive-crack
+
+tension crack z₀ = 1.59 m
+(no pressure transfer; the program zeroes this zone)
+−2c′√Ka = −14.0 kPa
+38.9 kPa
+Pa = 85.9 kN/m
+H = 6 m
+H − z₀ = 4.41
+γ = 18 kN/m³, φ′ = 20°, c′ = 10 kPa ⇒ Ka = 0.49, z₀ = 2c′ / (γ√Ka) = 1.59 m
+σh(base) = Ka·γ·H − 2c′√Ka = 53.0 − 14.0 = 38.9 kPa, Pa = ½·38.9·4.41
+
+ep-layered-water
+
+water table (3 m)
+Layer 1: γ = 18, φ′ = 30°
+K = tan²(30°) = 0.333
+Layer 2: γsat = 20, φ′ = 24°
+K = tan²(33°) = 0.42
+18.0 kPa
+22.8 kPa
+σ′h = 35.7
++ u = 29.4
+← K changed: jump
+3 m
+3 m
+σ′v(3 m) = 18·3 = 54 kPa on both sides; because K changes, σ′h jumps 18.0 → 22.8.
+σ′v(6 m) = 54 + (20 − 9.81)·3 = 84.6 kPa; the water pressure u = 9.81·3 = 29.4 kPa is added separately.
+
+ep-coulomb-wedge
+
+slip plane (ρ)
+ρ
+W
+P_A
+R
+φ
+δ
+H
+W
+P_A = 0.51 W
+R = 0.95 W
+Force polygon (closes)
+P = W·sin(ρ − φ) / cos(ρ − φ − δ)
+φ = 30°, δ = 20°, ρ = 60°
+
+ep-seismic-wedge
+
+slip plane (ρ)
+ρ
+W
+kh·W
+P_AE
+R
+φ
+δ
+H
+W + kh·W (resultant)
+P_AE = 0.68 W
+R = 0.88 W
+Force polygon (closes)
+P = W·sin(ρ − φ) / cos(ρ − φ − δ)
+kh = 0.20
+
+ep-wall-forces
+
+O (toe)
+W = 240 kN/m
+Pa = 48 kN/m
+aW = 1.25 m
+aP = H/3 = 1.33 m
+B = 2.5 m
+H = 4 m
+M_R = W·aW = 300 kN·m/m
+M_O = Pa·aP = 64 kN·m/m
+FS overturning = M_R / M_O = 4.69
+Example: gravity wall 2.5 × 4 m, γc = 24, backfill φ′ = 30°, δ = 0
+
+wall-stability-checks
+
+1. Overturning
+O
+W
+Pa
+FS = ΣM_R / ΣM_O
+W·a_W / Pa·a_P
+2. Sliding
+ΣV
+ΣH
+ΣV·tan δb
+FS = ΣV·tan δb / ΣH
+3. Base pressure
+q_min
+q_max
+ΣV
+B
+e = B/2 − x̄
+q = ΣV/B · (1 ± 6e/B)
+
+sp-cantilever
+
+σa = Ka·γ·z
+σp = Kp·γ·(z − H)
+dredge line
+H
+D
+toe
+bending / rotation
+Cantilever sheet pile: H = 3 m, γ = 18 kN/m³, φ′ = 30° (Ka = 1/3, Kp = 3)
+
+sp-net-diagram
+
+dredge line
+net pressure p (kPa)
+kesme V (kN/m)
+moment M (kN·m/m)
+p = 0 (z = 3.375 m)
+active thrust
+passive (net) ◄
+V = 0
+Mmax = 60.75
+(z = 4.51 m)
+toe: z = H + D₀ = 5.78 m, M ≈ 0.1 (≈ 0)
+V = ∫p dz, M = ∫V dz; M is largest where V = 0.
+H = 3 m, γ = 18 kN/m³, φ′ = 30°
+
+sp-passive-factor
+
+dredge line
+GS = 1: Kp·γ·z
+GS = 1.5: Kp·γ·z / 1.5 (design)
+active
+Passive resistance is divided by GS: less resistance ⇒ deeper embedment.
+Example (H = 5 m, schematic drawing): GS = 1 ⇒ D₀ = 4.63 m; GS = 1.5 ⇒ D₀ = 6.12 m.
+
+spw-wall-types
+
+dredge line
+Cantilever: embedment only
+dredge line
+T (anchor)
+anchor bond
+Anchored: single support + embedment
+
+spw-moment-diagram
+
+dredge line
+H
+D₀
+V (kN/m)
+M (kN·m/m)
+V = 0
+M_max = 281.25
+z = 7.50 m
+H = 5 m, γ = 18 kN/m³, φ′ = 30°, D₀ = 4.63 m
+M_max occurs where shear is zero; section modulus W = M_max / σ_allow
+
+spw-method-compare
+
+Blum assumption (program)
+dredge line
+R
+D₀
+R: all resistance below the toe in one point
+Real distribution (concept)
+dredge line
+D
+covered by D = 1.2·D₀
+
+sp-anchored-moment
+
+Free earth
+T
+moment M
+M = 0 at the toe (hinge) ⇒ shallower
+program: this method (Blum / free earth)
+Fixed earth
+T
+moment M
+zero slope at the toe, toe moment present ⇒ deeper
+program: not used (reference)
+
+anchor-tie-force
+
+T (anchor force)
+a
+pivot (toe)
+dredge line
+H
+D₀
+Free earth support: ΣM = 0 about the pivot ⇒ T = (Ma − Mp) / a
+Horizontal equilibrium: T = Pa − Pp (net thrust). Anchor load = T · s / cos θ (s: anchor spacing, θ: inclination).
+
+anc-free-support
+
+T
+P_a
+P_p
+l_a
+l_p
+H
+D
+dredge line
+Free earth support: moment equilibrium about the anchor
+ΣM(T) = 0: P_a·l_a = P_p·l_p → gives D
+ΣH = 0: T = P_a − P_p → anchor force
+
+anc-free-vs-fixed
+
+Free earth
+T
+moment M
+M = 0 at the toe (hinge) ⇒ shallower
+program: this method (Blum / free earth)
+Fixed earth
+T
+moment M
+zero slope at the toe, toe moment present ⇒ deeper
+program: not used (reference)
+
+anchor-bond-free-length
+
+failure plane 45° + φ′/2
+L free ≥ 4.5 m
+L bond: set by q_u
+T
+z_h
+H
+The bond zone must lie behind the failure plane; free length at least 4.5 m (GEC-4)
+Example: H = 10 m, z_h = 6.25 m, θ = 15° ⇒ T = 445.2 kN
+L free = 4.5 m (minimum), L bond = 8.90 m
+
+gan-wedge-geometry
+
+failure plane
+L_kama
+χ
+L_bond
+q_u
+α
+45°+φ′/2
+z_h
+H
+One anchor: free length = inside the wedge + beyond it
+L_serbest = L_kama + χ ≥ 4.5 m
+The bond zone lies entirely outside the wedge.
+
+gan-free-bond-zones
+
+T
+failure plane
+L_kama
+χ
+bond length L_b
+free length ≥ 4.5 m
+bond length (grouted into the soil)
+L_total = L_free + L_bond
+q_u
+Zones along the tendon
+Example: L_free = 4.5 m (minimum), L_bond = 8.90 m, T = 445.2 kN.
+Load transfers to the soil only along the bond length; the free length must reach beyond the failure plane.
+The L_kama / χ split is schematic.
+
+gan-tendon-limits
+
+0.60
+0.70
+0.80
+1.00
+T_design ≤ 0.60 SMTS
+T_lock-off ≤ 0.70
+T_test = 1.33·T ≤ 0.80
+rupture zone
+Numbers are fractions of SMTS (specified minimum tensile strength of the tendon).
+Design, lock-off and test loads are tied to separate limits.
+
+anchored-wall-envelopes
+
+Sand (trapezoid)
+p = 45 kPa
+p = ΣP / (H − H₁/3 − Hₙ₊₁/3)
+Soft clay
+29.92
+p = Ka·γ·H, Ka ≥ 0.22
+Stiff clay
+54.4
+total ≥ 3H² (kN/m)
+Red points: anchor levels (H = 10 m, 1.5 / 4.5 / 7.5 m). Values are the program's hand-calculation examples.
+
+awl-sand-envelope
+
+z = 1.5 m
+z = 4.5 m
+z = 7.5 m
+p_max = 45 kPa
+z = 2/3·H₁ = 1.0 m
+z = H − H₊₁/3 = 9.17 m
+H
+Sand: apparent pressure envelope (trapezoid)
+P = 0.65·K_a·γ·H² = 390 kN/m → p_max = P / (H − H₁/3 − H₊₁/3)
+K_a = 1/3, γ = 18 kN/m³, H = 10 m; the envelope area equals the total load.
+
+awl-clay-envelopes
+
+Soft clay
+29.92 kPa
+H
+p = K_a·γ·H, K_a ≥ 0.22; z = 0 → 2 m
+Stiff clay
+54.40 kPa
+H
+p = c·γ·H (c = 0.4); P ≥ 3H²
+H = 8 m, γ = 17 kN/m³. Total load: soft clay 209.44 kN/m; stiff clay 344.53 kN/m.
+
+anchored-wall-heave
+
+B (excavation width)
+H
+heave
+soft clay below the base: S_u,b
+Basal heave in clay: the smaller FS governs
+FS = Nc · S_u,b / (γH + q); example H = 6 m, B = 10 m, S_u,b = 20 kPa ⇒ FS = 1.098 (< 1.5)
+Narrow deep excavation (H = 10, B = 2): FS = 1.243; required FS 1.5 temporary, 2.5 permanent.
+
+awl-basal-heave
+
+B (excavation width)
+H
+heave
+soft clay below the base: S_u,b
+Basal heave in clay: the smaller FS governs
+FS = Nc · S_u,b / (γH + q); example H = 6 m, B = 10 m, S_u,b = 20 kPa ⇒ FS = 1.098 (< 1.5)
+Narrow deep excavation (H = 10, B = 2): FS = 1.243; required FS 1.5 temporary, 2.5 permanent.
+
+slope-bishop-slice
+
+O (centre)
+R
+water table (u)
+Circular slip surface, centre O, radius R; the mass is divided into vertical slices
+On each slice: weight W, base inclination α, base length l = b / cos α, pore pressure u
+Selected slice (enlarged)
+W
+N′
+S
+α
+Bishop: vertical shear forces between slices are neglected
+FS = Σ[(c′b + (W − ub) tanφ′) / mα] / Σ[W sinα]
+mα = cosα (1 + tanα tanφ′ / FS): FS on both sides ⇒ iteration
+N′: effective normal force, S: mobilised shear resistance
+
+slp-slip-circle
+
+O
+R
+W
+d
+sliding direction
+τ_f
+Circular slip surface: centre O, radius R
+FS = M_resisting / M_driving = (τ_f·L·R) / (W·d)
+L: arc length, τ_f: shear strength of the soil, W: weight of the sliding mass
+
+slp-bishop-slice
+
+O (centre)
+R
+water table (u)
+Circular slip surface, centre O, radius R; the mass is divided into vertical slices
+On each slice: weight W, base inclination α, base length l = b / cos α, pore pressure u
+Selected slice (enlarged)
+W
+N′
+S
+α
+Bishop: vertical shear forces between slices are neglected
+FS = Σ[(c′b + (W − ub) tanφ′) / mα] / Σ[W sinα]
+mα = cosα (1 + tanα tanφ′ / FS): FS on both sides ⇒ iteration
+N′: effective normal force, S: mobilised shear resistance
+
+slope-search-domain
+
+1.68
+1.50
+1.60
+1.78
+1.50
+1.32
+1.42
+1.60
+1.32
+1.12
+1.24
+1.42
+1.50
+1.32
+1.42
+1.60
+1.68
+1.50
+1.60
+1.78
+Centre grid: the circle with the smallest FS is found for each centre
+Red point: smallest FS (critical circle); the numbers are schematic FS values.
+
+slp-search-results
+
+1.68
+1.50
+1.60
+1.78
+1.50
+1.32
+1.42
+1.60
+1.32
+1.12
+1.24
+1.42
+1.50
+1.32
+1.42
+1.60
+1.68
+1.50
+1.60
+1.78
+Centre grid: the circle with the smallest FS is found for each centre
+Red point: smallest FS (critical circle); the numbers are schematic FS values.
+
+slope-surcharge-wedge
+
+q (uniform surcharge)
+β
+Pa
+Sloping backfill (β) and surcharge (q) both load the wedge
+Rankine-β: Ka = cos β (cos β − √(cos²β − cos²φ′)) / (cos β + √(cos²β − cos²φ′))
+Ka for φ′ = 30°: β = 0° ⇒ 0.3333; β = 10° ⇒ 0.3495; β = 20° ⇒ 0.4142 (β ≤ φ′ required)
+
+sur-beta-wedge
+
+q (uniform surcharge)
+β
+Pa
+Sloping backfill (β) and surcharge (q) both load the wedge
+Rankine-β: Ka = cos β (cos β − √(cos²β − cos²φ′)) / (cos β + √(cos²β − cos²φ′))
+Ka for φ′ = 30°: β = 0° ⇒ 0.3333; β = 10° ⇒ 0.3495; β = 20° ⇒ 0.4142 (β ≤ φ′ required)
+
+sur-surcharge-basis
+
+q per horizontal projection
+q (horizontal)
+q_h = q
+default: 'horizontal'
+basis = "horizontal"
+q per inclined surface
+q (per surface)
+q_h = q / cos β
+β = 10° → q_h = 1.015·q
+β
+basis = "inclined"
+
+sur-sheet-moment
+
+dredge line
+net pressure p (kPa)
+kesme V (kN/m)
+moment M (kN·m/m)
+p = 0 (z = 3.375 m)
+active thrust
+passive (net) ◄
+V = 0
+Mmax = 60.75
+(z = 4.51 m)
+toe: z = H + D₀ = 5.78 m, M ≈ 0.1 (≈ 0)
+V = ∫p dz, M = ∫V dz; M is largest where V = 0.
+H = 3 m, γ = 18 kN/m³, φ′ = 30°
+
+sp-seismic-kdyy
+
+dredge line
+½·ΔK_ad·σ′v(toe)
+2·q·ΔK_ad
+toe depth
+zero at the toe
+Seismic increment (KDYY handbook distribution)
+ΔK_ad = (1 − k_v)·K_AE − K_A
+The uniform part runs to the toe; the surcharge share is 2·q·ΔK_ad at the surface and 0 at the toe.
+
+slp-search-bounds
+
+tangent level limit (y_t)
+critical centre: on the bound!
+search bound: x_c, y_c range
+The search bounds control the result
+If the critical centre sits on the bound, the true critical circle may lie outside: widen the bound and search again.
+
+slp-reversed-geometry
+
+Correct direction (toe on the left)
+sliding direction
+Matches the solver's assumption
+Reversed geometry
+sliding direction
+Conflicts with the solver's −x assumption
+error: mirror the x coordinates
+
+anc-position-effect
+
+z_a = 0 m
+D₀ = 2.00 m
+T = 38.7 kN/m
+z_a = 1 m
+D₀ = 1.90 m
+T = 45.2 kN/m
+z_a = 2.5 m
+D₀ = 1.61 m
+T = 61.1 kN/m
+z_a = 4.9 m
+error:
+anchor too low
+Anchor level (H = 5 m, φ′ = 30°, γ = 18 kN/m³): lower anchor → smaller D₀, larger T
+
+anc-shear-moment
+
+dredge line
+V (kN/m)
+M (kN·m/m)
+T = 45.2 (jump)
+|M|max ≈ 72
+z = 3.88 m
+z_a = 1 m, H = 5 m, D₀ = 1.90 m, T = 45.2 kN/m
+|M| peaks where V = 0; M = 0 at the toe (free end).
+
+key-passive-seismic
+
+Static passive (full)
+P_p
+σ_p = K_p·σ′v (φ = 0: σ_v + 2·s_u)
+used for the structural demand (unreduced)
+Earthquake: reduced passive for sliding
+P_pE
+reduced by the (1 − k_v)·K_PE ratio
+used in the sliding check
+
+key-fs-bars
+
+1.5
+example limit FS = 1.50 (not a code value)
+1.56
+no key
+base plane
+1.85
+with key
+base plane
+1.66
+with key
+key-tip plane
+Sliding safety without and with a key
+Reference wall: the smaller FS governs (with a key, the key-tip plane, FS = 1.66).
+
+sur-beta-regions
+
+Mononobe-Okabe valid
+TBDY
+16.24b
+error
+0°
+10°
+20°
+30°
+β = φ′ − ψ = 18.69°
+β = φ′ = 30°
+β
+Slope angle β and earthquake: φ′ = 30°, k_h = 0.2
+ψ = arctan(k_h / (1 − k_v)) = 11.31°
+For β > φ′ − ψ the wedge solution grows without bound; the layered path uses TBDY 16.24b.
+For β > φ′ there is no Rankine/wedge solution: the program stops with an error.
+
+shear-key-planes
+
+① base plane
+② key-tip plane
+Pa
+ΔH key = 24.68 kN/m
+Pp (key passive)
+Two sliding planes are checked; the smaller FS governs
+Reference wall (G9): base FS = 1.85, key-tip plane FS = 1.66 ⇒ the key tip governs.
+At the key-tip plane an extra back thrust ΔH_key is added (over the key depth).
+
+key-geometry
+
+B
+b_k
+x_k
+h_k
+D_f
+H
+Shear key geometry
+The key sits below the base slab: position x_k, depth h_k, width b_k.
+
+key-tip-plane
+
+② key-tip plane
+① base plane
+ΔH_key
+P_a
+extended back plane
+Key-tip plane: extra back thrust
+The vertical back plane is extended to the key tip; the active thrust over that extra height is added.
+
+key-passive-diagram
+
+P_p
+Passive resistance of the key
+Blue: full passive; green: 0.5·P_p used in design (EM 1110-2-2502).
+Only counts if the front soil will not be removed.

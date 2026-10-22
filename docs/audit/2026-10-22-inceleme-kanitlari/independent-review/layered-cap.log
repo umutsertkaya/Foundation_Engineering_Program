@@ -1,0 +1,14 @@
+{
+  "actual": {
+    "V": 450.2983473120548,
+    "H": 248.0926702539415,
+    "sliding": 1.3845456024100367,
+    "passed": true
+  },
+  "independent": {
+    "V": 450.2983473120548,
+    "H": 248.09267025394152,
+    "sliding_capped": 0.9900223174696055
+  },
+  "source_basis": "Repository metadata cap and knowledge; original TBDY not consulted by independent reviewer"
+}

@@ -1,0 +1,32 @@
+İstinat duvarı
+
+Proje: QA İŞLEV GeoTek
+
+Kaydet
+TR
+EN
+Ana menüye dön
+Duvarlar
+Yeni duvar
+İstinat duvarı tipi
+
+Tasarlamak istediğiniz istinat duvarı tipini seçin.
+
+Konsol duvar
+
+Betonarme gövde ve temel plağından oluşan konsol istinat duvarı.
+
+Ağırlık duvarı
+
+Zemin itkisini kendi ağırlığıyla karşılayan kütle beton veya taş duvar.
+
+Duvar adı
+Duvar yüksekliği H (m)
+
+Zemin kaynağı
+
+Proje profilinden kopyala
+Elle gir
+Zemin profili
+Vazgeç
+Oluştur

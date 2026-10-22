@@ -1,0 +1,8 @@
+{
+  "split_initial_focus": "INPUT",
+  "escape_returns_focus": "Böl 21365abfab70473080f92e52eaeb2aa5",
+  "enter_split": "activated focused Split button",
+  "split_rows_after": 5,
+  "undo_rows_after": 4,
+  "redo_rows_after": 5
+}

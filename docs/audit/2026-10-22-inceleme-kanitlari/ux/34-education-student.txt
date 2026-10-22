@@ -1,0 +1,2443 @@
+Eğitim
+
+Proje: UX Araştırma 2026
+
+KAYDEDİLMEMİŞ DEĞİŞİKLİKLER
+Kaydet
+TR
+EN
+Ana menüye dön
+Konular
+← Tüm konular
+Zemin sınıflandırması: USCS ve CPT (SBTn, I_c)
+ORTA
+
+Programın USCS grup sembolünü laboratuvar verisinden, CPT tabanlı SBTn bölgesini ve 
+𝐼
+𝑐
+I
+c
+	​
+
+ davranış indeksini nasıl hesapladığını ve ince dane yüzdesini 
+𝐼
+𝑐
+I
+c
+	​
+
+'den nasıl tahmin ettiğini anlatır.
+
+Öğrenci anlatımı
+Program bunu nasıl hesaplıyor
+1. Zemini neden sınıflandırırız
+
+Bir market rafında benzer ürünler aynı yere konur ki aradığınızı hızla bulabilesiniz. Zemin mühendisliğinde sınıflandırmanın amacı da budur: birbirine benzeyen zeminleri aynı adla anarak, bir sondaj kuyusundan ya da CPT sondajından gelen çok sayıda ölçümü tek bir dile çevirmek. Raporda 'kumlu kil' yazmak yerine 'SC' ya da 'CL' gibi bir grup sembolü kullanmak, başka bir mühendisin aynı zemini aynı şekilde anlamasını sağlar. Sınıflandırma zemin davranışını hesaplamaz; yalnız hangi hesap yönteminin ve hangi tipik değer aralığının akla yatkın olduğunu gösterir. Bu yüzden bir sembol bir sonuç değil, bir başlangıç varsayımıdır.
+
+Bu konuda iki farklı yol anlatılır. Birincisi USCS (Birleşik Zemin Sınıflandırma Sistemi), laboratuvar deneyleriyle, yani elek analizi ve kıvam limitleriyle çalışır; sonuç SW, CL, MH gibi iki harfli bir gruptur. İkincisi Robertson'ın SBT yöntemidir: CPT'de ölçülen uç direnci (
+𝑞
+𝑐
+q
+c
+	​
+
+), yan sürtünme (
+𝑓
+𝑠
+f
+s
+	​
+
+) ve boşluk suyu basıncından (
+𝑢
+2
+u
+2
+	​
+
+) normalleştirilmiş parametreler üretir ve bir davranış bölgesi verir. Biri numune üzerinde, diğeri yerinde ölçümle çalışır; ikisi aynı zemini farklı gözlerle görür ve farklı sonuçlar verebilir. Hangisine güveneceğiniz, elinizdeki veriye ve yapının önemine bağlıdır.
+
+Dikkat
+Sınır: GeoTek programı zemin sınıfını yalnız girdi verisinden türetir. Organik zemin (OL, OH, Pt) için gerekli fırınlanmış kıvam limiti kullanılmadığından bu gruplar belirlenmez; 'kumlu', 'çakıllı' gibi sekonder sıfatlar da üretilmez. Sınıflandırma sonucu numune ve arazi gözlemiyle birlikte okunmalıdır.
+2. Dane boyutu dağılımı: elek analizi, 
+𝐶
+𝑢
+C
+u
+	​
+
+ ve 
+𝐶
+𝑐
+C
+c
+	​
+
+
+Bir zeminin dane boyutu dağılımını anlamak için kuru numune bir elek serisinden geçirilir. Elek açıklığı küçüldükçe elekten geçen yüzde de azalır. USCS'de ana ayrım 0.075 mm'lik elek (No. 200) ile yapılır: bu elekte kalan tanelere kaba dane, geçen tanelere ince dane (silt ve kil) denir. Kaba daneler ayrıca 4.75 mm'lik elekte (No. 4) çakıl ve kum olarak ayrılır. Dane boyutu milimetre cinsinden verilir ve grafikte logaritmik eksende çizilir, çünkü bir çakıl ile bir kil tanesi arasındaki boyut farkı binlerce kat olabilir. Hidrometre deneyi 0.075 mm'nin altındaki ince daneleri de dağılım eğrisine ekler; ama USCS sınıfı ince dane yüzdesine ve kıvama bakar, hidrometre sonucunun tamamına değil.
+
+Dağılım eğrisinden üç büyüklük okunur: 
+𝐷
+10
+D
+10
+	​
+
+, 
+𝐷
+30
+D
+30
+	​
+
+ ve 
+𝐷
+60
+D
+60
+	​
+
+; bunlar kütlece yüzde 10, 30 ve 60'ının geçtiği dane çaplarıdır. Düzgünlük katsayısı 
+𝐶
+𝑢
+C
+u
+	​
+
+ = 
+𝐷
+60
+D
+60
+	​
+
+ / 
+𝐷
+10
+D
+10
+	​
+
+, eğrilik (derecelenme) katsayısı 
+𝐶
+𝑐
+C
+c
+	​
+
+ = 
+𝐷
+30
+D
+30
+	​
+
+² / (
+𝐷
+10
+D
+10
+	​
+
+ · 
+𝐷
+60
+D
+60
+	​
+
+) ile hesaplanır. İyi derecelenmiş bir zeminde 
+𝐶
+𝑢
+C
+u
+	​
+
+ büyük olmalı ve 
+𝐶
+𝑐
+C
+c
+	​
+
+ yaklaşık 1 ile 3 arasında kalmalıdır. Neredeyse tek boyutlu taneler (düzgün kum) 
+𝐶
+𝑢
+C
+u
+	​
+
+'yu küçük bırakır; çok sayıda boyutun karışması 
+𝐶
+𝑢
+C
+u
+	​
+
+'yu büyütür. USCS'de kum için 
+𝐶
+𝑢
+C
+u
+	​
+
+ ≥ 6, çakıl için 
+𝐶
+𝑢
+C
+u
+	​
+
+ ≥ 4 eşiği kullanılır ve GeoTek kodu da aynı eşikleri uygular. Bu eşikler ve 
+𝐶
+𝑐
+C
+c
+	​
+
+ aralığı sonucun W mi P mi olacağını belirler.
+
+0,01
+0,1
+1
+10
+0
+20
+40
+60
+80
+100
+tane çapı (mm, logaritmik)
+elekten geçen (%)
+D10
+D30
+D60
+No. 4 elek: çakıl | kum
+No. 200: kum | ince
+Cu = D60 / D10
+Cc = D30² / (D10·D60)
+Dane boyutu dağılım eğrisi: yatay eksen logaritmik dane çapı, düşey eksen elekten geçen yüzde. D10, D30 ve D60 yüzde 10, 30 ve 60'a karşılık gelen çaplardır; No. 4 elek çakılı kumdan, No. 200 elek kumu ince daneden ayırır.
+Çözümlü örnek: Örnek 1: SW-SC (ince dane %10, iyi derecelenmiş kum, killi ince dane)
+Çakıl = 0 %, ince dane (0.075 mm altı) = 10 %, kum = 90 %
+𝐷
+10
+D
+10
+	​
+
+ = 0.10 mm, 
+𝐷
+30
+D
+30
+	​
+
+ = 0.30 mm, 
+𝐷
+60
+D
+60
+	​
+
+ = 0.70 mm
+Kıvam (ince daneler için): LL = 35, PI = 15
+
+Düzgünlük
+
+	
+𝐶
+𝑢
+=
+𝐷
+60
+/
+𝐷
+10
+=
+0.70
+/
+0.10
+C
+u
+	​
+
+=D
+60
+	​
+
+/D
+10
+	​
+
+=0.70/0.10
+	
+
+C_u = 7.0 (≥ 6, kum için yeterli)
+
+
+
+
+Eğrilik
+
+	
+𝐶
+𝑐
+=
+𝐷
+30
+2
+/
+(
+𝐷
+10
+⋅
+𝐷
+60
+)
+=
+0.09
+/
+(
+0.10
+⋅
+0.70
+)
+C
+c
+	​
+
+=D
+30
+2
+	​
+
+/(D
+10
+	​
+
+⋅D
+60
+	​
+
+)=0.09/(0.10⋅0.70)
+	
+
+C_c = 1.29 (1 ile 3 arasında)
+
+
+
+
+Önek
+
+	
+kabafraksiyonda
+c
+¸
+akıl
+0
+<
+𝑘
+𝑢
+𝑚
+kabafraksiyonda
+c
+¸
+	​
+
+akıl0<kum
+	
+
+S (kum)
+
+
+
+
+İnce dane sınıfı
+
+	
+𝐴
+−
+c
+¸
+izgisi
+P
+I
+𝐴
+=
+0.73
+(
+35
+−
+20
+)
+=
+10.95
+;
+P
+I
+=
+15
+≥
+10.95
+𝑣
+𝑒
+P
+I
+>
+7
+A−
+c
+¸
+	​
+
+izgisiPI
+A
+	​
+
+=0.73(35−20)=10.95;PI=15≥10.95vePI>7
+	
+
+C (killi)
+
+
+
+
+İnce dane yüzdesi
+
+	
+%
+5
+<
+10
+≤
+%
+12
+:
+c
+¸
+ift
+sembol
+%5<10≤%12:
+c
+¸
+	​
+
+iftsembol
+	
+
+SW-SC
+
+Programın sonucu (aynı girdi)
+
+classify(fines=10, gravel=0, LL=35, PI=15, D10=0.1, D30=0.3, D60=0.7)
+
+symbol = 'SW-SC', complete = true, notes = []
+
+Elle hesap programla aynı sonucu verdi. Sonuç yalnız D değerleri ve kıvam ölçümü doğruysa geçerlidir; 'SC' ve 'SW' birlikte yazılır, tek başına 'SW' yazılmaz.
+
+Sık yapılan hatalar
+𝐶
+𝑢
+C
+u
+	​
+
+'da 
+𝐷
+60
+D
+60
+	​
+
+ ile 
+𝐷
+10
+D
+10
+	​
+
+'u ters yazmak; doğru sonuçta 
+𝐶
+𝑢
+C
+u
+	​
+
+ her zaman 1'den büyük çıkar.
+𝐶
+𝑐
+C
+c
+	​
+
+'de 
+𝐷
+30
+D
+30
+	​
+
+'u karesiz yazmak. Doğrusu 
+𝐶
+𝑐
+C
+c
+	​
+
+ = 
+𝐷
+30
+D
+30
+	​
+
+² / (
+𝐷
+10
+D
+10
+	​
+
+ · 
+𝐷
+60
+D
+60
+	​
+
+)'tır.
+Elek sonuçlarını yüzde yerine gram olarak girip toplamı 100 yapmamak; kütle oranı yüzdeye çevrilmelidir.
+3. Kıvam limitleri ve plastisite kartı
+
+İnce daneli bir zemin su eklendikçe katı, yarı katı, plastik ve sıvı gibi davranır. Bu geçişleri ölçmek için Atterberg limitleri kullanılır. Sıvı limit LL, zeminin akmaya başladığı su muhtevasıdır (yüzde). Plastik limit PL, zeminin çatlamadan rulo yapılabildiği en düşük su muhtevasıdır. Plastisite indisi PI = LL − PL, zeminin plastik davranış aralığının genişliğidir. Kil hamuru benzetmesi yardımcı olur: çok az suyla ufalanır, çok suyla çamura döner, PI bu iki eşik arasındaki farktır. PI yüksekse zemin yapışkan ve sıkıştırılabilirdir; PI düşükse silt gibi davranır.
+
+Casagrande'nin plastisite kartında yatay eksen LL, düşey eksen PI'dır. Program iki çizgi kullanır: A-çizgisi PI = 0.73 (LL − 20) ve U-çizgisi PI = 0.9 (LL − 8). Doğal zeminlerin neredeyse tamamı U-çizgisinin altında kalır; bunun üstündeki bir nokta genellikle hatalı deneyi gösterir ve program bunu uyarı olarak işaretler. A-çizginin üstü kil, altı silt davranışına yakındır. Kodda ince dane sınıfı şöyle verilir: PI < 4 veya A-çizgisinin altındaysa M (silt); PI > 7 ve A-çizgisinin üstündeyse C (kil); arada kalan (4 ile 7 arası PI) bölge CL-ML'dir. Sayısal sınırları yine de kendi kaynağınızdan doğrulayın; bu metin kodun uyguladığı kuralı anlatır.
+
+0
+10
+20
+30
+40
+50
+60
+70
+80
+90
+100
+0
+10
+20
+30
+40
+50
+60
+likit limit LL (%)
+plastisite indisi PI (%)
+A-çizgisi
+U-çizgisi
+CL-ML
+düşük plastisite
+A: PI = 0,73 (LL − 20)
+U: PI = 0,9 (LL − 8)
+yüksek plastisite
+CL
+CH
+ML / OL
+MH / OH
+Casagrande plastisite kartı: A-çizgisi (PI = 0,73 (LL − 20)) ve U-çizgisi (PI = 0,9 (LL − 8)); LL = 50 çizgisi düşük ve yüksek plastisiteyi ayırır. Bölgeler CL, CH, ML/OL, MH/OH ve CL-ML olarak adlandırılır.
+P
+I
+=
+L
+L
+−
+P
+L
+PI=LL−PL
+𝐴
+−
+c
+¸
+izgisi
+:
+P
+I
+𝐴
+(
+L
+L
+)
+=
+0.73
+(
+L
+L
+−
+20
+)
+A−
+c
+¸
+	​
+
+izgisi:PI
+A
+	​
+
+(LL)=0.73(LL−20)
+𝑈
+−
+c
+¸
+izgisi
+:
+P
+I
+𝑈
+(
+L
+L
+)
+=
+0.9
+(
+L
+L
+−
+8
+)
+U−
+c
+¸
+	​
+
+izgisi:PI
+U
+	​
+
+(LL)=0.9(LL−8)
+
+Kıvam limitleri ve program sınırları (su muhtevası yüzde olarak)
+
+Çözümlü örnek: Örnek 2: LL = 40, PI = 18, %60 ince dane (CL)
+İnce dane yüzdesi 60 % (çoğunluğu ince dane)
+LL = 40, PI = 18
+
+A-çizgisi
+
+	
+P
+I
+𝐴
+=
+0.73
+(
+40
+−
+20
+)
+=
+14.6
+PI
+A
+	​
+
+=0.73(40−20)=14.6
+	
+
+PI = 18 ≥ 14.6: A-çizgisinin üstü
+
+
+
+
+Plastisite sınıfı
+
+	
+P
+I
+=
+18
+>
+7
+PI=18>7
+	
+
+C (kil)
+
+
+
+
+LL < 50 mi?
+
+	
+L
+L
+=
+40
+<
+50
+LL=40<50
+	
+
+düşük plastisiteli: CL
+
+Programın sonucu (aynı girdi)
+
+classify(fines=60, gravel=0, LL=40, PI=18)
+
+symbol = 'CL', complete = true, notes = ['Organic soils (OL/OH) not checked']
+
+Sonuç el hesabıyla aynı. Notta organik kontrolünün yapılmadığı yazıyor; bu bir eksik değil, programın kapsam sınırıdır.
+
+Sık yapılan hatalar
+LL ve PI'yi karıştırmak: PI her zaman LL − PL'dir; PI'yi LL gibi okumak zemini yanlış bölgeye koyar.
+A-çizgisini PI = LL − 20 diye yazmak; katsayı 0.73'tür.
+LL = 50 sınırını unutmak. LL ≥ 50 ise CH/MH, LL < 50 ise CL/ML kullanılır.
+U-çizgisinin üstünde kalan bir deney sonucunu kabul etmek; bu genellikle hatalı deney ya da kayıt işaretidir.
+4. USCS karar akışı ve çift semboller
+
+USCS karar akışı önce ince dane oranına bakar. İnce dane yüzdesi %50 veya üstündeyse zemin ince daneli kabul edilir ve sınıf yalnızca LL ve PI ile belirlenir: LL < 50 ise CL, ML veya CL-ML; LL ≥ 50 ise CH veya MH. Bu durumda çakıl-kum oranı sınıfı değiştirmez. İnce dane oranı %50'nin altındaysa zemin kaba daneli kabul edilir ve ilk harf G (çakıl) ya da S (kum) olur. Çakıl ile kum arasındaki seçim, kaba fraksiyonda çakılın kumdan fazla olup olmadığına bakar: çakıl daha fazlaysa G, değilse S.
+
+Kaba daneli zeminde ince dane yüzdesi üç bölgeye ayrılır. Yüzde 5'ten azsa yalnız dane dağılımı belirleyicidir ve ikinci harf W (iyi derecelenmiş) ya da P (kötü derecelenmiş) olur. Yüzde 12'den fazlaysa ince danelerin kıvamı belirleyicidir: ikinci harf M veya C olur; CL-ML bölgesindeki bir zemin ise SC-SM gibi bir çift sembol alır. Yüzde 5 ile 12 arasında kalan zeminler çift sembolle yazılır, örneğin SW-SC; bu, zeminin hem dane dağılımı hem ince dane davranışı açısından sınırda olduğunu gösterir. Kodda iki eksik veri durumu da vardır: çakıl oranı bilinmiyorsa sınıf kumu baskın kabul eder ve sonucu tamamlanmamış sayar; D değerleri yoksa zemini kötü derecelenmiş kabul eder. Bu varsayımlar notes alanında görünür.
+
+USCS'yi elle sınıflandırma sırası
+
+İnce dane yüzdesini elek sonucundan (0.075 mm altı) belirleyin. %50 ve üstüyse LL ve PI ile devam edin.
+Kaba daneliyse çakıl ile kum oranını karşılaştırın; büyük olan önek (G veya S) olur.
+İnce dane yüzdesine göre tek, çift veya kıvam sembolü seçin (<%5, %5-12, >%12).
+𝐶
+𝑢
+C
+u
+	​
+
+ ve 
+𝐶
+𝑐
+C
+c
+	​
+
+'yi hesaplayıp W ya da P seçin. Eşikler: çakıl için 
+𝐶
+𝑢
+C
+u
+	​
+
+ ≥ 4, kum için 
+𝐶
+𝑢
+C
+u
+	​
+
+ ≥ 6; her ikisinde 1 ≤ 
+𝐶
+𝑐
+C
+c
+	​
+
+ ≤ 3.
+Eksik veri varsa sonucu tamamlanmamış sayın ve yaptığınız varsayımı yazın.
+Sık yapılan hatalar
+Çakıl-kum seçimini tüm zemin üzerinden değil kaba fraksiyon üzerinden yapmamak; önek hangi fraksiyona göre belirlenir.
+%5 ile %12 arasındaki zemini tek sembolle yazmak; bu aralık için çift sembol zorunludur.
+Eksik 
+𝐶
+𝑢
+C
+u
+	​
+
+ veya D değerlerini sessizce 'iyi derecelenmiş' kabul etmek; kod bunları 'kötü derecelenmiş' yapar ve sonucu tamamlanmamış sayar.
+Organik bir zemini (OL/OH) yalnız LL ve PI ile CL ya da MH olarak yazmak; fırınlanmış LL ölçümü gerekir.
+5. CPT ile davranış tipi: 
+𝑞
+𝑡
+q
+t
+	​
+
+, 
+𝐹
+𝑟
+F
+r
+	​
+
+, 
+𝑄
+t
+n
+Q
+tn
+	​
+
+, 
+𝐼
+𝑐
+I
+c
+	​
+
+
+CPT (konik penetrasyon deneyi), konik bir ucu sabit hızla zemine iterek üç ana ölçüm alır: uç direnci 
+𝑞
+𝑐
+q
+c
+	​
+
+, yan sürtünme 
+𝑓
+𝑠
+f
+s
+	​
+
+ ve bazen uç arkasındaki boşluk suyu basıncı 
+𝑢
+2
+u
+2
+	​
+
+. Ölçümler derinlikle birlikte kaydedilir ve zemin tipini sürekli bir profil olarak gösterir. Ancak 
+𝑞
+𝑐
+q
+c
+	​
+
+, derinlikle ve efektif gerilmeyle birlikte değişir: sığ bir yumuşak kil ile derin bir sıkı kum farklı 
+𝑞
+𝑐
+q
+c
+	​
+
+ verir, ama bu yalnız gerilme farkından kaynaklanır. Robertson bu nedenle değerleri efektif gerilmeye göre normalleştirir ve zemin davranışını derinlikten bağımsız bir sayıyla anlatır.
+
+Düzeltilmiş uç direnci 
+𝑞
+𝑡
+q
+t
+	​
+
+ = 
+𝑞
+𝑐
+q
+c
+	​
+
+ + 
+𝑢
+2
+u
+2
+	​
+
+ (1 − a) ile hesaplanır; a alan oranıdır ve 
+𝑢
+2
+u
+2
+	​
+
+ ölçülmemişse 
+𝑞
+𝑡
+q
+t
+	​
+
+ = 
+𝑞
+𝑐
+q
+c
+	​
+
+ alınır. Sürtünme oranı 
+𝐹
+𝑟
+F
+r
+	​
+
+ = 
+𝑓
+𝑠
+f
+s
+	​
+
+ / (
+𝑞
+𝑡
+q
+t
+	​
+
+ − 
+𝜎
+𝑣
+σ
+v
+	​
+
+) × 100 ile yüzde olarak verilir; burada 
+𝜎
+𝑣
+σ
+v
+	​
+
+ toplam düşey gerilmedir. Normalleştirilmiş uç direnci 
+𝑄
+t
+n
+Q
+tn
+	​
+
+ = ((
+𝑞
+𝑡
+q
+t
+	​
+
+ − 
+𝜎
+𝑣
+σ
+v
+	​
+
+) / 
+𝑃
+𝑎
+P
+a
+	​
+
+) (
+𝑃
+𝑎
+P
+a
+	​
+
+ / 
+𝜎
+𝑣
+′
+σ
+v
+′
+	​
+
+)^n ile tanımlanır, 
+𝑃
+𝑎
+P
+a
+	​
+
+ = 101.325 kPa atmosfer basıncıdır. Üs n, Robertson (2009) bağıntısıyla n = 0.381 
+𝐼
+𝑐
+I
+c
+	​
+
+ + 0.05 (
+𝜎
+𝑣
+′
+σ
+v
+′
+	​
+
+ / 
+𝑃
+𝑎
+P
+a
+	​
+
+) − 0.15 olarak verilir ve 0 ile 1 arasında sınırlanır. n ile 
+𝐼
+𝑐
+I
+c
+	​
+
+ birbirine bağlı olduğundan program bunları iteratif olarak birlikte çözer.
+
+𝑞
+𝑡
+=
+𝑞
+𝑐
++
+𝑢
+2
+(
+1
+−
+𝑎
+)
+q
+t
+	​
+
+=q
+c
+	​
+
++u
+2
+	​
+
+(1−a)
+𝐹
+𝑟
+=
+𝑓
+𝑠
+/
+(
+𝑞
+𝑡
+−
+𝜎
+𝑣
+)
+×
+100
+[
+%
+]
+F
+r
+	​
+
+=f
+s
+	​
+
+/(q
+t
+	​
+
+−σ
+v
+	​
+
+)×100[%]
+𝑄
+t
+n
+=
+(
+(
+𝑞
+𝑡
+−
+𝜎
+𝑣
+)
+/
+𝑃
+𝑎
+)
+(
+𝑃
+𝑎
+/
+𝜎
+𝑣
+′
+)
+𝑛
+Q
+tn
+	​
+
+=((q
+t
+	​
+
+−σ
+v
+	​
+
+)/P
+a
+	​
+
+)(P
+a
+	​
+
+/σ
+v
+′
+	​
+
+)
+n
+𝑛
+=
+0.381
+𝐼
+𝑐
++
+0.05
+(
+𝜎
+𝑣
+′
+/
+𝑃
+𝑎
+)
+−
+0.15
+,
+0
+≤
+𝑛
+≤
+1
+n=0.381I
+c
+	​
+
++0.05(σ
+v
+′
+	​
+
+/P
+a
+	​
+
+)−0.15,0≤n≤1
+𝐼
+𝑐
+=
+(
+3.47
+−
+log
+⁡
+𝑄
+t
+n
+)
+2
++
+(
+log
+⁡
+𝐹
+𝑟
++
+1.22
+)
+2
+I
+c
+	​
+
+=
+(3.47−logQ
+tn
+	​
+
+)
+2
++(logF
+r
+	​
+
++1.22)
+2
+	​
+
+
+Robertson normalleştirme ve davranış indeksi. Birimler: q, σ, 
+𝑃
+𝑎
+P
+a
+	​
+
+ kPa; 
+𝐹
+𝑟
+F
+r
+	​
+
+ yüzde; 
+𝐼
+𝑐
+I
+c
+	​
+
+ boyutsuzdur.
+
+𝐼
+𝑐
+I
+c
+	​
+
+, zemin davranış indeksidir ve kodda şu sınırlarla bölgeye çevrilir: 
+𝐼
+𝑐
+I
+c
+	​
+
+ < 1.31 ise bölge 7 (çakıllı kum), 1.31 ile 2.05 arası bölge 6 (kum), 2.05 ile 2.60 arası bölge 5 (kum karışımı), 2.60 ile 2.95 arası bölge 4 (silt karışımı), 2.95 ile 3.60 arası bölge 3 (kil), 3.60 üstü bölge 2 (organik kil) olur. Bölge 1 (hassas, ince daneli) ayrıca, 
+𝑄
+t
+n
+Q
+tn
+	​
+
+ < 12 exp(−1.4 
+𝐹
+𝑟
+F
+r
+	​
+
+) koşulu sağlandığında atanır. Program bölge 8 ve 9 için yazılmış sınırları varsayılan olarak kapalı tutar; bu sınırların kaynakta doğrulanması beklenir. 
+𝐼
+𝑐
+I
+c
+	​
+
+'nin 2.6 altı değerleri kum benzeri davranışı gösterir; bu eşik sıvılaşma modülünde ayrıca kullanılır, ama bu konunun konusu değildir.
+
+0,1
+1
+10
+1
+10
+100
+1000
+normalize sürtünme oranı Fr (%)
+normalize uç direnci Qtn
+Ic = 1,31
+2,05
+2,60
+2,95
+3,60
+iri daneli (kum, çakıl)
+ince daneli (kil)
+örnek: Fr = %1, Qtn = 50 ⇒ Ic = 2,15
+Robertson normalleştirilmiş davranış grafiği: yatay eksen 
+𝐹
+𝑟
+F
+r
+	​
+
+, düşey eksen 
+𝑄
+t
+n
+Q
+tn
+	​
+
+ (ikisi de logaritmik). 
+𝐼
+𝑐
+I
+c
+	​
+
+ = 1,31; 2,05; 2,60; 2,95 ve 3,60 eş-eğrileri zemin davranış bölgelerini ayırır; işaretli nokta örneği gösterir.
+Çözümlü örnek: Örnek 3: 
+𝑞
+𝑡
+q
+t
+	​
+
+ = 5000, 
+𝑓
+𝑠
+f
+s
+	​
+
+ = 50, 
+𝜎
+𝑣
+σ
+v
+	​
+
+ = 100, 
+𝜎
+𝑣
+′
+σ
+v
+′
+	​
+
+ = 80 kPa
+𝑞
+𝑡
+q
+t
+	​
+
+ = 5000 kPa, 
+𝑓
+𝑠
+f
+s
+	​
+
+ = 50 kPa, 
+𝜎
+𝑣
+σ
+v
+	​
+
+ = 100 kPa, 
+𝜎
+𝑣
+′
+σ
+v
+′
+	​
+
+ = 80 kPa (
+𝑢
+0
+u
+0
+	​
+
+ = 20 kPa)
+Yalnız bu nokta için; 
+𝑢
+2
+u
+2
+	​
+
+ ölçülmediği varsayılıyor, 
+𝑞
+𝑡
+q
+t
+	​
+
+ = 
+𝑞
+𝑐
+q
+c
+	​
+
+ kabul edilir
+
+Sürtünme oranı
+
+	
+𝐹
+𝑟
+=
+50
+/
+(
+5000
+−
+100
+)
+×
+100
+=
+50
+/
+4900
+×
+100
+F
+r
+	​
+
+=50/(5000−100)×100=50/4900×100
+	
+
+F_r = 1.020 %
+
+
+
+
+İlk tahmin n = 1
+
+	
+𝑄
+t
+n
+=
+(
+4900
+/
+101.325
+)
+(
+101.325
+/
+80
+)
+1
+=
+48.36
+×
+1.2666
+Q
+tn
+	​
+
+=(4900/101.325)(101.325/80)
+1
+=48.36×1.2666
+	
+
+Q_tn ≈ 61.3
+
+
+
+
+𝐼
+𝑐
+I
+c
+	​
+
+ (ilk tur)
+
+	
+𝐼
+𝑐
+=
+(
+3.47
+−
+1.787
+)
+2
++
+(
+0.009
++
+1.22
+)
+2
+=
+2.833
++
+1.510
+I
+c
+	​
+
+=
+(3.47−1.787)
+2
++(0.009+1.22)
+2
+	​
+
+=
+2.833+1.510
+	​
+
+	
+
+I_c ≈ 2.08
+
+
+
+
+n güncellemesi
+
+	
+𝑛
+=
+0.381
+×
+2.08
++
+0.05
+×
+(
+80
+/
+101.325
+)
+−
+0.15
+=
+0.793
++
+0.039
+−
+0.150
+n=0.381×2.08+0.05×(80/101.325)−0.15=0.793+0.039−0.150
+	
+
+n ≈ 0.68
+
+
+
+
+Yakınsama
+
+	
+𝑛
+,
+𝑡
+𝑢
+𝑟
+𝑡
+𝑢
+𝑟
+de
+g
+˘
+i
+s
+¸
+ip
+0.69
+3
+′
+𝑡
+𝑒
+sabitlenir
+;
+𝑏
+𝑢
+noktada
+𝑄
+t
+n
+𝑣
+𝑒
+𝐼
+𝑐
+yenidenhesaplanır
+n,turturde
+g
+˘
+	​
+
+i
+s
+¸
+	​
+
+ip0.693
+′
+tesabitlenir;bunoktadaQ
+tn
+	​
+
+veI
+c
+	​
+
+yenidenhesaplanır
+	
+
+Q_tn ≈ 56.97, I_c ≈ 2.109
+
+
+
+
+Bölge
+
+	
+2.05
+≤
+𝐼
+𝑐
+=
+2.109
+<
+2.60
+2.05≤I
+c
+	​
+
+=2.109<2.60
+	
+
+bölge 5 (kum karışımı)
+
+Programın sonucu (aynı girdi)
+
+normalise_iterative(qt=[5000], fs=[50], sigma_v=[100], sigma_v_eff=[80]); sbtn_zone(Qtn, Fr, Ic)
+
+Fr = 1.0204 %, Q_tn = 56.97, n = 0.6931, I_c = 2.1093, zone = 5, converged = true
+
+El hesabının ilk turu programın sonucuna yaklaşır; fark tur sayısı ve yuvarlamadan gelir. Program tolerans 1e-3 ile yakınsar.
+
+Çözümlü örnek: Örnek 4: yumuşak kil, 
+𝑞
+𝑡
+q
+t
+	​
+
+ = 800, 
+𝑓
+𝑠
+f
+s
+	​
+
+ = 60 kPa
+𝑞
+𝑡
+q
+t
+	​
+
+ = 800 kPa, 
+𝑓
+𝑠
+f
+s
+	​
+
+ = 60 kPa, 
+𝜎
+𝑣
+σ
+v
+	​
+
+ = 100 kPa, 
+𝜎
+𝑣
+′
+σ
+v
+′
+	​
+
+ = 80 kPa
+
+Sürtünme oranı
+
+	
+𝐹
+𝑟
+=
+60
+/
+(
+800
+−
+100
+)
+×
+100
+=
+60
+/
+700
+×
+100
+F
+r
+	​
+
+=60/(800−100)×100=60/700×100
+	
+
+F_r = 8.57 %
+
+
+
+
+𝑄
+t
+n
+Q
+tn
+	​
+
+
+	
+𝑄
+t
+n
+=
+(
+700
+/
+101.325
+)
+(
+101.325
+/
+80
+)
+1
+=
+6.909
+×
+1.2666
+Q
+tn
+	​
+
+=(700/101.325)(101.325/80)
+1
+=6.909×1.2666
+	
+
+Q_tn ≈ 8.75
+
+
+
+
+n
+
+	
+𝑛
+=
+0.381
+𝐼
+𝑐
++
+0.05
+×
+0.79
+−
+0.15
+,
+𝑖
+𝑙
+𝑘
+tahminde
+𝐼
+𝑐
+b
+u
+¨
+y
+u
+¨
+k
+c
+¸
+ıkar
+;
+𝑛
+1.0
+𝑢
+¨
+𝑠
+𝑡
+sınırına
+c
+¸
+arpar
+n=0.381I
+c
+	​
+
++0.05×0.79−0.15,ilktahmindeI
+c
+	​
+
+b
+u
+¨
+y
+u
+¨
+k
+c
+¸
+	​
+
+ıkar;n1.0
+u
+¨
+stsınırına
+c
+¸
+	​
+
+arpar
+	
+
+n = 1.00 (sınırlandı)
+
+
+
+
+𝐼
+𝑐
+I
+c
+	​
+
+
+	
+𝐼
+𝑐
+=
+(
+3.47
+−
+0.942
+)
+2
++
+(
+0.933
++
+1.22
+)
+2
+=
+6.39
++
+4.64
+I
+c
+	​
+
+=
+(3.47−0.942)
+2
++(0.933+1.22)
+2
+	​
+
+=
+6.39+4.64
+	​
+
+	
+
+I_c ≈ 3.32
+
+
+
+
+Bölge
+
+	
+2.95
+≤
+𝐼
+𝑐
+=
+3.32
+<
+3.60
+2.95≤I
+c
+	​
+
+=3.32<3.60
+	
+
+bölge 3 (kil)
+
+Programın sonucu (aynı girdi)
+
+normalise_iterative(qt=[800], fs=[60], sigma_v=[100], sigma_v_eff=[80]); sbtn_zone
+
+Fr = 8.571 %, Q_tn = 8.75, n = 1.0, I_c = 3.3206, zone = 3, converged = true
+
+n tavanda kalmıştır. Bu durum yüksek 
+𝐼
+𝑐
+I
+c
+	​
+
+'li zeminlerde beklenir ve bölge 3 sonucunu değiştirmez.
+
+Sık yapılan hatalar
+Ham 
+𝑞
+𝑐
+q
+c
+	​
+
+ değerini normalleştirme olmadan 
+𝑄
+t
+n
+Q
+tn
+	​
+
+ yerine kullanmak; derinlikler arası kıyas yanlış olur.
+𝐹
+𝑟
+F
+r
+	​
+
+'yi yüzde yerine oran olarak yazmak (1.02 ile 0.0102 karışıklığı); log 
+𝐹
+𝑟
+F
+r
+	​
+
+ terimi yanlış çıkar.
+𝜎
+𝑣
+σ
+v
+	​
+
+ (toplam) ile 
+𝜎
+𝑣
+′
+σ
+v
+′
+	​
+
+ (efektif) değerlerini karıştırmak; 
+𝐹
+𝑟
+F
+r
+	​
+
+'de toplam, 
+𝑄
+t
+n
+Q
+tn
+	​
+
+ ve n'de efektif gerilme kullanılır.
+𝐼
+𝑐
+I
+c
+	​
+
+ değerini bölge sınırında tam sayıya yuvarlamak; 2.60 ile 2.61 farklı bölgelerdir.
+Bölge 1 (hassas) kriterini hiç kontrol etmemek; 
+𝑄
+t
+n
+Q
+tn
+	​
+
+ < 12 exp(−1.4 
+𝐹
+𝑟
+F
+r
+	​
+
+) koşulu ayrıca bakılmalıdır.
+SBTn bölgesini kesin zemin sınıfı gibi okumak; bu bir davranış tipidir, USCS sembolü değildir.
+6. Sınırlar ve eksik veri
+
+Her sınıflandırma sonucu girdisi kadar güvenilirdir. Elek analizi yoksa ya da çakıl oranı ve D değerleri bilinmiyorsa USCS sembolü yine üretilebilir, ama bu sembol eksik veriye dayanır. GeoTek bu durumda sonucu tamamlanmamış (complete = false) işaretler ve varsayımı notlara yazar; bu bir hata değil, dürüst bir ara sonuçtur. Benzer şekilde bir CPT noktasında 
+𝑞
+𝑡
+q
+t
+	​
+
+ ≤ 
+𝜎
+𝑣
+σ
+v
+	​
+
+, 
+𝜎
+𝑣
+′
+σ
+v
+′
+	​
+
+ ≤ 0 ya da 
+𝑓
+𝑠
+f
+s
+	​
+
+ ≤ 0 ise 
+𝐼
+𝑐
+I
+c
+	​
+
+ tanımsızdır; program bu noktayı NaN bırakır ve bölge 0 verir. Bölge 0'ı 'bilinmiyor' olarak okuyun, zemin tipi olarak değil.
+
+Robertson bölgeleri kesin çizgiler değil, bir sınıflandırma haritasıdır. Sınır değerleri (1.31, 2.05, 2.60, 2.95, 3.60) grafikten yaklaşık okunmuş ve sonradan düzeltilmiş değerlerdir; kaynakta farklı revizyonlar bulunabilir. 
+𝐼
+𝑐
+I
+c
+	​
+
+ yalnız normalleştirilmiş davranışı anlatır; sıkılık bu sınıflamada doğrudan yer almaz, yani gevşek ve sıkı kum aynı bölgeye düşebilir. Bu yüzden CPT sonucu, laboratuvar ya da SPT verisiyle çapraz kontrol edilmelidir.
+
+Kendini sına
+1. 
+𝐷
+10
+D
+10
+	​
+
+ = 0.20, 
+𝐷
+30
+D
+30
+	​
+
+ = 0.50, 
+𝐷
+60
+D
+60
+	​
+
+ = 2.00 mm ve ince dane %3 olan kumun 
+𝐶
+𝑢
+C
+u
+	​
+
+ ve 
+𝐶
+𝑐
+C
+c
+	​
+
+ değerleri nedir? Program ne döndürür?
+2. LL = 45, PI = 23 ve ince dane yüzdesi %70 olan zemin hangi USCS sınıfındadır?
+3. Çakıl %40, ince dane %15, LL = 30, PI = 12 olan zemin hangi sınıftır? (
+𝐷
+10
+D
+10
+	​
+
+ = 0.05, 
+𝐷
+30
+D
+30
+	​
+
+ = 0.30, 
+𝐷
+60
+D
+60
+	​
+
+ = 1.00 mm)
+4. Çakıl %65, ince dane %4, 
+𝐷
+10
+D
+10
+	​
+
+ = 0.5, 
+𝐷
+30
+D
+30
+	​
+
+ = 1.5, 
+𝐷
+60
+D
+60
+	​
+
+ = 5.0 mm: sınıf nedir?
+5. Kumda ince dane %8, LL = 30, PI = 9; 
+𝐷
+10
+D
+10
+	​
+
+ = 0.10, 
+𝐷
+30
+D
+30
+	​
+
+ = 0.20, 
+𝐷
+60
+D
+60
+	​
+
+ = 0.50 mm. Sınıf nedir?
+6. Bir CPT noktasında 
+𝐼
+𝑐
+I
+c
+	​
+
+ = 1.9 ise SBTn bölgesi kaçtır?
+7. 
+𝐼
+𝑐
+I
+c
+	​
+
+ = 2.5 ve 
+𝜎
+𝑣
+′
+σ
+v
+′
+	​
+
+ = 100 kPa iken normalleştirme üssü n kaçtır? (n = 0.381 
+𝐼
+𝑐
+I
+c
+	​
+
+ + 0.05 
+𝜎
+𝑣
+′
+σ
+v
+′
+	​
+
+ / 
+𝑃
+𝑎
+P
+a
+	​
+
+ − 0.15)
+8. Bir CPT noktasında 
+𝑞
+𝑡
+q
+t
+	​
+
+ = 1200, 
+𝑓
+𝑠
+f
+s
+	​
+
+ = 15, 
+𝜎
+𝑣
+σ
+v
+	​
+
+ = 90, 
+𝜎
+𝑣
+′
+σ
+v
+′
+	​
+
+ = 70 kPa ise 
+𝐹
+𝑟
+F
+r
+	​
+
+ ve bölge nedir?
+9. Çakıl oranı bilinmeden USCS sınıfı hesaplanırsa program 'complete' değerini ne yapar ve neden?
+Terimler sözlüğü
+Elek analizi: Kuru zemin numunesinin elek serisinden geçirilerek dane boyutu dağılımının belirlenmesi.
+No. 200 eleği: Açıklığı 0.075 mm olan elek; USCS'de kaba ve ince dane ayrımı için kullanılır.
+Çakıl ve kum: USCS'de 4.75 mm eleğiyle ayrılan kaba daneli sınıflar: çakıl > 4.75 mm, kum 0.075 ile 4.75 mm arası.
+İnce dane: 0.075 mm'nin altındaki silt ve kil daneleri; yüzdesi USCS'de ana karar ölçütüdür.
+𝐷
+10
+D
+10
+	​
+
+, 
+𝐷
+30
+D
+30
+	​
+
+, 
+𝐷
+60
+D
+60
+	​
+
+: Kütlece yüzde 10, 30 ve 60'ın geçtiği dane çapları [mm].
+𝐶
+𝑢
+C
+u
+	​
+
+ (düzgünlük katsayısı): 
+𝐷
+60
+D
+60
+	​
+
+ / 
+𝐷
+10
+D
+10
+	​
+
+. Büyük değer geniş dane dağılımını gösterir.
+𝐶
+𝑐
+C
+c
+	​
+
+ (eğrilik katsayısı): 
+𝐷
+30
+D
+30
+	​
+
+² / (
+𝐷
+10
+D
+10
+	​
+
+ · 
+𝐷
+60
+D
+60
+	​
+
+). İyi derecelenme için yaklaşık 1 ile 3 arasında beklenir.
+İyi / kötü derecelenmiş (W / P): 
+𝐶
+𝑢
+C
+u
+	​
+
+ ve 
+𝐶
+𝑐
+C
+c
+	​
+
+ eşiklerini sağlayan (W) ya da sağlamayan (P) kaba zemin.
+Likit limit (LL): Zeminin akmaya başladığı su muhtevası (yüzde).
+Plastik limit (PL): Zeminin çatlamadan rulo yapılabildiği en düşük su muhtevası (yüzde).
+Plastisite indisi (PI): PI = LL − PL. Plastik davranış aralığının genişliği.
+A-çizgisi: Plastisite kartında PI = 0.73 (LL − 20) ile verilen ayırıcı çizgi; üstü kil, altı silt davranışı.
+U-çizgisi: Doğal zeminlerin üst sınırını veren PI = 0.9 (LL − 8) çizgisi; üstünde kalan deney şüphelidir.
+Çift sembol (örn. SW-SC): İnce dane yüzdesi %5 ile %12 arasında olan zeminde hem dane dağılımı hem kıvam sembolünün yazılması.
+CPT: Konik penetrasyon deneyi: uç direnci, yan sürtünme ve boşluk suyu basıncının sürekli ölçümü.
+𝑞
+𝑡
+q
+t
+	​
+
+: Düzeltilmiş uç direnci: 
+𝑞
+𝑐
+q
+c
+	​
+
+ + 
+𝑢
+2
+u
+2
+	​
+
+ (1 − a) [kPa].
+𝐹
+𝑟
+F
+r
+	​
+
+ (sürtünme oranı): 
+𝑓
+𝑠
+f
+s
+	​
+
+ / (
+𝑞
+𝑡
+q
+t
+	​
+
+ − 
+𝜎
+𝑣
+σ
+v
+	​
+
+) × 100 [%]. Normalleştirilmiş sürtünme.
+𝑄
+t
+n
+Q
+tn
+	​
+
+: Efektif gerilmeye göre normalleştirilmiş uç direnci (boyutsuz).
+𝐼
+𝑐
+I
+c
+	​
+
+ (davranış indeksi): 
+𝑄
+t
+n
+Q
+tn
+	​
+
+ ve 
+𝐹
+𝑟
+F
+r
+	​
+
+'den hesaplanan, zemin davranışını bölgeye çeviren boyutsuz indeks.
+n (üs): 
+𝑄
+t
+n
+Q
+tn
+	​
+
+ normalleştirmesindeki üs; 
+𝐼
+𝑐
+I
+c
+	​
+
+ ve 
+𝜎
+𝑣
+′
+σ
+v
+′
+	​
+
+ ile iteratif hesaplanır, 0 ile 1 arasında sınırlanır.
+SBTn bölgesi: Normalleştirilmiş davranış tipi (1 ile 9). Program 2 ile 7 arasını 
+𝐼
+𝑐
+I
+c
+	​
+
+ ile, bölge 1'i ayrıca belirler.
+𝑃
+𝑎
+P
+a
+	​
+
+: Atmosfer basıncı, 101.325 kPa; normalleştirmede birim olarak kullanılır.
+Önerilen okuma
+ASTM D2487 (USCS) - bu oturumda açılamadı; sınıf sınırları ve çift sembol kuralları kendi kopyanızdan doğrulanmalı.
+Casagrande, A. (1948), plastisite kartı ve A-çizgisi - doğrulanamadı; 0.73 katsayısı bu metinde kod sabitinden alınmıştır.
+Robertson, P.K. (1990). Soil classification using the cone penetration test. Can. Geotech. J. 27(1) - kodda atıf; bu oturumda açılmadı.
+Robertson, P.K. (2009). Interpretation of cone penetration tests - a unified approach. Can. Geotech. J. 46(11) - n ve I_c bağıntıları için kodda atıf; bu oturumda açılmadı.
+Robertson, P.K. (2010). Soil behaviour type from the CPT: an update. 2nd Int. Symp. on CPT - bölge 8 ve 9 sınırları için kodda not; program bunları kapalı tutar.

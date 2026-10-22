@@ -1,0 +1,424 @@
+Soil investigation and parameters
+
+Project: UX Araştırma 2026
+
+UNSAVED CHANGES
+Save
+TR
+EN
+Back to main menu
+Site data
+Soil profiles
+Engineering parameters
+Classification
+Engineering parameters
+
+Per layer: candidates from correlations and laboratory data, your selection, and approval. Only approved values become design values.
+
+Profile
+UX Elle Kum Profili
+UX CPT Profili
+UX SPT Profili
+Suggest all
+
+LAYERS
+
+0–5.975 m
+
+1/7 APPROVED
+
+5.975–9.075 m
+
+0/7 APPROVED
+
+9.075–15 m
+
+0/7 APPROVED
+
+b5bba18300e942b280af754aef89431d
+
+Approve selected values
+
+Effective friction angle φ'
+
+[°]
+
+APPROVED
+
+Approved on 10/22/2026.
+
+Selected:
+
+40.022 °
+
+mean(KM1990_phi_CPT,RC1983_phi_CPT)
+
+Candidates
+
+Method	Value	n / min / mean / max	Reliability	Source	Reference
+
+
+mean(KM1990_phi_CPT,RC1983_phi_CPT)
+
+SUGGESTİON
+	
+
+40.022 °
+
+	2 / 38.373 / 40.022 / 41.67	B	CPT	
+
+Kulhawy & Mayne (1990); Mayne (2007) NCHRP Synthesis 368; Robertson & Campanella (1983), Can. Geotech. J. 20(4)
+
+
+
+
+KM1990_phi_CPT
+
+	
+
+38.373 °
+
+	118 / 36.606 / 38.373 / 44.933	B	CPT	
+
+Kulhawy & Mayne (1990); Mayne (2007) NCHRP Synthesis 368
+
+
+
+
+RC1983_phi_CPT
+
+	
+
+41.67 °
+
+	118 / 38.146 / 41.67 / 53.72	B	CPT	
+
+Robertson & Campanella (1983), Can. Geotech. J. 20(4)
+
+How to choose
+
+Suggestion
+Method
+Statistic
+Manual
+Apply selection
+Approve
+
+Changing the selection revokes its approval.
+
+Effective cohesion c'
+
+[kPa]
+
+NOT APPROVED
+
+Selected:
+
+No selection yet.
+
+Candidates
+
+Method	Value	n / min / mean / max	Reliability	Source	Reference
+
+
+FHWA_GEC5_c_eff
+
+SUGGESTİON
+	
+
+0 kPa
+
+	—	—	Combined	
+
+FHWA GEC-5: granüler zeminde c' = 0
+
+How to choose
+
+Suggestion
+Method
+Statistic
+Manual
+
+Choose how to select a value.
+
+Apply selection
+Approve
+
+Undrained shear strength su
+
+[kPa]
+
+NOT APPROVED
+
+Selected:
+
+No selection yet.
+
+Candidates
+
+Method	Value	n / min / mean / max	Reliability	Source	Reference
+
+
+CPT_su_Nkt
+
+OUTSİDE VALİDİTY RANGE
+	
+
+333.11 kPa
+
+	118 / 246.1 / 333.11 / 453.24	A	CPT	
+
+Lunne, Robertson & Powell (1997); Robertson & Cabal (2015) CPT Guide
+
+I_c = 1.69 < 2.6: correlation is for clay-like (undrained) soils
+I_c = 1.75 < 2.6: correlation is for clay-like (undrained) soils
+I_c = 1.79 < 2.6: correlation is for clay-like (undrained) soils
+I_c = 1.80 < 2.6: correlation is for clay-like (undrained) soils
+I_c = 1.81 < 2.6: correlation is for clay-like (undrained) soils
+I_c = 1.84 < 2.6: correlation is for clay-like (undrained) soils
+I_c = 1.87 < 2.6: correlation is for clay-like (undrained) soils
+I_c = 1.85 < 2.6: correlation is for clay-like (undrained) soils
+I_c = 1.86 < 2.6: correlation is for clay-like (undrained) soils
+I_c = 1.88 < 2.6: correlation is for clay-like (undrained) soils
+I_c = 1.90 < 2.6: correlation is for clay-like (undrained) soils
+I_c = 1.89 < 2.6: correlation is for clay-like (undrained) soils
+I_c = 1.93 < 2.6: correlation is for clay-like (undrained) soils
+I_c = 1.94 < 2.6: correlation is for clay-like (undrained) soils
+I_c = 1.91 < 2.6: correlation is for clay-like (undrained) soils
+I_c = 1.96 < 2.6: correlation is for clay-like (undrained) soils
+I_c = 1.97 < 2.6: correlation is for clay-like (undrained) soils
+I_c = 2.01 < 2.6: correlation is for clay-like (undrained) soils
+I_c = 1.98 < 2.6: correlation is for clay-like (undrained) soils
+I_c = 2.00 < 2.6: correlation is for clay-like (undrained) soils
+I_c = 1.99 < 2.6: correlation is for clay-like (undrained) soils
+I_c = 2.02 < 2.6: correlation is for clay-like (undrained) soils
+I_c = 2.06 < 2.6: correlation is for clay-like (undrained) soils
+I_c = 2.04 < 2.6: correlation is for clay-like (undrained) soils
+I_c = 1.92 < 2.6: correlation is for clay-like (undrained) soils
+I_c = 1.95 < 2.6: correlation is for clay-like (undrained) soils
+I_c = 2.03 < 2.6: correlation is for clay-like (undrained) soils
+I_c = 2.05 < 2.6: correlation is for clay-like (undrained) soils
+
+
+
+CPTu_su_Ndu
+
+OUTSİDE VALİDİTY RANGE
+	
+
+0.94419 kPa
+
+	118 / 0 / 0.94419 / 1.4015	B	CPT	
+
+Lunne, Robertson & Powell (1997)
+
+I_c = 1.69 < 2.6: correlation is for clay-like (undrained) soils
+I_c = 1.75 < 2.6: correlation is for clay-like (undrained) soils
+I_c = 1.79 < 2.6: correlation is for clay-like (undrained) soils
+I_c = 1.80 < 2.6: correlation is for clay-like (undrained) soils
+I_c = 1.81 < 2.6: correlation is for clay-like (undrained) soils
+I_c = 1.84 < 2.6: correlation is for clay-like (undrained) soils
+I_c = 1.87 < 2.6: correlation is for clay-like (undrained) soils
+I_c = 1.85 < 2.6: correlation is for clay-like (undrained) soils
+I_c = 1.86 < 2.6: correlation is for clay-like (undrained) soils
+I_c = 1.88 < 2.6: correlation is for clay-like (undrained) soils
+I_c = 1.90 < 2.6: correlation is for clay-like (undrained) soils
+I_c = 1.89 < 2.6: correlation is for clay-like (undrained) soils
+I_c = 1.93 < 2.6: correlation is for clay-like (undrained) soils
+I_c = 1.94 < 2.6: correlation is for clay-like (undrained) soils
+I_c = 1.91 < 2.6: correlation is for clay-like (undrained) soils
+I_c = 1.96 < 2.6: correlation is for clay-like (undrained) soils
+I_c = 1.97 < 2.6: correlation is for clay-like (undrained) soils
+I_c = 2.01 < 2.6: correlation is for clay-like (undrained) soils
+I_c = 1.98 < 2.6: correlation is for clay-like (undrained) soils
+I_c = 2.00 < 2.6: correlation is for clay-like (undrained) soils
+I_c = 1.99 < 2.6: correlation is for clay-like (undrained) soils
+I_c = 2.02 < 2.6: correlation is for clay-like (undrained) soils
+I_c = 2.06 < 2.6: correlation is for clay-like (undrained) soils
+I_c = 2.04 < 2.6: correlation is for clay-like (undrained) soils
+I_c = 1.92 < 2.6: correlation is for clay-like (undrained) soils
+I_c = 1.95 < 2.6: correlation is for clay-like (undrained) soils
+I_c = 2.03 < 2.6: correlation is for clay-like (undrained) soils
+I_c = 2.05 < 2.6: correlation is for clay-like (undrained) soils
+
+The program has no suggestion for this value.
+
+How to choose
+
+Suggestion
+Method
+Statistic
+Manual
+
+Choose how to select a value.
+
+Apply selection
+Approve
+
+Elastic modulus E
+
+[kPa]
+
+NOT APPROVED
+
+Selected:
+
+No selection yet.
+
+Candidates
+
+Method	Value	n / min / mean / max	Reliability	Source	Reference
+
+
+mean(R2009_E_CPT)
+
+SUGGESTİON
+	
+
+40141 kPa
+
+	1 / 40141 / 40141 / 40141	B	CPT	
+
+Robertson (2009), Can. Geotech. J. 46(11)
+
+
+
+
+R2009_E_CPT
+
+	
+
+40141 kPa
+
+	118 / 24007 / 40141 / 54729	B	CPT	
+
+Robertson (2009), Can. Geotech. J. 46(11)
+
+How to choose
+
+Suggestion
+Method
+Statistic
+Manual
+
+Choose how to select a value.
+
+Apply selection
+Approve
+
+Unit weight γ
+
+[kN/m³]
+
+NOT APPROVED
+
+Selected:
+
+No selection yet.
+
+Candidates
+
+Method	Value	n / min / mean / max	Reliability	Source	Reference
+
+
+mean(RC2010_gamma_CPT)
+
+SUGGESTİON
+	
+
+17.919 kN/m³
+
+	1 / 17.919 / 17.919 / 17.919	B	CPT	
+
+Robertson & Cabal (2010), 2nd Int. Symp. on Cone Penetration Testing
+
+
+
+
+RC2010_gamma_CPT
+
+	
+
+17.919 kN/m³
+
+	118 / 17.454 / 17.919 / 18.52	B	CPT	
+
+Robertson & Cabal (2010), 2nd Int. Symp. on Cone Penetration Testing
+
+How to choose
+
+Suggestion
+Method
+Statistic
+Manual
+
+Choose how to select a value.
+
+Apply selection
+Approve
+
+Saturated unit weight γsat
+
+NOT APPROVED
+
+Selected:
+
+No selection yet.
+
+Candidates
+
+No applicable correlation or laboratory value for this layer.
+
+The program has no suggestion for this value.
+
+How to choose
+
+Suggestion
+Method
+Statistic
+Manual
+Value [-]
+Apply selection
+Approve
+
+Unapplied changes: apply the selection before approving.
+
+Base friction angle δ
+
+[°]
+
+NOT APPROVED
+
+Selected:
+
+No selection yet.
+
+Candidates
+
+Method	Value	n / min / mean / max	Reliability	Source	Reference
+
+
+TBDY2018_delta_base
+
+SUGGESTİON
+	
+
+30.964 °
+
+	—	—	Combined	
+
+EN 1997-1 6.5.3(10): δd = φ'cv,d (yerinde dökme beton); TBDY 2018 16.8.4.3, Tablo 16.3: tan δ ≤ 0.6 (yerinde dökme beton – sıkıştırılmış taban zemini)
+
+phi'cv is not modelled; phi' = 40.02189726085889 deg is used in its place, which is unconservative for a peak value.
+
+How to choose
+
+Suggestion
+Method
+Statistic
+Manual
+
+Choose how to select a value.
+
+Apply selection
+Approve

@@ -1,0 +1,687 @@
+{
+  "url": "http://127.0.0.1:8771/m/soil/profiles",
+  "viewport": {
+    "w": 1440,
+    "h": 900
+  },
+  "scroll": {
+    "w": 1440,
+    "h": 1034
+  },
+  "inputs": [
+    {
+      "tag": "INPUT",
+      "type": "radio",
+      "id": "mantine-tskoqi1qt-tr",
+      "aria": null,
+      "ph": "",
+      "value": "tr",
+      "labels": [
+        "TR"
+      ],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "radio",
+      "id": "mantine-tskoqi1qt-en",
+      "aria": null,
+      "ph": "",
+      "value": "en",
+      "labels": [
+        "EN"
+      ],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": "mantine-fa7e0wowt",
+      "aria": "Profil adı",
+      "ph": "Profil adı",
+      "value": "UX CPT Profili (kopya)",
+      "labels": [],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": "mantine-gtc6s9iq2",
+      "aria": "YASS — deney anı",
+      "ph": "",
+      "value": "2.5",
+      "labels": [],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": "mantine-1b94tdfej",
+      "aria": "YASS — tasarım",
+      "ph": "= 2.5",
+      "value": "2.5",
+      "labels": [],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": "mantine-vw92f0cpx",
+      "aria": "YASS — deprem anı",
+      "ph": "= 2.5",
+      "value": "2.5",
+      "labels": [],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": "mantine-gjvfivmsh",
+      "aria": "Kimlik 1",
+      "ph": "",
+      "value": "21365abfab70473080f92e52eaeb2aa5",
+      "labels": [],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": "mantine-jbbhorid1",
+      "aria": "Üst (m) 21365abfab70473080f92e52eaeb2aa5",
+      "ph": "",
+      "value": "0",
+      "labels": [],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": "mantine-jufoq79tw",
+      "aria": "Alt (m) 21365abfab70473080f92e52eaeb2aa5",
+      "ph": "",
+      "value": "5.975",
+      "labels": [],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": "mantine-hnsx36s6j",
+      "aria": "Tanım 21365abfab70473080f92e52eaeb2aa5",
+      "ph": "",
+      "value": "",
+      "labels": [],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": "mantine-kiz3gyua6",
+      "aria": "USCS 21365abfab70473080f92e52eaeb2aa5",
+      "ph": "—",
+      "value": "",
+      "labels": [],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "hidden",
+      "id": "",
+      "aria": null,
+      "ph": "",
+      "value": "",
+      "labels": [],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": "mantine-cpnjryo89",
+      "aria": "Davranış 21365abfab70473080f92e52eaeb2aa5",
+      "ph": "",
+      "value": "Drenajlı",
+      "labels": [],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "hidden",
+      "id": "",
+      "aria": null,
+      "ph": "",
+      "value": "drained",
+      "labels": [],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": "mantine-yc2zzhe4e",
+      "aria": "γ (kN/m³) 21365abfab70473080f92e52eaeb2aa5",
+      "ph": "",
+      "value": "17.919",
+      "labels": [],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": "mantine-jw1d5z575",
+      "aria": "γ_doygun (kN/m³) 21365abfab70473080f92e52eaeb2aa5",
+      "ph": "17.919418366190715",
+      "value": "17.919",
+      "labels": [],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": "mantine-w0mfou32w",
+      "aria": "φ' (°) 21365abfab70473080f92e52eaeb2aa5",
+      "ph": "",
+      "value": "40.022",
+      "labels": [],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": "mantine-rz2wpjpex",
+      "aria": "c' (kPa) 21365abfab70473080f92e52eaeb2aa5",
+      "ph": "",
+      "value": "0",
+      "labels": [],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": "mantine-jgavej408",
+      "aria": "s_u (kPa) 21365abfab70473080f92e52eaeb2aa5",
+      "ph": "",
+      "value": "",
+      "labels": [],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": "mantine-koyr3ppaa",
+      "aria": "E (kPa) 21365abfab70473080f92e52eaeb2aa5",
+      "ph": "",
+      "value": "",
+      "labels": [],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": "mantine-af9is3jdm",
+      "aria": "δ_b (°) 21365abfab70473080f92e52eaeb2aa5",
+      "ph": "",
+      "value": "",
+      "labels": [],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": "mantine-kc8am9tca",
+      "aria": "Kimlik 2",
+      "ph": "",
+      "value": "14c755028b894006a97ebf89273a8337",
+      "labels": [],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": "mantine-6d5g67rz2",
+      "aria": "Üst (m) 14c755028b894006a97ebf89273a8337",
+      "ph": "",
+      "value": "5.975",
+      "labels": [],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": "mantine-4jzx166zv",
+      "aria": "Alt (m) 14c755028b894006a97ebf89273a8337",
+      "ph": "",
+      "value": "9.075",
+      "labels": [],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": "mantine-vfcfx3r6d",
+      "aria": "Tanım 14c755028b894006a97ebf89273a8337",
+      "ph": "",
+      "value": "",
+      "labels": [],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": "mantine-tzxuuwm6i",
+      "aria": "USCS 14c755028b894006a97ebf89273a8337",
+      "ph": "—",
+      "value": "",
+      "labels": [],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "hidden",
+      "id": "",
+      "aria": null,
+      "ph": "",
+      "value": "",
+      "labels": [],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": "mantine-ngxdk45xy",
+      "aria": "Davranış 14c755028b894006a97ebf89273a8337",
+      "ph": "",
+      "value": "Drenajsız",
+      "labels": [],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "hidden",
+      "id": "",
+      "aria": null,
+      "ph": "",
+      "value": "undrained",
+      "labels": [],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": "mantine-418cg7jng",
+      "aria": "γ (kN/m³) 14c755028b894006a97ebf89273a8337",
+      "ph": "",
+      "value": "16.904",
+      "labels": [],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": "mantine-yaqszcj4t",
+      "aria": "γ_doygun (kN/m³) 14c755028b894006a97ebf89273a8337",
+      "ph": "16.903647204215073",
+      "value": "16.904",
+      "labels": [],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": "mantine-4nqmrq7oh",
+      "aria": "φ' (°) 14c755028b894006a97ebf89273a8337",
+      "ph": "",
+      "value": "",
+      "labels": [],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": "mantine-b7x59fwd7",
+      "aria": "c' (kPa) 14c755028b894006a97ebf89273a8337",
+      "ph": "",
+      "value": "0",
+      "labels": [],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": "mantine-5mfa299kz",
+      "aria": "s_u (kPa) 14c755028b894006a97ebf89273a8337",
+      "ph": "",
+      "value": "",
+      "labels": [],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": "mantine-2zm51sj8u",
+      "aria": "E (kPa) 14c755028b894006a97ebf89273a8337",
+      "ph": "",
+      "value": "",
+      "labels": [],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": "mantine-t4i3siedo",
+      "aria": "δ_b (°) 14c755028b894006a97ebf89273a8337",
+      "ph": "",
+      "value": "",
+      "labels": [],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": "mantine-xbnvpczec",
+      "aria": "Kimlik 3",
+      "ph": "",
+      "value": "d99a3ffb116d4141b1457ba492ca096e",
+      "labels": [],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": "mantine-8uubge7v1",
+      "aria": "Üst (m) d99a3ffb116d4141b1457ba492ca096e",
+      "ph": "",
+      "value": "9.075",
+      "labels": [],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": "mantine-7hqigi1mg",
+      "aria": "Alt (m) d99a3ffb116d4141b1457ba492ca096e",
+      "ph": "",
+      "value": "15",
+      "labels": [],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": "mantine-znpwb71e3",
+      "aria": "Tanım d99a3ffb116d4141b1457ba492ca096e",
+      "ph": "",
+      "value": "",
+      "labels": [],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": "mantine-a7le2i7q8",
+      "aria": "USCS d99a3ffb116d4141b1457ba492ca096e",
+      "ph": "—",
+      "value": "",
+      "labels": [],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "hidden",
+      "id": "",
+      "aria": null,
+      "ph": "",
+      "value": "",
+      "labels": [],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": "mantine-9p29nksas",
+      "aria": "Davranış d99a3ffb116d4141b1457ba492ca096e",
+      "ph": "",
+      "value": "Drenajlı",
+      "labels": [],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "hidden",
+      "id": "",
+      "aria": null,
+      "ph": "",
+      "value": "drained",
+      "labels": [],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": "mantine-yoz9vciqh",
+      "aria": "γ (kN/m³) d99a3ffb116d4141b1457ba492ca096e",
+      "ph": "",
+      "value": "20.112",
+      "labels": [],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": "mantine-srxyb6bxx",
+      "aria": "γ_doygun (kN/m³) d99a3ffb116d4141b1457ba492ca096e",
+      "ph": "20.11239257172385",
+      "value": "20.112",
+      "labels": [],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": "mantine-u23gc68j1",
+      "aria": "φ' (°) d99a3ffb116d4141b1457ba492ca096e",
+      "ph": "",
+      "value": "",
+      "labels": [],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": "mantine-t9rznlm1e",
+      "aria": "c' (kPa) d99a3ffb116d4141b1457ba492ca096e",
+      "ph": "",
+      "value": "0",
+      "labels": [],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": "mantine-kay08flcv",
+      "aria": "s_u (kPa) d99a3ffb116d4141b1457ba492ca096e",
+      "ph": "",
+      "value": "",
+      "labels": [],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": "mantine-a7lasys1i",
+      "aria": "E (kPa) d99a3ffb116d4141b1457ba492ca096e",
+      "ph": "",
+      "value": "",
+      "labels": [],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": "mantine-n81wvdu5y",
+      "aria": "δ_b (°) d99a3ffb116d4141b1457ba492ca096e",
+      "ph": "",
+      "value": "",
+      "labels": [],
+      "testid": null
+    }
+  ],
+  "buttons": [
+    {
+      "text": "",
+      "aria": "Gezinme menüsünü aç veya kapat",
+      "disabled": false
+    },
+    {
+      "text": "Kaydet",
+      "aria": null,
+      "disabled": false
+    },
+    {
+      "text": "",
+      "aria": "Tema değiştir",
+      "disabled": false
+    },
+    {
+      "text": "Ana menüye dön",
+      "aria": null,
+      "disabled": false
+    },
+    {
+      "text": "Yeni profil",
+      "aria": null,
+      "disabled": false
+    },
+    {
+      "text": "UX Elle Kum ProfiliElle girilen1 katman",
+      "aria": null,
+      "disabled": false
+    },
+    {
+      "text": "UX CPT ProfiliCPT kökenli3 katman",
+      "aria": null,
+      "disabled": false
+    },
+    {
+      "text": "UX SPT ProfiliSPT kökenli2 katman",
+      "aria": null,
+      "disabled": false
+    },
+    {
+      "text": "UX CPT Profili (kopya)CPT kökenli3 katman",
+      "aria": null,
+      "disabled": false
+    },
+    {
+      "text": "Aktif yap",
+      "aria": null,
+      "disabled": false
+    },
+    {
+      "text": "Çoğalt",
+      "aria": null,
+      "disabled": false
+    },
+    {
+      "text": "Vazgeç",
+      "aria": null,
+      "disabled": true
+    },
+    {
+      "text": "Kaydet",
+      "aria": null,
+      "disabled": true
+    },
+    {
+      "text": "",
+      "aria": "Geri al",
+      "disabled": true
+    },
+    {
+      "text": "",
+      "aria": "Yinele",
+      "disabled": true
+    },
+    {
+      "text": "En alta katman ekle",
+      "aria": null,
+      "disabled": false
+    },
+    {
+      "text": "",
+      "aria": "Altına katman ekle 21365abfab70473080f92e52eaeb2aa5",
+      "disabled": false
+    },
+    {
+      "text": "",
+      "aria": "Böl 21365abfab70473080f92e52eaeb2aa5",
+      "disabled": false
+    },
+    {
+      "text": "",
+      "aria": "Alttaki katmanla birleştir 21365abfab70473080f92e52eaeb2aa5",
+      "disabled": false
+    },
+    {
+      "text": "",
+      "aria": "Katmanı sil 21365abfab70473080f92e52eaeb2aa5",
+      "disabled": false
+    },
+    {
+      "text": "",
+      "aria": "Altına katman ekle 14c755028b894006a97ebf89273a8337",
+      "disabled": false
+    },
+    {
+      "text": "",
+      "aria": "Böl 14c755028b894006a97ebf89273a8337",
+      "disabled": false
+    },
+    {
+      "text": "",
+      "aria": "Alttaki katmanla birleştir 14c755028b894006a97ebf89273a8337",
+      "disabled": false
+    },
+    {
+      "text": "",
+      "aria": "Katmanı sil 14c755028b894006a97ebf89273a8337",
+      "disabled": false
+    },
+    {
+      "text": "",
+      "aria": "Altına katman ekle d99a3ffb116d4141b1457ba492ca096e",
+      "disabled": false
+    },
+    {
+      "text": "",
+      "aria": "Böl d99a3ffb116d4141b1457ba492ca096e",
+      "disabled": false
+    },
+    {
+      "text": "",
+      "aria": "Alttaki katmanla birleştir d99a3ffb116d4141b1457ba492ca096e",
+      "disabled": true
+    },
+    {
+      "text": "",
+      "aria": "Katmanı sil d99a3ffb116d4141b1457ba492ca096e",
+      "disabled": false
+    }
+  ],
+  "links": [
+    {
+      "text": "Arazi verileri",
+      "href": "/m/soil"
+    },
+    {
+      "text": "Zemin profilleri",
+      "href": "/m/soil/profiles"
+    },
+    {
+      "text": "Mühendislik parametreleri",
+      "href": "/m/soil/parameters"
+    },
+    {
+      "text": "Sınıflandırma",
+      "href": "/m/soil/classification"
+    }
+  ]
+}

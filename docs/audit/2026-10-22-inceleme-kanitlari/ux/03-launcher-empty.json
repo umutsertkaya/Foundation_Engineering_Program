@@ -1,0 +1,210 @@
+{
+  "url": "http://127.0.0.1:8771/launcher",
+  "viewport": {
+    "w": 1440,
+    "h": 900
+  },
+  "scroll": {
+    "w": 1440,
+    "h": 933
+  },
+  "inputs": [
+    {
+      "tag": "INPUT",
+      "type": "radio",
+      "id": "mantine-29k10jt4r-tr",
+      "aria": null,
+      "ph": "",
+      "value": "tr",
+      "labels": [
+        "TR"
+      ],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "radio",
+      "id": "mantine-29k10jt4r-en",
+      "aria": null,
+      "ph": "",
+      "value": "en",
+      "labels": [
+        "EN"
+      ],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": "mantine-moxbx85aw",
+      "aria": null,
+      "ph": "",
+      "value": "",
+      "labels": [
+        "PGA (g)"
+      ],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": "mantine-177vz9v8y",
+      "aria": null,
+      "ph": "",
+      "value": "",
+      "labels": [
+        "Mw"
+      ],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": "mantine-encfxvko5",
+      "aria": null,
+      "ph": "",
+      "value": "",
+      "labels": [
+        "S_DS"
+      ],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": "mantine-5qm9iyypk",
+      "aria": null,
+      "ph": "",
+      "value": "",
+      "labels": [
+        "S_D1"
+      ],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": "mantine-xuchutosh",
+      "aria": null,
+      "ph": "",
+      "value": "",
+      "labels": [
+        "Zemin sınıfı"
+      ],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "hidden",
+      "id": "",
+      "aria": null,
+      "ph": "",
+      "value": "",
+      "labels": [],
+      "testid": null
+    }
+  ],
+  "buttons": [
+    {
+      "text": "Kaydet",
+      "aria": null,
+      "disabled": false
+    },
+    {
+      "text": "",
+      "aria": "Tema değiştir",
+      "disabled": false
+    },
+    {
+      "text": "Projeyi kapat",
+      "aria": null,
+      "disabled": false
+    },
+    {
+      "text": "Düzenle",
+      "aria": null,
+      "disabled": false
+    },
+    {
+      "text": "",
+      "aria": "Uygula",
+      "disabled": false
+    },
+    {
+      "text": "",
+      "aria": null,
+      "disabled": false
+    },
+    {
+      "text": "",
+      "aria": null,
+      "disabled": false
+    },
+    {
+      "text": "",
+      "aria": null,
+      "disabled": false
+    },
+    {
+      "text": "",
+      "aria": null,
+      "disabled": false
+    },
+    {
+      "text": "",
+      "aria": null,
+      "disabled": false
+    },
+    {
+      "text": "",
+      "aria": null,
+      "disabled": false
+    },
+    {
+      "text": "",
+      "aria": null,
+      "disabled": false
+    },
+    {
+      "text": "",
+      "aria": null,
+      "disabled": false
+    },
+    {
+      "text": "Modülü aç",
+      "aria": null,
+      "disabled": false
+    },
+    {
+      "text": "Modülü aç",
+      "aria": null,
+      "disabled": false
+    },
+    {
+      "text": "Modülü aç",
+      "aria": null,
+      "disabled": false
+    },
+    {
+      "text": "Modülü aç",
+      "aria": null,
+      "disabled": false
+    },
+    {
+      "text": "Modülü aç",
+      "aria": null,
+      "disabled": false
+    },
+    {
+      "text": "Modülü aç",
+      "aria": null,
+      "disabled": false
+    },
+    {
+      "text": "Modülü aç",
+      "aria": null,
+      "disabled": false
+    }
+  ],
+  "links": []
+}

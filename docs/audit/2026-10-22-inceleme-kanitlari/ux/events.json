@@ -1,0 +1,92 @@
+[
+  {
+    "type": "http",
+    "status": 404,
+    "url": "http://127.0.0.1:8771/api/launcher"
+  },
+  {
+    "type": "console",
+    "level": "error",
+    "text": "Failed to load resource: the server responded with a status of 404 (Not Found)"
+  },
+  {
+    "type": "http",
+    "status": 422,
+    "url": "http://127.0.0.1:8771/api/m/soil/layering/spt/BH-UX-dot"
+  },
+  {
+    "type": "console",
+    "level": "error",
+    "text": "Failed to load resource: the server responded with a status of 422 (Unprocessable Entity)"
+  },
+  {
+    "type": "http",
+    "status": 404,
+    "url": "http://127.0.0.1:8771/api/launcher"
+  },
+  {
+    "type": "console",
+    "level": "error",
+    "text": "Failed to load resource: the server responded with a status of 404 (Not Found)"
+  },
+  {
+    "type": "http",
+    "status": 404,
+    "url": "http://127.0.0.1:8771/api/launcher"
+  },
+  {
+    "type": "console",
+    "level": "error",
+    "text": "Failed to load resource: the server responded with a status of 404 (Not Found)"
+  },
+  {
+    "type": "http",
+    "status": 404,
+    "url": "http://127.0.0.1:8771/api/launcher"
+  },
+  {
+    "type": "console",
+    "level": "error",
+    "text": "Failed to load resource: the server responded with a status of 404 (Not Found)"
+  },
+  {
+    "type": "http",
+    "status": 404,
+    "url": "http://127.0.0.1:8771/api/launcher"
+  },
+  {
+    "type": "console",
+    "level": "error",
+    "text": "Failed to load resource: the server responded with a status of 404 (Not Found)"
+  },
+  {
+    "type": "http",
+    "status": 404,
+    "url": "http://127.0.0.1:8771/api/launcher"
+  },
+  {
+    "type": "console",
+    "level": "error",
+    "text": "Failed to load resource: the server responded with a status of 404 (Not Found)"
+  },
+  {
+    "type": "http",
+    "status": 404,
+    "url": "http://127.0.0.1:8771/api/launcher"
+  },
+  {
+    "type": "console",
+    "level": "error",
+    "text": "Failed to load resource: the server responded with a status of 404 (Not Found)"
+  },
+  {
+    "type": "http",
+    "status": 404,
+    "url": "http://127.0.0.1:8771/api/launcher"
+  },
+  {
+    "type": "console",
+    "level": "error",
+    "text": "Failed to load resource: the server responded with a status of 404 (Not Found)"
+  }
+]

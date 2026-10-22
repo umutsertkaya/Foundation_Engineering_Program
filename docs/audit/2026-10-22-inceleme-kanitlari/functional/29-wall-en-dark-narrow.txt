@@ -1,0 +1,328 @@
+Retaining wall
+
+Project: QA İŞLEV GeoTek
+
+Save
+TR
+EN
+Back to main menu
+Walls
+New wall
+Back to list
+QA Konsol 5m
+RETAİNİNG WALL
+DRAFT
+ADVANCED
+ASD
+Type/geometry
+Soil
+Loads/seismic
+Suggest/Check
+5
+Result
+
+Pass
+
+kh = 0.133 · kv = 0.067
+
+Warnings
+
+Key depth is not added to the bearing embedment (deliberate conservative assumption: bearing capacity is under-estimated)
+
+Düşey deprem katsayısı ±kv zarfı uygulandı (TBDY 16.12.2.3); yöneten işaret kontrol bazında detayda belirtilmiştir.
+
+Proposed section and soil
+
+Front ground
+Retained soil (back)
+Stem
+Base slab
+Toe
+Heel
+Base B = 6.00 m
+H = 5.00 m
+D = 0.60 m
+
+Sizing-governing check (last one that forced a wider base): Seismic · Sliding
+
+kv sign (TBDY 16.12.2.3): with the envelope each check is evaluated for +|kv| (up) and −|kv| (down) and the unfavourable one is kept; the badge on a card shows the kv sign that governed that check.
+
+Overturning
+
+STATİC
+PASS
+
+COMPUTED
+
+6.70
+
+REQUİRED MİN.
+
+≥ 2.00
+
+UTİLİSATİON
+
+30%
+
+M_R = 1780.6, M_O = 265.6 kNm/m
+
+Sliding
+
+STATİC
+PASS
+
+COMPUTED
+
+2.01
+
+REQUİRED MİN.
+
+≥ 1.50
+
+UTİLİSATİON
+
+75%
+
+V tan(30) + c_a B' + key passive; governing surface: deep (base 2.11, key tip 2.01)
+
+Eccentricity (e/B)
+
+STATİC
+PASS
+
+COMPUTED
+
+0.068
+
+ALLOWED MAX.
+
+≤ 0.167
+
+UTİLİSATİON
+
+41%
+
+e = -0.405 m (e/B limit 0.167)
+
+Bearing capacity
+
+STATİC
+PASS
+
+COMPUTED
+
+5.67
+
+REQUİRED MİN.
+
+≥ 3.00
+
+UTİLİSATİON
+
+53%
+
+q_ult = 486 kPa on B' = 5.19 m; q_eff = 86 kPa
+
+Overturning
+
+SEİSMİC
+KV ↑ UP
+PASS
+
+COMPUTED
+
+3.39
+
+REQUİRED MİN.
+
+≥ 1.50
+
+UTİLİSATİON
+
+44%
+
+M_R = 1710.1, M_O = 505.1 kNm/m
+
+Sliding
+
+SEİSMİC
+KV ↑ UP
+PASS
+
+COMPUTED
+
+1.11
+
+REQUİRED MİN.
+
+≥ 1.10
+
+UTİLİSATİON
+
+99%
+
+V tan(30) + c_a B' + key passive; governing surface: deep (base 1.15, key tip 1.11)
+
+SİZİNG-GOVERNİNG
+
+Eccentricity (e/B)
+
+SEİSMİC
+KV ↑ UP
+PASS
+
+COMPUTED
+
+0.026
+
+ALLOWED MAX.
+
+≤ 0.250
+
+UTİLİSATİON
+
+10%
+
+e = 0.153 m (e/B limit 0.250)
+
+Bearing capacity
+
+SEİSMİC
+KV ↑ UP
+PASS
+
+COMPUTED
+
+2.33
+
+REQUİRED MİN.
+
+≥ 2.00
+
+UTİLİSATİON
+
+86%
+
+q_ult = 173 kPa on B' = 5.69 m; q_eff = 74 kPa
+
+Global stability
+
+STATİC
+PASS
+
+COMPUTED
+
+1.60
+
+REQUİRED MİN.
+
+≥ 1.50
+
+UTİLİSATİON
+
+94%
+
+Bishop circle centre (0.84, 13.88), R = 14.79 m
+
+Global stability
+
+SEİSMİC
+KV ↑ UP
+PASS
+
+COMPUTED
+
+1.18
+
+REQUİRED MİN.
+
+≥ 1.10
+
+UTİLİSATİON
+
+93%
+
+Bishop circle centre (0.84, 13.88), R = 14.79 m
+
+The section shows the result geometry only; the result does not carry the soil layers or the backfill slope used in the calculation.
+
+Shear key results
+
+Under heel · 0.50 × 0.50 m
+
+Case	FS base surface	FS key-tip plane	FS without key	FS with key	Passive used (kN/m)	Key shear demand V (kN/m)	Key moment demand M (kNm/m)
+Static	2.11	2.01	1.99	2.01 
+KEY TİP
+	11.5	22.9	6.3
+Seismic	1.15	1.11	1.10	1.11 
+KEY TİP
+	9.8	22.9	6.3
+
+The with-key factor is the smaller of the two candidate surfaces; the key can reduce sliding safety, in which case a warning is shown.
+
+Factors
+
+Factor	Value	Source status	Source
+Safety factors › Overturning › Static	2	
+UNVERİFİED
+	Eksantrisite kriterinden türetilmiş yaklaşık değer; doğrudan kaynak yok
+Safety factors › Sliding › Static	1.5	
+SECONDARY SOURCE
+	FHWA-NHI-06-089 Vol. II (2026-10-20 karşılaştırma, secondary)
+Eccentricity limit › Soil › Static	0.1667	
+SECONDARY SOURCE
+	FHWA-NHI-06-089 Vol. II, B/6 (secondary)
+Safety factors › Bearing capacity › Static	3	
+SECONDARY SOURCE
+	FHWA-NHI-06-089 Vol. II, önerilen 3.0 (secondary)
+Safety factors › Overturning › Seismic	1.5	
+UNVERİFİED
+	ASD — yaygın uygulama değeri (FHWA-NHI-06-089 ile karşılaştırılmadı)
+Safety factors › Sliding › Seismic	1.1	
+UNVERİFİED
+	ASD — yaygın uygulama değeri (FHWA-NHI-06-089 ile karşılaştırılmadı)
+Eccentricity limit › Soil › Seismic	0.25	
+UNVERİFİED
+	ASD — yaygın uygulama; sismik değerler doğrulanmadı
+Safety factors › Bearing capacity › Seismic	2	
+UNVERİFİED
+	ASD — yaygın uygulama değeri (FHWA-NHI-06-089 ile karşılaştırılmadı)
+Safety factors › Global stability › Static	1.5	
+SECONDARY SOURCE
+	FHWA-NHI-06-089 Vol. II (secondary)
+Safety factors › Global stability › Seismic	1.1	
+UNVERİFİED
+	ASD — yaygın uygulama değeri (FHWA-NHI-06-089 ile karşılaştırılmadı)
+
+Notes
+
+Assumption	Source
+Beton birim hacim ağırlığı 24 kN/m³	WallSettings; mevcut varsayılan 24 kN/m³, proje girdisi
+Statik YASS senaryosu design; arka derinlik 100 m, ön derinlik 100 m	StructureSoilModel; None olduğunda profil YASS'ı
+Taban, tutulan zemin yüzeyinden H derinliktedir; ön zemin H-D kotundadır; ön kazının kaldırdığı örtü gerilmesi hesaba katılmaz	P1 sözleşmesi §1 ve §5
+Katmanlar yataydır; her katmanın Coulomb katsayısı tüm üst katmanların düşey gerilmesine uygulanır; bu yaklaşım katmanlı bir kritik kama çözümü değildir	Das, Principles of Foundation Engineering; P1 §5 yerel katsayı yaklaşımı
+Coulomb drene itkide c' katkısı ihmal edilir; drenajsız yatay zeminde toplam gerilme ve s_u kullanılır, yatay su ikinci kez eklenmez	lateral_pressure sözleşmesi; Rankine toplam gerilme çözümü
+Topuk üzerindeki zemin katman ve su kotlarında poligonlara bölünür; su altında toplam γ_sat ağırlığı ve tabanda ayrıca kaldırma kullanılır	Statik denge; Terzaghi etkin gerilme ilkesi
+Arka/ön su seviyesi yapı YASS değeridir (yoksa profil YASS); hidrostatik yatay basınç ve ön/arka taban basınçları arasında doğrusal kaldırma; sızma hesabı yok	P1 §1.4; USACE EM 1110-2-2502 hidrostatik yük modeli
+Taşıma gücü yalnız taban katmanıyla hesaplanır; B içinde daha zayıf katman uyarılır; iki tabakalı taşıma gücü ve oturma hesabı yapılmaz	P1 §5
+Taban delta_base değeri verilmemişse mevcut FoundationSoil varsayılanıyla delta_base=phi kullanılır; aderans 0 alınır	FoundationSoil sözleşmesi
+Taşıma gücü yöntemi: vesic; eğik yük ve B'=B-2|e| dahil; taban/ön arazi eğimi çarpanları 1	Mevcut bearing_capacity/profil adaptörü; Bowles, 5. baskı, Tablo 4-1/4-5
+Kaldırma momenti devrilme talebine eklenir: FS_ot=M_R/(M_O+M_U)	Mühendis seçimi; varsayılan güvenli taraf
+Drene N_gamma YASS düzeltmesi açık: d_w ön suyun taban altı derinliği; d_w≤0 için γ', 0<d_w<B için γ'+(d_w/B)(γ−γ'), d_w≥B için γ	Das, Principles of Foundation Engineering, taşıma gücüne yeraltı suyu etkisi (Durum III)
+Gömülme D = 0.60 m; boyut araması 0.05 m adımla B ≤ 1.2H	Ön boyutlandırma oranları (Das, Principles of Foundation Engineering; mühendislik yargısı)
+Boyutlandırmada kesit oranları mevcut proportion_for fonksiyonundan alınır	Ön boyutlandırma oranları (Das, Principles of Foundation Engineering; mühendislik yargısı)
+ASD global GS durumunda yük katsayılanmaz; kısmi katsayıda WA ayrı kullanıcı girdisidir ve G/EH katsayısından türetilmez; material.gamma uygulanmaz, DC/EV yük katsayıları kullanılır	P1 §5; mevcut limit_state sözleşmesi
+Topuk ucundan düşey sanal düzlem: H_v=H+topuk·tanβ; ek üst kısım en üst katmandır; δ=β	Klasik konsol duvar yaklaşımı; P1 §5
+Pasif direnç hesaba katılmadı	Kullanıcı/WallSettings; varsayılan 0.5 için doğrulanmış normatif kaynak yok
+Kayma dişi (heel, b=0.5 m, d=0.5 m): pasif direnç ön yüzde Rankine K_p ile, düşey gerilme ön zemin seviyesinden başlar (ön dolgu + temel zemini γ); azaltma katsayısı 0.5 (ODTÜ örneğindeki FS_p = 2 ile aynı); depremde (1−k_v)K_PE/K_P ile azaltılır; diş pasifi 'pasif direnç' ayarından bağımsız sayılır. Ön zemin kazı/oyulma ile kalkabiliyorsa gömülme D = 0 girilmelidir	Das, Principles of Foundation Engineering (taban dişi, D1 = D + diş derinliği); ODTÜ CE366 Recitation 5 P1 (P_p = 65D + 32.5D², FS_p = 2)
+Kayma iki yüzeyde kontrol edilir: taban yüzeyi (V tanδ_b + c_a·B' + diş pasifi) ve diş ucundan geçen yatay düzlem ((ΣV + diş yanı zemin ağırlığı) tanφ + c·B' + diş pasifi). Diş ucu düzleminde itki, topuk hattında diş tabanına kadar uzatılır (temel zemini K_a, δ = β; sürşarj, su ve deprem artışları ile diş yanı zeminin ataleti dahil). Küçük güvenlik oranı yönetir. Drenajsız temel zemininde deprem veya eğimli dolguyla diş bölgesi itkisi hesaplanamaz; analiz açık hata ile durur	Das, Principles of Foundation Engineering (taban dişi, D1 = D + diş derinliği); ODTÜ CE366 Recitation 5 P1 (P_p = 65D + 32.5D², FS_p = 2)
+Taşıma gücünde diş derinliği gömülmeye eklenmez (gömülme ve derinlik katsayıları küçük kalır, her durumda tutucu); diş için yalnız kesme ve moment talebi (V = azaltılmamış statik pasif, M = V·kol) verilir, betonarme tasarımı yapılmaz	Koordinatör kararı; tutucu
+Genel (global) stabilite diş olmadan hesaplanır: Bishop dairesi taban altından geçer, diş hacmi zemin olarak sayılır. Dayanım tarafı tutucudur (beton zeminden dayanıklı); ihmal edilen beton-zemin ağırlık farkının etkisi küçüktür	Koordinatör kararı; tutucu
+Ön ayak üzerindeki doğal zemin ağırlığı ihmal edildi	WallSettings
+Sürşarjın topuk üzerindeki düşey yükü dengeleyici sayılmadı	WallDesignInputs
+Deprem YASS senaryosu seismic; arka derinlik 100 m, ön derinlik 100 m	StructureSoilModel; depth_seismic, yoksa depth_insitu
+k_h=0.4·S_DS/r, |k_v|=0.5·k_h, r=1.5; dinamik itki artımı H_v/2'de	TBDY 2018 Denk. 16.22, Tablo 16.7, 16.12.2.8
+M-O katman bazında; statik su hidrostatiktir; sıvılaşma ve fazla boşluk suyu basıncı hesaplanmaz; drenajsız deprem itkisi durdurulur; β > φ' − ψ için TBDY Denk. 16.24b kullanılır	Mononobe & Matsuo (1929), Okabe (1926); TBDY Denk. 16.24b; E4 kapsam sınırı
+Bishop daireleri taban altından geçer; taşınan ağırlık taban izine eşdeğer yük olarak yayılır; kayma modelinde tek yatay su kotu için ön/arka YASS'ın yükseği alınır; bantlar yatay ve en alt bant sonsuzdur; ön taraftaki taban üstü ince şerit de tutulan taraf bantlarıyla temsil edilir; global dilimlerde k_v uygulanmaz	Bishop (1955); mevcut wall_global_stability yaklaşımı; E4 model varsayımı
+Previous step
+Next step

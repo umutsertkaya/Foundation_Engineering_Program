@@ -1,0 +1,22 @@
+Zemin etüdü ve parametreler
+
+Proje: UX Araştırma 2026
+
+Kaydet
+TR
+EN
+Ana menüye dön
+Arazi verileri
+Zemin profilleri
+Mühendislik parametreleri
+Sınıflandırma
+Zemin Modelleri
+
+Katmanlı tasarım profilleri, köken bilgileri ve yeraltı su seviyeleri.
+
+Yeni profil
+Zemin profili bulunmuyor
+
+Projede henüz tanımlanmış bir zemin profili yok.
+
+Elle (boş profil)

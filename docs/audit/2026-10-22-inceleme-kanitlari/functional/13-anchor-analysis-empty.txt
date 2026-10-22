@@ -1,0 +1,63 @@
+Ankrajlı iksa
+
+Proje: QA İŞLEV GeoTek
+
+Kaydet
+TR
+EN
+Ana menüye dön
+Ankrajlı duvar
+Tek ankraj
+Ankrajlı iksa analizi
+SONUÇ YOK
+
+Ankraj yükleri FHWA GEC-4 görünür basınç zarflarıyla (tek seviyede ayrıca serbest zemin desteği, büyüğü alınır); gömülme, kesit tesirleri, kilde taban kabarması ve istenirse her seviyenin ankraj tasarımı hesaplanır. Dış stabilite ayrıca kontrol edilmelidir.
+
+Duvar ve yükler
+Duvar türü
+Kazı yüksekliği H (m)
+Zemin davranışı
+Tutulan zemin eğimi β (°)
+
+Eğimli zemin yalnız tek ankraj seviyesinde desteklenir; çok seviyede 0 girin.
+
+Sürşarj q (kPa)
+Sürşarj tabanı
+Pasif direnç emniyet katsayısı
+
+Pasif direncin bölüneceği sayı, ≥ 1. GEC-4 5.5.3 önerisi 1,5; varsayılan yok.
+
+Gömülme artışı
+
+Boşsa: tek seviyede 0, çok seviyede 0,2
+
+Mukavemet momenti W (cm³/m)
+İzin verilen gerilme (MPa)
+Eğilme rijitliği EI (kNm²)
+
+Yalnız saklanır; yer değiştirme hesaplanmaz
+
+Ankraj seviyeleri
+#	Derinlik (m)	Aralık (m)	Eğim (°)	
+1	
+	
+	
+	
+Ankraj seviyesi ekle
+Zemin
+Zemin profili
+Zemini yükle
+
+Analiz profilin kendi kopyasını kullanır; proje profili değiştirilmez.
+
+Her seviyenin ankrajını tasarla
+
+Aşağıdaki mühendislik girdilerini ister; hiçbir şey varsayılmaz.
+
+Eksik girdiler var
+Bir zemin profili yükleyin
+Kazı yüksekliği (0,5 m'den büyük)
+Seviye 1: ankraj derinliği
+Seviye 1: ankraj aralığı
+Pasif direnç güvenlik sayısı (≥ 1; GEC-4 önerisi 1,5)
+Analizi çalıştır

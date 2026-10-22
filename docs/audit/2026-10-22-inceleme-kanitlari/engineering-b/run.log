@@ -1,0 +1,196 @@
+{
+  "rows": 274,
+  "failed_comparisons": [
+    {
+      "name": "distribution_battered_surcharge_10",
+      "actual": 165.29789679574185,
+      "expected": 163.28237342529079,
+      "unit": "kN/m",
+      "rho": 60.46534194747315,
+      "error": 2.0155233704510636,
+      "normalized_error": 0.012343790258372612,
+      "pass_tolerance": false
+    },
+    {
+      "name": "distribution_battered_surcharge_-10",
+      "actual": 99.5231800918962,
+      "expected": 100.85704936939551,
+      "unit": "kN/m",
+      "rho": 53.809766568321756,
+      "error": -1.3338692774993177,
+      "normalized_error": 0.01322534503873829,
+      "pass_tolerance": false
+    },
+    {
+      "name": "distribution_passive_projection_-10",
+      "actual": 2556.3448745084993,
+      "expected": 2402.1784147595167,
+      "unit": "kN/m",
+      "rho": 16.767006115203767,
+      "error": 154.16645974898256,
+      "normalized_error": 0.06417777247591172,
+      "pass_tolerance": false
+    },
+    {
+      "name": "distribution_passive_projection_10",
+      "actual": 1222.9624893962932,
+      "expected": 1301.4494977873437,
+      "unit": "kN/m",
+      "rho": 25.82749191932184,
+      "error": -78.4870083910505,
+      "normalized_error": 0.06030737921409167,
+      "pass_tolerance": false
+    },
+    {
+      "name": "bearing_factor_meyerhof_1e-08_Nc",
+      "actual": 5.141591825857223,
+      "expected": 5.141592655896766,
+      "unit": "",
+      "error": -8.300395437643715e-07,
+      "normalized_error": 1.6143627068791992e-07,
+      "pass_tolerance": false
+    },
+    {
+      "name": "bearing_factor_meyerhof_1e-12_Nc",
+      "actual": 5.152498583970897,
+      "expected": 5.141592653590024,
+      "unit": "",
+      "error": 0.010905930380872952,
+      "normalized_error": 0.002121119099790623,
+      "pass_tolerance": false
+    },
+    {
+      "name": "bearing_factor_meyerhof_1e-16_Nc",
+      "actual": -127.22218725854067,
+      "expected": 5.141592653589793,
+      "unit": "",
+      "error": -132.36377991213047,
+      "normalized_error": 25.74373133579841,
+      "pass_tolerance": false
+    },
+    {
+      "name": "bearing_factor_hansen_1e-08_Nc",
+      "actual": 5.141591825857223,
+      "expected": 5.141592655896766,
+      "unit": "",
+      "error": -8.300395437643715e-07,
+      "normalized_error": 1.6143627068791992e-07,
+      "pass_tolerance": false
+    },
+    {
+      "name": "bearing_factor_hansen_1e-12_Nc",
+      "actual": 5.152498583970897,
+      "expected": 5.141592653590024,
+      "unit": "",
+      "error": 0.010905930380872952,
+      "normalized_error": 0.002121119099790623,
+      "pass_tolerance": false
+    },
+    {
+      "name": "bearing_factor_hansen_1e-16_Nc",
+      "actual": -127.22218725854067,
+      "expected": 5.141592653589793,
+      "unit": "",
+      "error": -132.36377991213047,
+      "normalized_error": 25.74373133579841,
+      "pass_tolerance": false
+    },
+    {
+      "name": "bearing_factor_vesic_1e-08_Nc",
+      "actual": 5.141591825857223,
+      "expected": 5.141592655896766,
+      "unit": "",
+      "error": -8.300395437643715e-07,
+      "normalized_error": 1.6143627068791992e-07,
+      "pass_tolerance": false
+    },
+    {
+      "name": "bearing_factor_vesic_1e-12_Nc",
+      "actual": 5.152498583970897,
+      "expected": 5.141592653590024,
+      "unit": "",
+      "error": 0.010905930380872952,
+      "normalized_error": 0.002121119099790623,
+      "pass_tolerance": false
+    },
+    {
+      "name": "bearing_factor_vesic_1e-16_Nc",
+      "actual": -127.22218725854067,
+      "expected": 5.141592653589793,
+      "unit": "",
+      "error": -132.36377991213047,
+      "normalized_error": 25.74373133579841,
+      "pass_tolerance": false
+    },
+    {
+      "name": "bishop_seismic_centroid_layered_40",
+      "actual": 1.222806014680568,
+      "expected": 1.2113581485524307,
+      "unit": "",
+      "uniform_midheight_reference": 1.222686082228042,
+      "error": 0.011447866128137196,
+      "normalized_error": 0.009450438866339703,
+      "pass_tolerance": false
+    },
+    {
+      "name": "bishop_seismic_centroid_layered_80",
+      "actual": 1.2227175429615094,
+      "expected": 1.2112434998096446,
+      "unit": "",
+      "uniform_midheight_reference": 1.222579523403104,
+      "error": 0.011474043151864732,
+      "normalized_error": 0.009472945079720104,
+      "pass_tolerance": false
+    },
+    {
+      "name": "bishop_seismic_centroid_layered_160",
+      "actual": 1.2227769796256274,
+      "expected": 1.2113046783591401,
+      "unit": "",
+      "uniform_midheight_reference": 1.222639241474796,
+      "error": 0.01147230126648724,
+      "normalized_error": 0.009471028611916095,
+      "pass_tolerance": false
+    },
+    {
+      "name": "bishop_seismic_centroid_surface_load_40",
+      "actual": 0.9156006219162016,
+      "expected": 0.932865777621773,
+      "unit": "",
+      "uniform_midheight_reference": 0.9152366563965537,
+      "error": -0.01726515570557141,
+      "normalized_error": 0.01726515570557141,
+      "pass_tolerance": false
+    },
+    {
+      "name": "bishop_seismic_centroid_surface_load_80",
+      "actual": 0.9157761634319398,
+      "expected": 0.9330443651155376,
+      "unit": "",
+      "uniform_midheight_reference": 0.915412576813146,
+      "error": -0.017268201683597773,
+      "normalized_error": 0.017268201683597773,
+      "pass_tolerance": false
+    },
+    {
+      "name": "bishop_seismic_centroid_surface_load_160",
+      "actual": 0.9158203013743711,
+      "expected": 0.9330892671907395,
+      "unit": "",
+      "uniform_midheight_reference": 0.9154568101360308,
+      "error": -0.017268965816368387,
+      "normalized_error": 0.017268965816368387,
+      "pass_tolerance": false
+    },
+    {
+      "name": "bishop_layered_FS_threshold",
+      "actual": 1.0044526835763328,
+      "expected": 0.995,
+      "unit": "",
+      "cohesion_kPa": 4.361017763120606,
+      "error": 0.009452683576332777,
+      "normalized_error": 0.009452683576332777,
+      "pass_tolerance": false
+    }
+  ]
+}

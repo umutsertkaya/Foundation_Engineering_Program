@@ -1,0 +1,109 @@
+{
+  "url": "http://127.0.0.1:8771/m/education",
+  "viewport": {
+    "w": 1440,
+    "h": 900
+  },
+  "scroll": {
+    "w": 1440,
+    "h": 942
+  },
+  "inputs": [
+    {
+      "tag": "INPUT",
+      "type": "radio",
+      "id": "mantine-9uhqiutwu-tr",
+      "aria": null,
+      "ph": "",
+      "value": "tr",
+      "labels": [
+        "TR"
+      ],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "radio",
+      "id": "mantine-9uhqiutwu-en",
+      "aria": null,
+      "ph": "",
+      "value": "en",
+      "labels": [
+        "EN"
+      ],
+      "testid": null
+    }
+  ],
+  "buttons": [
+    {
+      "text": "",
+      "aria": "Gezinme menüsünü aç veya kapat",
+      "disabled": false
+    },
+    {
+      "text": "Kaydet",
+      "aria": null,
+      "disabled": false
+    },
+    {
+      "text": "",
+      "aria": "Tema değiştir",
+      "disabled": false
+    },
+    {
+      "text": "Ana menüye dön",
+      "aria": null,
+      "disabled": false
+    }
+  ],
+  "links": [
+    {
+      "text": "Konular",
+      "href": "/m/education"
+    },
+    {
+      "text": "Zemin sınıflandırması: USCS ve CPT (SBTn, I_c)OrtaProgramın USCS grup sembolünü laboratuvar verisinden, CPT tabanlı SBTn bölgesini ve I_c davranış indeksini nasıl hesapladığını ve ince dane yüzdesini I_c'den nasıl tahmin ettiğini anlatır.",
+      "href": "/m/education/topic/classification"
+    },
+    {
+      "text": "Yanal toprak basıncı ve istinat duvarı kontrolleriİleriRankine, Coulomb, Mononobe-Okabe ve sayısal kama yöntemleri; sürşarj, eğimli zemin, kayma dişi ve duvar devrilme, kayma, taşıma ve global stabilite kontrolleri.",
+      "href": "/m/education/topic/earth_pressure"
+    },
+    {
+      "text": "Sığ temel taşıma gücüOrtaGeoTek'in q_ult hesabının Meyerhof, Hansen ve Vesic yöntemleriyle nasıl yapıldığı, faktörler, eksantrisite ve sınırlar.",
+      "href": "/m/education/topic/bearing"
+    },
+    {
+      "text": "Sıvılaşma tetiklenmesi (SPT ve CPT)İleriProgramın Youd 2001 ve Boulanger-Idriss 2014 yöntemlerinde talep (CSR), direnç (CRR), güvenlik katsayısı ve LPI nasıl hesapladığını adım adım anlatır.",
+      "href": "/m/education/topic/liquefaction"
+    },
+    {
+      "text": "Palplanş: konsol gömülme ve moment hesabıOrtaProgramın tek sıra konsol palplanşta net basınç, Blum tipi denge, gömülme artışı ve maksimum momenti nasıl hesapladığı.",
+      "href": "/m/education/topic/sheet-pile"
+    },
+    {
+      "text": "Ankrajlı palplanş: serbest zemin desteği ve ankraj kuvvetiOrtaProgramın tek seviyeli ankrajlı palplanş modeli: ankraj derinliği, moment dengesi, ankraj kuvveti ve birim ankraj yükü. Ankraj kapasitesi kontrolü bu modelde yoktur.",
+      "href": "/m/education/topic/anchors"
+    },
+    {
+      "text": "Zemin ankrajı tasarımı: serbest boy, kök boyu ve tendonİleriProgramın FHWA GEC-4 ile ankraj yükünü, kama geometrisine göre serbest boyu, kök boyunu, tendon sınırlarını ve deneme yükünü nasıl hesapladığını anlatır.",
+      "href": "/m/education/topic/ground-anchors"
+    },
+    {
+      "text": "Ankrajlı iksa: görünür basınç zarfı, ankraj yükleri ve taban kabarmasıİleriProgramın FHWA GEC-4 bölüm 5 ile ankrajlı iksa iç kuvvetlerini nasıl bulduğunu anlatır: kum, sert kil ve yumuşak kil zarfları, menteşe ve katkı alanı yöntemleri, tek seviyede serbest zemin desteği ve kil kazıda taban kabarması.",
+      "href": "/m/education/topic/anchored-wall"
+    },
+    {
+      "text": "İstinat duvarında kayma dişiİleriKayma dişinin pasif direncini, diş ucu düzleminden kayma kontrolünü, diş bölgesindeki arka itkiyi ve deprem, su ile sürşarj etkilerini programın gerçekte uyguladığı biçimde anlatır.",
+      "href": "/m/education/topic/shear-key"
+    },
+    {
+      "text": "Eğimli zemin (β) ve sürşarjİleriProgramın eğimli dolgu (β) için Rankine ve Coulomb katsayılarını, Mononobe-Okabe deprem artışını, β > φ′ − ψ durumunda TBDY 16.24b'yi, sürşarj yayılışını ve palplanşta bu etkilerin uygulanışını anlatır.",
+      "href": "/m/education/topic/sloping-surcharge"
+    },
+    {
+      "text": "Şev stabilitesi: Bishop yöntemiİleriProgramın dairesel kayma yüzeyleri için Bishop basitleştirilmiş yöntemini, tabakalı zemini, su ve yük etkisini ve kritik daireyi arama yöntemini anlatır.",
+      "href": "/m/education/topic/slope-stability"
+    }
+  ]
+}

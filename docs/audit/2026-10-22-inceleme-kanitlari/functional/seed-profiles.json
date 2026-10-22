@@ -1,0 +1,102 @@
+[
+  {
+    "id": "8220b30866104787a896545848c399f1",
+    "name": "QA Kum 0-40m (kaynak test)",
+    "source_ids": [],
+    "origin": "manual",
+    "layering": null,
+    "gwt": {
+      "depth_insitu": 100.0,
+      "depth_design": 100.0,
+      "depth_seismic": 100.0
+    },
+    "layers": [
+      {
+        "id": "bec4ae2b3c0d490e9c8b20d2e5350403",
+        "top": 0.0,
+        "bottom": 40.0,
+        "description": "",
+        "uscs": null,
+        "sbtn_zone": null,
+        "behaviour": "drained",
+        "gamma": 18.0,
+        "gamma_sat": 20.0,
+        "permeability": null,
+        "params": {},
+        "design": {
+          "phi_eff": 30.0,
+          "c_eff": 0.0,
+          "su": null,
+          "E": null,
+          "delta_base": null
+        },
+        "selections": {},
+        "source_ids": [],
+        "liquefiable": null,
+        "residual_su": null
+      }
+    ]
+  },
+  {
+    "id": "1cc6f2953c454494b19d789af46a377f",
+    "name": "QA Sulu iki tabaka",
+    "source_ids": [],
+    "origin": "manual",
+    "layering": null,
+    "gwt": {
+      "depth_insitu": 2.0,
+      "depth_design": 2.0,
+      "depth_seismic": 2.0
+    },
+    "layers": [
+      {
+        "id": "44df0dc3320b473ba2d0b22fe937d43c",
+        "top": 0.0,
+        "bottom": 6.0,
+        "description": "",
+        "uscs": null,
+        "sbtn_zone": null,
+        "behaviour": "drained",
+        "gamma": 18.0,
+        "gamma_sat": 20.0,
+        "permeability": null,
+        "params": {},
+        "design": {
+          "phi_eff": 30.0,
+          "c_eff": 0.0,
+          "su": null,
+          "E": null,
+          "delta_base": null
+        },
+        "selections": {},
+        "source_ids": [],
+        "liquefiable": null,
+        "residual_su": null
+      },
+      {
+        "id": "f9c08c5ac3f54f92af1b199c81f71324",
+        "top": 6.0,
+        "bottom": 40.0,
+        "description": "",
+        "uscs": null,
+        "sbtn_zone": null,
+        "behaviour": "drained",
+        "gamma": 19.0,
+        "gamma_sat": 21.0,
+        "permeability": null,
+        "params": {},
+        "design": {
+          "phi_eff": 32.0,
+          "c_eff": 0.0,
+          "su": null,
+          "E": null,
+          "delta_base": null
+        },
+        "selections": {},
+        "source_ids": [],
+        "liquefiable": null,
+        "residual_su": null
+      }
+    ]
+  }
+]

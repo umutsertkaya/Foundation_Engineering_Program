@@ -1,0 +1,2708 @@
+[
+  {
+    "name": "rankine_0_0_True",
+    "actual": 0.9999999999999998,
+    "expected": 1.0,
+    "unit": "",
+    "error": -2.220446049250313e-16,
+    "normalized_error": 2.220446049250313e-16,
+    "pass_tolerance": true
+  },
+  {
+    "name": "rankine_0_0_False",
+    "actual": 0.9999999999999998,
+    "expected": 1.0,
+    "unit": "",
+    "error": -2.220446049250313e-16,
+    "normalized_error": 2.220446049250313e-16,
+    "pass_tolerance": true
+  },
+  {
+    "name": "rankine_0_0_True",
+    "actual": 0.9999999999999998,
+    "expected": 1.0,
+    "unit": "",
+    "error": -2.220446049250313e-16,
+    "normalized_error": 2.220446049250313e-16,
+    "pass_tolerance": true
+  },
+  {
+    "name": "rankine_0_0_False",
+    "actual": 0.9999999999999998,
+    "expected": 1.0,
+    "unit": "",
+    "error": -2.220446049250313e-16,
+    "normalized_error": 2.220446049250313e-16,
+    "pass_tolerance": true
+  },
+  {
+    "name": "rankine_0_0_True",
+    "actual": 0.9999999999999998,
+    "expected": 1.0,
+    "unit": "",
+    "error": -2.220446049250313e-16,
+    "normalized_error": 2.220446049250313e-16,
+    "pass_tolerance": true
+  },
+  {
+    "name": "rankine_0_0_False",
+    "actual": 0.9999999999999998,
+    "expected": 1.0,
+    "unit": "",
+    "error": -2.220446049250313e-16,
+    "normalized_error": 2.220446049250313e-16,
+    "pass_tolerance": true
+  },
+  {
+    "name": "rankine_20_0_True",
+    "actual": 0.49029059656570206,
+    "expected": 0.4902905965657023,
+    "unit": "",
+    "error": -2.220446049250313e-16,
+    "normalized_error": 2.220446049250313e-16,
+    "pass_tolerance": true
+  },
+  {
+    "name": "rankine_20_0_False",
+    "actual": 2.0396067291614743,
+    "expected": 2.0396067291614743,
+    "unit": "",
+    "error": 0.0,
+    "normalized_error": 0.0,
+    "pass_tolerance": true
+  },
+  {
+    "name": "rankine_20_10_True",
+    "actual": 0.5312083513957879,
+    "expected": 0.5312083513957879,
+    "unit": "",
+    "error": 0.0,
+    "normalized_error": 0.0,
+    "pass_tolerance": true
+  },
+  {
+    "name": "rankine_20_10_False",
+    "actual": 1.8257361877775709,
+    "expected": 1.8257361877775709,
+    "unit": "",
+    "error": 0.0,
+    "normalized_error": 0.0,
+    "pass_tolerance": true
+  },
+  {
+    "name": "rankine_20_20_True",
+    "actual": 0.9396926207859084,
+    "expected": 0.9396926207859084,
+    "unit": "",
+    "error": 0.0,
+    "normalized_error": 0.0,
+    "pass_tolerance": true
+  },
+  {
+    "name": "rankine_20_20_False",
+    "actual": 0.9396926207859084,
+    "expected": 0.9396926207859084,
+    "unit": "",
+    "error": 0.0,
+    "normalized_error": 0.0,
+    "pass_tolerance": true
+  },
+  {
+    "name": "rankine_30_0_True",
+    "actual": 0.3333333333333334,
+    "expected": 0.3333333333333333,
+    "unit": "",
+    "error": 1.1102230246251565e-16,
+    "normalized_error": 1.1102230246251565e-16,
+    "pass_tolerance": true
+  },
+  {
+    "name": "rankine_30_0_False",
+    "actual": 2.9999999999999982,
+    "expected": 3.0,
+    "unit": "",
+    "error": -1.7763568394002505e-15,
+    "normalized_error": 5.921189464667501e-16,
+    "pass_tolerance": true
+  },
+  {
+    "name": "rankine_30_10_True",
+    "actual": 0.349519833813974,
+    "expected": 0.349519833813974,
+    "unit": "",
+    "error": 0.0,
+    "normalized_error": 0.0,
+    "pass_tolerance": true
+  },
+  {
+    "name": "rankine_30_10_False",
+    "actual": 2.7747962105896926,
+    "expected": 2.7747962105896926,
+    "unit": "",
+    "error": 0.0,
+    "normalized_error": 0.0,
+    "pass_tolerance": true
+  },
+  {
+    "name": "rankine_30_30_True",
+    "actual": 0.8660254037844387,
+    "expected": 0.8660254037844387,
+    "unit": "",
+    "error": 0.0,
+    "normalized_error": 0.0,
+    "pass_tolerance": true
+  },
+  {
+    "name": "rankine_30_30_False",
+    "actual": 0.8660254037844387,
+    "expected": 0.8660254037844387,
+    "unit": "",
+    "error": 0.0,
+    "normalized_error": 0.0,
+    "pass_tolerance": true
+  },
+  {
+    "name": "rankine_40_0_True",
+    "actual": 0.21744283205399903,
+    "expected": 0.21744283205399909,
+    "unit": "",
+    "error": -5.551115123125783e-17,
+    "normalized_error": 5.551115123125783e-17,
+    "pass_tolerance": true
+  },
+  {
+    "name": "rankine_40_0_False",
+    "actual": 4.59890993211339,
+    "expected": 4.598909932113389,
+    "unit": "",
+    "error": 8.881784197001252e-16,
+    "normalized_error": 1.9312803094884064e-16,
+    "pass_tolerance": true
+  },
+  {
+    "name": "rankine_40_10_True",
+    "actual": 0.2247064263731623,
+    "expected": 0.2247064263731623,
+    "unit": "",
+    "error": 0.0,
+    "normalized_error": 0.0,
+    "pass_tolerance": true
+  },
+  {
+    "name": "rankine_40_10_False",
+    "actual": 4.31605951839741,
+    "expected": 4.31605951839741,
+    "unit": "",
+    "error": 0.0,
+    "normalized_error": 0.0,
+    "pass_tolerance": true
+  },
+  {
+    "name": "rankine_40_40_True",
+    "actual": 0.766044443118978,
+    "expected": 0.766044443118978,
+    "unit": "",
+    "error": 0.0,
+    "normalized_error": 0.0,
+    "pass_tolerance": true
+  },
+  {
+    "name": "rankine_40_40_False",
+    "actual": 0.766044443118978,
+    "expected": 0.766044443118978,
+    "unit": "",
+    "error": 0.0,
+    "normalized_error": 0.0,
+    "pass_tolerance": true
+  },
+  {
+    "name": "closed_vs_equilibrium_True_0_0",
+    "actual": 0.33333333333333337,
+    "expected": 0.3333333333333336,
+    "unit": "",
+    "rho": 60.00000048130578,
+    "error": -2.220446049250313e-16,
+    "normalized_error": 2.220446049250313e-16,
+    "pass_tolerance": true
+  },
+  {
+    "name": "wedge_vs_independent_True_0_0",
+    "actual": 75.0,
+    "expected": 75.00000000000006,
+    "unit": "kN/m",
+    "residual": 0.0,
+    "error": -5.684341886080802e-14,
+    "normalized_error": 7.579122514774397e-16,
+    "pass_tolerance": true
+  },
+  {
+    "name": "closed_vs_equilibrium_True_0_5",
+    "actual": 0.31464955901853153,
+    "expected": 0.3146495590185316,
+    "unit": "",
+    "rho": 61.084813992863545,
+    "error": -5.551115123125783e-17,
+    "normalized_error": 5.551115123125783e-17,
+    "pass_tolerance": true
+  },
+  {
+    "name": "wedge_vs_independent_True_0_5",
+    "actual": 70.79615077916958,
+    "expected": 70.79615077916961,
+    "unit": "kN/m",
+    "residual": 0.0,
+    "error": -2.842170943040401e-14,
+    "normalized_error": 4.0145840017571326e-16,
+    "pass_tolerance": true
+  },
+  {
+    "name": "closed_vs_equilibrium_True_0.12_5",
+    "actual": 0.410586468998073,
+    "expected": 0.410586468998073,
+    "unit": "",
+    "rho": 53.739152773462635,
+    "error": 0.0,
+    "normalized_error": 0.0,
+    "pass_tolerance": true
+  },
+  {
+    "name": "wedge_vs_independent_True_0.12_5",
+    "actual": 86.83903819309245,
+    "expected": 86.83903819309243,
+    "unit": "kN/m",
+    "residual": 1.0224027525680295e-16,
+    "error": 1.4210854715202004e-14,
+    "normalized_error": 1.6364592481555604e-16,
+    "pass_tolerance": true
+  },
+  {
+    "name": "closed_vs_equilibrium_False_0_0",
+    "actual": 3.0000000000000004,
+    "expected": 2.9999999999999973,
+    "unit": "",
+    "rho": 30.00000044497527,
+    "error": 3.1086244689504383e-15,
+    "normalized_error": 1.0362081563168136e-15,
+    "pass_tolerance": true
+  },
+  {
+    "name": "wedge_vs_independent_False_0_0",
+    "actual": 674.9999999999999,
+    "expected": 674.9999999999994,
+    "unit": "kN/m",
+    "residual": 2.917205613655607e-16,
+    "error": 4.547473508864641e-13,
+    "normalized_error": 6.736997790910585e-16,
+    "pass_tolerance": true
+  },
+  {
+    "name": "closed_vs_equilibrium_False_0_5",
+    "actual": 6.4330676576522015,
+    "expected": 6.433067657652195,
+    "unit": "",
+    "rho": 28.814634733064185,
+    "error": 6.217248937900877e-15,
+    "normalized_error": 9.664516633064476e-16,
+    "pass_tolerance": true
+  },
+  {
+    "name": "wedge_vs_independent_False_0_5",
+    "actual": 1447.4402229717452,
+    "expected": 1447.4402229717439,
+    "unit": "kN/m",
+    "residual": 4.3610874240536763e-16,
+    "error": 1.3642420526593924e-12,
+    "normalized_error": 9.42520479262669e-16,
+    "pass_tolerance": true
+  },
+  {
+    "name": "closed_vs_equilibrium_False_0.12_5",
+    "actual": 6.022575137643917,
+    "expected": 6.022575137643921,
+    "unit": "",
+    "rho": 28.06753156575408,
+    "error": -3.552713678800501e-15,
+    "normalized_error": 5.898994363049741e-16,
+    "pass_tolerance": true
+  },
+  {
+    "name": "wedge_vs_independent_False_0.12_5",
+    "actual": 1273.7746416116881,
+    "expected": 1273.7746416116893,
+    "unit": "kN/m",
+    "residual": 2.4883301661324825e-16,
+    "error": -1.1368683772161603e-12,
+    "normalized_error": 8.92519241690741e-16,
+    "pass_tolerance": true
+  },
+  {
+    "name": "unbounded_wedge_rho_minus_beta_1",
+    "actual": 1967.0408315041739,
+    "expected": null,
+    "unit": "kN/m",
+    "equilibrium_residual": 0.0
+  },
+  {
+    "name": "unbounded_wedge_rho_minus_beta_0.1",
+    "actual": 17409.90229058402,
+    "expected": null,
+    "unit": "kN/m",
+    "equilibrium_residual": 0.0
+  },
+  {
+    "name": "unbounded_wedge_rho_minus_beta_0.01",
+    "actual": 171813.9064417673,
+    "expected": null,
+    "unit": "kN/m",
+    "equilibrium_residual": 0.0
+  },
+  {
+    "name": "unbounded_wedge_rho_minus_beta_0.001",
+    "actual": 1715851.48365533,
+    "expected": null,
+    "unit": "kN/m",
+    "equilibrium_residual": 3.0538985335987406e-17
+  },
+  {
+    "name": "unbounded_wedge_rho_minus_beta_0.0001",
+    "actual": 17156227.009230305,
+    "expected": null,
+    "unit": "kN/m",
+    "equilibrium_residual": 0.0
+  },
+  {
+    "name": "unbounded_wedge_rho_minus_beta_1e-05",
+    "actual": 171559982.2292727,
+    "expected": null,
+    "unit": "kN/m",
+    "equilibrium_residual": 0.0
+  },
+  {
+    "name": "unbounded_wedge_production",
+    "actual": 299682.402023445,
+    "expected": null,
+    "unit": "kN/m",
+    "rho": 25.005729577951307,
+    "K": 924.9456852575463
+  },
+  {
+    "name": "MO_steep_boundary_-1e-06",
+    "actual": 0.9330242009725559,
+    "expected": null,
+    "unit": "",
+    "expectation": "finite up to limit, reject above",
+    "warnings": []
+  },
+  {
+    "name": "MO_steep_boundary_0",
+    "actual": 0.9332050807568878,
+    "expected": null,
+    "unit": "",
+    "expectation": "finite up to limit, reject above",
+    "warnings": []
+  },
+  {
+    "name": "MO_steep_boundary_1e-06",
+    "actual": {
+      "error_type": "SlopeError",
+      "message": "M-O has no solution: phi - beta - psi = -0.00 deg < 0; use the trial wedge (generalised limit equilibrium)"
+    },
+    "expected": null,
+    "unit": "",
+    "expectation": "finite up to limit, reject above"
+  },
+  {
+    "name": "tbdy_boundary_formula",
+    "actual": 1.0821511669270878,
+    "expected": 1.0821511669270878,
+    "unit": "",
+    "error": 0.0,
+    "normalized_error": 0.0,
+    "pass_tolerance": true
+  },
+  {
+    "name": "seed_whitman",
+    "actual": 0.15000000000000002,
+    "expected": 0.15,
+    "unit": "",
+    "error": 2.7755575615628914e-17,
+    "normalized_error": 2.7755575615628914e-17,
+    "pass_tolerance": true
+  },
+  {
+    "name": "tbdy_seismic",
+    "actual": [
+      0.2,
+      0.1
+    ],
+    "expected": [
+      0.2,
+      0.1
+    ],
+    "unit": ""
+  },
+  {
+    "name": "seismic_coefficient",
+    "actual": 0.24,
+    "expected": 0.24,
+    "unit": "",
+    "error": 0.0,
+    "normalized_error": 0.0,
+    "pass_tolerance": true
+  },
+  {
+    "name": "surcharge_conversion",
+    "actual": 10.15426611885745,
+    "expected": 10.15426611885745,
+    "unit": "",
+    "error": 0.0,
+    "normalized_error": 0.0,
+    "pass_tolerance": true
+  },
+  {
+    "name": "distribution_dry",
+    "actual": 128.00000000000003,
+    "expected": 127.99999999999997,
+    "unit": "kN/m",
+    "error": 5.684341886080802e-14,
+    "normalized_error": 4.440892098500627e-16,
+    "pass_tolerance": true
+  },
+  {
+    "name": "centroid_dry",
+    "actual": 3.84375,
+    "expected": 3.84375,
+    "unit": "m",
+    "error": 0.0,
+    "normalized_error": 0.0,
+    "pass_tolerance": true
+  },
+  {
+    "name": "component_sum_dry",
+    "actual": 128.00000000000003,
+    "expected": 128.00000000000003,
+    "unit": "kN/m",
+    "error": 0.0,
+    "normalized_error": 0.0,
+    "pass_tolerance": true
+  },
+  {
+    "name": "distribution_water_layer_interface",
+    "actual": 160.70152131459406,
+    "expected": 160.70152131459412,
+    "unit": "kN/m",
+    "error": -5.684341886080802e-14,
+    "normalized_error": 3.5372047754003294e-16,
+    "pass_tolerance": true
+  },
+  {
+    "name": "centroid_water_layer_interface",
+    "actual": 4.28339105287704,
+    "expected": 4.28339105287704,
+    "unit": "m",
+    "error": 0.0,
+    "normalized_error": 0.0,
+    "pass_tolerance": true
+  },
+  {
+    "name": "component_sum_water_layer_interface",
+    "actual": 160.70152131459406,
+    "expected": 160.70152131459406,
+    "unit": "kN/m",
+    "error": 0.0,
+    "normalized_error": 0.0,
+    "pass_tolerance": true
+  },
+  {
+    "name": "distribution_water_inside_layer",
+    "actual": 327.84905515684306,
+    "expected": 327.8490551568432,
+    "unit": "kN/m",
+    "error": -1.1368683772161603e-13,
+    "normalized_error": 3.467657933838735e-16,
+    "pass_tolerance": true
+  },
+  {
+    "name": "centroid_water_inside_layer",
+    "actual": 4.757920240743262,
+    "expected": 4.757920240743261,
+    "unit": "m",
+    "error": 8.881784197001252e-16,
+    "normalized_error": 1.866736672242698e-16,
+    "pass_tolerance": true
+  },
+  {
+    "name": "component_sum_water_inside_layer",
+    "actual": 327.84905515684306,
+    "expected": 327.84905515684306,
+    "unit": "kN/m",
+    "error": 0.0,
+    "normalized_error": 0.0,
+    "pass_tolerance": true
+  },
+  {
+    "name": "distribution_cohesion",
+    "actual": 85.94035981323341,
+    "expected": 85.94035981323343,
+    "unit": "kN/m",
+    "error": -1.4210854715202004e-14,
+    "normalized_error": 1.6535717032236303e-16,
+    "pass_tolerance": true
+  },
+  {
+    "name": "centroid_cohesion",
+    "actual": 4.528943706200783,
+    "expected": 4.528943706200784,
+    "unit": "m",
+    "error": -8.881784197001252e-16,
+    "normalized_error": 1.9611160511535604e-16,
+    "pass_tolerance": true
+  },
+  {
+    "name": "component_sum_cohesion",
+    "actual": 85.94035981323341,
+    "expected": 85.94035981323341,
+    "unit": "kN/m",
+    "error": 0.0,
+    "normalized_error": 0.0,
+    "pass_tolerance": true
+  },
+  {
+    "name": "distribution_min_efp",
+    "actual": 100.4638119545675,
+    "expected": 100.46381195456793,
+    "unit": "kN/m",
+    "error": -4.263256414560601e-13,
+    "normalized_error": 4.2435742100733196e-15,
+    "pass_tolerance": true
+  },
+  {
+    "name": "centroid_min_efp",
+    "actual": 4.127103690151835,
+    "expected": 4.127103690151834,
+    "unit": "m",
+    "error": 8.881784197001252e-16,
+    "normalized_error": 2.1520622847919035e-16,
+    "pass_tolerance": true
+  },
+  {
+    "name": "component_sum_min_efp",
+    "actual": 100.4638119545675,
+    "expected": 100.4638119545675,
+    "unit": "kN/m",
+    "error": 0.0,
+    "normalized_error": 0.0,
+    "pass_tolerance": true
+  },
+  {
+    "name": "distribution_undrained",
+    "actual": 84.1,
+    "expected": 84.10000000000001,
+    "unit": "kN/m",
+    "error": -1.4210854715202004e-14,
+    "normalized_error": 1.689756803234483e-16,
+    "pass_tolerance": true
+  },
+  {
+    "name": "centroid_undrained",
+    "actual": 5.033333333333334,
+    "expected": 5.033333333333332,
+    "unit": "m",
+    "error": 1.7763568394002505e-15,
+    "normalized_error": 3.5291857736428825e-16,
+    "pass_tolerance": true
+  },
+  {
+    "name": "component_sum_undrained",
+    "actual": 84.1,
+    "expected": 84.1,
+    "unit": "kN/m",
+    "error": 0.0,
+    "normalized_error": 0.0,
+    "pass_tolerance": true
+  },
+  {
+    "name": "distribution_excavated_passive",
+    "actual": 285.65307384146985,
+    "expected": 285.6530738414698,
+    "unit": "kN/m",
+    "error": 5.684341886080802e-14,
+    "normalized_error": 1.9899459892510966e-16,
+    "pass_tolerance": true
+  },
+  {
+    "name": "centroid_excavated_passive",
+    "actual": 2.6566865262349175,
+    "expected": 2.656686526234917,
+    "unit": "m",
+    "error": 4.440892098500626e-16,
+    "normalized_error": 1.6715905526100226e-16,
+    "pass_tolerance": true
+  },
+  {
+    "name": "component_sum_excavated_passive",
+    "actual": 285.65307384146985,
+    "expected": 285.65307384146985,
+    "unit": "kN/m",
+    "error": 0.0,
+    "normalized_error": 0.0,
+    "pass_tolerance": true
+  },
+  {
+    "name": "distribution_at_rest",
+    "actual": 209.24,
+    "expected": 209.24,
+    "unit": "kN/m",
+    "error": 0.0,
+    "normalized_error": 0.0,
+    "pass_tolerance": true
+  },
+  {
+    "name": "centroid_at_rest",
+    "actual": 4.150512967565157,
+    "expected": 4.150512967565156,
+    "unit": "m",
+    "error": 8.881784197001252e-16,
+    "normalized_error": 2.1399244542564662e-16,
+    "pass_tolerance": true
+  },
+  {
+    "name": "component_sum_at_rest",
+    "actual": 209.24,
+    "expected": 209.24,
+    "unit": "kN/m",
+    "error": 0.0,
+    "normalized_error": 0.0,
+    "pass_tolerance": true
+  },
+  {
+    "name": "distribution_mixed_drainage_total_stress_boundary",
+    "actual": 242.27,
+    "expected": 242.26999999999998,
+    "unit": "kN/m",
+    "error": 2.842170943040401e-14,
+    "normalized_error": 1.1731419255542994e-16,
+    "pass_tolerance": true
+  },
+  {
+    "name": "distribution_slope_cohesion_error",
+    "actual": {
+      "error_type": "GeoTekError",
+      "message": "Cohesion with sloping backfill is not supported (Rankine)"
+    },
+    "expected": null,
+    "unit": "",
+    "expectation": "explicit rejection"
+  },
+  {
+    "name": "distribution_slope_cohesion_ignored",
+    "actual": 111.523988863579,
+    "expected": 111.52398886357899,
+    "unit": "kN/m",
+    "warnings": [
+      "Layer L0: c' ignored for sloping backfill (Rankine)"
+    ],
+    "error": 1.4210854715202004e-14,
+    "normalized_error": 1.2742419689261062e-16,
+    "pass_tolerance": true
+  },
+  {
+    "name": "distribution_unsupported_{'beta': 5}",
+    "actual": {
+      "error_type": "SlopeError",
+      "message": "Layer 0–10 m: sloping backfill is not supported for undrained (total stress) layers"
+    },
+    "expected": null,
+    "unit": "",
+    "expectation": "explicit rejection"
+  },
+  {
+    "name": "distribution_unsupported_{'method': 'coulomb', 'kh': 0.1}",
+    "actual": {
+      "error_type": "LayerDesignError",
+      "message": "Layer 0–10 m: seismic undrained earth pressure is not implemented"
+    },
+    "expected": null,
+    "unit": "",
+    "expectation": "explicit rejection"
+  },
+  {
+    "name": "distribution_unsupported_{'state': 'at_rest', 'beta': 5}",
+    "actual": {
+      "error_type": "GeoTekError",
+      "message": "At-rest coefficient implemented for horizontal backfill only"
+    },
+    "expected": null,
+    "unit": "",
+    "expectation": "explicit rejection"
+  },
+  {
+    "name": "distribution_unsupported_{'method': 'log_spiral', 'state': 'active'}",
+    "actual": {
+      "error_type": "GeoTekError",
+      "message": "Log-spiral is implemented for passive pressure, horizontal backfill"
+    },
+    "expected": null,
+    "unit": "",
+    "expectation": "explicit rejection"
+  },
+  {
+    "name": "distribution_delta_ratio",
+    "actual": 94.33134342740865,
+    "expected": 94.33134342740871,
+    "unit": "kN/m",
+    "error": -5.684341886080802e-14,
+    "normalized_error": 6.0259312329788905e-16,
+    "pass_tolerance": true
+  },
+  {
+    "name": "distribution_submerged_kh",
+    "actual": 199.48659796531172,
+    "expected": 199.48659796531172,
+    "unit": "kN/m",
+    "error": 0.0,
+    "normalized_error": 0.0,
+    "pass_tolerance": true
+  },
+  {
+    "name": "distribution_steep_TBDY_formula",
+    "actual": 302.35844616523167,
+    "expected": 302.35844616523167,
+    "unit": "kN/m",
+    "warnings": [
+      "Layer L0: c' ignored by the coulomb solution",
+      "Katman L0: TBDY Denk. 16.24b (β > φ' − ψ) uygulandı."
+    ],
+    "error": 0.0,
+    "normalized_error": 0.0,
+    "pass_tolerance": true
+  },
+  {
+    "name": "distribution_battered_surcharge_10",
+    "actual": 165.29789679574185,
+    "expected": 163.28237342529079,
+    "unit": "kN/m",
+    "rho": 60.46534194747315,
+    "error": 2.0155233704510636,
+    "normalized_error": 0.012343790258372612,
+    "pass_tolerance": false
+  },
+  {
+    "name": "distribution_battered_surcharge_-10",
+    "actual": 99.5231800918962,
+    "expected": 100.85704936939551,
+    "unit": "kN/m",
+    "rho": 53.809766568321756,
+    "error": -1.3338692774993177,
+    "normalized_error": 0.01322534503873829,
+    "pass_tolerance": false
+  },
+  {
+    "name": "distribution_passive_projection_-10",
+    "actual": 2556.3448745084993,
+    "expected": 2402.1784147595167,
+    "unit": "kN/m",
+    "rho": 16.767006115203767,
+    "error": 154.16645974898256,
+    "normalized_error": 0.06417777247591172,
+    "pass_tolerance": false
+  },
+  {
+    "name": "distribution_passive_projection_10",
+    "actual": 1222.9624893962932,
+    "expected": 1301.4494977873437,
+    "unit": "kN/m",
+    "rho": 25.82749191932184,
+    "error": -78.4870083910505,
+    "normalized_error": 0.06030737921409167,
+    "pass_tolerance": false
+  },
+  {
+    "name": "bearing_factor_meyerhof_0_Nc",
+    "actual": 5.14,
+    "expected": 5.14,
+    "unit": "",
+    "error": 0.0,
+    "normalized_error": 0.0,
+    "pass_tolerance": true
+  },
+  {
+    "name": "bearing_factor_meyerhof_0_Nq",
+    "actual": 1.0,
+    "expected": 1.0,
+    "unit": "",
+    "error": 0.0,
+    "normalized_error": 0.0,
+    "pass_tolerance": true
+  },
+  {
+    "name": "bearing_factor_meyerhof_0_Ngamma",
+    "actual": 0.0,
+    "expected": 0.0,
+    "unit": "",
+    "error": 0.0,
+    "normalized_error": 0.0,
+    "pass_tolerance": true
+  },
+  {
+    "name": "bearing_factor_meyerhof_20_Nc",
+    "actual": 14.834711777931204,
+    "expected": 14.834711777931206,
+    "unit": "",
+    "error": -1.7763568394002505e-15,
+    "normalized_error": 1.1974326606350653e-16,
+    "pass_tolerance": true
+  },
+  {
+    "name": "bearing_factor_meyerhof_20_Nq",
+    "actual": 6.399393521085211,
+    "expected": 6.399393521085212,
+    "unit": "",
+    "error": -8.881784197001252e-16,
+    "normalized_error": 1.3879103023961364e-16,
+    "pass_tolerance": true
+  },
+  {
+    "name": "bearing_factor_meyerhof_20_Ngamma",
+    "actual": 2.870908460412888,
+    "expected": 2.8709084604128887,
+    "unit": "",
+    "error": -8.881784197001252e-16,
+    "normalized_error": 3.0937190507717864e-16,
+    "pass_tolerance": true
+  },
+  {
+    "name": "bearing_factor_meyerhof_30_Nc",
+    "actual": 30.139627791519086,
+    "expected": 30.139627791519104,
+    "unit": "",
+    "error": -1.7763568394002505e-14,
+    "normalized_error": 5.89375838244457e-16,
+    "pass_tolerance": true
+  },
+  {
+    "name": "bearing_factor_meyerhof_30_Nq",
+    "actual": 18.401122218708668,
+    "expected": 18.40112221870868,
+    "unit": "",
+    "error": -1.0658141036401503e-14,
+    "normalized_error": 5.792114692638268e-16,
+    "pass_tolerance": true
+  },
+  {
+    "name": "bearing_factor_meyerhof_30_Ngamma",
+    "actual": 15.668040821046283,
+    "expected": 15.668040821046295,
+    "unit": "",
+    "error": -1.2434497875801753e-14,
+    "normalized_error": 7.936217436387424e-16,
+    "pass_tolerance": true
+  },
+  {
+    "name": "bearing_factor_meyerhof_40_Nc",
+    "actual": 75.31311424878254,
+    "expected": 75.31311424878253,
+    "unit": "",
+    "error": 1.4210854715202004e-14,
+    "normalized_error": 1.886903078826239e-16,
+    "pass_tolerance": true
+  },
+  {
+    "name": "bearing_factor_meyerhof_40_Nq",
+    "actual": 64.19520638896577,
+    "expected": 64.19520638896576,
+    "unit": "",
+    "error": 1.4210854715202004e-14,
+    "normalized_error": 2.2136940613753752e-16,
+    "pass_tolerance": true
+  },
+  {
+    "name": "bearing_factor_meyerhof_40_Ngamma",
+    "actual": 93.69074638938758,
+    "expected": 93.69074638938758,
+    "unit": "",
+    "error": 0.0,
+    "normalized_error": 0.0,
+    "pass_tolerance": true
+  },
+  {
+    "name": "bearing_factor_meyerhof_1e-08_Nc",
+    "actual": 5.141591825857223,
+    "expected": 5.141592655896766,
+    "unit": "",
+    "error": -8.300395437643715e-07,
+    "normalized_error": 1.6143627068791992e-07,
+    "pass_tolerance": false
+  },
+  {
+    "name": "bearing_factor_meyerhof_1e-08_Nq",
+    "actual": 1.000000000897377,
+    "expected": 1.0000000008973773,
+    "unit": "",
+    "error": -2.220446049250313e-16,
+    "normalized_error": 2.2204460472577352e-16,
+    "pass_tolerance": true
+  },
+  {
+    "name": "bearing_factor_meyerhof_1e-08_Ngamma",
+    "actual": 2.1927058098246827e-19,
+    "expected": 2.1927061638069886e-19,
+    "unit": "",
+    "error": -3.539823059189734e-26,
+    "normalized_error": 3.539823059189734e-26,
+    "pass_tolerance": true
+  },
+  {
+    "name": "bearing_factor_meyerhof_1e-12_Nc",
+    "actual": 5.152498583970897,
+    "expected": 5.141592653590024,
+    "unit": "",
+    "error": 0.010905930380872952,
+    "normalized_error": 0.002121119099790623,
+    "pass_tolerance": false
+  },
+  {
+    "name": "bearing_factor_meyerhof_1e-12_Nq",
+    "actual": 1.00000000000009,
+    "expected": 1.0000000000000897,
+    "unit": "",
+    "error": 2.220446049250313e-16,
+    "normalized_error": 2.220446049250114e-16,
+    "pass_tolerance": true
+  },
+  {
+    "name": "bearing_factor_meyerhof_1e-12_Ngamma",
+    "actual": 2.1973571537454378e-27,
+    "expected": 2.1927061628232445e-27,
+    "unit": "",
+    "error": 4.650990922193311e-30,
+    "normalized_error": 4.650990922193311e-30,
+    "pass_tolerance": true
+  },
+  {
+    "name": "bearing_factor_meyerhof_1e-16_Nc",
+    "actual": -127.22218725854067,
+    "expected": 5.141592653589793,
+    "unit": "",
+    "error": -132.36377991213047,
+    "normalized_error": 25.74373133579841,
+    "pass_tolerance": false
+  },
+  {
+    "name": "bearing_factor_meyerhof_1e-16_Nq",
+    "actual": 0.9999999999999998,
+    "expected": 1.0,
+    "unit": "",
+    "error": -2.220446049250313e-16,
+    "normalized_error": 2.220446049250313e-16,
+    "pass_tolerance": true
+  },
+  {
+    "name": "bearing_factor_meyerhof_1e-16_Ngamma",
+    "actual": -5.425573219124538e-34,
+    "expected": 2.1927061628231464e-35,
+    "unit": "",
+    "error": -5.6448438354068525e-34,
+    "normalized_error": 5.6448438354068525e-34,
+    "pass_tolerance": true
+  },
+  {
+    "name": "bearing_strip_meyerhof_0",
+    "actual": 71.4,
+    "expected": 71.4,
+    "unit": "kPa",
+    "error": 0.0,
+    "normalized_error": 0.0,
+    "pass_tolerance": true
+  },
+  {
+    "name": "bearing_strip_meyerhof_30",
+    "actual": 951.4434570681974,
+    "expected": 951.4434570681979,
+    "unit": "kPa",
+    "error": -4.547473508864641e-13,
+    "normalized_error": 4.779552032316605e-16,
+    "pass_tolerance": true
+  },
+  {
+    "name": "bearing_rect_depth_inclination_meyerhof",
+    "actual": 608.6969059607861,
+    "expected": 608.6969059607865,
+    "unit": "kPa",
+    "error": -3.410605131648481e-13,
+    "normalized_error": 5.603125460716896e-16,
+    "pass_tolerance": true
+  },
+  {
+    "name": "Bprime_meyerhof_0.001",
+    "actual": {
+      "q_ult": 0.28202473477883333,
+      "Q_ult": 0.0005640494695576671
+    },
+    "expected": null,
+    "unit": "",
+    "expectation": "positive finite approaching zero; reject at Bprime=0",
+    "warnings": []
+  },
+  {
+    "name": "Bprime_meyerhof_1e-09",
+    "actual": {
+      "q_ult": 2.8202472680262886e-07,
+      "Q_ult": 5.640494376528498e-16
+    },
+    "expected": null,
+    "unit": "",
+    "expectation": "positive finite approaching zero; reject at Bprime=0",
+    "warnings": []
+  },
+  {
+    "name": "Bprime_meyerhof_0",
+    "actual": {
+      "error_type": "BearingFailureError",
+      "message": "Eccentricity too large: effective width <= 0"
+    },
+    "expected": null,
+    "unit": "",
+    "expectation": "positive finite approaching zero; reject at Bprime=0"
+  },
+  {
+    "name": "bearing_factor_hansen_0_Nc",
+    "actual": 5.14,
+    "expected": 5.14,
+    "unit": "",
+    "error": 0.0,
+    "normalized_error": 0.0,
+    "pass_tolerance": true
+  },
+  {
+    "name": "bearing_factor_hansen_0_Nq",
+    "actual": 1.0,
+    "expected": 1.0,
+    "unit": "",
+    "error": 0.0,
+    "normalized_error": 0.0,
+    "pass_tolerance": true
+  },
+  {
+    "name": "bearing_factor_hansen_0_Ngamma",
+    "actual": 0.0,
+    "expected": 0.0,
+    "unit": "",
+    "error": 0.0,
+    "normalized_error": 0.0,
+    "pass_tolerance": true
+  },
+  {
+    "name": "bearing_factor_hansen_20_Nc",
+    "actual": 14.834711777931204,
+    "expected": 14.834711777931206,
+    "unit": "",
+    "error": -1.7763568394002505e-15,
+    "normalized_error": 1.1974326606350653e-16,
+    "pass_tolerance": true
+  },
+  {
+    "name": "bearing_factor_hansen_20_Nq",
+    "actual": 6.399393521085211,
+    "expected": 6.399393521085212,
+    "unit": "",
+    "error": -8.881784197001252e-16,
+    "normalized_error": 1.3879103023961364e-16,
+    "pass_tolerance": true
+  },
+  {
+    "name": "bearing_factor_hansen_20_Ngamma",
+    "actual": 2.947827787147199,
+    "expected": 2.9478277871471996,
+    "unit": "",
+    "error": -4.440892098500626e-16,
+    "normalized_error": 1.5064964506621874e-16,
+    "pass_tolerance": true
+  },
+  {
+    "name": "bearing_factor_hansen_30_Nc",
+    "actual": 30.139627791519086,
+    "expected": 30.139627791519104,
+    "unit": "",
+    "error": -1.7763568394002505e-14,
+    "normalized_error": 5.89375838244457e-16,
+    "pass_tolerance": true
+  },
+  {
+    "name": "bearing_factor_hansen_30_Nq",
+    "actual": 18.401122218708668,
+    "expected": 18.40112221870868,
+    "unit": "",
+    "error": -1.0658141036401503e-14,
+    "normalized_error": 5.792114692638268e-16,
+    "pass_tolerance": true
+  },
+  {
+    "name": "bearing_factor_hansen_30_Ngamma",
+    "actual": 15.069813895759541,
+    "expected": 15.06981389575955,
+    "unit": "",
+    "error": -8.881784197001252e-15,
+    "normalized_error": 5.893758382444571e-16,
+    "pass_tolerance": true
+  },
+  {
+    "name": "bearing_factor_hansen_40_Nc",
+    "actual": 75.31311424878254,
+    "expected": 75.31311424878253,
+    "unit": "",
+    "error": 1.4210854715202004e-14,
+    "normalized_error": 1.886903078826239e-16,
+    "pass_tolerance": true
+  },
+  {
+    "name": "bearing_factor_hansen_40_Nq",
+    "actual": 64.19520638896577,
+    "expected": 64.19520638896576,
+    "unit": "",
+    "error": 1.4210854715202004e-14,
+    "normalized_error": 2.2136940613753752e-16,
+    "pass_tolerance": true
+  },
+  {
+    "name": "bearing_factor_hansen_40_Ngamma",
+    "actual": 79.5406115597299,
+    "expected": 79.54061155972988,
+    "unit": "",
+    "error": 1.4210854715202004e-14,
+    "normalized_error": 1.7866162249117943e-16,
+    "pass_tolerance": true
+  },
+  {
+    "name": "bearing_factor_hansen_1e-08_Nc",
+    "actual": 5.141591825857223,
+    "expected": 5.141592655896766,
+    "unit": "",
+    "error": -8.300395437643715e-07,
+    "normalized_error": 1.6143627068791992e-07,
+    "pass_tolerance": false
+  },
+  {
+    "name": "bearing_factor_hansen_1e-08_Nq",
+    "actual": 1.000000000897377,
+    "expected": 1.0000000008973773,
+    "unit": "",
+    "error": -2.220446049250313e-16,
+    "normalized_error": 2.2204460472577352e-16,
+    "pass_tolerance": true
+  },
+  {
+    "name": "bearing_factor_hansen_1e-08_Ngamma",
+    "actual": 2.3493276533835885e-19,
+    "expected": 2.3493280326503453e-19,
+    "unit": "",
+    "error": -3.792667568232397e-26,
+    "normalized_error": 3.792667568232397e-26,
+    "pass_tolerance": true
+  },
+  {
+    "name": "bearing_factor_hansen_1e-12_Nc",
+    "actual": 5.152498583970897,
+    "expected": 5.141592653590024,
+    "unit": "",
+    "error": 0.010905930380872952,
+    "normalized_error": 0.002121119099790623,
+    "pass_tolerance": false
+  },
+  {
+    "name": "bearing_factor_hansen_1e-12_Nq",
+    "actual": 1.00000000000009,
+    "expected": 1.0000000000000897,
+    "unit": "",
+    "error": 2.220446049250313e-16,
+    "normalized_error": 2.220446049250114e-16,
+    "pass_tolerance": true
+  },
+  {
+    "name": "bearing_factor_hansen_1e-12_Ngamma",
+    "actual": 2.3543112361558265e-27,
+    "expected": 2.3493280315963336e-27,
+    "unit": "",
+    "error": 4.983204559492936e-30,
+    "normalized_error": 4.983204559492936e-30,
+    "pass_tolerance": true
+  },
+  {
+    "name": "bearing_factor_hansen_1e-16_Nc",
+    "actual": -127.22218725854067,
+    "expected": 5.141592653589793,
+    "unit": "",
+    "error": -132.36377991213047,
+    "normalized_error": 25.74373133579841,
+    "pass_tolerance": false
+  },
+  {
+    "name": "bearing_factor_hansen_1e-16_Nq",
+    "actual": 0.9999999999999998,
+    "expected": 1.0,
+    "unit": "",
+    "error": -2.220446049250313e-16,
+    "normalized_error": 2.220446049250313e-16,
+    "pass_tolerance": true
+  },
+  {
+    "name": "bearing_factor_hansen_1e-16_Ngamma",
+    "actual": -5.81311416334772e-34,
+    "expected": 2.3493280315962284e-35,
+    "unit": "",
+    "error": -6.048046966507343e-34,
+    "normalized_error": 6.048046966507343e-34,
+    "pass_tolerance": true
+  },
+  {
+    "name": "bearing_strip_hansen_0",
+    "actual": 71.4,
+    "expected": 71.4,
+    "unit": "kPa",
+    "error": 0.0,
+    "normalized_error": 0.0,
+    "pass_tolerance": true
+  },
+  {
+    "name": "bearing_strip_hansen_30",
+    "actual": 940.675372413036,
+    "expected": 940.6753724130365,
+    "unit": "kPa",
+    "error": -4.547473508864641e-13,
+    "normalized_error": 4.834264446829712e-16,
+    "pass_tolerance": true
+  },
+  {
+    "name": "bearing_rect_depth_inclination_hansen",
+    "actual": 548.6059799916083,
+    "expected": 548.6059799916085,
+    "unit": "kPa",
+    "error": -2.2737367544323206e-13,
+    "normalized_error": 4.144571582079911e-16,
+    "pass_tolerance": true
+  },
+  {
+    "name": "Bprime_hansen_0.001",
+    "actual": {
+      "q_ult": 0.271256650123672,
+      "Q_ult": 0.0005425133002473445
+    },
+    "expected": null,
+    "unit": "",
+    "expectation": "positive finite approaching zero; reject at Bprime=0",
+    "warnings": []
+  },
+  {
+    "name": "Bprime_hansen_1e-09",
+    "actual": {
+      "q_ult": 2.7125664245200977e-07,
+      "Q_ult": 5.42513269560696e-16
+    },
+    "expected": null,
+    "unit": "",
+    "expectation": "positive finite approaching zero; reject at Bprime=0",
+    "warnings": []
+  },
+  {
+    "name": "Bprime_hansen_0",
+    "actual": {
+      "error_type": "BearingFailureError",
+      "message": "Eccentricity too large: effective width <= 0"
+    },
+    "expected": null,
+    "unit": "",
+    "expectation": "positive finite approaching zero; reject at Bprime=0"
+  },
+  {
+    "name": "bearing_factor_vesic_0_Nc",
+    "actual": 5.14,
+    "expected": 5.14,
+    "unit": "",
+    "error": 0.0,
+    "normalized_error": 0.0,
+    "pass_tolerance": true
+  },
+  {
+    "name": "bearing_factor_vesic_0_Nq",
+    "actual": 1.0,
+    "expected": 1.0,
+    "unit": "",
+    "error": 0.0,
+    "normalized_error": 0.0,
+    "pass_tolerance": true
+  },
+  {
+    "name": "bearing_factor_vesic_0_Ngamma",
+    "actual": 0.0,
+    "expected": 0.0,
+    "unit": "",
+    "error": 0.0,
+    "normalized_error": 0.0,
+    "pass_tolerance": true
+  },
+  {
+    "name": "bearing_factor_vesic_20_Nc",
+    "actual": 14.834711777931204,
+    "expected": 14.834711777931206,
+    "unit": "",
+    "error": -1.7763568394002505e-15,
+    "normalized_error": 1.1974326606350653e-16,
+    "pass_tolerance": true
+  },
+  {
+    "name": "bearing_factor_vesic_20_Nq",
+    "actual": 6.399393521085211,
+    "expected": 6.399393521085212,
+    "unit": "",
+    "error": -8.881784197001252e-16,
+    "normalized_error": 1.3879103023961364e-16,
+    "pass_tolerance": true
+  },
+  {
+    "name": "bearing_factor_vesic_20_Ngamma",
+    "actual": 5.386317986594408,
+    "expected": 5.386317986594409,
+    "unit": "",
+    "error": -8.881784197001252e-16,
+    "normalized_error": 1.6489528132402209e-16,
+    "pass_tolerance": true
+  },
+  {
+    "name": "bearing_factor_vesic_30_Nc",
+    "actual": 30.139627791519086,
+    "expected": 30.139627791519104,
+    "unit": "",
+    "error": -1.7763568394002505e-14,
+    "normalized_error": 5.89375838244457e-16,
+    "pass_tolerance": true
+  },
+  {
+    "name": "bearing_factor_vesic_30_Nq",
+    "actual": 18.401122218708668,
+    "expected": 18.40112221870868,
+    "unit": "",
+    "error": -1.0658141036401503e-14,
+    "normalized_error": 5.792114692638268e-16,
+    "pass_tolerance": true
+  },
+  {
+    "name": "bearing_factor_vesic_30_Ngamma",
+    "actual": 22.402486271104557,
+    "expected": 22.402486271104568,
+    "unit": "",
+    "error": -1.0658141036401503e-14,
+    "normalized_error": 4.757570614003102e-16,
+    "pass_tolerance": true
+  },
+  {
+    "name": "bearing_factor_vesic_40_Nc",
+    "actual": 75.31311424878254,
+    "expected": 75.31311424878253,
+    "unit": "",
+    "error": 1.4210854715202004e-14,
+    "normalized_error": 1.886903078826239e-16,
+    "pass_tolerance": true
+  },
+  {
+    "name": "bearing_factor_vesic_40_Nq",
+    "actual": 64.19520638896577,
+    "expected": 64.19520638896576,
+    "unit": "",
+    "error": 1.4210854715202004e-14,
+    "normalized_error": 2.2136940613753752e-16,
+    "pass_tolerance": true
+  },
+  {
+    "name": "bearing_factor_vesic_40_Ngamma",
+    "actual": 109.41054727101564,
+    "expected": 109.41054727101562,
+    "unit": "",
+    "error": 2.842170943040401e-14,
+    "normalized_error": 2.597712024966108e-16,
+    "pass_tolerance": true
+  },
+  {
+    "name": "bearing_factor_vesic_1e-08_Nc",
+    "actual": 5.141591825857223,
+    "expected": 5.141592655896766,
+    "unit": "",
+    "error": -8.300395437643715e-07,
+    "normalized_error": 1.6143627068791992e-07,
+    "pass_tolerance": false
+  },
+  {
+    "name": "bearing_factor_vesic_1e-08_Nq",
+    "actual": 1.000000000897377,
+    "expected": 1.0000000008973773,
+    "unit": "",
+    "error": -2.220446049250313e-16,
+    "normalized_error": 2.2204460472577352e-16,
+    "pass_tolerance": true
+  },
+  {
+    "name": "bearing_factor_vesic_1e-08_Ngamma",
+    "actual": 6.981317011109756e-10,
+    "expected": 6.981317011109756e-10,
+    "unit": "",
+    "error": 0.0,
+    "normalized_error": 0.0,
+    "pass_tolerance": true
+  },
+  {
+    "name": "bearing_factor_vesic_1e-12_Nc",
+    "actual": 5.152498583970897,
+    "expected": 5.141592653590024,
+    "unit": "",
+    "error": 0.010905930380872952,
+    "normalized_error": 0.002121119099790623,
+    "pass_tolerance": false
+  },
+  {
+    "name": "bearing_factor_vesic_1e-12_Nq",
+    "actual": 1.00000000000009,
+    "expected": 1.0000000000000897,
+    "unit": "",
+    "error": 2.220446049250313e-16,
+    "normalized_error": 2.220446049250114e-16,
+    "pass_tolerance": true
+  },
+  {
+    "name": "bearing_factor_vesic_1e-12_Ngamma",
+    "actual": 6.981317007977631e-14,
+    "expected": 6.981317007977631e-14,
+    "unit": "",
+    "error": 0.0,
+    "normalized_error": 0.0,
+    "pass_tolerance": true
+  },
+  {
+    "name": "bearing_factor_vesic_1e-16_Nc",
+    "actual": -127.22218725854067,
+    "expected": 5.141592653589793,
+    "unit": "",
+    "error": -132.36377991213047,
+    "normalized_error": 25.74373133579841,
+    "pass_tolerance": false
+  },
+  {
+    "name": "bearing_factor_vesic_1e-16_Nq",
+    "actual": 0.9999999999999998,
+    "expected": 1.0,
+    "unit": "",
+    "error": -2.220446049250313e-16,
+    "normalized_error": 2.220446049250313e-16,
+    "pass_tolerance": true
+  },
+  {
+    "name": "bearing_factor_vesic_1e-16_Ngamma",
+    "actual": 6.981317007977317e-18,
+    "expected": 6.981317007977318e-18,
+    "unit": "",
+    "error": -1.5407439555097887e-33,
+    "normalized_error": 1.5407439555097887e-33,
+    "pass_tolerance": true
+  },
+  {
+    "name": "bearing_strip_vesic_0",
+    "actual": 71.4,
+    "expected": 71.4,
+    "unit": "kPa",
+    "error": 0.0,
+    "normalized_error": 0.0,
+    "pass_tolerance": true
+  },
+  {
+    "name": "bearing_strip_vesic_30",
+    "actual": 1072.6634751692463,
+    "expected": 1072.6634751692468,
+    "unit": "kPa",
+    "error": -4.547473508864641e-13,
+    "normalized_error": 4.239422348325166e-16,
+    "pass_tolerance": true
+  },
+  {
+    "name": "bearing_rect_depth_inclination_vesic",
+    "actual": 689.8828445268435,
+    "expected": 689.8828445268439,
+    "unit": "kPa",
+    "error": -3.410605131648481e-13,
+    "normalized_error": 4.943745389099571e-16,
+    "pass_tolerance": true
+  },
+  {
+    "name": "Bprime_vesic_0.001",
+    "actual": {
+      "q_ult": 0.4032447528798824,
+      "Q_ult": 0.0008064895057597654
+    },
+    "expected": null,
+    "unit": "",
+    "expectation": "positive finite approaching zero; reject at Bprime=0",
+    "warnings": []
+  },
+  {
+    "name": "Bprime_vesic_1e-09",
+    "actual": {
+      "q_ult": 4.0324474147534154e-07,
+      "Q_ult": 8.064894601416028e-16
+    },
+    "expected": null,
+    "unit": "",
+    "expectation": "positive finite approaching zero; reject at Bprime=0",
+    "warnings": []
+  },
+  {
+    "name": "Bprime_vesic_0",
+    "actual": {
+      "error_type": "BearingFailureError",
+      "message": "Eccentricity too large: effective width <= 0"
+    },
+    "expected": null,
+    "unit": "",
+    "expectation": "positive finite approaching zero; reject at Bprime=0"
+  },
+  {
+    "name": "bishop_0_None_0_40",
+    "actual": 0.4705341757652154,
+    "expected": 0.4704857969735174,
+    "unit": "",
+    "reference_residual": 2.2904855534595954e-16,
+    "endpoint_errors": [
+      -0.009930718891482053,
+      -0.0025427299251745694
+    ],
+    "error": 4.837879169800052e-05,
+    "normalized_error": 4.837879169800052e-05,
+    "pass_tolerance": true
+  },
+  {
+    "name": "bishop_normalized_residual_0_None_0_40",
+    "actual": 2.2902542876170416e-16,
+    "expected": 0,
+    "unit": "",
+    "error": 2.2902542876170416e-16,
+    "normalized_error": 2.2902542876170416e-16,
+    "pass_tolerance": true
+  },
+  {
+    "name": "bishop_0_None_0_80",
+    "actual": 0.4710938104248503,
+    "expected": 0.4710471186535519,
+    "unit": "",
+    "reference_residual": 1.1445820083951307e-16,
+    "endpoint_errors": [
+      -0.009930718891482053,
+      -0.0025427299251745694
+    ],
+    "error": 4.669177129840163e-05,
+    "normalized_error": 4.669177129840163e-05,
+    "pass_tolerance": true
+  },
+  {
+    "name": "bishop_normalized_residual_0_None_0_80",
+    "actual": 0.0,
+    "expected": 0,
+    "unit": "",
+    "error": 0.0,
+    "normalized_error": 0.0,
+    "pass_tolerance": true
+  },
+  {
+    "name": "bishop_0_None_0_160",
+    "actual": 0.47123695555381856,
+    "expected": 0.47119071088325043,
+    "unit": "",
+    "reference_residual": 1.1444112668956213e-16,
+    "endpoint_errors": [
+      -0.009930718891482053,
+      -0.0025427299251745694
+    ],
+    "error": 4.624467056812964e-05,
+    "normalized_error": 4.624467056812964e-05,
+    "pass_tolerance": true
+  },
+  {
+    "name": "bishop_normalized_residual_0_None_0_160",
+    "actual": 2.2885977575723007e-16,
+    "expected": 0,
+    "unit": "",
+    "error": 2.2885977575723007e-16,
+    "normalized_error": 2.2885977575723007e-16,
+    "pass_tolerance": true
+  },
+  {
+    "name": "bishop_20_None_0_40",
+    "actual": 1.4413789584367667,
+    "expected": 1.4412324388070197,
+    "unit": "",
+    "reference_residual": 0.0,
+    "endpoint_errors": [
+      -0.009930718891482053,
+      -0.0025427299251745694
+    ],
+    "error": 0.0001465196297469884,
+    "normalized_error": 0.00010166273378378164,
+    "pass_tolerance": true
+  },
+  {
+    "name": "bishop_normalized_residual_20_None_0_40",
+    "actual": 6.695691737607061e-08,
+    "expected": 0,
+    "unit": "",
+    "error": 6.695691737607061e-08,
+    "normalized_error": 6.695691737607061e-08,
+    "pass_tolerance": true
+  },
+  {
+    "name": "bishop_20_None_0_80",
+    "actual": 1.4418268506675596,
+    "expected": 1.441681786199149,
+    "unit": "",
+    "reference_residual": 0.0,
+    "endpoint_errors": [
+      -0.009930718891482053,
+      -0.0025427299251745694
+    ],
+    "error": 0.00014506446841044962,
+    "normalized_error": 0.00010062169738087466,
+    "pass_tolerance": true
+  },
+  {
+    "name": "bishop_normalized_residual_20_None_0_80",
+    "actual": 6.674012387164677e-08,
+    "expected": 0,
+    "unit": "",
+    "error": 6.674012387164677e-08,
+    "normalized_error": 6.674012387164677e-08,
+    "pass_tolerance": true
+  },
+  {
+    "name": "bishop_20_None_0_160",
+    "actual": 1.441939327493193,
+    "expected": 1.441794626521566,
+    "unit": "",
+    "reference_residual": 0.0,
+    "endpoint_errors": [
+      -0.009930718891482053,
+      -0.0025427299251745694
+    ],
+    "error": 0.0001447009716271097,
+    "normalized_error": 0.00010036170822484704,
+    "pass_tolerance": true
+  },
+  {
+    "name": "bishop_normalized_residual_20_None_0_160",
+    "actual": 6.668243903606938e-08,
+    "expected": 0,
+    "unit": "",
+    "error": 6.668243903606938e-08,
+    "normalized_error": 6.668243903606938e-08,
+    "pass_tolerance": true
+  },
+  {
+    "name": "bishop_20_0_0_40",
+    "actual": 1.399418727770363,
+    "expected": 1.3992692823869004,
+    "unit": "",
+    "reference_residual": 0.0,
+    "endpoint_errors": [
+      -0.009930718891482053,
+      -0.0025427299251745694
+    ],
+    "error": 0.0001494453834625098,
+    "normalized_error": 0.00010680244706550193,
+    "pass_tolerance": true
+  },
+  {
+    "name": "bishop_normalized_residual_20_0_0_40",
+    "actual": 9.584938206017907e-09,
+    "expected": 0,
+    "unit": "",
+    "error": 9.584938206017907e-09,
+    "normalized_error": 9.584938206017907e-09,
+    "pass_tolerance": true
+  },
+  {
+    "name": "bishop_20_0_0_80",
+    "actual": 1.3998864170559921,
+    "expected": 1.3997383156051662,
+    "unit": "",
+    "reference_residual": 1.5407224367766872e-16,
+    "endpoint_errors": [
+      -0.009930718891482053,
+      -0.0025427299251745694
+    ],
+    "error": 0.00014810145082599924,
+    "normalized_error": 0.00010580652767368785,
+    "pass_tolerance": true
+  },
+  {
+    "name": "bishop_normalized_residual_20_0_0_80",
+    "actual": 9.546913971929626e-09,
+    "expected": 0,
+    "unit": "",
+    "error": 9.546913971929626e-09,
+    "normalized_error": 9.546913971929626e-09,
+    "pass_tolerance": true
+  },
+  {
+    "name": "bishop_20_0_0_160",
+    "actual": 1.4000038188435056,
+    "expected": 1.399856052987685,
+    "unit": "",
+    "reference_residual": 1.5408325941527158e-16,
+    "endpoint_errors": [
+      -0.009930718891482053,
+      -0.0025427299251745694
+    ],
+    "error": 0.0001477658558206585,
+    "normalized_error": 0.00010555789326001396,
+    "pass_tolerance": true
+  },
+  {
+    "name": "bishop_normalized_residual_20_0_0_160",
+    "actual": 9.536855785386018e-09,
+    "expected": 0,
+    "unit": "",
+    "error": 9.536855785386018e-09,
+    "normalized_error": 9.536855785386018e-09,
+    "pass_tolerance": true
+  },
+  {
+    "name": "bishop_20_None_0.1_40",
+    "actual": 1.172731409180508,
+    "expected": 1.1725954086350103,
+    "unit": "",
+    "reference_residual": 1.0722834722550545e-15,
+    "endpoint_errors": [
+      -0.009930718891482053,
+      -0.0025427299251745694
+    ],
+    "error": 0.00013600054549778307,
+    "normalized_error": 0.00011598249873423773,
+    "pass_tolerance": true
+  },
+  {
+    "name": "bishop_normalized_residual_20_None_0.1_40",
+    "actual": 6.845960228580926e-08,
+    "expected": 0,
+    "unit": "",
+    "error": 6.845960228580926e-08,
+    "normalized_error": 6.845960228580926e-08,
+    "pass_tolerance": true
+  },
+  {
+    "name": "bishop_20_None_0.1_80",
+    "actual": 1.1730305179996479,
+    "expected": 1.1728954475817301,
+    "unit": "",
+    "reference_residual": 1.0726008231011765e-15,
+    "endpoint_errors": [
+      -0.009930718891482053,
+      -0.0025427299251745694
+    ],
+    "error": 0.00013507041791771535,
+    "normalized_error": 0.00011515981087334156,
+    "pass_tolerance": true
+  },
+  {
+    "name": "bishop_normalized_residual_20_None_0.1_80",
+    "actual": 6.831805932095291e-08,
+    "expected": 0,
+    "unit": "",
+    "error": 6.831805932095291e-08,
+    "normalized_error": 6.831805932095291e-08,
+    "pass_tolerance": true
+  },
+  {
+    "name": "bishop_20_None_0.1_160",
+    "actual": 1.173105538461013,
+    "expected": 1.1729706999552996,
+    "unit": "",
+    "reference_residual": 9.194413466832077e-16,
+    "endpoint_errors": [
+      -0.009930718891482053,
+      -0.0025427299251745694
+    ],
+    "error": 0.00013483850571338607,
+    "normalized_error": 0.00011495470919991829,
+    "pass_tolerance": true
+  },
+  {
+    "name": "bishop_normalized_residual_20_None_0.1_160",
+    "actual": 6.827963431503484e-08,
+    "expected": 0,
+    "unit": "",
+    "error": 6.827963431503484e-08,
+    "normalized_error": 6.827963431503484e-08,
+    "pass_tolerance": true
+  },
+  {
+    "name": "bishop_phi0_continuous_reference",
+    "actual": 0.4712388979148965,
+    "expected": 0.47123889803846897,
+    "unit": "",
+    "error": -1.2357248557748335e-10,
+    "normalized_error": 1.2357248557748335e-10,
+    "pass_tolerance": true
+  },
+  {
+    "name": "bishop_seismic_centroid_layered_40",
+    "actual": 1.222806014680568,
+    "expected": 1.2113581485524307,
+    "unit": "",
+    "uniform_midheight_reference": 1.222686082228042,
+    "error": 0.011447866128137196,
+    "normalized_error": 0.009450438866339703,
+    "pass_tolerance": false
+  },
+  {
+    "name": "bishop_seismic_centroid_layered_80",
+    "actual": 1.2227175429615094,
+    "expected": 1.2112434998096446,
+    "unit": "",
+    "uniform_midheight_reference": 1.222579523403104,
+    "error": 0.011474043151864732,
+    "normalized_error": 0.009472945079720104,
+    "pass_tolerance": false
+  },
+  {
+    "name": "bishop_seismic_centroid_layered_160",
+    "actual": 1.2227769796256274,
+    "expected": 1.2113046783591401,
+    "unit": "",
+    "uniform_midheight_reference": 1.222639241474796,
+    "error": 0.01147230126648724,
+    "normalized_error": 0.009471028611916095,
+    "pass_tolerance": false
+  },
+  {
+    "name": "bishop_seismic_centroid_surface_load_40",
+    "actual": 0.9156006219162016,
+    "expected": 0.932865777621773,
+    "unit": "",
+    "uniform_midheight_reference": 0.9152366563965537,
+    "error": -0.01726515570557141,
+    "normalized_error": 0.01726515570557141,
+    "pass_tolerance": false
+  },
+  {
+    "name": "bishop_seismic_centroid_surface_load_80",
+    "actual": 0.9157761634319398,
+    "expected": 0.9330443651155376,
+    "unit": "",
+    "uniform_midheight_reference": 0.915412576813146,
+    "error": -0.017268201683597773,
+    "normalized_error": 0.017268201683597773,
+    "pass_tolerance": false
+  },
+  {
+    "name": "bishop_seismic_centroid_surface_load_160",
+    "actual": 0.9158203013743711,
+    "expected": 0.9330892671907395,
+    "unit": "",
+    "uniform_midheight_reference": 0.9154568101360308,
+    "error": -0.017268965816368387,
+    "normalized_error": 0.017268965816368387,
+    "pass_tolerance": false
+  },
+  {
+    "name": "logspiral_quadrature_20_0",
+    "actual": 2.0396067291614735,
+    "expected": 2.0396067291614735,
+    "unit": "",
+    "reference_pole": -1.4281258867153603,
+    "production_pole": -1.4281325859413576,
+    "error": 0.0,
+    "normalized_error": 0.0,
+    "pass_tolerance": true
+  },
+  {
+    "name": "logspiral_horizontal_20_0",
+    "actual": 2.0396067291614735,
+    "expected": 2.0396067291614735,
+    "unit": "",
+    "error": 0.0,
+    "normalized_error": 0.0,
+    "pass_tolerance": true
+  },
+  {
+    "name": "logspiral_quadrature_30_0",
+    "actual": 2.999999999999996,
+    "expected": 3.000000000000002,
+    "unit": "",
+    "reference_pole": -1.7320205607548218,
+    "production_pole": -1.7320393040006286,
+    "error": -6.217248937900877e-15,
+    "normalized_error": 2.072416312633624e-15,
+    "pass_tolerance": true
+  },
+  {
+    "name": "logspiral_horizontal_30_0",
+    "actual": 2.999999999999996,
+    "expected": 3.000000000000002,
+    "unit": "",
+    "error": -6.217248937900877e-15,
+    "normalized_error": 2.072416312633624e-15,
+    "pass_tolerance": true
+  },
+  {
+    "name": "logspiral_quadrature_40_0",
+    "actual": 4.59890993211339,
+    "expected": 4.598909932113385,
+    "unit": "",
+    "reference_pole": -2.144495774588108,
+    "production_pole": -2.1445069205095586,
+    "error": 5.329070518200751e-15,
+    "normalized_error": 1.1587681856930449e-15,
+    "pass_tolerance": true
+  },
+  {
+    "name": "logspiral_horizontal_40_0",
+    "actual": 4.59890993211339,
+    "expected": 4.598909932113385,
+    "unit": "",
+    "error": 5.329070518200751e-15,
+    "normalized_error": 1.1587681856930449e-15,
+    "pass_tolerance": true
+  },
+  {
+    "name": "logspiral_quadrature_30_10",
+    "actual": 4.116312975347132,
+    "expected": 4.116313382659324,
+    "unit": "",
+    "reference_pole": -0.7246959744719679,
+    "production_pole": -0.7246956483002549,
+    "error": -4.073121919745404e-07,
+    "normalized_error": 9.895072461936763e-08,
+    "pass_tolerance": true
+  },
+  {
+    "name": "logspiral_horizontal_30_10",
+    "actual": 4.053776931946605,
+    "expected": 4.053777333070809,
+    "unit": "",
+    "error": -4.0112420407467653e-07,
+    "normalized_error": 9.895072450139182e-08,
+    "pass_tolerance": true
+  },
+  {
+    "name": "logspiral_quadrature_30_30",
+    "actual": 6.606824836055914,
+    "expected": 6.6068273184526305,
+    "unit": "",
+    "reference_pole": -0.2497562458722796,
+    "production_pole": -0.24975600181579752,
+    "error": -2.4823967166298644e-06,
+    "normalized_error": 3.757320415650368e-07,
+    "pass_tolerance": true
+  },
+  {
+    "name": "logspiral_horizontal_30_30",
+    "actual": 5.721678146378381,
+    "expected": 5.7216802961969995,
+    "unit": "",
+    "error": -2.1498186182355994e-06,
+    "normalized_error": 3.757320414537157e-07,
+    "pass_tolerance": true
+  },
+  {
+    "name": "logspiral_quadrature_40_40",
+    "actual": 18.525126102679945,
+    "expected": 18.525137122216027,
+    "unit": "",
+    "reference_pole": -0.23661523789992378,
+    "production_pole": -0.23661504447049259,
+    "error": -1.1019536081846582e-05,
+    "normalized_error": 5.948423490280969e-07,
+    "pass_tolerance": true
+  },
+  {
+    "name": "logspiral_horizontal_40_40",
+    "actual": 14.191069909036301,
+    "expected": 14.191078350490683,
+    "unit": "",
+    "error": -8.441454381724611e-06,
+    "normalized_error": 5.94842349061707e-07,
+    "pass_tolerance": true
+  },
+  {
+    "name": "logspiral_scale",
+    "actual": 5.9499953970117465,
+    "expected": 5.949996789254136,
+    "unit": "",
+    "error": -1.392242389819387e-06,
+    "normalized_error": 2.3399044388289694e-07,
+    "pass_tolerance": true
+  },
+  {
+    "name": "bishop_layered_FS_threshold",
+    "actual": 1.0044526835763328,
+    "expected": 0.995,
+    "unit": "",
+    "cohesion_kPa": 4.361017763120606,
+    "error": 0.009452683576332777,
+    "normalized_error": 0.009452683576332777,
+    "pass_tolerance": false
+  },
+  {
+    "name": "wall_global_selected_circle",
+    "actual": 1.8251950590751207,
+    "expected": null,
+    "unit": "",
+    "search_domain": {
+      "x_range": [
+        -4.0,
+        6.5
+      ],
+      "y_range": [
+        2.0,
+        12.0
+      ],
+      "tangent_range": [
+        -8.0,
+        -0.05
+      ],
+      "n_x": 4,
+      "n_y": 4,
+      "n_tangent": 4,
+      "min_width": 0.5,
+      "exit_max": 0.0,
+      "entry_min": 2.5
+    },
+    "circle": [
+      -0.5234670960300066,
+      6.026788142306907,
+      6.732633208094283
+    ],
+    "required": 1.1,
+    "reference_roots": [
+      -3.52449602,
+      2.47756182794,
+      2.50000000281,
+      5.89685063294
+    ],
+    "reported_endpoints": [
+      -3.524495994644784,
+      5.8968087073358095
+    ],
+    "reference": "independent intersection solver rejects disconnected intervals; search optimum unproved"
+  },
+  {
+    "name": "wall_global_arc_above_base",
+    "actual": 0.006209600681659211,
+    "expected": null,
+    "unit": "m",
+    "expectation": "arc <=0 throughout base [0,2.5]"
+  },
+  {
+    "name": "wall_footprint_total",
+    "actual": 240.0,
+    "expected": 240,
+    "unit": "kN/m",
+    "error": 0.0,
+    "normalized_error": 0.0,
+    "pass_tolerance": true
+  },
+  {
+    "name": "wall_footprint_moment",
+    "actual": 300.0,
+    "expected": 300,
+    "unit": "kNm/m",
+    "error": 0.0,
+    "normalized_error": 0.0,
+    "pass_tolerance": true
+  },
+  {
+    "name": "footprint_force_0.2",
+    "actual": 100.0,
+    "expected": 100,
+    "unit": "kN/m",
+    "error": 0.0,
+    "normalized_error": 0.0,
+    "pass_tolerance": true
+  },
+  {
+    "name": "footprint_moment_0.2",
+    "actual": 19.999999999999996,
+    "expected": 20.0,
+    "unit": "kNm/m",
+    "error": -3.552713678800501e-15,
+    "normalized_error": 1.7763568394002506e-16,
+    "pass_tolerance": true
+  },
+  {
+    "name": "footprint_force_1.8",
+    "actual": 100.0,
+    "expected": 100,
+    "unit": "kN/m",
+    "error": 0.0,
+    "normalized_error": 0.0,
+    "pass_tolerance": true
+  },
+  {
+    "name": "footprint_moment_1.8",
+    "actual": 180.00000000000003,
+    "expected": 180.0,
+    "unit": "kNm/m",
+    "error": 2.842170943040401e-14,
+    "normalized_error": 1.5789838572446671e-16,
+    "pass_tolerance": true
+  },
+  {
+    "name": "footprint_force_1.0",
+    "actual": 100.0,
+    "expected": 100,
+    "unit": "kN/m",
+    "error": 0.0,
+    "normalized_error": 0.0,
+    "pass_tolerance": true
+  },
+  {
+    "name": "footprint_moment_1.0",
+    "actual": 100.0,
+    "expected": 100.0,
+    "unit": "kNm/m",
+    "error": 0.0,
+    "normalized_error": 0.0,
+    "pass_tolerance": true
+  },
+  {
+    "name": "education_slope_example1_4",
+    "actual": 0.5533599730804831,
+    "expected": 0.5533613857001441,
+    "unit": "",
+    "production_endpoints": [
+      -9.999869977869418,
+      22.65296326642286
+    ],
+    "independent_endpoints": [
+      -9.99997176201,
+      22.65331206584
+    ],
+    "published_endpoints": [
+      0,
+      11.6
+    ],
+    "error": -1.412619661023129e-06,
+    "normalized_error": 1.412619661023129e-06,
+    "pass_tolerance": true
+  },
+  {
+    "name": "education_slope_example1_40",
+    "actual": 0.6325030474402017,
+    "expected": 0.6325254945739711,
+    "unit": "",
+    "production_endpoints": [
+      -9.999869977869418,
+      22.65296326642286
+    ],
+    "independent_endpoints": [
+      -9.99997176201,
+      22.65331206584
+    ],
+    "published_endpoints": [
+      0,
+      11.6
+    ],
+    "error": -2.244713376942098e-05,
+    "normalized_error": 2.244713376942098e-05,
+    "pass_tolerance": true
+  },
+  {
+    "name": "education_slope_example1_80",
+    "actual": 0.6343543916840846,
+    "expected": 0.6343778193366588,
+    "unit": "",
+    "production_endpoints": [
+      -9.999869977869418,
+      22.65296326642286
+    ],
+    "independent_endpoints": [
+      -9.99997176201,
+      22.65331206584
+    ],
+    "published_endpoints": [
+      0,
+      11.6
+    ],
+    "error": -2.342765257423718e-05,
+    "normalized_error": 2.342765257423718e-05,
+    "pass_tolerance": true
+  },
+  {
+    "name": "education_slope_example1_160",
+    "actual": 0.6348636340571613,
+    "expected": 0.6348873828400328,
+    "unit": "",
+    "production_endpoints": [
+      -9.999869977869418,
+      22.65296326642286
+    ],
+    "independent_endpoints": [
+      -9.99997176201,
+      22.65331206584
+    ],
+    "published_endpoints": [
+      0,
+      11.6
+    ],
+    "error": -2.3748782871479968e-05,
+    "normalized_error": 2.3748782871479968e-05,
+    "pass_tolerance": true
+  },
+  {
+    "name": "education_slope_search_4",
+    "actual": 2.0288318575760527,
+    "expected": 2.0288405356186514,
+    "unit": "",
+    "circle": [
+      2.2304873308228137,
+      14.885483310740822,
+      10.6259549255589
+    ],
+    "published": 2.0288,
+    "error": -8.678042598742053e-06,
+    "normalized_error": 4.27734089810852e-06,
+    "pass_tolerance": true
+  },
+  {
+    "name": "education_slope_search_20",
+    "actual": 2.1595363227844513,
+    "expected": 2.1595353753878817,
+    "unit": "",
+    "circle": [
+      2.437596492589131,
+      15.06513732831202,
+      10.356073134757088
+    ],
+    "published": 2.1595,
+    "error": 9.473965696393805e-07,
+    "normalized_error": 4.387038899370728e-07,
+    "pass_tolerance": true
+  },
+  {
+    "name": "education_slope_search_40",
+    "actual": 2.162582120021155,
+    "expected": 2.162590399043544,
+    "unit": "",
+    "circle": [
+      2.6121394897647825,
+      14.888413379669514,
+      10.227710438677462
+    ],
+    "published": 2.1626,
+    "error": -8.279022389423574e-06,
+    "normalized_error": 3.8282896257586105e-06,
+    "pass_tolerance": true
+  },
+  {
+    "name": "education_slope_water",
+    "actual": 0.9111636458058006,
+    "expected": null,
+    "unit": "",
+    "published": 0.9112,
+    "circle": [
+      3.0379271063293496,
+      11.981164806279061,
+      7.613789280193556
+    ]
+  },
+  {
+    "name": "education_slope_kh",
+    "actual": 1.743844368465584,
+    "expected": null,
+    "unit": "",
+    "published": 1.744,
+    "circle": [
+      2.8417345072429647,
+      15.611477740707237,
+      10.98567593434677
+    ]
+  },
+  {
+    "name": "education_bearing_example1",
+    "actual": 782.2724707152701,
+    "expected": 782.2724707152704,
+    "unit": "kPa",
+    "published": 782.27,
+    "error": -3.410605131648481e-13,
+    "normalized_error": 4.3598685359974333e-16,
+    "pass_tolerance": true
+  },
+  {
+    "name": "education_bearing_example2",
+    "actual": 326.4,
+    "expected": 326.4,
+    "unit": "kPa",
+    "published": 326.4,
+    "error": 0.0,
+    "normalized_error": 0.0,
+    "pass_tolerance": true
+  },
+  {
+    "name": "education_rankine_example",
+    "actual": 3.181818181818182,
+    "expected": 3.1818181818181817,
+    "unit": "m",
+    "published": 3.1818,
+    "error": 4.440892098500626e-16,
+    "normalized_error": 1.395708945243054e-16,
+    "pass_tolerance": true
+  },
+  {
+    "name": "figure_sloping_beta_0",
+    "actual": 0.3333333333333333,
+    "expected": null,
+    "unit": "",
+    "published": 0.3333
+  },
+  {
+    "name": "figure_sloping_beta_10",
+    "actual": 0.349519833813974,
+    "expected": null,
+    "unit": "",
+    "published": 0.3495
+  },
+  {
+    "name": "figure_sloping_beta_20",
+    "actual": 0.4142053335576971,
+    "expected": null,
+    "unit": "",
+    "published": 0.4142
+  },
+  {
+    "name": "rankine_nan",
+    "actual": "nan",
+    "expected": null,
+    "unit": "",
+    "expectation": "explicit rejection",
+    "warnings": []
+  },
+  {
+    "name": "rankine_negative_phi",
+    "actual": {
+      "error_type": "GeoTekError",
+      "message": "Rankine requires beta (0.0) <= phi (-20)"
+    },
+    "expected": null,
+    "unit": "",
+    "expectation": "explicit rejection"
+  },
+  {
+    "name": "rankine_negative_steep_beta",
+    "actual": {
+      "error_type": "ValueError",
+      "message": "math domain error"
+    },
+    "expected": null,
+    "unit": "",
+    "expectation": "explicit rejection"
+  },
+  {
+    "name": "coulomb_delta_exceeds_phi",
+    "actual": 0.3318029270002271,
+    "expected": null,
+    "unit": "",
+    "expectation": "explicit rejection",
+    "warnings": []
+  },
+  {
+    "name": "coulomb_inf",
+    "actual": {
+      "error_type": "ValueError",
+      "message": "math domain error"
+    },
+    "expected": null,
+    "unit": "",
+    "expectation": "explicit rejection"
+  },
+  {
+    "name": "seismic_negative_kh",
+    "actual": -11.309932474020215,
+    "expected": null,
+    "unit": "",
+    "expectation": "explicit rejection",
+    "warnings": []
+  },
+  {
+    "name": "seismic_kv1",
+    "actual": {
+      "error_type": "GeoTekError",
+      "message": "kv must be < 1"
+    },
+    "expected": null,
+    "unit": "",
+    "expectation": "explicit rejection"
+  },
+  {
+    "name": "seed_negative",
+    "actual": -0.15000000000000002,
+    "expected": null,
+    "unit": "",
+    "expectation": "explicit rejection",
+    "warnings": []
+  },
+  {
+    "name": "surcharge_bad_basis_beta0",
+    "actual": 10,
+    "expected": null,
+    "unit": "",
+    "expectation": "explicit rejection",
+    "warnings": []
+  },
+  {
+    "name": "tbdy_nan",
+    "actual": [
+      "nan",
+      "nan"
+    ],
+    "expected": null,
+    "unit": "",
+    "expectation": "explicit rejection",
+    "warnings": []
+  },
+  {
+    "name": "wedge_bad_state",
+    "actual": {
+      "K": 2.9999999999999996,
+      "force": 674.9999999999999,
+      "rho": 29.999999979346505
+    },
+    "expected": null,
+    "unit": "",
+    "expectation": "explicit rejection",
+    "warnings": []
+  },
+  {
+    "name": "wedge_kv1",
+    "actual": {
+      "K": "nan",
+      "force": 0.0,
+      "rho": 0.13088722473812267
+    },
+    "expected": null,
+    "unit": "",
+    "expectation": "explicit rejection",
+    "warnings": [
+      "invalid value encountered in scalar divide"
+    ]
+  },
+  {
+    "name": "wedge_negative_phi",
+    "actual": {
+      "K": 3640.8348460813077,
+      "force": 819187.8403682943,
+      "rho": 0.005729577951308232
+    },
+    "expected": null,
+    "unit": "",
+    "expectation": "explicit rejection",
+    "warnings": []
+  },
+  {
+    "name": "wedge_n0",
+    "actual": {
+      "error_type": "GeoTekError",
+      "message": "No admissible wedge for this geometry"
+    },
+    "expected": null,
+    "unit": "",
+    "expectation": "explicit rejection"
+  },
+  {
+    "name": "logspiral_H_negative",
+    "actual": {
+      "error_type": "GeoTekError",
+      "message": "Log-spiral search found no admissible mechanism"
+    },
+    "expected": null,
+    "unit": "",
+    "expectation": "explicit rejection"
+  },
+  {
+    "name": "logspiral_gamma_negative",
+    "actual": {
+      "error_type": "GeoTekError",
+      "message": "Log-spiral search found no admissible mechanism"
+    },
+    "expected": null,
+    "unit": "",
+    "expectation": "explicit rejection"
+  },
+  {
+    "name": "bearing_nan_B",
+    "actual": {
+      "q_ult": "nan",
+      "Q_ult": "nan"
+    },
+    "expected": null,
+    "unit": "",
+    "expectation": "explicit rejection",
+    "warnings": []
+  },
+  {
+    "name": "bearing_negative_gamma",
+    "actual": {
+      "q_ult": -403.244752879882,
+      "Q_ult": -806.489505759764
+    },
+    "expected": null,
+    "unit": "",
+    "expectation": "explicit rejection",
+    "warnings": []
+  },
+  {
+    "name": "bearing_negative_c",
+    "actual": {
+      "q_ult": 101.84847496469115,
+      "Q_ult": 203.6969499293823
+    },
+    "expected": null,
+    "unit": "",
+    "expectation": "explicit rejection",
+    "warnings": []
+  },
+  {
+    "name": "bearing_negative_H",
+    "actual": {
+      "q_ult": 403.244752879882,
+      "Q_ult": 806.489505759764
+    },
+    "expected": null,
+    "unit": "",
+    "expectation": "explicit rejection",
+    "warnings": []
+  },
+  {
+    "name": "bearing_overlarge_H",
+    "actual": {
+      "q_ult": -17.320508075688775,
+      "Q_ult": -34.64101615137755
+    },
+    "expected": null,
+    "unit": "",
+    "expectation": "explicit rejection",
+    "warnings": []
+  },
+  {
+    "name": "bearing_unknown_method_phi0",
+    "actual": [
+      5.14,
+      1.0,
+      0.0
+    ],
+    "expected": null,
+    "unit": "",
+    "expectation": "explicit rejection",
+    "warnings": []
+  },
+  {
+    "name": "resultant_descending_z",
+    "actual": [
+      -10.0,
+      "nan"
+    ],
+    "expected": null,
+    "unit": "",
+    "expectation": "explicit rejection",
+    "warnings": []
+  },
+  {
+    "name": "resultant_mismatched",
+    "actual": [
+      3.0,
+      1.0555555555555554
+    ],
+    "expected": null,
+    "unit": "",
+    "expectation": "explicit rejection",
+    "warnings": []
+  },
+  {
+    "name": "resultant_nan",
+    "actual": [
+      "nan",
+      "nan"
+    ],
+    "expected": null,
+    "unit": "",
+    "expectation": "explicit rejection",
+    "warnings": []
+  },
+  {
+    "name": "resultant_zero_sigma",
+    "actual": [
+      0.0,
+      "nan"
+    ],
+    "expected": null,
+    "unit": "",
+    "expectation": "force=0; centroid undefined NaN",
+    "warnings": []
+  },
+  {
+    "name": "slope_surface_empty",
+    "actual": "SlopeModel(surface=[], layers=[SoilBand(top=10, gamma=18, c=0.0, phi=0.0)], water_level=None, loads=[], kh=0.0)",
+    "expected": null,
+    "unit": "",
+    "expectation": "explicit rejection",
+    "warnings": []
+  },
+  {
+    "name": "slope_nan",
+    "actual": "SlopeModel(surface=[(0, nan), (10, 10)], layers=[SoilBand(top=10, gamma=18, c=0.0, phi=0.0)], water_level=None, loads=[], kh=0.0)",
+    "expected": null,
+    "unit": "",
+    "expectation": "explicit rejection",
+    "warnings": []
+  },
+  {
+    "name": "slope_negative_gamma",
+    "actual": "SlopeModel(surface=[(-30, 0), (0, 0), (20, 10), (50, 10)], layers=[SoilBand(top=10, gamma=-18, c=0.0, phi=0.0)], water_level=None, loads=[], kh=0.0)",
+    "expected": null,
+    "unit": "",
+    "expectation": "explicit rejection",
+    "warnings": []
+  },
+  {
+    "name": "bishop_n0",
+    "actual": null,
+    "expected": null,
+    "unit": "",
+    "expectation": "explicit rejection or None",
+    "warnings": []
+  },
+  {
+    "name": "bishop_negative_radius",
+    "actual": null,
+    "expected": null,
+    "unit": "",
+    "expectation": "explicit rejection or None",
+    "warnings": []
+  },
+  {
+    "name": "bishop_no_convergence",
+    "actual": null,
+    "expected": null,
+    "unit": "",
+    "expectation": "explicit rejection or None",
+    "warnings": []
+  },
+  {
+    "name": "bishop_nan_center",
+    "actual": null,
+    "expected": null,
+    "unit": "",
+    "expectation": "explicit rejection or None",
+    "warnings": []
+  },
+  {
+    "name": "bishop_inf_center",
+    "actual": null,
+    "expected": null,
+    "unit": "",
+    "expectation": "explicit rejection or None",
+    "warnings": []
+  }
+]

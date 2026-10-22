@@ -1,0 +1,22 @@
+Zemin etüdü ve parametreler
+
+Proje: UX Araştırma 2026
+
+Kaydet
+TR
+EN
+Ana menüye dön
+Arazi verileri
+Zemin profilleri
+Mühendislik parametreleri
+Sınıflandırma
+Arazi Verileri
+
+CPT deneyleri, SPT sondajları ve saha sondaj logları.
+
+CPT verisi içe aktar (CSV)
+SPT verisi içe aktar (CSV)
+Yeni sondaj (elle)
+Arazi verisi bulunmuyor
+
+Projeye henüz CPT veya SPT sondajı eklenmemiş.

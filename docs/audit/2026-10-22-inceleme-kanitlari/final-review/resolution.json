@@ -1,0 +1,21 @@
+{
+  "reviewer_model": "gpt-6-astra",
+  "reasoning_effort": "high",
+  "execution_stage_review_tasks": 1,
+  "critical_findings_retracted": 0,
+  "reviewed_document_sha256": {
+    "docs/audit/2026-10-22-kullanilabilirlik-iyilestirme-onerileri.md": "a4c5773216929c9e3e69321fedccd51c5e24e9ec436f7ada54fb9ed5ec10bebe",
+    "docs/audit/2026-10-22-arayuz-islev-muhendislik-incelemesi.md": "d41ad6f1f4f288bf08d3aabe065a76614442aeac61df7703f5aa8cb8b2ff580e"
+  },
+  "documentation_corrections": {
+    "source_profile_approval_before_structure_copy": "applied and inspected",
+    "education_navigation_and_acceptance": "applied and inspected",
+    "GFM_table_and_empty_heading": "applied; delivery validator follows",
+    "handoff_draft_wording": "applied",
+    "mobile_access_priority_consistency": "applied and inspected",
+    "replay_to_separate_temp_workspace": "applied; copy step exercised by writer"
+  },
+  "production_code_changes": false,
+  "new_primary_source_verification": false,
+  "recorded_utc": "2026-10-22T15:32:47.701601+00:00"
+}

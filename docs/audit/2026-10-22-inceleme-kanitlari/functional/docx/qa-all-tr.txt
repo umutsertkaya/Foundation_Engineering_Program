@@ -1,0 +1,429 @@
+Rapor
+QA İŞLEV GeoTek
+Proje bilgileri
+
+Zemin profili: QA Kum 0-40m (kaynak test)
+
+
+Zemin profili: QA Sulu iki tabaka
+
+
+İstinat yapısı: QA Konsol 5m
+
+Geometri
+
+Kayma dişi sonuçları
+
+
+Diş derinliği taşıma gücünde gömülmeye eklenmez (tutucu); betonarme dişin donatı tasarımı yapılmaz, yalnız V ve M istemleri verilir.
+Sonuç: Sağlıyor
+Belirleyici kontrol: Deprem · Kayma
+Kontroller
+
+Varsayımlar
+Beton birim hacim ağırlığı 24 kN/m³ (WallSettings; mevcut varsayılan 24 kN/m³, proje girdisi)
+Statik YASS senaryosu design; arka derinlik 100 m, ön derinlik 100 m (StructureSoilModel; None olduğunda profil YASS'ı)
+Taban, tutulan zemin yüzeyinden H derinliktedir; ön zemin H-D kotundadır; ön kazının kaldırdığı örtü gerilmesi hesaba katılmaz (P1 sözleşmesi §1 ve §5)
+Katmanlar yataydır; her katmanın Coulomb katsayısı tüm üst katmanların düşey gerilmesine uygulanır; bu yaklaşım katmanlı bir kritik kama çözümü değildir (Das, Principles of Foundation Engineering; P1 §5 yerel katsayı yaklaşımı)
+Coulomb drene itkide c' katkısı ihmal edilir; drenajsız yatay zeminde toplam gerilme ve s_u kullanılır, yatay su ikinci kez eklenmez (lateral_pressure sözleşmesi; Rankine toplam gerilme çözümü)
+Topuk üzerindeki zemin katman ve su kotlarında poligonlara bölünür; su altında toplam γ_sat ağırlığı ve tabanda ayrıca kaldırma kullanılır (Statik denge; Terzaghi etkin gerilme ilkesi)
+Arka/ön su seviyesi yapı YASS değeridir (yoksa profil YASS); hidrostatik yatay basınç ve ön/arka taban basınçları arasında doğrusal kaldırma; sızma hesabı yok (P1 §1.4; USACE EM 1110-2-2502 hidrostatik yük modeli)
+Taşıma gücü yalnız taban katmanıyla hesaplanır; B içinde daha zayıf katman uyarılır; iki tabakalı taşıma gücü ve oturma hesabı yapılmaz (P1 §5)
+Taban delta_base değeri verilmemişse mevcut FoundationSoil varsayılanıyla delta_base=phi kullanılır; aderans 0 alınır (FoundationSoil sözleşmesi)
+Taşıma gücü yöntemi: vesic; eğik yük ve B'=B-2|e| dahil; taban/ön arazi eğimi çarpanları 1 (Mevcut bearing_capacity/profil adaptörü; Bowles, 5. baskı, Tablo 4-1/4-5)
+Kaldırma momenti devrilme talebine eklenir: FS_ot=M_R/(M_O+M_U) (Mühendis seçimi; varsayılan güvenli taraf)
+Drene N_gamma YASS düzeltmesi açık: d_w ön suyun taban altı derinliği; d_w≤0 için γ', 0<d_w<B için γ'+(d_w/B)(γ−γ'), d_w≥B için γ (Das, Principles of Foundation Engineering, taşıma gücüne yeraltı suyu etkisi (Durum III))
+Gömülme D = 0.60 m; boyut araması 0.05 m adımla B ≤ 1.2H (Ön boyutlandırma oranları (Das, Principles of Foundation Engineering; mühendislik yargısı))
+Boyutlandırmada kesit oranları mevcut proportion_for fonksiyonundan alınır (Ön boyutlandırma oranları (Das, Principles of Foundation Engineering; mühendislik yargısı))
+ASD global GS durumunda yük katsayılanmaz; kısmi katsayıda WA ayrı kullanıcı girdisidir ve G/EH katsayısından türetilmez; material.gamma uygulanmaz, DC/EV yük katsayıları kullanılır (P1 §5; mevcut limit_state sözleşmesi)
+Topuk ucundan düşey sanal düzlem: H_v=H+topuk·tanβ; ek üst kısım en üst katmandır; δ=β (Klasik konsol duvar yaklaşımı; P1 §5)
+Pasif direnç hesaba katılmadı (Kullanıcı/WallSettings; varsayılan 0.5 için doğrulanmış normatif kaynak yok)
+Kayma dişi (heel, b = 0.5 m, d = 0.5 m): pasif direnç ön yüzde Rankine K_p ile, düşey gerilme ön zemin seviyesinden başlar (ön dolgu + temel zemini γ); azaltma katsayısı 0.5 (ODTÜ CE366 örneğindeki FS_p = 2 ile aynı); depremde (1−k_v)K_PE/K_P ile azaltılır. Diş pasifi 'pasif direnç' ayarından bağımsız sayılır; ön zemin kazı veya oyulmayla kalkabiliyorsa gömülme D = 0 girilmelidir (Das, Principles of Foundation Engineering (taban dişi, D1 = D + diş derinliği); ODTÜ CE366 Recitation 5 P1 (P_p = 65D + 32.5D², FS_p = 2))
+Kayma iki yüzeyde kontrol edilir: taban yüzeyi (V tanδ_b + c_a·B′ + diş pasifi) ve diş ucundan geçen yatay düzlem ((ΣV + diş yanı zemin ağırlığı) tanφ + c·B′ + diş pasifi). Diş ucu düzleminde itki topuk hattında diş tabanına kadar uzatılır (temel zemini K_a, δ = β; sürşarj, su ve deprem artışları ile diş yanı zeminin ataleti dahil). Küçük güvenlik oranı yönetir. Drenajsız temel zemininde deprem veya eğimli dolguyla diş bölgesi itkisi hesaplanamaz; analiz açık hata ile durur (Das, Principles of Foundation Engineering (taban dişi, D1 = D + diş derinliği); ODTÜ CE366 Recitation 5 P1 (P_p = 65D + 32.5D², FS_p = 2))
+Taşıma gücünde diş derinliği gömülmeye eklenmez (her durumda tutucu); diş için yalnız kesme ve moment talebi verilir (V = azaltılmamış statik pasif, M = V·kol); betonarme tasarımı yapılmaz (Koordinatör kararı; tutucu)
+Genel (global) stabilite diş olmadan hesaplanır: Bishop dairesi taban altından geçer, diş hacmi zemin olarak sayılır. Dayanım tarafı tutucudur (beton zeminden dayanıklı); ihmal edilen beton-zemin ağırlık farkının etkisi küçüktür (Koordinatör kararı; tutucu)
+Ön ayak üzerindeki doğal zemin ağırlığı ihmal edildi (WallSettings)
+Sürşarjın topuk üzerindeki düşey yükü dengeleyici sayılmadı (WallDesignInputs)
+Deprem YASS senaryosu seismic; arka derinlik 100 m, ön derinlik 100 m (StructureSoilModel; depth_seismic, yoksa depth_insitu)
+k_h=0.4·S_DS/r, |k_v|=0.5·k_h, r=1.5; dinamik itki artımı H_v/2'de (TBDY 2018 Denk. 16.22, Tablo 16.7, 16.12.2.8)
+M-O katman bazında; statik su hidrostatiktir; sıvılaşma ve fazla boşluk suyu basıncı hesaplanmaz; drenajsız deprem itkisi durdurulur; β > φ' − ψ için TBDY Denk. 16.24b kullanılır (Mononobe & Matsuo (1929), Okabe (1926); TBDY Denk. 16.24b; E4 kapsam sınırı)
+Bishop daireleri taban altından geçer; taşınan ağırlık taban izine eşdeğer yük olarak yayılır; kayma modelinde tek yatay su kotu için ön/arka YASS'ın yükseği alınır; bantlar yatay ve en alt bant sonsuzdur; ön taraftaki taban üstü ince şerit de tutulan taraf bantlarıyla temsil edilir; global dilimlerde k_v uygulanmaz (Bishop (1955); mevcut wall_global_stability yaklaşımı; E4 model varsayımı)
+Kullanılan katsayılar
+
+Uyarılar
+Taşıma gücünde diş derinliği gömülmeye eklenmedi (bilinçli tutucu kabul: taşıma gücü olduğundan küçük hesaplanır)
+Düşey deprem katsayısı ±kv zarfı uygulandı (TBDY 16.12.2.3); yöneten işaret kontrol bazında detayda belirtilmiştir.
+Palplanş: QA Konsol palplanş
+
+Varsayımlar
+Katmanlı Rankine aktif/pasif; ön/arka profil ve YASS ayrı; hidrostatik su; sızma yok (Rankine (1857); P1 §1)
+Pasif basınç GS=1.5 ile bölündü; tanφ′ ve c′ de GS ile bölünerek bulunan pasif basınç daha küçükse o alındı (yüksek φ′; USACE EM 1110-2-2504 5-2d) (USACE EM 1110-2-2504 Tablo 5-1: perde duvarı, serbest drenajlı zemin, olağan durum 1.50 (S durumu); ince daneli zeminde Q durumu 2.00 (programda ayrı değer yok))
+Konsolda Blum gömülmesi %20 artırılır; ankrajlıda serbest zemin desteği (Mevcut sheet_pile.py; USS Steel Sheet Piling Design Manual / USACE EM 1110-2-2504)
+Eğimli arka zemin β = 10.0°: Rankine eğimli dolgu katsayısı (bileşke yüzeye paralel), ön taraf yatay; eğimli zeminde c′ ihmal; deprem M-O (δ = β), β > φ′ − ψ ise durdurulur (Rankine (1857); Mononobe-Okabe; Das, Principles of Foundation Engineering Ch. 7)
+Palplanş: QA Ankrajlı palplanş
+
+Varsayımlar
+Katmanlı Rankine aktif/pasif; ön/arka profil ve YASS ayrı; hidrostatik su; sızma yok (Rankine (1857); P1 §1)
+Pasif basınç GS=1.5 ile bölündü; tanφ′ ve c′ de GS ile bölünerek bulunan pasif basınç daha küçükse o alındı (yüksek φ′; USACE EM 1110-2-2504 5-2d) (USACE EM 1110-2-2504 Tablo 5-1: perde duvarı, serbest drenajlı zemin, olağan durum 1.50 (S durumu); ince daneli zeminde Q durumu 2.00 (programda ayrı değer yok))
+Konsolda Blum gömülmesi %20 artırılır; ankrajlıda serbest zemin desteği (Mevcut sheet_pile.py; USS Steel Sheet Piling Design Manual / USACE EM 1110-2-2504)
+Eğimli arka zemin β = 10.0°: Rankine eğimli dolgu katsayısı (bileşke yüzeye paralel), ön taraf yatay; eğimli zeminde c′ ihmal; deprem M-O (δ = β), β > φ′ − ψ ise durdurulur (Rankine (1857); Mononobe-Okabe; Das, Principles of Foundation Engineering Ch. 7)
+Ankraj yükü = duvar kuvveti × aralık / cos(eğim); aralık 1.0 m, eğim 0.0° (SheetPileStructure; geotek.engine.sheet_pile.anchored_sheet_pile)
+İstinat yapısı: QA Ağırlık sulu 5m
+
+Geometri
+
+Sonuç: Sağlamıyor
+Belirleyici kontrol: Statik · Devrilme; Statik · Kayma; Statik · Taşıma gücü; Deprem · Devrilme; Deprem · Kayma; Deprem · Eksantrisite (e/B); Deprem · Taşıma gücü; Statik · Toptan göçme; Deprem · Toptan göçme
+Kontroller
+
+Varsayımlar
+Beton birim hacim ağırlığı 24 kN/m³ (WallSettings; mevcut varsayılan 24 kN/m³, proje girdisi)
+Statik YASS senaryosu design; arka derinlik 2 m, ön derinlik 2 m (StructureSoilModel; None olduğunda profil YASS'ı)
+Taban, tutulan zemin yüzeyinden H derinliktedir; ön zemin H-D kotundadır; ön kazının kaldırdığı örtü gerilmesi hesaba katılmaz (P1 sözleşmesi §1 ve §5)
+Katmanlar yataydır; her katmanın Coulomb katsayısı tüm üst katmanların düşey gerilmesine uygulanır; bu yaklaşım katmanlı bir kritik kama çözümü değildir (Das, Principles of Foundation Engineering; P1 §5 yerel katsayı yaklaşımı)
+Coulomb drene itkide c' katkısı ihmal edilir; drenajsız yatay zeminde toplam gerilme ve s_u kullanılır, yatay su ikinci kez eklenmez (lateral_pressure sözleşmesi; Rankine toplam gerilme çözümü)
+Topuk üzerindeki zemin katman ve su kotlarında poligonlara bölünür; su altında toplam γ_sat ağırlığı ve tabanda ayrıca kaldırma kullanılır (Statik denge; Terzaghi etkin gerilme ilkesi)
+Arka/ön su seviyesi yapı YASS değeridir (yoksa profil YASS); hidrostatik yatay basınç ve ön/arka taban basınçları arasında doğrusal kaldırma; sızma hesabı yok (P1 §1.4; USACE EM 1110-2-2502 hidrostatik yük modeli)
+Taşıma gücü yalnız taban katmanıyla hesaplanır; B içinde daha zayıf katman uyarılır; iki tabakalı taşıma gücü ve oturma hesabı yapılmaz (P1 §5)
+Taban delta_base değeri verilmemişse mevcut FoundationSoil varsayılanıyla delta_base=phi kullanılır; aderans 0 alınır (FoundationSoil sözleşmesi)
+Taşıma gücü yöntemi: vesic; eğik yük ve B'=B-2|e| dahil; taban/ön arazi eğimi çarpanları 1 (Mevcut bearing_capacity/profil adaptörü; Bowles, 5. baskı, Tablo 4-1/4-5)
+Kaldırma momenti devrilme talebine eklenir: FS_ot=M_R/(M_O+M_U) (Mühendis seçimi; varsayılan güvenli taraf)
+Drene N_gamma YASS düzeltmesi açık: d_w ön suyun taban altı derinliği; d_w≤0 için γ', 0<d_w<B için γ'+(d_w/B)(γ−γ'), d_w≥B için γ (Das, Principles of Foundation Engineering, taşıma gücüne yeraltı suyu etkisi (Durum III))
+Gömülme D = 0.60 m; boyut araması 0.05 m adımla B ≤ 1.2H (Ön boyutlandırma oranları (Das, Principles of Foundation Engineering; mühendislik yargısı))
+Boyutlandırmada kesit oranları mevcut proportion_for fonksiyonundan alınır (Ön boyutlandırma oranları (Das, Principles of Foundation Engineering; mühendislik yargısı))
+ASD global GS durumunda yük katsayılanmaz; kısmi katsayıda WA ayrı kullanıcı girdisidir ve G/EH katsayısından türetilmez; material.gamma uygulanmaz, DC/EV yük katsayıları kullanılır (P1 §5; mevcut limit_state sözleşmesi)
+İtki gerçek eğimli arka yüzde; θ=atan(arka kaçıklık/H), katman başına δ=2φ'/3 (TBDY 2018 16.12.2.9 (aktif durumda δ ≤ 2φ'/3))
+Pasif direnç hesaba katılmadı (Kullanıcı/WallSettings; varsayılan 0.5 için doğrulanmış normatif kaynak yok)
+Ön ayak üzerindeki doğal zemin ağırlığı ihmal edildi (WallSettings)
+Sürşarjın topuk üzerindeki düşey yükü dengeleyici sayılmadı (WallDesignInputs)
+Deprem YASS senaryosu seismic; arka derinlik 2 m, ön derinlik 2 m (StructureSoilModel; depth_seismic, yoksa depth_insitu)
+k_h=0.4·S_DS/r, |k_v|=0.5·k_h, r=1.5; dinamik itki artımı H_v/2'de (TBDY 2018 Denk. 16.22, Tablo 16.7, 16.12.2.8)
+M-O katman bazında; statik su hidrostatiktir; sıvılaşma ve fazla boşluk suyu basıncı hesaplanmaz; drenajsız deprem itkisi durdurulur; β > φ' − ψ için TBDY Denk. 16.24b kullanılır (Mononobe & Matsuo (1929), Okabe (1926); TBDY Denk. 16.24b; E4 kapsam sınırı)
+Su altı deprem seçimi: envelope; γ*=γ_sat−γ_w; geçirimsiz tanψ=γ_sat/γ*·kh/(1−kv), geçirimli tanψ=γ/γ*·kh/(1−kv) (γ doğal birim ağırlık); dinamik su kh=0.4·S_DS (r=1). Taban sanal arka düzlemin altıdır; kısmi batıklık katman bazında mühendislik yargısıdır; karışık geçirgenlikte herhangi bir geçirimli katman için tam su yüksekliği bir kez kullanılır (doğrulanmamış mühendislik yaklaşımı); dış serbest su modellenmez. Yöneten seçim durum uyarılarında; dinamik suyun kuvvet ve konumu forces içindedir. (TBDY 2018 16.12.3.2, Denk. 16.26 ve 16.20)
+Bishop daireleri taban altından geçer; taşınan ağırlık taban izine eşdeğer yük olarak yayılır; kayma modelinde tek yatay su kotu için ön/arka YASS'ın yükseği alınır; bantlar yatay ve en alt bant sonsuzdur; ön taraftaki taban üstü ince şerit de tutulan taraf bantlarıyla temsil edilir; global dilimlerde k_v uygulanmaz (Bishop (1955); mevcut wall_global_stability yaklaşımı; E4 model varsayımı)
+Kullanılan katsayılar
+
+Uyarılar
+Eğimli arka yüzdeki zemin ağırlığı Coulomb itkisine dahildir; ayrıca eklenmedi
+Kazı Destek Yapıları Tasarım ve Uygulama Esasları (16.07.2026 değişikliği) ek şartları kontrol edilmelidir; bu belge yazılımda incelenmedi.
+Kısmen su altındaki dolgu yönetmelik formüllerinin kapsamı dışındadır; katman bazında mühendislik yargısı uygulandı — sonucu kontrol edin.
+Su altındaki dolgu: deprem itkisi TBDY 2018 Denk. 16.26 ile hesaplandı (EN 1998-5 Ek E ile uyumlu); seçim: envelope, yöneten: pervious.
+Düşey deprem katsayısı ±kv zarfı uygulandı (TBDY 16.12.2.3); yöneten işaret kontrol bazında detayda belirtilmiştir.
+coefficients.py notu: TBDY 2018 16.12.2.2 — boşluk suyu basıncı artışı olabilecek durumlarda r ≤ 1 gerekebilir; r değerini kontrol edin.
+Su altındaki dolgu: TBDY Denk. 16.20 dinamik su ve 16.26 r=1 varsayar (water_kh=0.4·S_DS); r>1 ile zemin itkisinin azaltılması mühendis tarafından gerekçelendirilmelidir.
+Zemin sınıflandırması
+Robertson SBTn (CPT)
+QA-CPT
+
+Sıvılaşma analizi
+
+
+Uyarılar
+QA-SPT: Laboratuvar FC değeri olmayan 1.5, 3, 4.5, 6, 7.5, 9, 10.5, 12, 13.5 m derinliklerinde varsayılan FC = %5.0 kullanıldı.
+QA-SPT: 1 SPT kaydı refüde; 13.5 m derinlik(ler)inde N alt sınırdır.
+QA-SPT: σ′v0 > 200 kPa: Liao & Whitman C_N önerilen aralığının dışında.
+QA-SPT: Refü darbe sayıları alt sınırdır; bu noktalardaki GS tutucudur.
+Ankrajlı duvar analizi
+
+Kullanılan zemin tabakaları
+
+Görünür basınç zarfı (kum): p_max = 45.0 kPa, toplam itki 390.0 kN/m.
+Ankraj seviyeleri
+
+Varsayımlar
+Görünür basınç zarfı (kum), yatay zemin: FHWA GEC-4 5.2.4–5.2.6 (kum ve sert kil trapez, Şekil 24 ve 27; yumuşak kil Şekil 23c). Ampirik bir yöntemdir.
+Ankraj yükleri menteşe yöntemiyle: ilk ankraj dışında her ankrajda menteşe; momentler aynı modelden.
+Gömülme: taban reaksiyonu R_B ve taban altı net basınç (pasif, girilen güvenlik sayısına bölünmüş; tanφ′ ve c′ de bu sayıya bölünerek bulunan pasif basınç daha küçükse o alınır, USACE EM 1110-2-2504 5-2d) altında uç noktaya göre moment dengesi. GEC-4 5.5.3 kuvvet ölçütünden daha derin sonuç verir.
+Gömülme artışı verilmedi: D = D0 (1 + 0.2).
+Ankraj tasarım girdileri verilmedi: yalnız ankraj yükleri, serbest veya kök boyu yok.
+Çelik veya betonarme kesit tasarımı yok: kesme ve moment talepleri verilir, M/W yalnız verilen gerilmeyle karşılaştırılır.
+Uyarılar
+Dış (genel) stabilite ve derin kayma (Kranz) kontrol edilmedi. Ankrajların arkasından ve içinden geçen kayma yüzeyleri için limit denge analizi ayrıca yapılmalı; GEC-4 5.8.3'e göre en az FS = 1,3 (kritik kalıcı yapıda 1,5).
+Gömülme, uç noktasına göre moment dengesinden bulundu (GEC-4 5.5.3 kuvvet ölçütünden daha derin, güvenli taraf). Uçta 257.9 kN/m kuvvet artığı dengelenmedi; bu kuvvet kesme maksimumuna katılmadı, gömülü kısmın kesiti için ayrıca değerlendirilmeli.
+Kaynaklar
+FHWA GEC-4 (FHWA-IF-99-015) 5.2.4-5.2.6, figures 23, 24, 27-29, eq. 9-12 (apparent earth pressure envelopes)
+FHWA GEC-4 (FHWA-IF-99-015) 5.3.3, figures 33-34 (hinge and tributary methods), 5.4.1 (wall moments)
+FHWA GEC-4 (FHWA-IF-99-015) 5.5.3 (embedment; passive factor of safety)
+FHWA GEC-4 (FHWA-IF-99-015) 5.8.3 (external stability: not analysed, check separately)
+Zemin ankrajı tasarımı
+
+
+Varsayımlar
+Kök bölgesi kayma yüzeyinin 2.0 m ötesinde başlar; mesafe yüzeye dik ölçülür (GEC-4 Şekil 37a: χ = 1,5 m veya 0,2H, büyüğü).
+En az serbest boy 4.5 m (strand) kabul edildi (GEC-4 5.3.4).
+Kayma yüzeyi kazı tabanı köşesinden başlar (GEC-4 5.3.2).
+Arka zemin yatay, duvar yüzü düşey kabul edildi; eğimli zemin bu aşamada desteklenmiyor.
+Azami deneme yükü = 1.33 × tasarım yükü (GEC-4 s. 75-77).
+Tendon sınırları 0,6 / 0,7 / 0,8 SMTS (tasarım / kilitleme / deneme), GEC-4 s. 77.
+Yük aktarımı değeri kaynağı: QA: tests/api/test_anchored_wall_api.py BODY (ön tasarım; ankraj deneyi ile doğrulanır).
+En küçük kök boyu 4.5 m (soil, strand) alındı (GEC-4 Ek E, 3B).
+Kaynaklar
+FHWA GEC-4 (FHWA-IF-99-015) sections 5.3.2-5.3.4, 5.3.6-5.3.8, fig. 37 (lengths, spacing, tendon limits)
+FHWA GEC-4 (FHWA-IF-99-015) appendix E part 3B, p. E-15 (minimum bond length)
+FHWA GEC-4 (FHWA-IF-99-015) Eq. 19-21, p. 66-67 (anchor load)
+TABLE 0
+Kalem | Değer
+Proje adı | QA İŞLEV GeoTek
+Proje no | QA-FUN
+Mühendis | QA denetimi — tasarım değildir
+Tarih | 2026-10-22
+Tasarım yönetmeliği | AASHTO LRFD
+Analiz düzeyi | Temel
+PGA [g] | -
+Mw | -
+SDS | -
+SD1 | -
+Zemin sınıfı | -
+TABLE 1
+Kalem | Değer
+YASS yerinde [m] | 100.00
+YASS tasarım [m] | 100.00
+YASS deprem [m] | 100.00
+TABLE 2
+Üst [m] | Alt [m] | Tanım | USCS | γ [kN/m³] | γsat [kN/m³] | φ' [°] | c' [kPa] | su [kPa]
+0.00 | 40.00 | - | - | 18.00 | 20.00 | 30.0 | 0.0 | -
+TABLE 3
+Kalem | Değer
+YASS yerinde [m] | 2.00
+YASS tasarım [m] | 2.00
+YASS deprem [m] | 2.00
+TABLE 4
+Üst [m] | Alt [m] | Tanım | USCS | γ [kN/m³] | γsat [kN/m³] | φ' [°] | c' [kPa] | su [kPa]
+0.00 | 6.00 | - | - | 18.00 | 20.00 | 30.0 | 0.0 | -
+6.00 | 40.00 | - | - | 19.00 | 21.00 | 32.0 | 0.0 | -
+TABLE 5
+Kalem | Değer
+Duvar tipi | Konsol duvar
+Yükseklik [m] | 5.00
+Dolgu eğimi [°] | 10.0
+Sürşarj [kPa] | 15.00
+Sürşarj tabanı | Yatay izdüşüm
+YASS durumu | Tasarım
+Tasarım yaklaşımı | -
+kh | 0.133
+kv | 0.067
+TABLE 6
+Kalem | Değer
+Gövde yüksekliği | 4.550
+Gövde üst genişliği | 0.300
+Gövde alt genişliği | 0.450
+Ön ayak | 2.000
+Topuk | 3.550
+Taban kalınlığı | 0.450
+Gömülme D | 0.600
+TABLE 7
+Kalem | Değer
+Konum | Topuk altı
+Diş genişliği (m) | 0.50
+Diş derinliği (m) | 0.50
+TABLE 8
+Durum | GS taban yüzeyi | GS diş ucu düzlemi | GS dişsiz | GS dişli | Kullanılan pasif (kN/m) | Diş kesme istemi V (kN/m) | Diş moment istemi M (kNm/m)
+Statik | 2.11 | 2.01 | 1.99 | 2.01 | 11.5 | 22.9 | 6.3
+Deprem | 1.15 | 1.11 | 1.10 | 1.11 | 9.8 | 22.9 | 6.3
+TABLE 9
+Durum | Kontrol | Değer | Gerekli | Kullanım oranı | Sonuç
+Statik | Devrilme | 6.704 | >= 2.000 | 0.30 | Sağlıyor
+Statik | Kayma | 2.008 | >= 1.500 | 0.75 | Sağlıyor
+Statik | Eksantrisite (e/B) | 0.068 | <= 0.167 | 0.41 | Sağlıyor
+Statik | Taşıma gücü | 5.665 | >= 3.000 | 0.53 | Sağlıyor
+Deprem | Devrilme | 3.386 | >= 1.500 | 0.44 | Sağlıyor
+Deprem | Kayma | 1.106 | >= 1.100 | 0.99 | Sağlıyor
+Deprem | Eksantrisite (e/B) | 0.026 | <= 0.250 | 0.10 | Sağlıyor
+Deprem | Taşıma gücü | 2.330 | >= 2.000 | 0.86 | Sağlıyor
+Statik | Toptan göçme | 1.602 | >= 1.500 | 0.94 | Sağlıyor
+Deprem | Toptan göçme | 1.180 | >= 1.100 | 0.93 | Sağlıyor
+TABLE 10
+Katsayı | Değer | Kaynak | Durum
+safety.overturning.static | 2.000 | Eksantrisite kriterinden türetilmiş yaklaşık değer; doğrudan kaynak yok | Doğrulanmadı
+safety.sliding.static | 1.500 | FHWA-NHI-06-089 Vol. II (2026-10-20 karşılaştırma, secondary) | İkincil kaynak
+eccentricity.soil.static | 0.167 | FHWA-NHI-06-089 Vol. II, B/6 (secondary) | İkincil kaynak
+safety.bearing_capacity.static | 3.000 | FHWA-NHI-06-089 Vol. II, önerilen 3.0 (secondary) | İkincil kaynak
+safety.overturning.seismic | 1.500 | ASD — yaygın uygulama değeri (FHWA-NHI-06-089 ile karşılaştırılmadı) | Doğrulanmadı
+safety.sliding.seismic | 1.100 | ASD — yaygın uygulama değeri (FHWA-NHI-06-089 ile karşılaştırılmadı) | Doğrulanmadı
+eccentricity.soil.seismic | 0.250 | ASD — yaygın uygulama; sismik değerler doğrulanmadı | Doğrulanmadı
+safety.bearing_capacity.seismic | 2.000 | ASD — yaygın uygulama değeri (FHWA-NHI-06-089 ile karşılaştırılmadı) | Doğrulanmadı
+safety.global_stability.static | 1.500 | FHWA-NHI-06-089 Vol. II (secondary) | İkincil kaynak
+safety.global_stability.seismic | 1.100 | ASD — yaygın uygulama değeri (FHWA-NHI-06-089 ile karşılaştırılmadı) | Doğrulanmadı
+TABLE 11
+Kalem | Değer
+Mesnet | Konsol
+Arka zemin eğimi β [°] | 10.0
+Sürşarj [kPa] | 15.00
+Sürşarj tabanı | Yatay izdüşüm
+Tasarım yaklaşımı | -
+Serbest yükseklik H [m] | 4.00
+Teorik gömülme D0 [m] | 5.98
+Tasarım gömülme D [m] | 7.18
+Toplam boy [m] | 11.18
+Ankraj derinliği [m] | -
+Ankraj kuvveti [kN/m] | -
+Uç kuvveti [kN/m] | 283.9
+Maks. moment [kNm/m] | 324.0
+Maks. moment derinliği [m] | 7.40
+Gerekli mukavemet momenti [cm³/m] | -
+TABLE 12
+Kalem | Değer
+Mesnet | Tek ankrajlı
+Arka zemin eğimi β [°] | 10.0
+Sürşarj [kPa] | 15.00
+Sürşarj tabanı | Yatay izdüşüm
+Tasarım yaklaşımı | -
+Serbest yükseklik H [m] | 4.00
+Teorik gömülme D0 [m] | 2.44
+Tasarım gömülme D [m] | 2.44
+Toplam boy [m] | 6.44
+Ankraj derinliği [m] | 1.00
+Ankraj kuvveti [kN/m] | 54.4
+Uç kuvveti [kN/m] | -
+Maks. moment [kNm/m] | 60.1
+Maks. moment derinliği [m] | 3.44
+Gerekli mukavemet momenti [cm³/m] | -
+TABLE 13
+Kalem | Değer
+Duvar tipi | Ağırlık duvarı
+Yükseklik [m] | 5.00
+Dolgu eğimi [°] | 0.0
+Sürşarj [kPa] | 15.00
+Sürşarj tabanı | Yatay izdüşüm
+YASS durumu | Tasarım
+Tasarım yaklaşımı | -
+kh | 0.133
+kv | 0.067
+TABLE 14
+Kalem | Değer
+Yükseklik H | 5.000
+Taban genişliği B | 3.000
+Üst genişlik | 0.800
+Arka yüz çekilmesi | 0.200
+Gömülme D | 0.600
+TABLE 15
+Durum | Kontrol | Değer | Gerekli | Kullanım oranı | Sonuç
+Statik | Devrilme | 1.853 | >= 2.000 | 1.08 | Sağlamıyor
+Statik | Kayma | 1.430 | >= 1.500 | 1.05 | Sağlamıyor
+Statik | Eksantrisite (e/B) | 0.074 | <= 0.167 | 0.45 | Sağlıyor
+Statik | Taşıma gücü | 1.396 | >= 3.000 | 2.15 | Sağlamıyor
+Deprem | Devrilme | 1.200 | >= 1.500 | 1.25 | Sağlamıyor
+Deprem | Kayma | 0.708 | >= 1.100 | 1.55 | Sağlamıyor
+Deprem | Eksantrisite (e/B) | 0.341 | <= 0.250 | 1.36 | Sağlamıyor
+Deprem | Taşıma gücü | 0.023 | >= 2.000 | 85.17 | Sağlamıyor
+Statik | Toptan göçme | 0.684 | >= 1.500 | 2.19 | Sağlamıyor
+Deprem | Toptan göçme | 0.437 | >= 1.100 | 2.52 | Sağlamıyor
+TABLE 16
+Katsayı | Değer | Kaynak | Durum
+safety.overturning.static | 2.000 | Eksantrisite kriterinden türetilmiş yaklaşık değer; doğrudan kaynak yok | Doğrulanmadı
+safety.sliding.static | 1.500 | FHWA-NHI-06-089 Vol. II (2026-10-20 karşılaştırma, secondary) | İkincil kaynak
+eccentricity.soil.static | 0.167 | FHWA-NHI-06-089 Vol. II, B/6 (secondary) | İkincil kaynak
+safety.bearing_capacity.static | 3.000 | FHWA-NHI-06-089 Vol. II, önerilen 3.0 (secondary) | İkincil kaynak
+safety.overturning.seismic | 1.500 | ASD — yaygın uygulama değeri (FHWA-NHI-06-089 ile karşılaştırılmadı) | Doğrulanmadı
+safety.sliding.seismic | 1.100 | ASD — yaygın uygulama değeri (FHWA-NHI-06-089 ile karşılaştırılmadı) | Doğrulanmadı
+eccentricity.soil.seismic | 0.250 | ASD — yaygın uygulama; sismik değerler doğrulanmadı | Doğrulanmadı
+safety.bearing_capacity.seismic | 2.000 | ASD — yaygın uygulama değeri (FHWA-NHI-06-089 ile karşılaştırılmadı) | Doğrulanmadı
+safety.global_stability.static | 1.500 | FHWA-NHI-06-089 Vol. II (secondary) | İkincil kaynak
+safety.global_stability.seismic | 1.100 | ASD — yaygın uygulama değeri (FHWA-NHI-06-089 ile karşılaştırılmadı) | Doğrulanmadı
+TABLE 17
+Üst [m] | Alt [m] | Bölge | Ad | Ortalama Ic
+0.10 | 1.40 | 6 | Kum - temiz kum ile siltli kum | 1.91
+1.40 | 1.45 | 5 | Kum karışımı - siltli kum ile kumlu silt | 2.06
+1.45 | 3.65 | 6 | Kum - temiz kum ile siltli kum | 1.95
+3.65 | 3.70 | 5 | Kum karışımı - siltli kum ile kumlu silt | 2.08
+3.70 | 3.90 | 6 | Kum - temiz kum ile siltli kum | 2.02
+3.90 | 4.00 | 5 | Kum karışımı - siltli kum ile kumlu silt | 2.06
+4.00 | 4.10 | 6 | Kum - temiz kum ile siltli kum | 2.04
+4.10 | 4.15 | 5 | Kum karışımı - siltli kum ile kumlu silt | 2.06
+4.15 | 4.35 | 6 | Kum - temiz kum ile siltli kum | 2.01
+4.35 | 4.40 | 5 | Kum karışımı - siltli kum ile kumlu silt | 2.07
+4.40 | 4.45 | 6 | Kum - temiz kum ile siltli kum | 2.05
+4.45 | 4.50 | 5 | Kum karışımı - siltli kum ile kumlu silt | 2.09
+4.50 | 4.55 | 6 | Kum - temiz kum ile siltli kum | 2.01
+4.55 | 4.60 | 5 | Kum karışımı - siltli kum ile kumlu silt | 2.06
+4.60 | 4.65 | 6 | Kum - temiz kum ile siltli kum | 2.02
+4.65 | 4.75 | 5 | Kum karışımı - siltli kum ile kumlu silt | 2.08
+4.75 | 4.80 | 6 | Kum - temiz kum ile siltli kum | 2.04
+4.80 | 4.85 | 5 | Kum karışımı - siltli kum ile kumlu silt | 2.12
+4.85 | 4.90 | 6 | Kum - temiz kum ile siltli kum | 2.01
+4.90 | 5.00 | 5 | Kum karışımı - siltli kum ile kumlu silt | 2.10
+5.00 | 5.05 | 6 | Kum - temiz kum ile siltli kum | 2.05
+5.05 | 5.35 | 5 | Kum karışımı - siltli kum ile kumlu silt | 2.10
+5.35 | 5.40 | 6 | Kum - temiz kum ile siltli kum | 2.04
+5.40 | 5.75 | 5 | Kum karışımı - siltli kum ile kumlu silt | 2.09
+5.75 | 5.80 | 6 | Kum - temiz kum ile siltli kum | 2.05
+5.80 | 6.00 | 5 | Kum karışımı - siltli kum ile kumlu silt | 2.12
+6.00 | 9.00 | 3 | Kil - siltli kil ile kil | 3.36
+9.00 | 15.05 | 6 | Kum - temiz kum ile siltli kum | 1.48
+TABLE 18
+Kalem | Değer
+Zemin profili | QA Kum 0-40m (kaynak test)
+Yöntem | Youd vd. (2001)
+amax [g] | 0.400
+Mw | 7.5
+Hedef GS | 1.10
+Deprem YASS [m] | 3.00
+Varsayılan FC [%] | 5.0
+TABLE 19
+Sondaj | En küçük GS | Derinlik [m] | Sıvılaşabilir nokta | Sınırda nokta
+QA-SPT | 0.16 | 7.50 | 7 | 0
+QA-CPT | 0.34 | 5.85 | 60 | 0
+TABLE 20
+Kalem | Değer
+Duvar türü | Palplanş
+Kazı yüksekliği H (m) | 10.00
+Zemin davranışı | Drenajlı (φ′)
+Tutulan zemin eğimi (°) | 0.0
+Sürşarj (kPa) | 0.00
+Sürşarj tabanı | Yatay izdüşüm başına
+Pasif direnç emniyet katsayısı | 1.50
+Gömülme artışı | —
+İzin verilen gerilme (MPa) | —
+Yöntem | Görünür basınç, mafsal yöntemi
+Kuramsal gömülme D0 (m) | 6.80
+Tasarım gömülmesi D (m) | 8.16
+Duvar boyu (m) | 18.16
+Taban tepkisi R_B (kN/m) | 27.1
+En büyük moment (kNm/m) | 274.0
+En büyük kesme (kN/m) | 87.1
+Gerekli mukavemet momenti (cm³) (cm³/m) | —
+TABLE 21
+Üst [m] | Alt [m] | γ [kN/m³] | φ' [°] | c' [kPa] | su [kPa]
+0.00 | 40.00 | 18.00 | 30.0 | 0.0 | —
+TABLE 22
+Derinlik (m) | Eğim (°) | Aralık (m) | Yatay yük (kN/m) | Tasarım yükü T (kN) | Serbest boy (m) | Kök boyu (m) | Tendon
+1.50 | 0.0 | 2.50 | 120.6 | 301.6 | — | — | —
+4.50 | 0.0 | 2.50 | 126.9 | 317.2 | — | — | —
+7.50 | 0.0 | 2.50 | 115.4 | 288.5 | — | — | —
+TABLE 23
+Kalem | Değer
+Kazı yüksekliği H (m) | 10.00
+Ankraj başı derinliği (m) | 6.25
+Ankraj eğimi α (°) | 15.0
+Zemin içsel sürtünme açısı φ′ (°) | 33.0
+Metre başına yatay yük | 172.0
+Ankraj aralığı | 2.50
+Güvenlik sayısı FS (kök) | 2.00
+Kullanılan yük aktarımı (kN/m) | 100.0
+Kilitleme yükü oranı | 1.00
+Deneme yükü katsayısı | 1.33
+Tasarım yükü sınırı (× SMTS) | 0.60
+Kilitleme sınırı (× SMTS) | 0.70
+Deneme yükü sınırı (× SMTS) | 0.80
+Tendon türü | Halat
+Ankraj zemini | Zemin
+Kökün kamadan uzaklığı (m) | —
+Kök değerinin kaynağı | QA: tests/api/test_anchored_wall_api.py BODY
+Tasarım yükü T (kN) | 445.2
+Düşey bileşen T_v (kN) | 115.2
+Kilitleme yükü (kN) | 445.2
+Azami deneme yükü (kN) | 592.1
+Serbest boy (m) | 4.50
+Kök boyu (m) | 8.90
+Toplam boy (m) | 13.40
+Güvenlik sayısı FS (kök) | 2.00
+Kullanılan yük aktarımı (kN/m) | 100.0
+Tendon | 3 × 15 mm strand, ASTM A416 Gr 270 (metric 1860) (FHWA GEC-4 (FHWA-IF-99-015) Table 10, p. 78 (1 strand))
+Tendon kapasitesi SMTS (kN) | 782.1
+Tasarım yükü / SMTS | 0.57
+TABLE 24
+Kontrol | Talep | Sınır | Sonuç
+Tasarım yükü ≤ tendon sınırı | 445.17 | 469.26 | Sağlıyor
+Kilitleme yükü ≤ tendon sınırı | 445.17 | 547.47 | Sağlıyor
+Deneme yükü ≤ tendon sınırı | 592.07 | 625.68 | Sağlıyor
+Kök merkezi üzerinde en az örtü kalınlığı | 4.50 | 8.57 | Sağlıyor

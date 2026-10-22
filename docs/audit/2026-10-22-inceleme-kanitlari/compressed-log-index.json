@@ -1,0 +1,16 @@
+[
+  {
+    "file": "functional/browser-network.jsonl.gz",
+    "original_name": "browser-network.jsonl",
+    "raw_bytes": 15132185,
+    "raw_sha256": "a76b6b29453e7434f5ca0a859e431907a4ab02f2971c1aab2e9ab64a54225914",
+    "raw_lines": 540
+  },
+  {
+    "file": "functional/api.jsonl.gz",
+    "original_name": "api.jsonl",
+    "raw_bytes": 3057176,
+    "raw_sha256": "7a59449a2e84e460217997556d96db4eb2453cf90f1d3b69f058488138bdc34b",
+    "raw_lines": 52
+  }
+]

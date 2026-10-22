@@ -1,0 +1,360 @@
+{
+  "checks": [
+    {
+      "table": 11,
+      "label": "Theoretical embedment D0 [m]",
+      "DTO": 5.981722843262915,
+      "DOCX": "5.98",
+      "tolerance": 0.0050000001,
+      "pass": true
+    },
+    {
+      "table": 11,
+      "label": "Design embedment D [m]",
+      "DTO": 7.178067411915498,
+      "DOCX": "7.18",
+      "tolerance": 0.0050000001,
+      "pass": true
+    },
+    {
+      "table": 11,
+      "label": "Total length [m]",
+      "DTO": 11.178067411915498,
+      "DOCX": "11.18",
+      "tolerance": 0.0050000001,
+      "pass": true
+    },
+    {
+      "table": 11,
+      "label": "Max moment [kNm/m]",
+      "DTO": 323.98958248358156,
+      "DOCX": "324.0",
+      "tolerance": 0.050000000100000004,
+      "pass": true
+    },
+    {
+      "table": 12,
+      "label": "Theoretical embedment D0 [m]",
+      "DTO": 2.4448455074966606,
+      "DOCX": "2.44",
+      "tolerance": 0.0050000001,
+      "pass": true
+    },
+    {
+      "table": 12,
+      "label": "Design embedment D [m]",
+      "DTO": 2.4448455074966606,
+      "DOCX": "2.44",
+      "tolerance": 0.0050000001,
+      "pass": true
+    },
+    {
+      "table": 12,
+      "label": "Total length [m]",
+      "DTO": 6.444845507496661,
+      "DOCX": "6.44",
+      "tolerance": 0.0050000001,
+      "pass": true
+    },
+    {
+      "table": 12,
+      "label": "Max moment [kNm/m]",
+      "DTO": 60.10479337987175,
+      "DOCX": "60.1",
+      "tolerance": 0.050000000100000004,
+      "pass": true
+    },
+    {
+      "table": 23,
+      "label": "Design load T (kN)",
+      "DTO": 445.1687575763357,
+      "DOCX": "445.2",
+      "tolerance": 0.050000000100000004,
+      "pass": true
+    },
+    {
+      "table": 23,
+      "label": "Bond length (m)",
+      "DTO": 8.903375151526713,
+      "DOCX": "8.90",
+      "tolerance": 0.0050000001,
+      "pass": true
+    },
+    {
+      "table": 23,
+      "label": "Total length (m)",
+      "DTO": 13.403375151526713,
+      "DOCX": "13.40",
+      "tolerance": 0.0050000001,
+      "pass": true
+    },
+    {
+      "table": 9,
+      "label": "Static Overturning",
+      "DTO": 6.704464346313381,
+      "DOCX": "6.704",
+      "tolerance": 0.00051,
+      "pass": true
+    },
+    {
+      "table": 9,
+      "label": "Static Sliding",
+      "DTO": 2.007778879857521,
+      "DOCX": "2.008",
+      "tolerance": 0.00051,
+      "pass": true
+    },
+    {
+      "table": 9,
+      "label": "Static Eccentricity (e/B)",
+      "DTO": 0.06755552280263943,
+      "DOCX": "0.068",
+      "tolerance": 0.00051,
+      "pass": true
+    },
+    {
+      "table": 9,
+      "label": "Static Bearing capacity",
+      "DTO": 5.665001851182852,
+      "DOCX": "5.665",
+      "tolerance": 0.00051,
+      "pass": true
+    },
+    {
+      "table": 9,
+      "label": "Seismic Overturning",
+      "DTO": 3.3857438237708815,
+      "DOCX": "3.386",
+      "tolerance": 0.00051,
+      "pass": true
+    },
+    {
+      "table": 9,
+      "label": "Seismic Sliding",
+      "DTO": 1.1060550562852058,
+      "DOCX": "1.106",
+      "tolerance": 0.00051,
+      "pass": true
+    },
+    {
+      "table": 9,
+      "label": "Seismic Eccentricity (e/B)",
+      "DTO": 0.025520688923931296,
+      "DOCX": "0.026",
+      "tolerance": 0.00051,
+      "pass": true
+    },
+    {
+      "table": 9,
+      "label": "Seismic Bearing capacity",
+      "DTO": 2.330081828010838,
+      "DOCX": "2.330",
+      "tolerance": 0.00051,
+      "pass": true
+    },
+    {
+      "table": 9,
+      "label": "Static Global stability",
+      "DTO": 1.6019148369221332,
+      "DOCX": "1.602",
+      "tolerance": 0.00051,
+      "pass": true
+    },
+    {
+      "table": 9,
+      "label": "Seismic Global stability",
+      "DTO": 1.179984976698089,
+      "DOCX": "1.180",
+      "tolerance": 0.00051,
+      "pass": true
+    },
+    {
+      "table": 15,
+      "label": "Static Overturning",
+      "DTO": 1.8525415734042674,
+      "DOCX": "1.853",
+      "tolerance": 0.00051,
+      "pass": true
+    },
+    {
+      "table": 15,
+      "label": "Static Sliding",
+      "DTO": 1.430448557388133,
+      "DOCX": "1.430",
+      "tolerance": 0.00051,
+      "pass": true
+    },
+    {
+      "table": 15,
+      "label": "Static Eccentricity (e/B)",
+      "DTO": 0.0742499566340642,
+      "DOCX": "0.074",
+      "tolerance": 0.00051,
+      "pass": true
+    },
+    {
+      "table": 15,
+      "label": "Static Bearing capacity",
+      "DTO": 1.3955626202464175,
+      "DOCX": "1.396",
+      "tolerance": 0.00051,
+      "pass": true
+    },
+    {
+      "table": 15,
+      "label": "Seismic Overturning",
+      "DTO": 1.2003623143410662,
+      "DOCX": "1.200",
+      "tolerance": 0.00051,
+      "pass": true
+    },
+    {
+      "table": 15,
+      "label": "Seismic Sliding",
+      "DTO": 0.7075166388763192,
+      "DOCX": "0.708",
+      "tolerance": 0.00051,
+      "pass": true
+    },
+    {
+      "table": 15,
+      "label": "Seismic Eccentricity (e/B)",
+      "DTO": 0.3409723684309672,
+      "DOCX": "0.341",
+      "tolerance": 0.00051,
+      "pass": true
+    },
+    {
+      "table": 15,
+      "label": "Seismic Bearing capacity",
+      "DTO": 0.02348323671287132,
+      "DOCX": "0.023",
+      "tolerance": 0.00051,
+      "pass": true
+    },
+    {
+      "table": 15,
+      "label": "Static Global stability",
+      "DTO": 0.6838864290523129,
+      "DOCX": "0.684",
+      "tolerance": 0.00051,
+      "pass": true
+    },
+    {
+      "table": 15,
+      "label": "Seismic Global stability",
+      "DTO": 0.43690294661943463,
+      "DOCX": "0.437",
+      "tolerance": 0.00051,
+      "pass": true
+    },
+    {
+      "table": 20,
+      "label": "Theoretical embedment D0 (m)",
+      "DTO": 6.796928516718626,
+      "DOCX": "6.80",
+      "tolerance": 0.0050000001,
+      "pass": true
+    },
+    {
+      "table": 20,
+      "label": "Design embedment D (m)",
+      "DTO": 8.15631422006235,
+      "DOCX": "8.16",
+      "tolerance": 0.0050000001,
+      "pass": true
+    },
+    {
+      "table": 20,
+      "label": "Wall length (m)",
+      "DTO": 18.15631422006235,
+      "DOCX": "18.16",
+      "tolerance": 0.0050000001,
+      "pass": true
+    },
+    {
+      "table": 20,
+      "label": "Base reaction R_B (kN/m)",
+      "DTO": 27.083321337608776,
+      "DOCX": "27.1",
+      "tolerance": 0.050000000100000004,
+      "pass": true
+    },
+    {
+      "table": 20,
+      "label": "Max moment (kNm/m)",
+      "DTO": 274.04993029885094,
+      "DOCX": "274.0",
+      "tolerance": 0.050000000100000004,
+      "pass": true
+    },
+    {
+      "table": 20,
+      "label": "Max shear (kN/m)",
+      "DTO": 87.0833213376089,
+      "DOCX": "87.1",
+      "tolerance": 0.050000000100000004,
+      "pass": true
+    },
+    {
+      "table": 22,
+      "label": "horizontal_load_per_m level 1.50",
+      "DTO": 120.62499000000344,
+      "DOCX": "120.6",
+      "tolerance": 0.051,
+      "pass": true
+    },
+    {
+      "table": 22,
+      "label": "axial_load_per_anchor level 1.50",
+      "DTO": 301.5624750000086,
+      "DOCX": "301.6",
+      "tolerance": 0.051,
+      "pass": true
+    },
+    {
+      "table": 22,
+      "label": "horizontal_load_per_m level 4.50",
+      "DTO": 126.87501000000785,
+      "DOCX": "126.9",
+      "tolerance": 0.051,
+      "pass": true
+    },
+    {
+      "table": 22,
+      "label": "axial_load_per_anchor level 4.50",
+      "DTO": 317.1875250000196,
+      "DOCX": "317.2",
+      "tolerance": 0.051,
+      "pass": true
+    },
+    {
+      "table": 22,
+      "label": "horizontal_load_per_m level 7.50",
+      "DTO": 115.41667866238313,
+      "DOCX": "115.4",
+      "tolerance": 0.051,
+      "pass": true
+    },
+    {
+      "table": 22,
+      "label": "axial_load_per_anchor level 7.50",
+      "DTO": 288.5416966559578,
+      "DOCX": "288.5",
+      "tolerance": 0.051,
+      "pass": true
+    }
+  ],
+  "all_pass": true,
+  "unit_tokens": {
+    "[m]": true,
+    "[kPa]": true,
+    "[kN/m³]": true,
+    "[kNm/m]": true,
+    "[kN/m]": true,
+    "[cm³/m]": true,
+    "(kN)": true,
+    "(m)": true,
+    "(°)": true
+  }
+}

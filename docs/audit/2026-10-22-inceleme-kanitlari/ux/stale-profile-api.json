@@ -1,0 +1,1701 @@
+{
+  "id": "a2a0ff79cab6471c9d3701e6ea6e12da",
+  "name": "UX CPT Profili",
+  "source_ids": [
+    "CPT-UX-MPa"
+  ],
+  "origin": "cpt",
+  "layering": {
+    "method": "cpt_ic",
+    "smoothing_window": 0.5,
+    "min_thickness": 0.5,
+    "merge_ic_tol": 0.15,
+    "n_change_ratio": 0.5
+  },
+  "gwt": {
+    "depth_insitu": 2.5,
+    "depth_design": 2.5,
+    "depth_seismic": 2.5
+  },
+  "layers": [
+    {
+      "id": "b5bba18300e942b280af754aef89431d",
+      "top": 0.0,
+      "bottom": 5.975,
+      "description": "",
+      "uscs": null,
+      "sbtn_zone": 6,
+      "behaviour": "drained",
+      "gamma": 17.919418366190715,
+      "gamma_sat": 17.919418366190715,
+      "permeability": null,
+      "params": {
+        "Ic": {
+          "value": 1.957907085543836,
+          "unit": "-",
+          "method_id": "CPT_Ic",
+          "reference": "Robertson (2009): processed soil behaviour index",
+          "source": "CPT",
+          "inputs_used": {},
+          "validity_ok": true,
+          "warnings": [],
+          "reliability": null,
+          "stats": {
+            "n": 118,
+            "min": 1.6940674491938916,
+            "mean": 1.957907085543836,
+            "max": 2.0592284025871503
+          },
+          "user_override": false
+        },
+        "phi_eff": {
+          "value": 40.02189726085889,
+          "unit": "deg",
+          "method_id": "mean(KM1990_phi_CPT,RC1983_phi_CPT)",
+          "reference": "Kulhawy & Mayne (1990); Mayne (2007) NCHRP Synthesis 368; Robertson & Campanella (1983), Can. Geotech. J. 20(4)",
+          "source": "CPT",
+          "inputs_used": {},
+          "validity_ok": true,
+          "warnings": [],
+          "reliability": "B",
+          "stats": {
+            "n": 2,
+            "min": 38.37336107887567,
+            "mean": 40.02189726085889,
+            "max": 41.67043344284211
+          },
+          "user_override": false
+        },
+        "c_eff": {
+          "value": 0.0,
+          "unit": "kPa",
+          "method_id": "FHWA_GEC5_c_eff",
+          "reference": "FHWA GEC-5: granüler zeminde c' = 0",
+          "source": "combined",
+          "inputs_used": {
+            "Ic": 1.957907085543836
+          },
+          "validity_ok": true,
+          "warnings": [],
+          "reliability": null,
+          "stats": null,
+          "user_override": false
+        },
+        "E": {
+          "value": 40141.11082047702,
+          "unit": "kPa",
+          "method_id": "mean(R2009_E_CPT)",
+          "reference": "Robertson (2009), Can. Geotech. J. 46(11)",
+          "source": "CPT",
+          "inputs_used": {},
+          "validity_ok": true,
+          "warnings": [],
+          "reliability": "B",
+          "stats": {
+            "n": 1,
+            "min": 40141.11082047702,
+            "mean": 40141.11082047702,
+            "max": 40141.11082047702
+          },
+          "user_override": false
+        },
+        "gamma": {
+          "value": 17.91941836619072,
+          "unit": "kN/m3",
+          "method_id": "mean(RC2010_gamma_CPT)",
+          "reference": "Robertson & Cabal (2010), 2nd Int. Symp. on Cone Penetration Testing",
+          "source": "CPT",
+          "inputs_used": {},
+          "validity_ok": true,
+          "warnings": [],
+          "reliability": "B",
+          "stats": {
+            "n": 1,
+            "min": 17.91941836619072,
+            "mean": 17.91941836619072,
+            "max": 17.91941836619072
+          },
+          "user_override": false
+        },
+        "delta_base": {
+          "value": 30.96375653207352,
+          "unit": "deg",
+          "method_id": "TBDY2018_delta_base",
+          "reference": "EN 1997-1 6.5.3(10): δd = φ'cv,d (yerinde dökme beton); TBDY 2018 16.8.4.3, Tablo 16.3: tan δ ≤ 0.6 (yerinde dökme beton – sıkıştırılmış taban zemini)",
+          "source": "combined",
+          "inputs_used": {
+            "phi_eff": 40.02189726085889
+          },
+          "validity_ok": true,
+          "warnings": [
+            "parameters.warning.phi_cv_assumed_equal_phi_eff: phi_eff=40.02189726085889"
+          ],
+          "reliability": null,
+          "stats": null,
+          "user_override": false
+        }
+      },
+      "design": {
+        "phi_eff": 40.02189726085889,
+        "c_eff": 0.0,
+        "su": null,
+        "E": null,
+        "delta_base": null
+      },
+      "selections": {
+        "phi_eff": {
+          "parameter": "phi_eff",
+          "candidates": [
+            {
+              "value": 38.37336107887567,
+              "unit": "deg",
+              "method_id": "KM1990_phi_CPT",
+              "reference": "Kulhawy & Mayne (1990); Mayne (2007) NCHRP Synthesis 368",
+              "source": "CPT",
+              "inputs_used": {
+                "Bq": 0.0013687865469954438,
+                "FC": 19.645063488121203,
+                "Fr": 0.9741570075713598,
+                "Ic": 1.957907085543836,
+                "Qt1": 187.7132754701599,
+                "Qtn": 90.94879693216653,
+                "Rf": 0.9646010547842333,
+                "SBTn": 5.97457627118644,
+                "area_ratio": 0.8,
+                "converged": 1.0,
+                "depth": 3.025,
+                "fs": 44.672118644067794,
+                "n": 0.6177629119229125,
+                "qc": 4714.406779661017,
+                "qt": 4717.7363677966105,
+                "sigma_v": 54.206240557726915,
+                "sigma_v_eff": 44.16761767637098,
+                "u0": 10.038622881355932,
+                "u2": 16.6479406779661
+              },
+              "validity_ok": true,
+              "warnings": [],
+              "reliability": "B",
+              "stats": {
+                "n": 118,
+                "min": 36.605650090998054,
+                "mean": 38.37336107887567,
+                "max": 44.93334536673066
+              },
+              "user_override": false
+            },
+            {
+              "value": 41.67043344284211,
+              "unit": "deg",
+              "method_id": "RC1983_phi_CPT",
+              "reference": "Robertson & Campanella (1983), Can. Geotech. J. 20(4)",
+              "source": "CPT",
+              "inputs_used": {
+                "Bq": 0.0013687865469954438,
+                "FC": 19.645063488121203,
+                "Fr": 0.9741570075713598,
+                "Ic": 1.957907085543836,
+                "Qt1": 187.7132754701599,
+                "Qtn": 90.94879693216653,
+                "Rf": 0.9646010547842333,
+                "SBTn": 5.97457627118644,
+                "area_ratio": 0.8,
+                "converged": 1.0,
+                "depth": 3.025,
+                "fs": 44.672118644067794,
+                "n": 0.6177629119229125,
+                "qc": 4714.406779661017,
+                "qt": 4717.7363677966105,
+                "sigma_v": 54.206240557726915,
+                "sigma_v_eff": 44.16761767637098,
+                "u0": 10.038622881355932,
+                "u2": 16.6479406779661
+              },
+              "validity_ok": true,
+              "warnings": [],
+              "reliability": "B",
+              "stats": {
+                "n": 118,
+                "min": 38.14624349027152,
+                "mean": 41.67043344284211,
+                "max": 53.719981843797456
+              },
+              "user_override": false
+            }
+          ],
+          "suggested": {
+            "value": 40.02189726085889,
+            "unit": "deg",
+            "method_id": "mean(KM1990_phi_CPT,RC1983_phi_CPT)",
+            "reference": "Kulhawy & Mayne (1990); Mayne (2007) NCHRP Synthesis 368; Robertson & Campanella (1983), Can. Geotech. J. 20(4)",
+            "source": "CPT",
+            "inputs_used": {},
+            "validity_ok": true,
+            "warnings": [],
+            "reliability": "B",
+            "stats": {
+              "n": 2,
+              "min": 38.37336107887567,
+              "mean": 40.02189726085889,
+              "max": 41.67043344284211
+            },
+            "user_override": false
+          },
+          "mode": "correlation",
+          "method_id": "mean(KM1990_phi_CPT,RC1983_phi_CPT)",
+          "statistic": null,
+          "k_sd": null,
+          "manual_value": null,
+          "selected": {
+            "value": 40.02189726085889,
+            "unit": "deg",
+            "method_id": "mean(KM1990_phi_CPT,RC1983_phi_CPT)",
+            "reference": "Kulhawy & Mayne (1990); Mayne (2007) NCHRP Synthesis 368; Robertson & Campanella (1983), Can. Geotech. J. 20(4)",
+            "source": "CPT",
+            "inputs_used": {},
+            "validity_ok": true,
+            "warnings": [],
+            "reliability": "B",
+            "stats": {
+              "n": 2,
+              "min": 38.37336107887567,
+              "mean": 40.02189726085889,
+              "max": 41.67043344284211
+            },
+            "user_override": false
+          },
+          "approved": true,
+          "approved_at": "2026-10-22T14:55:28.180311Z",
+          "basis_hash": "114ee97f626b54e12c79f687172ba84d4a20b4c02e7804780bdd1dd1d548c7a7"
+        },
+        "c_eff": {
+          "parameter": "c_eff",
+          "candidates": [],
+          "suggested": {
+            "value": 0.0,
+            "unit": "kPa",
+            "method_id": "FHWA_GEC5_c_eff",
+            "reference": "FHWA GEC-5: granüler zeminde c' = 0",
+            "source": "combined",
+            "inputs_used": {
+              "Ic": 1.957907085543836
+            },
+            "validity_ok": true,
+            "warnings": [],
+            "reliability": null,
+            "stats": null,
+            "user_override": false
+          },
+          "mode": null,
+          "method_id": null,
+          "statistic": null,
+          "k_sd": null,
+          "manual_value": null,
+          "selected": null,
+          "approved": false,
+          "approved_at": null,
+          "basis_hash": null
+        },
+        "su": {
+          "parameter": "su",
+          "candidates": [
+            {
+              "value": 333.10929480277736,
+              "unit": "kPa",
+              "method_id": "CPT_su_Nkt",
+              "reference": "Lunne, Robertson & Powell (1997); Robertson & Cabal (2015) CPT Guide",
+              "source": "CPT",
+              "inputs_used": {
+                "Bq": 0.0013687865469954438,
+                "FC": 19.645063488121203,
+                "Fr": 0.9741570075713598,
+                "Ic": 1.957907085543836,
+                "Nkt": 14.0,
+                "Qt1": 187.7132754701599,
+                "Qtn": 90.94879693216653,
+                "Rf": 0.9646010547842333,
+                "SBTn": 5.97457627118644,
+                "area_ratio": 0.8,
+                "converged": 1.0,
+                "depth": 3.025,
+                "fs": 44.672118644067794,
+                "n": 0.6177629119229125,
+                "qc": 4714.406779661017,
+                "qt": 4717.7363677966105,
+                "sigma_v": 54.206240557726915,
+                "sigma_v_eff": 44.16761767637098,
+                "u0": 10.038622881355932,
+                "u2": 16.6479406779661
+              },
+              "validity_ok": false,
+              "warnings": [
+                "I_c = 1.69 < 2.6: correlation is for clay-like (undrained) soils",
+                "I_c = 1.75 < 2.6: correlation is for clay-like (undrained) soils",
+                "I_c = 1.79 < 2.6: correlation is for clay-like (undrained) soils",
+                "I_c = 1.80 < 2.6: correlation is for clay-like (undrained) soils",
+                "I_c = 1.81 < 2.6: correlation is for clay-like (undrained) soils",
+                "I_c = 1.84 < 2.6: correlation is for clay-like (undrained) soils",
+                "I_c = 1.87 < 2.6: correlation is for clay-like (undrained) soils",
+                "I_c = 1.85 < 2.6: correlation is for clay-like (undrained) soils",
+                "I_c = 1.86 < 2.6: correlation is for clay-like (undrained) soils",
+                "I_c = 1.88 < 2.6: correlation is for clay-like (undrained) soils",
+                "I_c = 1.90 < 2.6: correlation is for clay-like (undrained) soils",
+                "I_c = 1.89 < 2.6: correlation is for clay-like (undrained) soils",
+                "I_c = 1.93 < 2.6: correlation is for clay-like (undrained) soils",
+                "I_c = 1.94 < 2.6: correlation is for clay-like (undrained) soils",
+                "I_c = 1.91 < 2.6: correlation is for clay-like (undrained) soils",
+                "I_c = 1.96 < 2.6: correlation is for clay-like (undrained) soils",
+                "I_c = 1.97 < 2.6: correlation is for clay-like (undrained) soils",
+                "I_c = 2.01 < 2.6: correlation is for clay-like (undrained) soils",
+                "I_c = 1.98 < 2.6: correlation is for clay-like (undrained) soils",
+                "I_c = 2.00 < 2.6: correlation is for clay-like (undrained) soils",
+                "I_c = 1.99 < 2.6: correlation is for clay-like (undrained) soils",
+                "I_c = 2.02 < 2.6: correlation is for clay-like (undrained) soils",
+                "I_c = 2.06 < 2.6: correlation is for clay-like (undrained) soils",
+                "I_c = 2.04 < 2.6: correlation is for clay-like (undrained) soils",
+                "I_c = 1.92 < 2.6: correlation is for clay-like (undrained) soils",
+                "I_c = 1.95 < 2.6: correlation is for clay-like (undrained) soils",
+                "I_c = 2.03 < 2.6: correlation is for clay-like (undrained) soils",
+                "I_c = 2.05 < 2.6: correlation is for clay-like (undrained) soils"
+              ],
+              "reliability": "A",
+              "stats": {
+                "n": 118,
+                "min": 246.10115116619727,
+                "mean": 333.10929480277736,
+                "max": 453.2358531710288
+              },
+              "user_override": false
+            },
+            {
+              "value": 0.9441882566585956,
+              "unit": "kPa",
+              "method_id": "CPTu_su_Ndu",
+              "reference": "Lunne, Robertson & Powell (1997)",
+              "source": "CPT",
+              "inputs_used": {
+                "Bq": 0.0013687865469954438,
+                "FC": 19.645063488121203,
+                "Fr": 0.9741570075713598,
+                "Ic": 1.957907085543836,
+                "Ndu": 7.0,
+                "Qt1": 187.7132754701599,
+                "Qtn": 90.94879693216653,
+                "Rf": 0.9646010547842333,
+                "SBTn": 5.97457627118644,
+                "area_ratio": 0.8,
+                "converged": 1.0,
+                "depth": 3.025,
+                "fs": 44.672118644067794,
+                "n": 0.6177629119229125,
+                "qc": 4714.406779661017,
+                "qt": 4717.7363677966105,
+                "sigma_v": 54.206240557726915,
+                "sigma_v_eff": 44.16761767637098,
+                "u0": 10.038622881355932,
+                "u2": 16.6479406779661
+              },
+              "validity_ok": false,
+              "warnings": [
+                "I_c = 1.69 < 2.6: correlation is for clay-like (undrained) soils",
+                "I_c = 1.75 < 2.6: correlation is for clay-like (undrained) soils",
+                "I_c = 1.79 < 2.6: correlation is for clay-like (undrained) soils",
+                "I_c = 1.80 < 2.6: correlation is for clay-like (undrained) soils",
+                "I_c = 1.81 < 2.6: correlation is for clay-like (undrained) soils",
+                "I_c = 1.84 < 2.6: correlation is for clay-like (undrained) soils",
+                "I_c = 1.87 < 2.6: correlation is for clay-like (undrained) soils",
+                "I_c = 1.85 < 2.6: correlation is for clay-like (undrained) soils",
+                "I_c = 1.86 < 2.6: correlation is for clay-like (undrained) soils",
+                "I_c = 1.88 < 2.6: correlation is for clay-like (undrained) soils",
+                "I_c = 1.90 < 2.6: correlation is for clay-like (undrained) soils",
+                "I_c = 1.89 < 2.6: correlation is for clay-like (undrained) soils",
+                "I_c = 1.93 < 2.6: correlation is for clay-like (undrained) soils",
+                "I_c = 1.94 < 2.6: correlation is for clay-like (undrained) soils",
+                "I_c = 1.91 < 2.6: correlation is for clay-like (undrained) soils",
+                "I_c = 1.96 < 2.6: correlation is for clay-like (undrained) soils",
+                "I_c = 1.97 < 2.6: correlation is for clay-like (undrained) soils",
+                "I_c = 2.01 < 2.6: correlation is for clay-like (undrained) soils",
+                "I_c = 1.98 < 2.6: correlation is for clay-like (undrained) soils",
+                "I_c = 2.00 < 2.6: correlation is for clay-like (undrained) soils",
+                "I_c = 1.99 < 2.6: correlation is for clay-like (undrained) soils",
+                "I_c = 2.02 < 2.6: correlation is for clay-like (undrained) soils",
+                "I_c = 2.06 < 2.6: correlation is for clay-like (undrained) soils",
+                "I_c = 2.04 < 2.6: correlation is for clay-like (undrained) soils",
+                "I_c = 1.92 < 2.6: correlation is for clay-like (undrained) soils",
+                "I_c = 1.95 < 2.6: correlation is for clay-like (undrained) soils",
+                "I_c = 2.03 < 2.6: correlation is for clay-like (undrained) soils",
+                "I_c = 2.05 < 2.6: correlation is for clay-like (undrained) soils"
+              ],
+              "reliability": "B",
+              "stats": {
+                "n": 118,
+                "min": 0.0,
+                "mean": 0.9441882566585956,
+                "max": 1.4015000000000002
+              },
+              "user_override": false
+            }
+          ],
+          "suggested": null,
+          "mode": null,
+          "method_id": null,
+          "statistic": null,
+          "k_sd": null,
+          "manual_value": null,
+          "selected": null,
+          "approved": false,
+          "approved_at": null,
+          "basis_hash": null
+        },
+        "E": {
+          "parameter": "E",
+          "candidates": [
+            {
+              "value": 40141.11082047702,
+              "unit": "kPa",
+              "method_id": "R2009_E_CPT",
+              "reference": "Robertson (2009), Can. Geotech. J. 46(11)",
+              "source": "CPT",
+              "inputs_used": {
+                "Bq": 0.0013687865469954438,
+                "FC": 19.645063488121203,
+                "Fr": 0.9741570075713598,
+                "Ic": 1.957907085543836,
+                "Qt1": 187.7132754701599,
+                "Qtn": 90.94879693216653,
+                "Rf": 0.9646010547842333,
+                "SBTn": 5.97457627118644,
+                "area_ratio": 0.8,
+                "converged": 1.0,
+                "depth": 3.025,
+                "fs": 44.672118644067794,
+                "n": 0.6177629119229125,
+                "qc": 4714.406779661017,
+                "qt": 4717.7363677966105,
+                "sigma_v": 54.206240557726915,
+                "sigma_v_eff": 44.16761767637098,
+                "u0": 10.038622881355932,
+                "u2": 16.6479406779661
+              },
+              "validity_ok": true,
+              "warnings": [],
+              "reliability": "B",
+              "stats": {
+                "n": 118,
+                "min": 24006.75094295151,
+                "mean": 40141.11082047702,
+                "max": 54729.328921786735
+              },
+              "user_override": false
+            }
+          ],
+          "suggested": {
+            "value": 40141.11082047702,
+            "unit": "kPa",
+            "method_id": "mean(R2009_E_CPT)",
+            "reference": "Robertson (2009), Can. Geotech. J. 46(11)",
+            "source": "CPT",
+            "inputs_used": {},
+            "validity_ok": true,
+            "warnings": [],
+            "reliability": "B",
+            "stats": {
+              "n": 1,
+              "min": 40141.11082047702,
+              "mean": 40141.11082047702,
+              "max": 40141.11082047702
+            },
+            "user_override": false
+          },
+          "mode": null,
+          "method_id": null,
+          "statistic": null,
+          "k_sd": null,
+          "manual_value": null,
+          "selected": null,
+          "approved": false,
+          "approved_at": null,
+          "basis_hash": null
+        },
+        "gamma": {
+          "parameter": "gamma",
+          "candidates": [
+            {
+              "value": 17.91941836619072,
+              "unit": "kN/m3",
+              "method_id": "RC2010_gamma_CPT",
+              "reference": "Robertson & Cabal (2010), 2nd Int. Symp. on Cone Penetration Testing",
+              "source": "CPT",
+              "inputs_used": {
+                "Bq": 0.0013687865469954438,
+                "FC": 19.645063488121203,
+                "Fr": 0.9741570075713598,
+                "Ic": 1.957907085543836,
+                "Qt1": 187.7132754701599,
+                "Qtn": 90.94879693216653,
+                "Rf": 0.9646010547842333,
+                "SBTn": 5.97457627118644,
+                "area_ratio": 0.8,
+                "converged": 1.0,
+                "depth": 3.025,
+                "fs": 44.672118644067794,
+                "n": 0.6177629119229125,
+                "qc": 4714.406779661017,
+                "qt": 4717.7363677966105,
+                "sigma_v": 54.206240557726915,
+                "sigma_v_eff": 44.16761767637098,
+                "u0": 10.038622881355932,
+                "u2": 16.6479406779661
+              },
+              "validity_ok": true,
+              "warnings": [],
+              "reliability": "B",
+              "stats": {
+                "n": 118,
+                "min": 17.453881530469474,
+                "mean": 17.91941836619072,
+                "max": 18.519907370476986
+              },
+              "user_override": false
+            }
+          ],
+          "suggested": {
+            "value": 17.91941836619072,
+            "unit": "kN/m3",
+            "method_id": "mean(RC2010_gamma_CPT)",
+            "reference": "Robertson & Cabal (2010), 2nd Int. Symp. on Cone Penetration Testing",
+            "source": "CPT",
+            "inputs_used": {},
+            "validity_ok": true,
+            "warnings": [],
+            "reliability": "B",
+            "stats": {
+              "n": 1,
+              "min": 17.91941836619072,
+              "mean": 17.91941836619072,
+              "max": 17.91941836619072
+            },
+            "user_override": false
+          },
+          "mode": null,
+          "method_id": null,
+          "statistic": null,
+          "k_sd": null,
+          "manual_value": null,
+          "selected": null,
+          "approved": false,
+          "approved_at": null,
+          "basis_hash": null
+        },
+        "gamma_sat": {
+          "parameter": "gamma_sat",
+          "candidates": [],
+          "suggested": null,
+          "mode": null,
+          "method_id": null,
+          "statistic": null,
+          "k_sd": null,
+          "manual_value": null,
+          "selected": null,
+          "approved": false,
+          "approved_at": null,
+          "basis_hash": null
+        },
+        "delta_base": {
+          "parameter": "delta_base",
+          "candidates": [],
+          "suggested": {
+            "value": 30.96375653207352,
+            "unit": "deg",
+            "method_id": "TBDY2018_delta_base",
+            "reference": "EN 1997-1 6.5.3(10): δd = φ'cv,d (yerinde dökme beton); TBDY 2018 16.8.4.3, Tablo 16.3: tan δ ≤ 0.6 (yerinde dökme beton – sıkıştırılmış taban zemini)",
+            "source": "combined",
+            "inputs_used": {
+              "phi_eff": 40.02189726085889
+            },
+            "validity_ok": true,
+            "warnings": [
+              "parameters.warning.phi_cv_assumed_equal_phi_eff: phi_eff=40.02189726085889"
+            ],
+            "reliability": null,
+            "stats": null,
+            "user_override": false
+          },
+          "mode": null,
+          "method_id": null,
+          "statistic": null,
+          "k_sd": null,
+          "manual_value": null,
+          "selected": null,
+          "approved": false,
+          "approved_at": null,
+          "basis_hash": null
+        }
+      },
+      "source_ids": [
+        "CPT-UX-MPa"
+      ],
+      "liquefiable": null,
+      "residual_su": null
+    },
+    {
+      "id": "d9ca727763d54332a57afcc52331c515",
+      "top": 5.975,
+      "bottom": 9.075,
+      "description": "",
+      "uscs": null,
+      "sbtn_zone": 3,
+      "behaviour": "undrained",
+      "gamma": 16.903647204215073,
+      "gamma_sat": 16.903647204215073,
+      "permeability": null,
+      "params": {
+        "Ic": {
+          "value": 3.1317025585193687,
+          "unit": "-",
+          "method_id": "CPT_Ic",
+          "reference": "Robertson (2009): processed soil behaviour index",
+          "source": "CPT",
+          "inputs_used": {},
+          "validity_ok": true,
+          "warnings": [],
+          "reliability": null,
+          "stats": {
+            "n": 62,
+            "min": 1.370793532856846,
+            "mean": 3.1317025585193687,
+            "max": 3.3113297576434104
+          },
+          "user_override": false
+        },
+        "gamma": {
+          "value": 16.903647204215076,
+          "unit": "kN/m3",
+          "method_id": "mean(RC2010_gamma_CPT)",
+          "reference": "Robertson & Cabal (2010), 2nd Int. Symp. on Cone Penetration Testing",
+          "source": "CPT",
+          "inputs_used": {},
+          "validity_ok": true,
+          "warnings": [],
+          "reliability": "B",
+          "stats": {
+            "n": 1,
+            "min": 16.903647204215076,
+            "mean": 16.903647204215076,
+            "max": 16.903647204215076
+          },
+          "user_override": false
+        }
+      },
+      "design": {
+        "phi_eff": null,
+        "c_eff": 0.0,
+        "su": null,
+        "E": null,
+        "delta_base": null
+      },
+      "selections": {
+        "phi_eff": {
+          "parameter": "phi_eff",
+          "candidates": [
+            {
+              "value": 28.384404480195865,
+              "unit": "deg",
+              "method_id": "KM1990_phi_CPT",
+              "reference": "Kulhawy & Mayne (1990); Mayne (2007) NCHRP Synthesis 368",
+              "source": "CPT",
+              "inputs_used": {
+                "Bq": 0.18874538151692355,
+                "FC": 96.7741935483871,
+                "Fr": 4.454375961153314,
+                "Ic": 3.1317025585193687,
+                "Qt1": 16.90012070352859,
+                "Qtn": 16.539910228123656,
+                "Rf": 3.7036155256352665,
+                "SBTn": 3.096774193548387,
+                "area_ratio": 0.8,
+                "converged": 1.0,
+                "depth": 7.525,
+                "fs": 33.50041935483871,
+                "n": 0.981393807705484,
+                "qc": 1611.741935483871,
+                "qt": 1646.252593548387,
+                "sigma_v": 133.26917790452288,
+                "sigma_v_eff": 83.97392790452288,
+                "u0": 49.29525,
+                "u2": 172.55329032258064
+              },
+              "validity_ok": false,
+              "warnings": [
+                "I_c = 3.23 >= 2.6: correlation is for sand-like (drained) soils",
+                "I_c = 3.19 >= 2.6: correlation is for sand-like (drained) soils",
+                "I_c = 3.21 >= 2.6: correlation is for sand-like (drained) soils",
+                "I_c = 3.08 >= 2.6: correlation is for sand-like (drained) soils",
+                "I_c = 3.05 >= 2.6: correlation is for sand-like (drained) soils",
+                "I_c = 3.10 >= 2.6: correlation is for sand-like (drained) soils",
+                "I_c = 3.15 >= 2.6: correlation is for sand-like (drained) soils",
+                "I_c = 3.16 >= 2.6: correlation is for sand-like (drained) soils",
+                "I_c = 3.18 >= 2.6: correlation is for sand-like (drained) soils",
+                "I_c = 3.17 >= 2.6: correlation is for sand-like (drained) soils",
+                "I_c = 3.14 >= 2.6: correlation is for sand-like (drained) soils",
+                "I_c = 3.20 >= 2.6: correlation is for sand-like (drained) soils",
+                "I_c = 3.22 >= 2.6: correlation is for sand-like (drained) soils",
+                "I_c = 3.11 >= 2.6: correlation is for sand-like (drained) soils",
+                "I_c = 3.27 >= 2.6: correlation is for sand-like (drained) soils",
+                "I_c = 3.12 >= 2.6: correlation is for sand-like (drained) soils",
+                "I_c = 3.25 >= 2.6: correlation is for sand-like (drained) soils",
+                "I_c = 3.31 >= 2.6: correlation is for sand-like (drained) soils",
+                "I_c = 3.30 >= 2.6: correlation is for sand-like (drained) soils",
+                "I_c = 3.26 >= 2.6: correlation is for sand-like (drained) soils"
+              ],
+              "reliability": "B",
+              "stats": {
+                "n": 62,
+                "min": 26.969279684943203,
+                "mean": 28.384404480195865,
+                "max": 44.71605799737447
+              },
+              "user_override": false
+            },
+            {
+              "value": 25.567294223466124,
+              "unit": "deg",
+              "method_id": "RC1983_phi_CPT",
+              "reference": "Robertson & Campanella (1983), Can. Geotech. J. 20(4)",
+              "source": "CPT",
+              "inputs_used": {
+                "Bq": 0.18874538151692355,
+                "FC": 96.7741935483871,
+                "Fr": 4.454375961153314,
+                "Ic": 3.1317025585193687,
+                "Qt1": 16.90012070352859,
+                "Qtn": 16.539910228123656,
+                "Rf": 3.7036155256352665,
+                "SBTn": 3.096774193548387,
+                "area_ratio": 0.8,
+                "converged": 1.0,
+                "depth": 7.525,
+                "fs": 33.50041935483871,
+                "n": 0.981393807705484,
+                "qc": 1611.741935483871,
+                "qt": 1646.252593548387,
+                "sigma_v": 133.26917790452288,
+                "sigma_v_eff": 83.97392790452288,
+                "u0": 49.29525,
+                "u2": 172.55329032258064
+              },
+              "validity_ok": false,
+              "warnings": [
+                "I_c = 3.23 >= 2.6: correlation is for sand-like (drained) soils",
+                "I_c = 3.19 >= 2.6: correlation is for sand-like (drained) soils",
+                "I_c = 3.21 >= 2.6: correlation is for sand-like (drained) soils",
+                "I_c = 3.08 >= 2.6: correlation is for sand-like (drained) soils",
+                "I_c = 3.05 >= 2.6: correlation is for sand-like (drained) soils",
+                "I_c = 3.10 >= 2.6: correlation is for sand-like (drained) soils",
+                "I_c = 3.15 >= 2.6: correlation is for sand-like (drained) soils",
+                "I_c = 3.16 >= 2.6: correlation is for sand-like (drained) soils",
+                "I_c = 3.18 >= 2.6: correlation is for sand-like (drained) soils",
+                "I_c = 3.17 >= 2.6: correlation is for sand-like (drained) soils",
+                "I_c = 3.14 >= 2.6: correlation is for sand-like (drained) soils",
+                "I_c = 3.20 >= 2.6: correlation is for sand-like (drained) soils",
+                "I_c = 3.22 >= 2.6: correlation is for sand-like (drained) soils",
+                "I_c = 3.11 >= 2.6: correlation is for sand-like (drained) soils",
+                "I_c = 3.27 >= 2.6: correlation is for sand-like (drained) soils",
+                "I_c = 3.12 >= 2.6: correlation is for sand-like (drained) soils",
+                "I_c = 3.25 >= 2.6: correlation is for sand-like (drained) soils",
+                "I_c = 3.31 >= 2.6: correlation is for sand-like (drained) soils",
+                "I_c = 3.30 >= 2.6: correlation is for sand-like (drained) soils",
+                "I_c = 3.26 >= 2.6: correlation is for sand-like (drained) soils"
+              ],
+              "reliability": "B",
+              "stats": {
+                "n": 62,
+                "min": 22.976897426834718,
+                "mean": 25.567294223466124,
+                "max": 45.94772966311068
+              },
+              "user_override": false
+            }
+          ],
+          "suggested": null,
+          "mode": null,
+          "method_id": null,
+          "statistic": null,
+          "k_sd": null,
+          "manual_value": null,
+          "selected": null,
+          "approved": false,
+          "approved_at": null,
+          "basis_hash": null
+        },
+        "c_eff": {
+          "parameter": "c_eff",
+          "candidates": [],
+          "suggested": null,
+          "mode": null,
+          "method_id": null,
+          "statistic": null,
+          "k_sd": null,
+          "manual_value": null,
+          "selected": null,
+          "approved": false,
+          "approved_at": null,
+          "basis_hash": null
+        },
+        "su": {
+          "parameter": "su",
+          "candidates": [
+            {
+              "value": 108.07024397456173,
+              "unit": "kPa",
+              "method_id": "CPT_su_Nkt",
+              "reference": "Lunne, Robertson & Powell (1997); Robertson & Cabal (2015) CPT Guide",
+              "source": "CPT",
+              "inputs_used": {
+                "Bq": 0.18874538151692355,
+                "FC": 96.7741935483871,
+                "Fr": 4.454375961153314,
+                "Ic": 3.1317025585193687,
+                "Nkt": 14.0,
+                "Qt1": 16.90012070352859,
+                "Qtn": 16.539910228123656,
+                "Rf": 3.7036155256352665,
+                "SBTn": 3.096774193548387,
+                "area_ratio": 0.8,
+                "converged": 1.0,
+                "depth": 7.525,
+                "fs": 33.50041935483871,
+                "n": 0.981393807705484,
+                "qc": 1611.741935483871,
+                "qt": 1646.252593548387,
+                "sigma_v": 133.26917790452288,
+                "sigma_v_eff": 83.97392790452288,
+                "u0": 49.29525,
+                "u2": 172.55329032258064
+              },
+              "validity_ok": false,
+              "warnings": [
+                "I_c = 1.37 < 2.6: correlation is for clay-like (undrained) soils",
+                "I_c = 1.39 < 2.6: correlation is for clay-like (undrained) soils"
+              ],
+              "reliability": "A",
+              "stats": {
+                "n": 62,
+                "min": 36.35684886299322,
+                "mean": 108.07024397456173,
+                "max": 2027.608067319233
+              },
+              "user_override": false
+            },
+            {
+              "value": 17.60829147465438,
+              "unit": "kPa",
+              "method_id": "CPTu_su_Ndu",
+              "reference": "Lunne, Robertson & Powell (1997)",
+              "source": "CPT",
+              "inputs_used": {
+                "Bq": 0.18874538151692355,
+                "FC": 96.7741935483871,
+                "Fr": 4.454375961153314,
+                "Ic": 3.1317025585193687,
+                "Ndu": 7.0,
+                "Qt1": 16.90012070352859,
+                "Qtn": 16.539910228123656,
+                "Rf": 3.7036155256352665,
+                "SBTn": 3.096774193548387,
+                "area_ratio": 0.8,
+                "converged": 1.0,
+                "depth": 7.525,
+                "fs": 33.50041935483871,
+                "n": 0.981393807705484,
+                "qc": 1611.741935483871,
+                "qt": 1646.252593548387,
+                "sigma_v": 133.26917790452288,
+                "sigma_v_eff": 83.97392790452288,
+                "u0": 49.29525,
+                "u2": 172.55329032258064
+              },
+              "validity_ok": false,
+              "warnings": [
+                "I_c = 1.37 < 2.6: correlation is for clay-like (undrained) soils",
+                "I_c = 1.39 < 2.6: correlation is for clay-like (undrained) soils"
+              ],
+              "reliability": "B",
+              "stats": {
+                "n": 62,
+                "min": 1.4014285714285717,
+                "mean": 17.60829147465438,
+                "max": 22.282642857142857
+              },
+              "user_override": false
+            }
+          ],
+          "suggested": null,
+          "mode": null,
+          "method_id": null,
+          "statistic": null,
+          "k_sd": null,
+          "manual_value": null,
+          "selected": null,
+          "approved": false,
+          "approved_at": null,
+          "basis_hash": null
+        },
+        "E": {
+          "parameter": "E",
+          "candidates": [
+            {
+              "value": 29461.44736803408,
+              "unit": "kPa",
+              "method_id": "R2009_E_CPT",
+              "reference": "Robertson (2009), Can. Geotech. J. 46(11)",
+              "source": "CPT",
+              "inputs_used": {
+                "Bq": 0.18874538151692355,
+                "FC": 96.7741935483871,
+                "Fr": 4.454375961153314,
+                "Ic": 3.1317025585193687,
+                "Qt1": 16.90012070352859,
+                "Qtn": 16.539910228123656,
+                "Rf": 3.7036155256352665,
+                "SBTn": 3.096774193548387,
+                "area_ratio": 0.8,
+                "converged": 1.0,
+                "depth": 7.525,
+                "fs": 33.50041935483871,
+                "n": 0.981393807705484,
+                "qc": 1611.741935483871,
+                "qt": 1646.252593548387,
+                "sigma_v": 133.26917790452288,
+                "sigma_v_eff": 83.97392790452288,
+                "u0": 49.29525,
+                "u2": 172.55329032258064
+              },
+              "validity_ok": false,
+              "warnings": [
+                "I_c = 3.23 >= 2.6: correlation is for sand-like (drained) soils",
+                "I_c = 3.19 >= 2.6: correlation is for sand-like (drained) soils",
+                "I_c = 3.21 >= 2.6: correlation is for sand-like (drained) soils",
+                "I_c = 3.08 >= 2.6: correlation is for sand-like (drained) soils",
+                "I_c = 3.05 >= 2.6: correlation is for sand-like (drained) soils",
+                "I_c = 3.10 >= 2.6: correlation is for sand-like (drained) soils",
+                "I_c = 3.15 >= 2.6: correlation is for sand-like (drained) soils",
+                "I_c = 3.16 >= 2.6: correlation is for sand-like (drained) soils",
+                "I_c = 3.18 >= 2.6: correlation is for sand-like (drained) soils",
+                "I_c = 3.17 >= 2.6: correlation is for sand-like (drained) soils",
+                "I_c = 3.14 >= 2.6: correlation is for sand-like (drained) soils",
+                "I_c = 3.20 >= 2.6: correlation is for sand-like (drained) soils",
+                "I_c = 3.22 >= 2.6: correlation is for sand-like (drained) soils",
+                "I_c = 3.11 >= 2.6: correlation is for sand-like (drained) soils",
+                "I_c = 3.27 >= 2.6: correlation is for sand-like (drained) soils",
+                "I_c = 3.12 >= 2.6: correlation is for sand-like (drained) soils",
+                "I_c = 3.25 >= 2.6: correlation is for sand-like (drained) soils",
+                "I_c = 3.31 >= 2.6: correlation is for sand-like (drained) soils",
+                "I_c = 3.30 >= 2.6: correlation is for sand-like (drained) soils",
+                "I_c = 3.26 >= 2.6: correlation is for sand-like (drained) soils"
+              ],
+              "reliability": "B",
+              "stats": {
+                "n": 62,
+                "min": 21903.360643277472,
+                "mean": 29461.44736803408,
+                "max": 115648.43185789126
+              },
+              "user_override": false
+            }
+          ],
+          "suggested": null,
+          "mode": null,
+          "method_id": null,
+          "statistic": null,
+          "k_sd": null,
+          "manual_value": null,
+          "selected": null,
+          "approved": false,
+          "approved_at": null,
+          "basis_hash": null
+        },
+        "gamma": {
+          "parameter": "gamma",
+          "candidates": [
+            {
+              "value": 16.903647204215076,
+              "unit": "kN/m3",
+              "method_id": "RC2010_gamma_CPT",
+              "reference": "Robertson & Cabal (2010), 2nd Int. Symp. on Cone Penetration Testing",
+              "source": "CPT",
+              "inputs_used": {
+                "Bq": 0.18874538151692355,
+                "FC": 96.7741935483871,
+                "Fr": 4.454375961153314,
+                "Ic": 3.1317025585193687,
+                "Qt1": 16.90012070352859,
+                "Qtn": 16.539910228123656,
+                "Rf": 3.7036155256352665,
+                "SBTn": 3.096774193548387,
+                "area_ratio": 0.8,
+                "converged": 1.0,
+                "depth": 7.525,
+                "fs": 33.50041935483871,
+                "n": 0.981393807705484,
+                "qc": 1611.741935483871,
+                "qt": 1646.252593548387,
+                "sigma_v": 133.26917790452288,
+                "sigma_v_eff": 83.97392790452288,
+                "u0": 49.29525,
+                "u2": 172.55329032258064
+              },
+              "validity_ok": true,
+              "warnings": [],
+              "reliability": "B",
+              "stats": {
+                "n": 62,
+                "min": 16.41020193638205,
+                "mean": 16.903647204215076,
+                "max": 19.994521020950483
+              },
+              "user_override": false
+            }
+          ],
+          "suggested": {
+            "value": 16.903647204215076,
+            "unit": "kN/m3",
+            "method_id": "mean(RC2010_gamma_CPT)",
+            "reference": "Robertson & Cabal (2010), 2nd Int. Symp. on Cone Penetration Testing",
+            "source": "CPT",
+            "inputs_used": {},
+            "validity_ok": true,
+            "warnings": [],
+            "reliability": "B",
+            "stats": {
+              "n": 1,
+              "min": 16.903647204215076,
+              "mean": 16.903647204215076,
+              "max": 16.903647204215076
+            },
+            "user_override": false
+          },
+          "mode": null,
+          "method_id": null,
+          "statistic": null,
+          "k_sd": null,
+          "manual_value": null,
+          "selected": null,
+          "approved": false,
+          "approved_at": null,
+          "basis_hash": null
+        },
+        "gamma_sat": {
+          "parameter": "gamma_sat",
+          "candidates": [],
+          "suggested": null,
+          "mode": null,
+          "method_id": null,
+          "statistic": null,
+          "k_sd": null,
+          "manual_value": null,
+          "selected": null,
+          "approved": false,
+          "approved_at": null,
+          "basis_hash": null
+        },
+        "delta_base": {
+          "parameter": "delta_base",
+          "candidates": [],
+          "suggested": null,
+          "mode": null,
+          "method_id": null,
+          "statistic": null,
+          "k_sd": null,
+          "manual_value": null,
+          "selected": null,
+          "approved": false,
+          "approved_at": null,
+          "basis_hash": null
+        }
+      },
+      "source_ids": [
+        "CPT-UX-MPa"
+      ],
+      "liquefiable": null,
+      "residual_su": null
+    },
+    {
+      "id": "843369838638401a822457708159361c",
+      "top": 9.075,
+      "bottom": 15.0,
+      "description": "",
+      "uscs": null,
+      "sbtn_zone": 6,
+      "behaviour": "drained",
+      "gamma": 20.11239257172385,
+      "gamma_sat": 20.11239257172385,
+      "permeability": null,
+      "params": {
+        "Ic": {
+          "value": 1.3787546860420512,
+          "unit": "-",
+          "method_id": "CPT_Ic",
+          "reference": "Robertson (2009): processed soil behaviour index",
+          "source": "CPT",
+          "inputs_used": {},
+          "validity_ok": true,
+          "warnings": [],
+          "reliability": null,
+          "stats": {
+            "n": 118,
+            "min": 1.3018224520211763,
+            "mean": 1.3787546860420512,
+            "max": 1.4509608902220255
+          },
+          "user_override": false
+        },
+        "phi_eff": {
+          "value": 44.7826617620005,
+          "unit": "deg",
+          "method_id": "mean(KM1990_phi_CPT,RC1983_phi_CPT)",
+          "reference": "Kulhawy & Mayne (1990); Mayne (2007) NCHRP Synthesis 368; Robertson & Campanella (1983), Can. Geotech. J. 20(4)",
+          "source": "CPT",
+          "inputs_used": {},
+          "validity_ok": true,
+          "warnings": [],
+          "reliability": "B",
+          "stats": {
+            "n": 2,
+            "min": 44.47558266953741,
+            "mean": 44.7826617620005,
+            "max": 45.089740854463585
+          },
+          "user_override": false
+        },
+        "c_eff": {
+          "value": 0.0,
+          "unit": "kPa",
+          "method_id": "FHWA_GEC5_c_eff",
+          "reference": "FHWA GEC-5: granüler zeminde c' = 0",
+          "source": "combined",
+          "inputs_used": {
+            "Ic": 1.3787546860420512
+          },
+          "validity_ok": true,
+          "warnings": [],
+          "reliability": null,
+          "stats": null,
+          "user_override": false
+        },
+        "E": {
+          "value": 127579.86431776796,
+          "unit": "kPa",
+          "method_id": "mean(R2009_E_CPT)",
+          "reference": "Robertson (2009), Can. Geotech. J. 46(11)",
+          "source": "CPT",
+          "inputs_used": {},
+          "validity_ok": true,
+          "warnings": [],
+          "reliability": "B",
+          "stats": {
+            "n": 1,
+            "min": 127579.86431776796,
+            "mean": 127579.86431776796,
+            "max": 127579.86431776796
+          },
+          "user_override": false
+        },
+        "gamma": {
+          "value": 20.11111524904499,
+          "unit": "kN/m3",
+          "method_id": "mean(RC2010_gamma_CPT)",
+          "reference": "Robertson & Cabal (2010), 2nd Int. Symp. on Cone Penetration Testing",
+          "source": "CPT",
+          "inputs_used": {},
+          "validity_ok": true,
+          "warnings": [],
+          "reliability": "B",
+          "stats": {
+            "n": 1,
+            "min": 20.11111524904499,
+            "mean": 20.11111524904499,
+            "max": 20.11111524904499
+          },
+          "user_override": false
+        },
+        "delta_base": {
+          "value": 30.96375653207352,
+          "unit": "deg",
+          "method_id": "TBDY2018_delta_base",
+          "reference": "EN 1997-1 6.5.3(10): δd = φ'cv,d (yerinde dökme beton); TBDY 2018 16.8.4.3, Tablo 16.3: tan δ ≤ 0.6 (yerinde dökme beton – sıkıştırılmış taban zemini)",
+          "source": "combined",
+          "inputs_used": {
+            "phi_eff": 44.7826617620005
+          },
+          "validity_ok": true,
+          "warnings": [
+            "parameters.warning.phi_cv_assumed_equal_phi_eff: phi_eff=44.7826617620005"
+          ],
+          "reliability": null,
+          "stats": null,
+          "user_override": false
+        }
+      },
+      "design": {
+        "phi_eff": null,
+        "c_eff": 0.0,
+        "su": null,
+        "E": null,
+        "delta_base": null
+      },
+      "selections": {
+        "phi_eff": {
+          "parameter": "phi_eff",
+          "candidates": [
+            {
+              "value": 44.47558266953741,
+              "unit": "deg",
+              "method_id": "KM1990_phi_CPT",
+              "reference": "Kulhawy & Mayne (1990); Mayne (2007) NCHRP Synthesis 368",
+              "source": "CPT",
+              "inputs_used": {
+                "Bq": 0.00031902864700543166,
+                "FC": 0.0,
+                "Fr": 0.5038210811943598,
+                "Ic": 1.3787546860420512,
+                "Qt1": 250.67616853356347,
+                "Qtn": 279.6549498688551,
+                "Rf": 0.500297531798017,
+                "SBTn": 6.008474576271187,
+                "area_ratio": 0.8,
+                "converged": 1.0,
+                "depth": 12.025,
+                "fs": 156.6050593220339,
+                "n": 0.43717588525911505,
+                "qc": 31248.13559322034,
+                "qt": 31268.785676271185,
+                "sigma_v": 218.8013891576416,
+                "sigma_v_eff": 125.3611391576416,
+                "u0": 93.44025,
+                "u2": 103.25041525423728
+              },
+              "validity_ok": true,
+              "warnings": [],
+              "reliability": "B",
+              "stats": {
+                "n": 118,
+                "min": 43.348918841858534,
+                "mean": 44.47558266953741,
+                "max": 45.404620515795585
+              },
+              "user_override": false
+            },
+            {
+              "value": 45.089740854463585,
+              "unit": "deg",
+              "method_id": "RC1983_phi_CPT",
+              "reference": "Robertson & Campanella (1983), Can. Geotech. J. 20(4)",
+              "source": "CPT",
+              "inputs_used": {
+                "Bq": 0.00031902864700543166,
+                "FC": 0.0,
+                "Fr": 0.5038210811943598,
+                "Ic": 1.3787546860420512,
+                "Qt1": 250.67616853356347,
+                "Qtn": 279.6549498688551,
+                "Rf": 0.500297531798017,
+                "SBTn": 6.008474576271187,
+                "area_ratio": 0.8,
+                "converged": 1.0,
+                "depth": 12.025,
+                "fs": 156.6050593220339,
+                "n": 0.43717588525911505,
+                "qc": 31248.13559322034,
+                "qt": 31268.785676271185,
+                "sigma_v": 218.8013891576416,
+                "sigma_v_eff": 125.3611391576416,
+                "u0": 93.44025,
+                "u2": 103.25041525423728
+              },
+              "validity_ok": true,
+              "warnings": [],
+              "reliability": "B",
+              "stats": {
+                "n": 118,
+                "min": 43.68447084052366,
+                "mean": 45.089740854463585,
+                "max": 46.2845624830475
+              },
+              "user_override": false
+            }
+          ],
+          "suggested": {
+            "value": 44.7826617620005,
+            "unit": "deg",
+            "method_id": "mean(KM1990_phi_CPT,RC1983_phi_CPT)",
+            "reference": "Kulhawy & Mayne (1990); Mayne (2007) NCHRP Synthesis 368; Robertson & Campanella (1983), Can. Geotech. J. 20(4)",
+            "source": "CPT",
+            "inputs_used": {},
+            "validity_ok": true,
+            "warnings": [],
+            "reliability": "B",
+            "stats": {
+              "n": 2,
+              "min": 44.47558266953741,
+              "mean": 44.7826617620005,
+              "max": 45.089740854463585
+            },
+            "user_override": false
+          },
+          "mode": null,
+          "method_id": null,
+          "statistic": null,
+          "k_sd": null,
+          "manual_value": null,
+          "selected": null,
+          "approved": false,
+          "approved_at": null,
+          "basis_hash": null
+        },
+        "c_eff": {
+          "parameter": "c_eff",
+          "candidates": [],
+          "suggested": {
+            "value": 0.0,
+            "unit": "kPa",
+            "method_id": "FHWA_GEC5_c_eff",
+            "reference": "FHWA GEC-5: granüler zeminde c' = 0",
+            "source": "combined",
+            "inputs_used": {
+              "Ic": 1.3787546860420512
+            },
+            "validity_ok": true,
+            "warnings": [],
+            "reliability": null,
+            "stats": null,
+            "user_override": false
+          },
+          "mode": null,
+          "method_id": null,
+          "statistic": null,
+          "k_sd": null,
+          "manual_value": null,
+          "selected": null,
+          "approved": false,
+          "approved_at": null,
+          "basis_hash": null
+        },
+        "su": {
+          "parameter": "su",
+          "candidates": [
+            {
+              "value": 2217.8560205081103,
+              "unit": "kPa",
+              "method_id": "CPT_su_Nkt",
+              "reference": "Lunne, Robertson & Powell (1997); Robertson & Cabal (2015) CPT Guide",
+              "source": "CPT",
+              "inputs_used": {
+                "Bq": 0.00031902864700543166,
+                "FC": 0.0,
+                "Fr": 0.5038210811943598,
+                "Ic": 1.3787546860420512,
+                "Nkt": 14.0,
+                "Qt1": 250.67616853356347,
+                "Qtn": 279.6549498688551,
+                "Rf": 0.500297531798017,
+                "SBTn": 6.008474576271187,
+                "area_ratio": 0.8,
+                "converged": 1.0,
+                "depth": 12.025,
+                "fs": 156.6050593220339,
+                "n": 0.43717588525911505,
+                "qc": 31248.13559322034,
+                "qt": 31268.785676271185,
+                "sigma_v": 218.8013891576416,
+                "sigma_v_eff": 125.3611391576416,
+                "u0": 93.44025,
+                "u2": 103.25041525423728
+              },
+              "validity_ok": false,
+              "warnings": [
+                "I_c = 1.38 < 2.6: correlation is for clay-like (undrained) soils",
+                "I_c = 1.33 < 2.6: correlation is for clay-like (undrained) soils",
+                "I_c = 1.40 < 2.6: correlation is for clay-like (undrained) soils",
+                "I_c = 1.39 < 2.6: correlation is for clay-like (undrained) soils",
+                "I_c = 1.36 < 2.6: correlation is for clay-like (undrained) soils",
+                "I_c = 1.35 < 2.6: correlation is for clay-like (undrained) soils",
+                "I_c = 1.37 < 2.6: correlation is for clay-like (undrained) soils",
+                "I_c = 1.44 < 2.6: correlation is for clay-like (undrained) soils",
+                "I_c = 1.41 < 2.6: correlation is for clay-like (undrained) soils",
+                "I_c = 1.42 < 2.6: correlation is for clay-like (undrained) soils",
+                "I_c = 1.34 < 2.6: correlation is for clay-like (undrained) soils",
+                "I_c = 1.45 < 2.6: correlation is for clay-like (undrained) soils",
+                "I_c = 1.32 < 2.6: correlation is for clay-like (undrained) soils",
+                "I_c = 1.43 < 2.6: correlation is for clay-like (undrained) soils",
+                "I_c = 1.30 < 2.6: correlation is for clay-like (undrained) soils"
+              ],
+              "reliability": "A",
+              "stats": {
+                "n": 118,
+                "min": 1707.7375474775613,
+                "mean": 2217.8560205081103,
+                "max": 2841.8333058713324
+              },
+              "user_override": false
+            },
+            {
+              "value": 1.4014521791767547,
+              "unit": "kPa",
+              "method_id": "CPTu_su_Ndu",
+              "reference": "Lunne, Robertson & Powell (1997)",
+              "source": "CPT",
+              "inputs_used": {
+                "Bq": 0.00031902864700543166,
+                "FC": 0.0,
+                "Fr": 0.5038210811943598,
+                "Ic": 1.3787546860420512,
+                "Ndu": 7.0,
+                "Qt1": 250.67616853356347,
+                "Qtn": 279.6549498688551,
+                "Rf": 0.500297531798017,
+                "SBTn": 6.008474576271187,
+                "area_ratio": 0.8,
+                "converged": 1.0,
+                "depth": 12.025,
+                "fs": 156.6050593220339,
+                "n": 0.43717588525911505,
+                "qc": 31248.13559322034,
+                "qt": 31268.785676271185,
+                "sigma_v": 218.8013891576416,
+                "sigma_v_eff": 125.3611391576416,
+                "u0": 93.44025,
+                "u2": 103.25041525423728
+              },
+              "validity_ok": false,
+              "warnings": [
+                "I_c = 1.38 < 2.6: correlation is for clay-like (undrained) soils",
+                "I_c = 1.33 < 2.6: correlation is for clay-like (undrained) soils",
+                "I_c = 1.40 < 2.6: correlation is for clay-like (undrained) soils",
+                "I_c = 1.39 < 2.6: correlation is for clay-like (undrained) soils",
+                "I_c = 1.36 < 2.6: correlation is for clay-like (undrained) soils",
+                "I_c = 1.35 < 2.6: correlation is for clay-like (undrained) soils",
+                "I_c = 1.37 < 2.6: correlation is for clay-like (undrained) soils",
+                "I_c = 1.44 < 2.6: correlation is for clay-like (undrained) soils",
+                "I_c = 1.41 < 2.6: correlation is for clay-like (undrained) soils",
+                "I_c = 1.42 < 2.6: correlation is for clay-like (undrained) soils",
+                "I_c = 1.34 < 2.6: correlation is for clay-like (undrained) soils",
+                "I_c = 1.45 < 2.6: correlation is for clay-like (undrained) soils",
+                "I_c = 1.32 < 2.6: correlation is for clay-like (undrained) soils",
+                "I_c = 1.43 < 2.6: correlation is for clay-like (undrained) soils",
+                "I_c = 1.30 < 2.6: correlation is for clay-like (undrained) soils"
+              ],
+              "reliability": "B",
+              "stats": {
+                "n": 118,
+                "min": 1.4013571428571407,
+                "mean": 1.4014521791767547,
+                "max": 1.4015000000000006
+              },
+              "user_override": false
+            }
+          ],
+          "suggested": null,
+          "mode": null,
+          "method_id": null,
+          "statistic": null,
+          "k_sd": null,
+          "manual_value": null,
+          "selected": null,
+          "approved": false,
+          "approved_at": null,
+          "basis_hash": null
+        },
+        "E": {
+          "parameter": "E",
+          "candidates": [
+            {
+              "value": 127579.86431776796,
+              "unit": "kPa",
+              "method_id": "R2009_E_CPT",
+              "reference": "Robertson (2009), Can. Geotech. J. 46(11)",
+              "source": "CPT",
+              "inputs_used": {
+                "Bq": 0.00031902864700543166,
+                "FC": 0.0,
+                "Fr": 0.5038210811943598,
+                "Ic": 1.3787546860420512,
+                "Qt1": 250.67616853356347,
+                "Qtn": 279.6549498688551,
+                "Rf": 0.500297531798017,
+                "SBTn": 6.008474576271187,
+                "area_ratio": 0.8,
+                "converged": 1.0,
+                "depth": 12.025,
+                "fs": 156.6050593220339,
+                "n": 0.43717588525911505,
+                "qc": 31248.13559322034,
+                "qt": 31268.785676271185,
+                "sigma_v": 218.8013891576416,
+                "sigma_v_eff": 125.3611391576416,
+                "u0": 93.44025,
+                "u2": 103.25041525423728
+              },
+              "validity_ok": true,
+              "warnings": [],
+              "reliability": "B",
+              "stats": {
+                "n": 118,
+                "min": 105810.36559076449,
+                "mean": 127579.86431776796,
+                "max": 151901.55019873907
+              },
+              "user_override": false
+            }
+          ],
+          "suggested": {
+            "value": 127579.86431776796,
+            "unit": "kPa",
+            "method_id": "mean(R2009_E_CPT)",
+            "reference": "Robertson (2009), Can. Geotech. J. 46(11)",
+            "source": "CPT",
+            "inputs_used": {},
+            "validity_ok": true,
+            "warnings": [],
+            "reliability": "B",
+            "stats": {
+              "n": 1,
+              "min": 127579.86431776796,
+              "mean": 127579.86431776796,
+              "max": 127579.86431776796
+            },
+            "user_override": false
+          },
+          "mode": null,
+          "method_id": null,
+          "statistic": null,
+          "k_sd": null,
+          "manual_value": null,
+          "selected": null,
+          "approved": false,
+          "approved_at": null,
+          "basis_hash": null
+        },
+        "gamma": {
+          "parameter": "gamma",
+          "candidates": [
+            {
+              "value": 20.11111524904499,
+              "unit": "kN/m3",
+              "method_id": "RC2010_gamma_CPT",
+              "reference": "Robertson & Cabal (2010), 2nd Int. Symp. on Cone Penetration Testing",
+              "source": "CPT",
+              "inputs_used": {
+                "Bq": 0.00031902864700543166,
+                "FC": 0.0,
+                "Fr": 0.5038210811943598,
+                "Ic": 1.3787546860420512,
+                "Qt1": 250.67616853356347,
+                "Qtn": 279.6549498688551,
+                "Rf": 0.500297531798017,
+                "SBTn": 6.008474576271187,
+                "area_ratio": 0.8,
+                "converged": 1.0,
+                "depth": 12.025,
+                "fs": 156.6050593220339,
+                "n": 0.43717588525911505,
+                "qc": 31248.13559322034,
+                "qt": 31268.785676271185,
+                "sigma_v": 218.8013891576416,
+                "sigma_v_eff": 125.3611391576416,
+                "u0": 93.44025,
+                "u2": 103.25041525423728
+              },
+              "validity_ok": true,
+              "warnings": [],
+              "reliability": "B",
+              "stats": {
+                "n": 118,
+                "min": 19.708923155386643,
+                "mean": 20.11111524904499,
+                "max": 20.49099167417569
+              },
+              "user_override": false
+            }
+          ],
+          "suggested": {
+            "value": 20.11111524904499,
+            "unit": "kN/m3",
+            "method_id": "mean(RC2010_gamma_CPT)",
+            "reference": "Robertson & Cabal (2010), 2nd Int. Symp. on Cone Penetration Testing",
+            "source": "CPT",
+            "inputs_used": {},
+            "validity_ok": true,
+            "warnings": [],
+            "reliability": "B",
+            "stats": {
+              "n": 1,
+              "min": 20.11111524904499,
+              "mean": 20.11111524904499,
+              "max": 20.11111524904499
+            },
+            "user_override": false
+          },
+          "mode": null,
+          "method_id": null,
+          "statistic": null,
+          "k_sd": null,
+          "manual_value": null,
+          "selected": null,
+          "approved": false,
+          "approved_at": null,
+          "basis_hash": null
+        },
+        "gamma_sat": {
+          "parameter": "gamma_sat",
+          "candidates": [],
+          "suggested": null,
+          "mode": null,
+          "method_id": null,
+          "statistic": null,
+          "k_sd": null,
+          "manual_value": null,
+          "selected": null,
+          "approved": false,
+          "approved_at": null,
+          "basis_hash": null
+        },
+        "delta_base": {
+          "parameter": "delta_base",
+          "candidates": [],
+          "suggested": {
+            "value": 30.96375653207352,
+            "unit": "deg",
+            "method_id": "TBDY2018_delta_base",
+            "reference": "EN 1997-1 6.5.3(10): δd = φ'cv,d (yerinde dökme beton); TBDY 2018 16.8.4.3, Tablo 16.3: tan δ ≤ 0.6 (yerinde dökme beton – sıkıştırılmış taban zemini)",
+            "source": "combined",
+            "inputs_used": {
+              "phi_eff": 44.7826617620005
+            },
+            "validity_ok": true,
+            "warnings": [
+              "parameters.warning.phi_cv_assumed_equal_phi_eff: phi_eff=44.7826617620005"
+            ],
+            "reliability": null,
+            "stats": null,
+            "user_override": false
+          },
+          "mode": null,
+          "method_id": null,
+          "statistic": null,
+          "k_sd": null,
+          "manual_value": null,
+          "selected": null,
+          "approved": false,
+          "approved_at": null,
+          "basis_hash": null
+        }
+      },
+      "source_ids": [
+        "CPT-UX-MPa"
+      ],
+      "liquefiable": null,
+      "residual_su": null
+    }
+  ]
+}

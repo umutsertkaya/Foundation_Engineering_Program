@@ -1,0 +1,233 @@
+Palplanş / iksa
+
+Proje: QA İŞLEV GeoTek
+
+KAYDEDİLMEMİŞ DEĞİŞİKLİKLER
+Kaydet
+TR
+EN
+Ana menüye dön
+Perdeler
+Listeye dön
+QA C ASD static-envelope regression
+SONUÇ VAR
+Girdiler
+Ad
+
+Mesnet
+
+Konsol
+Tek ankrajlı
+Tutulan yükseklik H (m)
+Arka zemin eğimi β (°)
+
+Boş bırakılırsa 0 (yatay). 45° altında olmalı; β > φ′ ise hesap durdurulur. Ön taraf yatay kalır.
+
+Sürşarj (kPa)
+
+Boş bırakılırsa 0 alınır.
+
+Sürşarj tabanı
+
+Yalnız eğimli zeminde fark eder.
+
+S_DS (isteğe bağlı)
+
+Boşsa depremli durum hesaplanmaz.
+
+İzin verilen gerilme (MPa)
+
+Boşsa kesit modülü hesaplanmaz.
+
+Gelişmiş girdiler
+Tasarım kodu
+Yaklaşım
+
+İsteğe bağlıdır; servis varsayılanı için boş bırakın.
+
+Analiz düzeyi
+Gömülme artışı
+
+Servis varsayılanı: 0.2. Kullanmak için değiştirmeden bırakın.
+
+Ön su derinliği (m)
+
+Boş bırakılırsa zemin profilindeki ön su seviyesi kullanılır.
+
+Zemin
+
+Zemin bu perde için elle girildi.
+
+Üst (m)	Alt (m)	γ (kN/m³)	φ' (°)	c' (kPa)
+0	40	18	30	0
+Kaydet
+Tasarımı çalıştır
+Tasarım sonucu
+Tasarım sonucu
+KONSOL
+
+Tasarım esası
+
+Tasarım kodu: ASD — Global güvenlik sayısı
+
+Yaklaşım: Servis varsayılanı
+
+Analiz düzeyi: Temel
+
+Gömülme artışı: 20,0%
+
+Gömülme
+
+H tutulan yükseklik
+
+5,00 m
+
+D₀ teorik gömülme
+
+6,70 m
+
+D tasarım gömülmesi
+
+8,04 m
+
+Toplam boy
+
+13,04 m
+
+Moment ve kuvvetler
+
+M_max (mutlak değer)
+
+436,95 kNm/m
+
+M_max derinliği
+
+8,80 m
+
+Uç kuvveti
+
+340,93 kN/m
+
+Mutlak değer; kazı yönünde etkir.
+
+Kesit modülü
+
+—
+
+Kesit modülü için izin verilen gerilme girilmedi.
+
+Net basınç
+-200
+-150
+-100
+-50
+0
+50
+0
+2
+4
+6
+8
+10
+kazı tabanı
+kPa
+z (m)
+Kesme kuvveti
+-400
+-300
+-200
+-100
+0
+100
+200
+0
+2
+4
+6
+8
+10
+kazı tabanı
+kN/m
+z (m)
+Eğilme momenti
+0
+100
+200
+300
+400
+500
+0
+2
+4
+6
+8
+10
+kazı tabanı
+kNm/m
+z (m)
+
+Derinlik z perdenin üstünden ölçülür; çizim teorik uca (H + D₀) kadardır.
+
+Tablo serisi toplam boyda değil, teorik uçta (H + D₀) biter.
+
+5852 noktanın 51 tanesi gösteriliyor
+
+z (m)	Net basınç (kPa)	Kesme (kN/m)	Moment (kNm/m)
+0,00	1,82	0,00	0,00
+0,25	3,32	0,64	0,07
+0,50	4,82	1,66	0,35
+0,75	6,32	3,05	0,93
+1,00	7,82	4,82	1,91
+1,25	9,32	6,96	3,37
+1,50	10,82	9,48	5,42
+1,75	12,32	12,37	8,14
+2,00	13,82	15,64	11,64
+2,25	15,32	19,28	15,99
+2,50	16,82	23,30	21,31
+2,75	18,32	27,69	27,67
+3,00	19,82	32,46	35,18
+3,25	21,32	37,60	43,93
+3,50	22,82	43,12	54,02
+3,75	24,32	49,01	65,52
+4,00	25,82	55,28	78,55
+4,25	27,32	61,92	93,19
+4,50	28,82	68,93	109,54
+4,75	30,32	76,33	127,69
+5,00	31,82	84,09	147,73
+5,25	24,71	91,16	169,68
+5,50	17,60	96,45	193,17
+5,75	10,49	99,96	217,75
+6,00	3,38	101,69	243,00
+6,12	0,02	101,89	255,01
+6,25	-3,73	101,65	268,45
+6,50	-10,84	99,83	293,68
+6,75	-17,95	96,23	318,22
+7,00	-25,06	90,85	341,64
+7,25	-32,17	83,70	363,50
+7,50	-39,28	74,77	383,34
+7,75	-46,39	64,06	400,74
+8,00	-53,50	51,58	415,23
+8,25	-60,61	37,31	426,38
+8,50	-67,72	21,27	433,74
+8,75	-74,83	3,46	436,87
+8,79	-76,08	0,14	436,94
+8,80	-76,13	-0,02	436,95
+9,00	-81,94	-16,14	435,32
+9,25	-89,04	-37,51	428,65
+9,50	-96,15	-60,66	416,41
+9,75	-103,26	-85,59	398,17
+10,00	-110,37	-112,29	373,47
+10,25	-117,48	-140,77	341,88
+10,50	-124,59	-171,03	302,94
+10,75	-131,70	-203,07	256,21
+11,00	-138,81	-236,89	201,25
+11,25	-145,92	-272,48	137,62
+11,50	-153,03	-309,85	64,87
+11,70	-158,66	-340,70	0,48
+
+Varsayımlar
+
+Katmanlı Rankine aktif/pasif; ön/arka profil ve YASS ayrı; hidrostatik su; sızma yok (Rankine (1857); P1 §1)
+Pasif basınç GS=1.5 ile bölündü; tanφ′ ve c′ de GS ile bölünerek bulunan pasif basınç daha küçükse o alındı (yüksek φ′; USACE EM 1110-2-2504 5-2d) (USACE EM 1110-2-2504 Tablo 5-1: perde duvarı, serbest drenajlı zemin, olağan durum 1.50 (S durumu); ince daneli zeminde Q durumu 2.00 (programda ayrı değer yok))
+Konsolda Blum gömülmesi %20 artırılır; ankrajlıda serbest zemin desteği (Mevcut sheet_pile.py; USS Steel Sheet Piling Design Manual / USACE EM 1110-2-2504)
+r=1; KDYY dinamik artımı: duvar boyunca (0..uç) düzgün ½·ΔK_ad·σ′v(uç) + sürşarj için üçgen 2·q·ΔK_ad·(1−z/uç), uç derinliği yinelemeyle; katman başına pasif M-O/Rankine oranı en çok 1; drenajsız deprem durdurulur; hidrodinamik ve fazla boşluk suyu basıncı yok (TBDY 2018 Denk. 16.22, Tablo 16.7, 16.12.2.8)

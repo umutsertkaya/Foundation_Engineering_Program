@@ -1,0 +1,87 @@
+Zemin etüdü ve parametreler
+
+Proje: UX Araştırma 2026
+
+Kaydet
+TR
+EN
+Ana menüye dön
+Arazi verileri
+Zemin profilleri
+Mühendislik parametreleri
+Sınıflandırma
+Zemin Modelleri
+
+Katmanlı tasarım profilleri, köken bilgileri ve yeraltı su seviyeleri.
+
+Yeni profil
+
+PROFİLLER (0)
+
+Yeni zemin profili
+
+KAYDEDİLMEDİ
+ELLE GİRİLEN
+
+Kaynak deneyler: —
+
+KAYDEDİLMEDİ
+Vazgeç
+Kaydet
+
+Yeraltı suyu seviyeleri
+
+YASS (arazi)
+YASS (tasarım)
+YASS (deprem)
+
+Zemin yüzeyinden derinlik (m); boş = arazi değeri
+
+Kum
+
+YASS (arazi)
+
+YASS (tasarım)
+
+YASS (deprem)
+
+Zemin kolonu (ölçekli)
+
+z (m)
+0
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+0.00–10.00 m · Kum
+φ' —
+
+Tabakalar
+
+Tabakalar yüzeyden (0 m) başlamalı ve aralıksız devam etmelidir. γ birimi kN/m³.
+
+En alta katman ekle
+1 HATA
+Kimlik	Üst (m)	Alt (m)	Tanım	USCS	Davranış	γ (kN/m³)	γ_sat (kN/m³)	φ' (°)	c' (kPa)	s_u (kPa)	E (kPa)	δ_b (°)	Parametreler / İşlemler
+
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+EKSİK
+L1: γ, 5 ile 30 kN/m³ arasında olmalı (sınırlar hariç).

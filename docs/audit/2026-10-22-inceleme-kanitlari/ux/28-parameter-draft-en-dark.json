@@ -1,0 +1,532 @@
+{
+  "url": "http://127.0.0.1:8771/m/soil/parameters",
+  "viewport": {
+    "w": 1440,
+    "h": 900
+  },
+  "scroll": {
+    "w": 1440,
+    "h": 3296
+  },
+  "inputs": [
+    {
+      "tag": "INPUT",
+      "type": "radio",
+      "id": "mantine-59n0h4b3j-tr",
+      "aria": null,
+      "ph": "",
+      "value": "tr",
+      "labels": [
+        "TR"
+      ],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "radio",
+      "id": "mantine-59n0h4b3j-en",
+      "aria": null,
+      "ph": "",
+      "value": "en",
+      "labels": [
+        "EN"
+      ],
+      "testid": null
+    },
+    {
+      "tag": "SELECT",
+      "type": "select-one",
+      "id": "mantine-ewbpray8t",
+      "aria": null,
+      "ph": null,
+      "value": "a2a0ff79cab6471c9d3701e6ea6e12da",
+      "labels": [
+        "Profile"
+      ],
+      "testid": "params-profile"
+    },
+    {
+      "tag": "INPUT",
+      "type": "radio",
+      "id": "mantine-56cqsttw4-suggested",
+      "aria": null,
+      "ph": "",
+      "value": "suggested",
+      "labels": [
+        "Suggestion"
+      ],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "radio",
+      "id": "mantine-56cqsttw4-method",
+      "aria": null,
+      "ph": "",
+      "value": "method",
+      "labels": [
+        "Method"
+      ],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "radio",
+      "id": "mantine-56cqsttw4-statistic",
+      "aria": null,
+      "ph": "",
+      "value": "statistic",
+      "labels": [
+        "Statistic"
+      ],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "radio",
+      "id": "mantine-56cqsttw4-manual",
+      "aria": null,
+      "ph": "",
+      "value": "manual",
+      "labels": [
+        "Manual"
+      ],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "radio",
+      "id": "mantine-285omr8wu-suggested",
+      "aria": null,
+      "ph": "",
+      "value": "suggested",
+      "labels": [
+        "Suggestion"
+      ],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "radio",
+      "id": "mantine-285omr8wu-method",
+      "aria": null,
+      "ph": "",
+      "value": "method",
+      "labels": [
+        "Method"
+      ],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "radio",
+      "id": "mantine-285omr8wu-statistic",
+      "aria": null,
+      "ph": "",
+      "value": "statistic",
+      "labels": [
+        "Statistic"
+      ],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "radio",
+      "id": "mantine-285omr8wu-manual",
+      "aria": null,
+      "ph": "",
+      "value": "manual",
+      "labels": [
+        "Manual"
+      ],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "radio",
+      "id": "mantine-2ml0hgtav-suggested",
+      "aria": null,
+      "ph": "",
+      "value": "suggested",
+      "labels": [
+        "Suggestion"
+      ],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "radio",
+      "id": "mantine-2ml0hgtav-method",
+      "aria": null,
+      "ph": "",
+      "value": "method",
+      "labels": [
+        "Method"
+      ],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "radio",
+      "id": "mantine-2ml0hgtav-statistic",
+      "aria": null,
+      "ph": "",
+      "value": "statistic",
+      "labels": [
+        "Statistic"
+      ],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "radio",
+      "id": "mantine-2ml0hgtav-manual",
+      "aria": null,
+      "ph": "",
+      "value": "manual",
+      "labels": [
+        "Manual"
+      ],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "radio",
+      "id": "mantine-letodumdj-suggested",
+      "aria": null,
+      "ph": "",
+      "value": "suggested",
+      "labels": [
+        "Suggestion"
+      ],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "radio",
+      "id": "mantine-letodumdj-method",
+      "aria": null,
+      "ph": "",
+      "value": "method",
+      "labels": [
+        "Method"
+      ],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "radio",
+      "id": "mantine-letodumdj-statistic",
+      "aria": null,
+      "ph": "",
+      "value": "statistic",
+      "labels": [
+        "Statistic"
+      ],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "radio",
+      "id": "mantine-letodumdj-manual",
+      "aria": null,
+      "ph": "",
+      "value": "manual",
+      "labels": [
+        "Manual"
+      ],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "radio",
+      "id": "mantine-83g85r3xx-suggested",
+      "aria": null,
+      "ph": "",
+      "value": "suggested",
+      "labels": [
+        "Suggestion"
+      ],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "radio",
+      "id": "mantine-83g85r3xx-method",
+      "aria": null,
+      "ph": "",
+      "value": "method",
+      "labels": [
+        "Method"
+      ],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "radio",
+      "id": "mantine-83g85r3xx-statistic",
+      "aria": null,
+      "ph": "",
+      "value": "statistic",
+      "labels": [
+        "Statistic"
+      ],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "radio",
+      "id": "mantine-83g85r3xx-manual",
+      "aria": null,
+      "ph": "",
+      "value": "manual",
+      "labels": [
+        "Manual"
+      ],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "radio",
+      "id": "mantine-aum1rxka3-suggested",
+      "aria": null,
+      "ph": "",
+      "value": "suggested",
+      "labels": [
+        "Suggestion"
+      ],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "radio",
+      "id": "mantine-aum1rxka3-method",
+      "aria": null,
+      "ph": "",
+      "value": "method",
+      "labels": [
+        "Method"
+      ],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "radio",
+      "id": "mantine-aum1rxka3-statistic",
+      "aria": null,
+      "ph": "",
+      "value": "statistic",
+      "labels": [
+        "Statistic"
+      ],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "radio",
+      "id": "mantine-aum1rxka3-manual",
+      "aria": null,
+      "ph": "",
+      "value": "manual",
+      "labels": [
+        "Manual"
+      ],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": "mantine-wcfi13vjw",
+      "aria": null,
+      "ph": "",
+      "value": "20",
+      "labels": [
+        "Value [-]"
+      ],
+      "testid": "param-manual-gamma_sat"
+    },
+    {
+      "tag": "INPUT",
+      "type": "radio",
+      "id": "mantine-jzw2i9ufn-suggested",
+      "aria": null,
+      "ph": "",
+      "value": "suggested",
+      "labels": [
+        "Suggestion"
+      ],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "radio",
+      "id": "mantine-jzw2i9ufn-method",
+      "aria": null,
+      "ph": "",
+      "value": "method",
+      "labels": [
+        "Method"
+      ],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "radio",
+      "id": "mantine-jzw2i9ufn-statistic",
+      "aria": null,
+      "ph": "",
+      "value": "statistic",
+      "labels": [
+        "Statistic"
+      ],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "radio",
+      "id": "mantine-jzw2i9ufn-manual",
+      "aria": null,
+      "ph": "",
+      "value": "manual",
+      "labels": [
+        "Manual"
+      ],
+      "testid": null
+    }
+  ],
+  "buttons": [
+    {
+      "text": "",
+      "aria": "Toggle navigation menu",
+      "disabled": false
+    },
+    {
+      "text": "Save",
+      "aria": null,
+      "disabled": false
+    },
+    {
+      "text": "",
+      "aria": "Toggle theme",
+      "disabled": false
+    },
+    {
+      "text": "Back to main menu",
+      "aria": null,
+      "disabled": false
+    },
+    {
+      "text": "Suggest all",
+      "aria": null,
+      "disabled": false
+    },
+    {
+      "text": "0–5.975 m 1/7 approved",
+      "aria": null,
+      "disabled": false
+    },
+    {
+      "text": "5.975–9.075 m 0/7 approved",
+      "aria": null,
+      "disabled": false
+    },
+    {
+      "text": "9.075–15 m 0/7 approved",
+      "aria": null,
+      "disabled": false
+    },
+    {
+      "text": "Approve selected values",
+      "aria": null,
+      "disabled": true
+    },
+    {
+      "text": "Apply selection",
+      "aria": null,
+      "disabled": true
+    },
+    {
+      "text": "Approve",
+      "aria": null,
+      "disabled": true
+    },
+    {
+      "text": "Apply selection",
+      "aria": null,
+      "disabled": true
+    },
+    {
+      "text": "Approve",
+      "aria": null,
+      "disabled": true
+    },
+    {
+      "text": "Apply selection",
+      "aria": null,
+      "disabled": true
+    },
+    {
+      "text": "Approve",
+      "aria": null,
+      "disabled": true
+    },
+    {
+      "text": "Apply selection",
+      "aria": null,
+      "disabled": true
+    },
+    {
+      "text": "Approve",
+      "aria": null,
+      "disabled": true
+    },
+    {
+      "text": "Apply selection",
+      "aria": null,
+      "disabled": true
+    },
+    {
+      "text": "Approve",
+      "aria": null,
+      "disabled": true
+    },
+    {
+      "text": "Apply selection",
+      "aria": null,
+      "disabled": false
+    },
+    {
+      "text": "Approve",
+      "aria": null,
+      "disabled": true
+    },
+    {
+      "text": "Apply selection",
+      "aria": null,
+      "disabled": true
+    },
+    {
+      "text": "Approve",
+      "aria": null,
+      "disabled": true
+    }
+  ],
+  "links": [
+    {
+      "text": "Site data",
+      "href": "/m/soil"
+    },
+    {
+      "text": "Soil profiles",
+      "href": "/m/soil/profiles"
+    },
+    {
+      "text": "Engineering parameters",
+      "href": "/m/soil/parameters"
+    },
+    {
+      "text": "Classification",
+      "href": "/m/soil/classification"
+    }
+  ]
+}

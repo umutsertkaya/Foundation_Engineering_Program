@@ -1,0 +1,682 @@
+{
+  "url": "http://127.0.0.1:8771/m/soil/profiles",
+  "viewport": {
+    "w": 1440,
+    "h": 900
+  },
+  "scroll": {
+    "w": 1440,
+    "h": 1014
+  },
+  "inputs": [
+    {
+      "tag": "INPUT",
+      "type": "radio",
+      "id": "mantine-ver7qw5hx-tr",
+      "aria": null,
+      "ph": "",
+      "value": "tr",
+      "labels": [
+        "TR"
+      ],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "radio",
+      "id": "mantine-ver7qw5hx-en",
+      "aria": null,
+      "ph": "",
+      "value": "en",
+      "labels": [
+        "EN"
+      ],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": "mantine-idie1f087",
+      "aria": "Profile name",
+      "ph": "Profile name",
+      "value": "UX CPT Profili",
+      "labels": [],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": "mantine-6szlh3x8b",
+      "aria": "GWT — at testing",
+      "ph": "",
+      "value": "2.5",
+      "labels": [],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": "mantine-tka9gw5bu",
+      "aria": "GWT — design",
+      "ph": "= 2.5",
+      "value": "2.5",
+      "labels": [],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": "mantine-1jw8k9lck",
+      "aria": "GWT — during earthquake",
+      "ph": "= 2.5",
+      "value": "2.5",
+      "labels": [],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": "mantine-p8drudp27",
+      "aria": "Id 1",
+      "ph": "",
+      "value": "b5bba18300e942b280af754aef89431d",
+      "labels": [],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": "mantine-j23wv6t3e",
+      "aria": "Top (m) b5bba18300e942b280af754aef89431d",
+      "ph": "",
+      "value": "0",
+      "labels": [],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": "mantine-s0h7qd9fn",
+      "aria": "Bottom (m) b5bba18300e942b280af754aef89431d",
+      "ph": "",
+      "value": "5.975",
+      "labels": [],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": "mantine-21fcdvf6f",
+      "aria": "Description b5bba18300e942b280af754aef89431d",
+      "ph": "",
+      "value": "",
+      "labels": [],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": "mantine-bq01lj2p6",
+      "aria": "USCS b5bba18300e942b280af754aef89431d",
+      "ph": "—",
+      "value": "",
+      "labels": [],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "hidden",
+      "id": "",
+      "aria": null,
+      "ph": "",
+      "value": "",
+      "labels": [],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": "mantine-08w7h1im5",
+      "aria": "Behaviour b5bba18300e942b280af754aef89431d",
+      "ph": "",
+      "value": "Drained",
+      "labels": [],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "hidden",
+      "id": "",
+      "aria": null,
+      "ph": "",
+      "value": "drained",
+      "labels": [],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": "mantine-oxdwuuau5",
+      "aria": "γ (kN/m³) b5bba18300e942b280af754aef89431d",
+      "ph": "",
+      "value": "17.919",
+      "labels": [],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": "mantine-tr60zgga6",
+      "aria": "γ_sat (kN/m³) b5bba18300e942b280af754aef89431d",
+      "ph": "17.919418366190715",
+      "value": "17.919",
+      "labels": [],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": "mantine-qyti8kdwe",
+      "aria": "φ' (°) b5bba18300e942b280af754aef89431d",
+      "ph": "",
+      "value": "40.022",
+      "labels": [],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": "mantine-s1tsqhu89",
+      "aria": "c' (kPa) b5bba18300e942b280af754aef89431d",
+      "ph": "",
+      "value": "0",
+      "labels": [],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": "mantine-lho29x2rt",
+      "aria": "s_u (kPa) b5bba18300e942b280af754aef89431d",
+      "ph": "",
+      "value": "",
+      "labels": [],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": "mantine-1jzbs75z6",
+      "aria": "E (kPa) b5bba18300e942b280af754aef89431d",
+      "ph": "",
+      "value": "",
+      "labels": [],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": "mantine-dlpvqgc8m",
+      "aria": "δ_b (°) b5bba18300e942b280af754aef89431d",
+      "ph": "",
+      "value": "",
+      "labels": [],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": "mantine-b4j0g26dy",
+      "aria": "Id 2",
+      "ph": "",
+      "value": "d9ca727763d54332a57afcc52331c515",
+      "labels": [],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": "mantine-9ja242hwx",
+      "aria": "Top (m) d9ca727763d54332a57afcc52331c515",
+      "ph": "",
+      "value": "5.975",
+      "labels": [],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": "mantine-1mpabadcl",
+      "aria": "Bottom (m) d9ca727763d54332a57afcc52331c515",
+      "ph": "",
+      "value": "9.075",
+      "labels": [],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": "mantine-xssva5huq",
+      "aria": "Description d9ca727763d54332a57afcc52331c515",
+      "ph": "",
+      "value": "",
+      "labels": [],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": "mantine-yaw9lscvb",
+      "aria": "USCS d9ca727763d54332a57afcc52331c515",
+      "ph": "—",
+      "value": "",
+      "labels": [],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "hidden",
+      "id": "",
+      "aria": null,
+      "ph": "",
+      "value": "",
+      "labels": [],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": "mantine-2qdz0923b",
+      "aria": "Behaviour d9ca727763d54332a57afcc52331c515",
+      "ph": "",
+      "value": "Undrained",
+      "labels": [],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "hidden",
+      "id": "",
+      "aria": null,
+      "ph": "",
+      "value": "undrained",
+      "labels": [],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": "mantine-0whzuhby9",
+      "aria": "γ (kN/m³) d9ca727763d54332a57afcc52331c515",
+      "ph": "",
+      "value": "16.904",
+      "labels": [],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": "mantine-6nn5hacl3",
+      "aria": "γ_sat (kN/m³) d9ca727763d54332a57afcc52331c515",
+      "ph": "16.903647204215073",
+      "value": "16.904",
+      "labels": [],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": "mantine-btbplbbnr",
+      "aria": "φ' (°) d9ca727763d54332a57afcc52331c515",
+      "ph": "",
+      "value": "",
+      "labels": [],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": "mantine-bzinuqjo0",
+      "aria": "c' (kPa) d9ca727763d54332a57afcc52331c515",
+      "ph": "",
+      "value": "0",
+      "labels": [],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": "mantine-px2w54z0q",
+      "aria": "s_u (kPa) d9ca727763d54332a57afcc52331c515",
+      "ph": "",
+      "value": "",
+      "labels": [],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": "mantine-vgi11nn3d",
+      "aria": "E (kPa) d9ca727763d54332a57afcc52331c515",
+      "ph": "",
+      "value": "",
+      "labels": [],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": "mantine-hn7set7yg",
+      "aria": "δ_b (°) d9ca727763d54332a57afcc52331c515",
+      "ph": "",
+      "value": "",
+      "labels": [],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": "mantine-hd6c5dbph",
+      "aria": "Id 3",
+      "ph": "",
+      "value": "843369838638401a822457708159361c",
+      "labels": [],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": "mantine-su9bidto3",
+      "aria": "Top (m) 843369838638401a822457708159361c",
+      "ph": "",
+      "value": "9.075",
+      "labels": [],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": "mantine-vts3u0red",
+      "aria": "Bottom (m) 843369838638401a822457708159361c",
+      "ph": "",
+      "value": "15",
+      "labels": [],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": "mantine-s2ovomcz3",
+      "aria": "Description 843369838638401a822457708159361c",
+      "ph": "",
+      "value": "",
+      "labels": [],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": "mantine-kyehpqd5x",
+      "aria": "USCS 843369838638401a822457708159361c",
+      "ph": "—",
+      "value": "",
+      "labels": [],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "hidden",
+      "id": "",
+      "aria": null,
+      "ph": "",
+      "value": "",
+      "labels": [],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": "mantine-7v1ru0jfs",
+      "aria": "Behaviour 843369838638401a822457708159361c",
+      "ph": "",
+      "value": "Drained",
+      "labels": [],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "hidden",
+      "id": "",
+      "aria": null,
+      "ph": "",
+      "value": "drained",
+      "labels": [],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": "mantine-qg3k5s54v",
+      "aria": "γ (kN/m³) 843369838638401a822457708159361c",
+      "ph": "",
+      "value": "20.112",
+      "labels": [],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": "mantine-yk1xq5poy",
+      "aria": "γ_sat (kN/m³) 843369838638401a822457708159361c",
+      "ph": "20.11239257172385",
+      "value": "20.112",
+      "labels": [],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": "mantine-z7o8bqw03",
+      "aria": "φ' (°) 843369838638401a822457708159361c",
+      "ph": "",
+      "value": "",
+      "labels": [],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": "mantine-qswxwyzfc",
+      "aria": "c' (kPa) 843369838638401a822457708159361c",
+      "ph": "",
+      "value": "0",
+      "labels": [],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": "mantine-l2o0ur6ru",
+      "aria": "s_u (kPa) 843369838638401a822457708159361c",
+      "ph": "",
+      "value": "",
+      "labels": [],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": "mantine-f4r7oqlyb",
+      "aria": "E (kPa) 843369838638401a822457708159361c",
+      "ph": "",
+      "value": "",
+      "labels": [],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": "mantine-9qztar3e6",
+      "aria": "δ_b (°) 843369838638401a822457708159361c",
+      "ph": "",
+      "value": "",
+      "labels": [],
+      "testid": null
+    }
+  ],
+  "buttons": [
+    {
+      "text": "",
+      "aria": "Toggle navigation menu",
+      "disabled": false
+    },
+    {
+      "text": "Save",
+      "aria": null,
+      "disabled": false
+    },
+    {
+      "text": "",
+      "aria": "Toggle theme",
+      "disabled": false
+    },
+    {
+      "text": "Back to main menu",
+      "aria": null,
+      "disabled": false
+    },
+    {
+      "text": "New profile",
+      "aria": null,
+      "disabled": false
+    },
+    {
+      "text": "UX Elle Kum ProfiliManual1 layers",
+      "aria": null,
+      "disabled": false
+    },
+    {
+      "text": "UX CPT ProfiliCPT origin3 layers",
+      "aria": null,
+      "disabled": false
+    },
+    {
+      "text": "UX SPT ProfiliSPT origin2 layers",
+      "aria": null,
+      "disabled": false
+    },
+    {
+      "text": "UX CPT Profili (kopya)CPT origin3 layers",
+      "aria": null,
+      "disabled": false
+    },
+    {
+      "text": "Duplicate",
+      "aria": null,
+      "disabled": false
+    },
+    {
+      "text": "Discard",
+      "aria": null,
+      "disabled": true
+    },
+    {
+      "text": "Save",
+      "aria": null,
+      "disabled": true
+    },
+    {
+      "text": "",
+      "aria": "Undo",
+      "disabled": true
+    },
+    {
+      "text": "",
+      "aria": "Redo",
+      "disabled": true
+    },
+    {
+      "text": "Add layer at bottom",
+      "aria": null,
+      "disabled": false
+    },
+    {
+      "text": "",
+      "aria": "Add layer below b5bba18300e942b280af754aef89431d",
+      "disabled": false
+    },
+    {
+      "text": "",
+      "aria": "Split b5bba18300e942b280af754aef89431d",
+      "disabled": false
+    },
+    {
+      "text": "",
+      "aria": "Merge with layer below b5bba18300e942b280af754aef89431d",
+      "disabled": false
+    },
+    {
+      "text": "",
+      "aria": "Delete layer b5bba18300e942b280af754aef89431d",
+      "disabled": false
+    },
+    {
+      "text": "",
+      "aria": "Add layer below d9ca727763d54332a57afcc52331c515",
+      "disabled": false
+    },
+    {
+      "text": "",
+      "aria": "Split d9ca727763d54332a57afcc52331c515",
+      "disabled": false
+    },
+    {
+      "text": "",
+      "aria": "Merge with layer below d9ca727763d54332a57afcc52331c515",
+      "disabled": false
+    },
+    {
+      "text": "",
+      "aria": "Delete layer d9ca727763d54332a57afcc52331c515",
+      "disabled": false
+    },
+    {
+      "text": "",
+      "aria": "Add layer below 843369838638401a822457708159361c",
+      "disabled": false
+    },
+    {
+      "text": "",
+      "aria": "Split 843369838638401a822457708159361c",
+      "disabled": false
+    },
+    {
+      "text": "",
+      "aria": "Merge with layer below 843369838638401a822457708159361c",
+      "disabled": true
+    },
+    {
+      "text": "",
+      "aria": "Delete layer 843369838638401a822457708159361c",
+      "disabled": false
+    }
+  ],
+  "links": [
+    {
+      "text": "Site data",
+      "href": "/m/soil"
+    },
+    {
+      "text": "Soil profiles",
+      "href": "/m/soil/profiles"
+    },
+    {
+      "text": "Engineering parameters",
+      "href": "/m/soil/parameters"
+    },
+    {
+      "text": "Classification",
+      "href": "/m/soil/classification"
+    }
+  ]
+}

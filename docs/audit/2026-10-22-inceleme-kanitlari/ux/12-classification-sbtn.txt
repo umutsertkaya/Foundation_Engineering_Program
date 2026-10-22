@@ -1,0 +1,127 @@
+Zemin etüdü ve parametreler
+
+Proje: UX Araştırma 2026
+
+KAYDEDİLMEMİŞ DEĞİŞİKLİKLER
+Kaydet
+TR
+EN
+Ana menüye dön
+Arazi verileri
+Zemin profilleri
+Mühendislik parametreleri
+Sınıflandırma
+Zemin sınıflandırma
+
+CPT davranış tipi (Robertson SBTn) ve laboratuvar sınıflandırması (USCS, ASTM D2487).
+
+Sınıflandırma motoru organik zeminleri (OL, OH, Pt) tanımaz: bunun için etüv kurutulmuş likit limit gerekir. SBTn bölge 8 ve 9 varsayılan olarak kapalıdır ve gösterilmez. Grafik eğrileri çizilen eksenlere kırpılır; A ve U çizgileri LL 20 ve LL 8'in altında negatif değer verir ve orada çizilmez.
+
+CPT · Robertson SBTn
+Laboratuvar · USCS
+CPT sondajı
+0.1
+1
+10
+1
+10
+100
+1000
+Normalize sürtünme oranı Fr (%)
+Normalize uç direnci Qtn
+Ic=1.31
+Ic=2.05
+Ic=2.6
+Ic=2.95
+Ic=3.6
+Bu sondajda bulunan bölgeler
+Bölge	Davranış tipi	Örnek	Derinlik aralığı (m)
+
+3
+	Kil - siltli kil ile kil	60	6.00 – 9.00
+
+5
+	Kum karışımı - siltli kum ile kumlu silt	3	1.40 – 5.25
+
+6
+	Kum - temiz kum ile siltli kum	235	0.10 – 15.05
+
+7
+	Çakıllı kum ile sıkı kum	1	14.90 – 14.95
+Bölgeler ve Ic sınırları
+1
+	
+
+Hassas, ince daneli
+
+	
+
+Qtn bölge 1 sınırının altında
+
+
+
+2
+	
+
+Organik zemin - kil
+
+	
+
+Ic 3.60 – –
+
+
+
+3
+	
+
+Kil - siltli kil ile kil
+
+	
+
+Ic 2.95 – 3.60
+
+
+
+4
+	
+
+Silt karışımı - killi silt ile siltli kil
+
+	
+
+Ic 2.60 – 2.95
+
+
+
+5
+	
+
+Kum karışımı - siltli kum ile kumlu silt
+
+	
+
+Ic 2.05 – 2.60
+
+
+
+6
+	
+
+Kum - temiz kum ile siltli kum
+
+	
+
+Ic 1.31 – 2.05
+
+
+
+7
+	
+
+Çakıllı kum ile sıkı kum
+
+	
+
+Ic – – 1.31
+
+Bölge 8 ve 9 motorda varsayılan olarak kapalıdır.

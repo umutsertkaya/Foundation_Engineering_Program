@@ -1,0 +1,297 @@
+{
+  "tr": {
+    "bytes": 49749,
+    "sha256": "b46470c95f3fced5782f7a05da2eee5be84ff8940a85a7d722ddbbca540260eb",
+    "valid_zip": true,
+    "xml_bytes": 129855,
+    "paragraphs": 163,
+    "tables": 25,
+    "table_shapes": [
+      [
+        12,
+        2
+      ],
+      [
+        4,
+        2
+      ],
+      [
+        2,
+        9
+      ],
+      [
+        4,
+        2
+      ],
+      [
+        3,
+        9
+      ],
+      [
+        10,
+        2
+      ],
+      [
+        8,
+        2
+      ],
+      [
+        4,
+        2
+      ],
+      [
+        3,
+        8
+      ],
+      [
+        11,
+        6
+      ],
+      [
+        11,
+        4
+      ],
+      [
+        16,
+        2
+      ],
+      [
+        16,
+        2
+      ],
+      [
+        10,
+        2
+      ],
+      [
+        6,
+        2
+      ],
+      [
+        11,
+        6
+      ],
+      [
+        11,
+        4
+      ],
+      [
+        29,
+        5
+      ],
+      [
+        8,
+        2
+      ],
+      [
+        3,
+        5
+      ],
+      [
+        18,
+        2
+      ],
+      [
+        2,
+        6
+      ],
+      [
+        4,
+        8
+      ],
+      [
+        30,
+        2
+      ],
+      [
+        5,
+        4
+      ]
+    ],
+    "headings": [
+      "Proje bilgileri",
+      "Zemin profili: QA Kum 0-40m (kaynak test)",
+      "Zemin profili: QA Sulu iki tabaka",
+      "İstinat yapısı: QA Konsol 5m",
+      "Geometri",
+      "Kayma dişi sonuçları",
+      "Kontroller",
+      "Varsayımlar",
+      "Kullanılan katsayılar",
+      "Uyarılar",
+      "Palplanş: QA Konsol palplanş",
+      "Varsayımlar",
+      "Palplanş: QA Ankrajlı palplanş",
+      "Varsayımlar",
+      "İstinat yapısı: QA Ağırlık sulu 5m",
+      "Geometri",
+      "Kontroller",
+      "Varsayımlar",
+      "Kullanılan katsayılar",
+      "Uyarılar",
+      "Zemin sınıflandırması",
+      "Robertson SBTn (CPT)",
+      "Sıvılaşma analizi",
+      "Uyarılar",
+      "Ankrajlı duvar analizi",
+      "Kullanılan zemin tabakaları",
+      "Ankraj seviyeleri",
+      "Varsayımlar",
+      "Uyarılar",
+      "Kaynaklar",
+      "Zemin ankrajı tasarımı",
+      "Varsayımlar",
+      "Kaynaklar"
+    ]
+  },
+  "en": {
+    "bytes": 49870,
+    "sha256": "b1c2d5c395f577efe5f69cec0dd2aa03c41b0237d3dd9ac4a345612a7768ae56",
+    "valid_zip": true,
+    "xml_bytes": 129283,
+    "paragraphs": 163,
+    "tables": 25,
+    "table_shapes": [
+      [
+        12,
+        2
+      ],
+      [
+        4,
+        2
+      ],
+      [
+        2,
+        9
+      ],
+      [
+        4,
+        2
+      ],
+      [
+        3,
+        9
+      ],
+      [
+        10,
+        2
+      ],
+      [
+        8,
+        2
+      ],
+      [
+        4,
+        2
+      ],
+      [
+        3,
+        8
+      ],
+      [
+        11,
+        6
+      ],
+      [
+        11,
+        4
+      ],
+      [
+        16,
+        2
+      ],
+      [
+        16,
+        2
+      ],
+      [
+        10,
+        2
+      ],
+      [
+        6,
+        2
+      ],
+      [
+        11,
+        6
+      ],
+      [
+        11,
+        4
+      ],
+      [
+        29,
+        5
+      ],
+      [
+        8,
+        2
+      ],
+      [
+        3,
+        5
+      ],
+      [
+        18,
+        2
+      ],
+      [
+        2,
+        6
+      ],
+      [
+        4,
+        8
+      ],
+      [
+        30,
+        2
+      ],
+      [
+        5,
+        4
+      ]
+    ],
+    "headings": [
+      "Project information",
+      "Soil profile: QA Kum 0-40m (kaynak test)",
+      "Soil profile: QA Sulu iki tabaka",
+      "Retaining structure: QA Konsol 5m",
+      "Geometry",
+      "Shear key results",
+      "Checks",
+      "Assumptions",
+      "Factors used",
+      "Warnings",
+      "Sheet pile: QA Konsol palplanş",
+      "Assumptions",
+      "Sheet pile: QA Ankrajlı palplanş",
+      "Assumptions",
+      "Retaining structure: QA Ağırlık sulu 5m",
+      "Geometry",
+      "Checks",
+      "Assumptions",
+      "Factors used",
+      "Warnings",
+      "Soil classification",
+      "Robertson SBTn (CPT)",
+      "Liquefaction analysis",
+      "Warnings",
+      "Anchored wall analysis",
+      "Soil layers used",
+      "Anchor levels",
+      "Assumptions",
+      "Warnings",
+      "Sources",
+      "Ground anchor design",
+      "Assumptions",
+      "Sources"
+    ]
+  },
+  "comparison": {
+    "table_shapes_equal": true,
+    "numeric_cells_equal": 805,
+    "numeric_differences": []
+  }
+}

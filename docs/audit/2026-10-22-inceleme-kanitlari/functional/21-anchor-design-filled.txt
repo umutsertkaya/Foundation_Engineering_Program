@@ -1,0 +1,53 @@
+Ankrajlı iksa
+
+Proje: QA İŞLEV GeoTek
+
+KAYDEDİLMEMİŞ DEĞİŞİKLİKLER
+Kaydet
+TR
+EN
+Ana menüye dön
+Ankrajlı duvar
+Tek ankraj
+Ankraj tasarımı
+SONUÇ YOK
+
+Tek bir zemin ankrajını tasarlar (GEC-4): serbest boy, kök boyu, tendon, kilitleme ve deneme yükleri. Güvenlik sayısı, yük aktarımı ve kilitleme oranı varsayılmaz; GEC-4 sınır değerleri ve en küçük boylar varsayım olarak gösterilir, tablo değerleri yalnız öneridir.
+
+Kazı yüksekliği H (m)
+Ankraj başı derinliği (m)
+Ankraj eğimi α (°)
+Zemin içsel sürtünme açısı φ′ (°)
+Ankraj yükü girişi
+Yatay ankraj yükü T_h (kN/m)
+Ankraj aralığı s (m)
+Güvenlik sayısı FS (kök)
+Kök girdisi
+Nihai yük aktarımı q_u (kN/m)
+Kilitleme yükü oranı (tasarım yüküne)
+Kök değerinin kaynağı
+
+Sonuçta ve raporda görünür
+
+Zemin
+Kaya
+Tendon türü
+Tendon (kitaplık)
+Halat sayısı
+
+Boşsa: yeterli en küçük sayı
+
+Sınırlar ve boylar (GEC-4 varsayılanları gösterilir)
+
+En küçük kök boyu (m)
+En büyük kök boyu (m)
+En küçük serbest boy (m)
+Kökün kamadan uzaklığı (m)
+Kama başlangıcı taban altı (m)
+En az örtü kalınlığı (m)
+Deneme yükü katsayısı
+Tasarım yükü sınırı (× SMTS)
+Kilitleme sınırı (× SMTS)
+Deneme yükü sınırı (× SMTS)
+GEC-4 referans değerlerini göster
+Ankrajı tasarla

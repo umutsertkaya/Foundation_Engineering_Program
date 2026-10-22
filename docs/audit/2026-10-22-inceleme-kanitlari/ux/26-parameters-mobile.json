@@ -1,0 +1,520 @@
+{
+  "url": "http://127.0.0.1:8771/m/soil/parameters",
+  "viewport": {
+    "w": 390,
+    "h": 844
+  },
+  "scroll": {
+    "w": 390,
+    "h": 4429
+  },
+  "inputs": [
+    {
+      "tag": "INPUT",
+      "type": "radio",
+      "id": "mantine-59n0h4b3j-tr",
+      "aria": null,
+      "ph": "",
+      "value": "tr",
+      "labels": [
+        "TR"
+      ],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "radio",
+      "id": "mantine-59n0h4b3j-en",
+      "aria": null,
+      "ph": "",
+      "value": "en",
+      "labels": [
+        "EN"
+      ],
+      "testid": null
+    },
+    {
+      "tag": "SELECT",
+      "type": "select-one",
+      "id": "mantine-ewbpray8t",
+      "aria": null,
+      "ph": null,
+      "value": "a2a0ff79cab6471c9d3701e6ea6e12da",
+      "labels": [
+        "Profil"
+      ],
+      "testid": "params-profile"
+    },
+    {
+      "tag": "INPUT",
+      "type": "radio",
+      "id": "mantine-56cqsttw4-suggested",
+      "aria": null,
+      "ph": "",
+      "value": "suggested",
+      "labels": [
+        "Öneri"
+      ],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "radio",
+      "id": "mantine-56cqsttw4-method",
+      "aria": null,
+      "ph": "",
+      "value": "method",
+      "labels": [
+        "Yöntem"
+      ],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "radio",
+      "id": "mantine-56cqsttw4-statistic",
+      "aria": null,
+      "ph": "",
+      "value": "statistic",
+      "labels": [
+        "İstatistik"
+      ],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "radio",
+      "id": "mantine-56cqsttw4-manual",
+      "aria": null,
+      "ph": "",
+      "value": "manual",
+      "labels": [
+        "Elle"
+      ],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "radio",
+      "id": "mantine-285omr8wu-suggested",
+      "aria": null,
+      "ph": "",
+      "value": "suggested",
+      "labels": [
+        "Öneri"
+      ],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "radio",
+      "id": "mantine-285omr8wu-method",
+      "aria": null,
+      "ph": "",
+      "value": "method",
+      "labels": [
+        "Yöntem"
+      ],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "radio",
+      "id": "mantine-285omr8wu-statistic",
+      "aria": null,
+      "ph": "",
+      "value": "statistic",
+      "labels": [
+        "İstatistik"
+      ],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "radio",
+      "id": "mantine-285omr8wu-manual",
+      "aria": null,
+      "ph": "",
+      "value": "manual",
+      "labels": [
+        "Elle"
+      ],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "radio",
+      "id": "mantine-2ml0hgtav-suggested",
+      "aria": null,
+      "ph": "",
+      "value": "suggested",
+      "labels": [
+        "Öneri"
+      ],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "radio",
+      "id": "mantine-2ml0hgtav-method",
+      "aria": null,
+      "ph": "",
+      "value": "method",
+      "labels": [
+        "Yöntem"
+      ],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "radio",
+      "id": "mantine-2ml0hgtav-statistic",
+      "aria": null,
+      "ph": "",
+      "value": "statistic",
+      "labels": [
+        "İstatistik"
+      ],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "radio",
+      "id": "mantine-2ml0hgtav-manual",
+      "aria": null,
+      "ph": "",
+      "value": "manual",
+      "labels": [
+        "Elle"
+      ],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "radio",
+      "id": "mantine-letodumdj-suggested",
+      "aria": null,
+      "ph": "",
+      "value": "suggested",
+      "labels": [
+        "Öneri"
+      ],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "radio",
+      "id": "mantine-letodumdj-method",
+      "aria": null,
+      "ph": "",
+      "value": "method",
+      "labels": [
+        "Yöntem"
+      ],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "radio",
+      "id": "mantine-letodumdj-statistic",
+      "aria": null,
+      "ph": "",
+      "value": "statistic",
+      "labels": [
+        "İstatistik"
+      ],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "radio",
+      "id": "mantine-letodumdj-manual",
+      "aria": null,
+      "ph": "",
+      "value": "manual",
+      "labels": [
+        "Elle"
+      ],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "radio",
+      "id": "mantine-83g85r3xx-suggested",
+      "aria": null,
+      "ph": "",
+      "value": "suggested",
+      "labels": [
+        "Öneri"
+      ],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "radio",
+      "id": "mantine-83g85r3xx-method",
+      "aria": null,
+      "ph": "",
+      "value": "method",
+      "labels": [
+        "Yöntem"
+      ],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "radio",
+      "id": "mantine-83g85r3xx-statistic",
+      "aria": null,
+      "ph": "",
+      "value": "statistic",
+      "labels": [
+        "İstatistik"
+      ],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "radio",
+      "id": "mantine-83g85r3xx-manual",
+      "aria": null,
+      "ph": "",
+      "value": "manual",
+      "labels": [
+        "Elle"
+      ],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "radio",
+      "id": "mantine-aum1rxka3-suggested",
+      "aria": null,
+      "ph": "",
+      "value": "suggested",
+      "labels": [
+        "Öneri"
+      ],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "radio",
+      "id": "mantine-aum1rxka3-method",
+      "aria": null,
+      "ph": "",
+      "value": "method",
+      "labels": [
+        "Yöntem"
+      ],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "radio",
+      "id": "mantine-aum1rxka3-statistic",
+      "aria": null,
+      "ph": "",
+      "value": "statistic",
+      "labels": [
+        "İstatistik"
+      ],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "radio",
+      "id": "mantine-aum1rxka3-manual",
+      "aria": null,
+      "ph": "",
+      "value": "manual",
+      "labels": [
+        "Elle"
+      ],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "radio",
+      "id": "mantine-jzw2i9ufn-suggested",
+      "aria": null,
+      "ph": "",
+      "value": "suggested",
+      "labels": [
+        "Öneri"
+      ],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "radio",
+      "id": "mantine-jzw2i9ufn-method",
+      "aria": null,
+      "ph": "",
+      "value": "method",
+      "labels": [
+        "Yöntem"
+      ],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "radio",
+      "id": "mantine-jzw2i9ufn-statistic",
+      "aria": null,
+      "ph": "",
+      "value": "statistic",
+      "labels": [
+        "İstatistik"
+      ],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "radio",
+      "id": "mantine-jzw2i9ufn-manual",
+      "aria": null,
+      "ph": "",
+      "value": "manual",
+      "labels": [
+        "Elle"
+      ],
+      "testid": null
+    }
+  ],
+  "buttons": [
+    {
+      "text": "",
+      "aria": "Gezinme menüsünü aç veya kapat",
+      "disabled": false
+    },
+    {
+      "text": "Kaydet",
+      "aria": null,
+      "disabled": false
+    },
+    {
+      "text": "",
+      "aria": "Tema değiştir",
+      "disabled": false
+    },
+    {
+      "text": "Ana menüye dön",
+      "aria": null,
+      "disabled": false
+    },
+    {
+      "text": "Hepsi için öner",
+      "aria": null,
+      "disabled": false
+    },
+    {
+      "text": "0–5.975 m 1/7 onaylı",
+      "aria": null,
+      "disabled": false
+    },
+    {
+      "text": "5.975–9.075 m 0/7 onaylı",
+      "aria": null,
+      "disabled": false
+    },
+    {
+      "text": "9.075–15 m 0/7 onaylı",
+      "aria": null,
+      "disabled": false
+    },
+    {
+      "text": "Seçilen değerleri onayla",
+      "aria": null,
+      "disabled": true
+    },
+    {
+      "text": "Seçimi uygula",
+      "aria": null,
+      "disabled": true
+    },
+    {
+      "text": "Onayla",
+      "aria": null,
+      "disabled": true
+    },
+    {
+      "text": "Seçimi uygula",
+      "aria": null,
+      "disabled": true
+    },
+    {
+      "text": "Onayla",
+      "aria": null,
+      "disabled": true
+    },
+    {
+      "text": "Seçimi uygula",
+      "aria": null,
+      "disabled": true
+    },
+    {
+      "text": "Onayla",
+      "aria": null,
+      "disabled": true
+    },
+    {
+      "text": "Seçimi uygula",
+      "aria": null,
+      "disabled": true
+    },
+    {
+      "text": "Onayla",
+      "aria": null,
+      "disabled": true
+    },
+    {
+      "text": "Seçimi uygula",
+      "aria": null,
+      "disabled": true
+    },
+    {
+      "text": "Onayla",
+      "aria": null,
+      "disabled": true
+    },
+    {
+      "text": "Seçimi uygula",
+      "aria": null,
+      "disabled": true
+    },
+    {
+      "text": "Onayla",
+      "aria": null,
+      "disabled": true
+    },
+    {
+      "text": "Seçimi uygula",
+      "aria": null,
+      "disabled": true
+    },
+    {
+      "text": "Onayla",
+      "aria": null,
+      "disabled": true
+    }
+  ],
+  "links": [
+    {
+      "text": "Arazi verileri",
+      "href": "/m/soil"
+    },
+    {
+      "text": "Zemin profilleri",
+      "href": "/m/soil/profiles"
+    },
+    {
+      "text": "Mühendislik parametreleri",
+      "href": "/m/soil/parameters"
+    },
+    {
+      "text": "Sınıflandırma",
+      "href": "/m/soil/classification"
+    }
+  ]
+}

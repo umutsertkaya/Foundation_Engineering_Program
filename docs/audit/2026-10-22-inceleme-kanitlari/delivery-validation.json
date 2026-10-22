@@ -1,0 +1,19 @@
+{
+  "passed": true,
+  "errors": [],
+  "report_sha256": {
+    "docs/audit/2026-10-22-arayuz-islev-muhendislik-incelemesi.md": "149cf6b7c6e5c313b61df59e31b8fbc858dbd3f82eadf4f1a985d1a2ec25a8e7",
+    "docs/audit/2026-10-22-kullanilabilirlik-iyilestirme-onerileri.md": "8f2acdae61ef07937ace8bf97cc07f64f1cf4b383241a468d8bf73c17d0e33fd"
+  },
+  "checks": [
+    "local links",
+    "GFM tables",
+    "code fences",
+    "strict JSON",
+    "proof Python syntax",
+    "DOCX archives",
+    "lossless HTTP archive hashes",
+    "tracked production unchanged",
+    "engineering proof script identity"
+  ]
+}

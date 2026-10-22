@@ -1,0 +1,107 @@
+Zemin etüdü ve parametreler
+
+Proje: UX Araştırma 2026
+
+KAYDEDİLMEMİŞ DEĞİŞİKLİKLER
+Kaydet
+TR
+EN
+Ana menüye dön
+Arazi verileri
+Zemin profilleri
+Mühendislik parametreleri
+Sınıflandırma
+Zemin Modelleri
+
+Katmanlı tasarım profilleri, köken bilgileri ve yeraltı su seviyeleri.
+
+Yeni profil
+
+PROFİLLER (1)
+
+UX Elle Kum Profili
+
+ELLE GİRİLEN
+1 KATMAN
+ELLE GİRİLEN
+AKTİF PROFİL
+
+Kaynak deneyler: —
+
+Çoğalt
+Vazgeç
+Kaydet
+
+Yeraltı suyu seviyeleri
+
+YASS (arazi)
+YASS (tasarım)
+YASS (deprem)
+
+Zemin yüzeyinden derinlik (m); boş = arazi değeri
+
+Kum
+
+YASS (arazi)
+
+YASS (tasarım)
+
+YASS (deprem)
+
+Zemin kolonu (ölçekli)
+
+z (m)
+0
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+0.00–10.00 m · Kum
+φ' 32°
+
+Tabakalar
+
+Tabakalar yüzeyden (0 m) başlamalı ve aralıksız devam etmelidir. γ birimi kN/m³.
+
+En alta katman ekle
+GEÇERLİ
+Kimlik	Üst (m)	Alt (m)	Tanım	USCS	Davranış	γ (kN/m³)	γ_sat (kN/m³)	φ' (°)	c' (kPa)	s_u (kPa)	E (kPa)	δ_b (°)	Parametreler / İşlemler
+
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+ONAYLI
+
+CPT'den otomatik tabakalama
+
+Program tabaka sınırlarını önerir; hiçbir şey otomatik onaylanmaz. Öneriyi inceler, sonra ondan bir profil oluşturursunuz. Tasarım parametreleri siz onaylayana kadar boş kalır.
+
+CPT sondajı
+CPT-UX-MPa
+CPT-UX-kPa
+Yöntem
+CPT: davranış indeksi (Ic) bölgeleri
+
+Ayarlar (boş = sunucu varsayılanı)
+
+Ic yumuşatma penceresi [m]
+Asgari tabaka kalınlığı [m]
+ΔIc altındaki bölgeleri birleştir
+Tabakaları öner
+Kapat

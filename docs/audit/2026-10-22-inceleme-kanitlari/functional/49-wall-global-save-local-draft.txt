@@ -1,0 +1,117 @@
+İstinat duvarı
+
+Proje: QA İŞLEV GeoTek
+
+Kaydet
+TR
+EN
+Ana menüye dön
+Duvarlar
+Yeni duvar
+Listeye dön
+QA Konsol 5m
+İSTİNAT DUVARI
+TASLAK
+İLERİ
+ASD
+Tip/geometri
+Zemin
+3
+Yükler/deprem
+4
+Öner/Kontrol
+5
+Sonuç
+
+Yükler ve deprem
+
+Sürşarj q
+Sürşarj tabanı
+
+Yalnız eğimli zeminde (β > 0) fark eder.
+
+S_DS
+
+Boş = deprem durumu yok
+
+r
+
+Boş = duvar tipine göre (TBDY Tablo 16.7)
+
+Toptan göçme (Bishop) tahkiki
+
+Tasarım kodu & Analiz seviyesi
+
+Temel
+İleri
+Kod
+
+Analiz seçenekleri
+
+Düşey deprem katsayısı (kv) işareti
+
+TBDY 16.12.2.3. kv yukarı yönde pozitiftir: itki (1−kv) ile hesaplanır, duvar atalet kuvveti düşeyde +kv·W olur.
+
+Zarf (her iki işaret)
+
+Her tahkik için +|kv| ve −|kv| ayrı hesaplanır, elverişsiz olan alınır. Sonuç kartlarında yöneten işaret gösterilir.
+
+Yukarı (+|kv|)
+
+Yalnız yukarı yönlü kv kullanılır.
+
+Aşağı (−|kv|)
+
+Yalnız aşağı yönlü kv kullanılır.
+
+Su altındaki dolguda deprem itkisi
+
+TBDY Denk. 16.26 ve dinamik su itkisi Denk. 16.20. Yalnız arka dolguda yeraltı suyu duvar tabanı seviyesinin üstünde olduğunda etkilidir.
+
+Zarf
+
+Geçirimsiz ve geçirimli durumların ikisi de hesaplanır; zemin artımı ile dinamik su itkisinin toplamını en büyük yapan alınır.
+
+Geçirimsiz
+
+Su altındaki tüm dolgu katmanları geçirimsiz sayılır (γsat esaslı).
+
+Geçirimli
+
+Su altındaki tüm katmanlar geçirimli sayılır (γ esaslı); dinamik su itkisi eklenir.
+
+Geçirimliliğe göre
+
+Her katman, girilen k değerine göre motor tarafından sınıflandırılır; k girilmeyen katmanlar için sonuçta uyarı verilir.
+
+Taban altı su kaldırma kuvveti
+
+Taban altındaki su basıncının momentinin hangi tarafa yazılacağını belirler.
+
+Devirici momente ekle
+
+Güvenli taraftadır (varsayılan).
+
+Dirençten düşür
+
+Kaldırma momenti, direnç momentinden çıkarılır.
+
+Taşıma gücü
+
+Yeraltı suyu düzeltmesi
+
+Yeraltı suyu taban altında B derinliği içindeyse drenajlı N_γ terimindeki birim hacim ağırlığı interpole edilir.
+
+Pasif direnç (kayma)
+
+Ön ayak önündeki zeminin Rankine pasif direnci yalnız kaymada kullanılır.
+
+Pasif direnci kaymada kullan
+Pasif direnç azaltma katsayısı
+MÜHENDİS ONAYI
+
+Kullanılan pasif direncin Rankine pasif direncine oranı, (0–1]. Varsayılan 0,5 için doğrulanmış normatif kaynak yoktur; değer mühendis seçimidir ve hesap notlarına öyle yazılır.
+
+Önceki adım
+Sonraki adım
+Kaydedildi

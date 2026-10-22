@@ -1,0 +1,34 @@
+{
+  "date": "2026-10-22T14:49:56.118048+00:00",
+  "head": "b9392f9de48de0d27501b362f976275c9d5a665c",
+  "initial_status": "",
+  "runtime": "Linux / Chromium / real API",
+  "audience": "engineer + new user",
+  "scope": "UI, functionality, all current engineering methods, detailed UX recommendations",
+  "source_policy": "Review absent sources from technical knowledge; distinguish from consulted-source verification",
+  "repo_changes_allowed": [
+    "two audit Markdown reports",
+    "selected supporting evidence",
+    "brief docs/STATUS.md entry"
+  ],
+  "production_changes_allowed": false,
+  "collection_utc": "2026-10-22T15:21:46.894679+00:00",
+  "baseline": {
+    "pytest_passed": 2025,
+    "pytest_skipped": 2,
+    "vitest_passed": 371,
+    "typecheck": "passed",
+    "build": "passed"
+  },
+  "engineering_records": 29,
+  "engineering_independent_decisions": {
+    "confirmed": 24,
+    "partly_confirmed": 5
+  },
+  "ux_records": 13,
+  "functional_records": 10,
+  "aliases": {
+    "FUN-002": "ENG-C-001"
+  },
+  "proof_policy": "Observed behavior, independent arithmetic, technical knowledge, source verification, and inventory-only coverage are distinguished in the reports. Non-finite numeric JSON tokens are stored as explicit strings in evidence copies. Raw HTTP logs are losslessly gzip-compressed; selected PNGs are retained."
+}

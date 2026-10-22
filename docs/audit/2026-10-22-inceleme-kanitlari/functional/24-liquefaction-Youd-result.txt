@@ -1,0 +1,78 @@
+Sıvılaşma
+
+Proje: QA İŞLEV GeoTek
+
+KAYDEDİLMEMİŞ DEĞİŞİKLİKLER
+Kaydet
+TR
+EN
+Ana menüye dön
+Analiz
+Sonuçlar
+Sonuçlar
+Sondaj	En küçük GS	Sıvılaşan nokta sayısı
+QA-SPT	0.16	7
+QA-CPT	0.34	60
+Sondaj seçin
+Sondaj: QA-SPT
+0.00
+0.00
+0.25
+3.38
+0.50
+6.75
+0.75
+10.13
+1.00
+13.50
+GS (boyutsuz)
+Derinlik (m)
+GS = 1.0
+GS
+Sıvılaşabilir
+0.00
+0.00
+0.09
+3.38
+0.18
+6.75
+0.27
+10.13
+0.37
+13.50
+CSR / CRR (boyutsuz)
+Derinlik (m)
+CSR
+CRR
+
+Uyarılar sondajın tamamına aittir; derinlik bazında eşleştirme içermez.
+
+Ayrıntılı sondaj sonuçları
+Derinlik (m)	CSR	CRR	GS	Durum	Uyarılar
+1.500	0.257	0.093	—	
+YERALTI SUYU ÜZERİNDE
+	Laboratuvar FC değeri olmayan 1.5, 3, 4.5, 6, 7.5, 9, 10.5, 12, 13.5 m derinliklerinde varsayılan FC = %5 kullanıldı.; 1 SPT kaydı refüde; 13.5 m derinlik(ler)inde N alt sınırdır.; σ′v0 > 200 kPa: Liao & Whitman C_N önerilen aralığının dışında.; Refü darbe sayıları alt sınırdır; bu noktalardaki GS tutucudur.
+3.000	0.254	0.076	0.298	
+SIVILAŞABİLİR
+
+4.500	0.304	0.085	0.279	
+SIVILAŞABİLİR
+
+6.000	0.334	0.063	0.187	
+SIVILAŞABİLİR
+
+7.500	0.353	0.055	0.156	
+SIVILAŞABİLİR
+
+9.000	0.366	0.169	0.462	
+SIVILAŞABİLİR
+
+10.500	0.363	0.234	0.643	
+SIVILAŞABİLİR
+
+12.000	0.356	0.281	0.789	
+SIVILAŞABİLİR
+
+13.500	0.347	—	—	
+SIKI, SIVILAŞMAZ
+Analize dön
