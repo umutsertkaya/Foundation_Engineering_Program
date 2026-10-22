@@ -85,3 +85,48 @@ def test_reversed_slope_gives_explicit_direction_error():
     assert search_critical_circle(normal, **domain).fs > 1.0
     with pytest.raises(GeoTekError, match="mirror the x coordinates"):
         search_critical_circle(reversed_, **domain)
+
+
+def test_seismic_moment_arm_uses_layered_column_centroid():
+    """ENG-B-002: two bands with a heavy lower band; arm = true weight centroid, not mid-height."""
+    model = SlopeModel(surface=[(-30, 0), (0, 0), (20, 10), (50, 10)],
+                       layers=[SoilBand(top=10, gamma=10, c=10, phi=20), SoilBand(top=3, gamma=30, c=10, phi=20)],
+                       kh=0.2)
+    xc, yc, R = 5.0, 15.0, math.sqrt(250)
+    r = bishop(model, xc, yc, R, n_slices=160)
+    assert r.fs == pytest.approx(1.2113, abs=5e-4)  # report reference (old mid-height arm: 1.2228)
+    assert abs(r.fs - 1.2228) > 5e-3
+
+    # Independent check of the column integrals for one slice at x = 10: surface 5, arc bottom 0.
+    ybot, ytop = 0.0, 5.0
+    w = 30.0 * (3 - 0) + 10.0 * (5 - 3)               # 110 kPa
+    m = 30.0 * (3**2 - 0) / 2 + 10.0 * (5**2 - 3**2) / 2  # 135 + 80 = 215
+    assert model.column_weight(ybot, ytop) == pytest.approx(w)
+    assert model.column_moment(ybot, ytop) == pytest.approx(m)
+    assert m / w == pytest.approx(1.9545, abs=1e-4)   # centroid, vs mid-height 2.5
+
+
+def test_seismic_surface_load_inertia_acts_at_surface():
+    """Surface load inertia arm is yc - ytop (larger moment than at mid-height of the column)."""
+    base = dict(surface=[(-30, 0), (0, 0), (20, 10), (50, 10)], layers=[SoilBand(top=10, gamma=18, c=10, phi=20)])
+    loaded = SlopeModel(**base, loads=[SurfaceLoad(x1=10, x2=50, q1=30, q2=30)], kh=0.2)
+    still = SlopeModel(**base, loads=[SurfaceLoad(x1=10, x2=50, q1=30, q2=30)], kh=0.0)
+    a = bishop(loaded, 5, 15, math.sqrt(250), n_slices=80)
+    b = bishop(still, 5, 15, math.sqrt(250), n_slices=80)
+    assert a.fs < b.fs
+
+
+def test_circle_reemerging_at_a_narrow_surface_notch_is_rejected():
+    """ENG-B-004: the arc rises above a 0.2 m wide notch between two surface vertices.
+
+    Circle centre (0, 10), R = 10: arc bottom y = 10 - sqrt(100 - x^2); at x = 5 it is 1.34.
+    The surface sits at y = 1.0 only in the notch x in [4.9, 5.1] (< one probe spacing), so
+    the arc is above the ground at the notch vertices while below it everywhere else.
+    """
+    surface = [(-20, 5), (4.8, 5), (4.9, 1.0), (5.1, 1.0), (5.2, 5), (20, 5)]
+    model = SlopeModel(surface=surface, layers=[SoilBand(top=5, gamma=18, c=5, phi=25)])
+    # arc at x=4.9..5.1 is 1.28..1.34 > 1.0 (re-emerged); elsewhere ybot < 5
+    assert 10 - math.sqrt(100 - 4.9**2) > 1.0
+    assert 10 - math.sqrt(100 - 5.1**2) > 1.0
+    from geotek.engine.stability import _slip_interval
+    assert _slip_interval(model, 0.0, 10.0, 10.0, n_probe=40) is None

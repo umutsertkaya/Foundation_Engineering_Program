@@ -147,3 +147,15 @@ def test_partial_factor_resistance_divides_force_only():
     n = net_pressure(_profile(phi=40.0), H, passive_factor=1.4)
     i = np.searchsorted(n.z, H + 2.0)
     assert n.passive[i] == pytest.approx(rankine_kp(40.0) / 1.4 * G * 2.0, rel=1e-6)
+
+
+@pytest.mark.parametrize("kwargs", [
+    dict(depth_increase=-0.1), dict(depth_increase=float("nan")),
+    dict(allowable_stress_mpa=0.0), dict(allowable_stress_mpa=-5.0), dict(allowable_stress_mpa=float("inf")),
+])
+def test_sheet_pile_rejects_invalid_design_inputs(kwargs):
+    """ENG-C-006: negative embedment increase and non-finite/non-positive stress are refused."""
+    with pytest.raises(GeoTekError):
+        cantilever_sheet_pile(_profile(), 3.0, **kwargs)
+    with pytest.raises(GeoTekError):
+        anchored_sheet_pile(_profile(), 4.0, 1.0, **kwargs)

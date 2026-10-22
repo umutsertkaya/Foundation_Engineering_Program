@@ -29,10 +29,16 @@ def bearing_factors(phi: float, method: Method) -> tuple[float, float, float]:
     if not 0 <= phi < 50:
         raise GeoTekError("phi must be within 0-50 deg")
     p = math.radians(phi)
+    if method not in ("meyerhof", "hansen", "vesic"):
+        raise GeoTekError(f"Unknown method {method!r}")
     if phi == 0:
         return 5.14, 1.0, 0.0
-    nq = math.exp(math.pi * math.tan(p)) * math.tan(math.pi / 4 + p / 2) ** 2
-    nc = (nq - 1) / math.tan(p)
+    t = math.tan(p)
+    big_t = math.tan(math.pi / 4 + p / 2) ** 2
+    nq = math.exp(math.pi * t) * big_t
+    # Nc = (Nq - 1) / tan(phi) without cancellation for tiny phi:
+    # Nq - 1 = expm1(pi tan phi) K + (K - 1) and K - 1 = sin(phi) / cos^2(pi/4 + phi/2).
+    nc = (math.expm1(math.pi * t) * big_t + math.sin(p) / math.cos(math.pi / 4 + p / 2) ** 2) / t
     if method == "meyerhof":
         ng = (nq - 1) * math.tan(1.4 * p)
     elif method == "hansen":
@@ -83,6 +89,12 @@ def bearing_capacity(
 
     V, H: vertical and horizontal loads [kN or kN/m]; V is required when H > 0.
     """
+    if method not in ("meyerhof", "hansen", "vesic"):
+        raise GeoTekError(f"Unknown method {method!r}")
+    if not all(math.isfinite(v) for v in (B, D, gamma, q, c, H, e_B, e_L)) or (L is not None and not math.isfinite(L)):
+        raise GeoTekError("Bearing capacity inputs must be finite numbers")
+    if gamma < 0:
+        raise GeoTekError("gamma must be non-negative")
     if B <= 0 or D < 0:
         raise GeoTekError("B must be positive and D non-negative")
     strip = L is None
@@ -167,6 +179,8 @@ def bearing_capacity(
     else:
         raise GeoTekError(f"Unknown method {method!r}")
 
+    if q_ult < 0:
+        raise BearingFailureError("Horizontal load exceeds the bearing capacity (inclination factors give q_ult < 0)")
     if D / B > 1 and method == "meyerhof":
         warnings.append("D/B > 1: Meyerhof depth factors extrapolated")
     return BearingResult(method=method, q_ult=q_ult, Q_ult=q_ult * area, B_eff=b_eff,

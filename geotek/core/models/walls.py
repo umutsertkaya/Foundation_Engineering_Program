@@ -113,15 +113,18 @@ class CantileverGeometry(BaseModel):
 class GravityGeometry(BaseModel):
     """Trapezoidal gravity wall: base width B, top width, back face offset at the top."""
 
-    height: float = Field(gt=0)
-    base_width: float = Field(gt=0)
-    top_width: float = Field(gt=0)
-    back_offset: float = Field(0.0, ge=0, description="Horizontal set-back of the back face top from the heel")
-    embedment: float = Field(0.0, ge=0)
+    height: float = Field(gt=0, allow_inf_nan=False)
+    base_width: float = Field(gt=0, allow_inf_nan=False)
+    top_width: float = Field(gt=0, allow_inf_nan=False)
+    back_offset: float = Field(0.0, ge=0, allow_inf_nan=False,
+                               description="Horizontal set-back of the back face top from the heel")
+    embedment: float = Field(0.0, ge=0, allow_inf_nan=False)
     key: ShearKey | None = None
 
     @model_validator(mode="after")
     def _check(self) -> GravityGeometry:
+        if self.embedment >= self.height:
+            raise ValueError("Embedment must be smaller than the wall height")
         if self.top_width + self.back_offset > self.base_width + 1e-9:
             raise ValueError("Front face would overhang the toe (top_width + back_offset > base_width)")
         _check_key(self.key, self.base_width)
