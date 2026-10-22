@@ -8,6 +8,7 @@ Turkish-style CSV (``;`` separator, ``,`` decimal) is detected automatically.
 from __future__ import annotations
 
 import re
+import warnings
 from pathlib import Path
 
 import numpy as np
@@ -89,7 +90,14 @@ def map_columns(
 
 
 def _column_si(df, header: str, name: str, unit: str | None) -> np.ndarray:
-    unit = unit or _header_unit(header) or DEFAULT_UNITS[name]
+    if not unit:
+        unit = _header_unit(header)
+        if unit is None and _UNIT_IN_HEADER.search(str(header)):
+            # A unit is written in the header but is not known: never fall back to the default silently.
+            raise ImportDataError(
+                f"Column {str(header)!r}: unit {_UNIT_IN_HEADER.search(str(header)).group(1)!r} is not "
+                "recognised; fix the header or pass the unit explicitly")
+        unit = unit or DEFAULT_UNITS[name]
     values = pd.to_numeric(df[header], errors="coerce").to_numpy(dtype=float)
     return np.asarray(convert(values, unit, SI_UNITS[name]), dtype=float)
 
@@ -117,8 +125,16 @@ def import_cpt(
     keep = ~(np.isnan(data["depth"]) | np.isnan(data["qc"]) | np.isnan(data["fs"]))
     u2 = None
     if "u2" in data:
-        u2_col = np.nan_to_num(data["u2"][keep], nan=0.0)
-        u2 = u2_col.tolist()
+        u2_kept = data["u2"][keep]
+        missing = np.isnan(u2_kept)
+        if missing.all():
+            u2 = None  # an empty u2 column carries no data
+        else:
+            # Missing cells stay null (not measured zeros); process_cpt warns and treats them as missing.
+            u2 = [None if np.isnan(v) else float(v) for v in u2_kept]
+        if missing.any():
+            warnings.warn(f"{int(missing.sum())} u2 cell(s) in {Path(path).name} are missing; "
+                          "they are stored as missing, not as zero", UserWarning, stacklevel=2)
     if not keep.any():
         raise ImportDataError(f"No valid CPT rows in {Path(path).name}")
     return CPTSounding(

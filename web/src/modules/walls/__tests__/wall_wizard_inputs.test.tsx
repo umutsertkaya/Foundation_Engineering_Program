@@ -11,6 +11,7 @@ import { onMutation } from "../../../shared/api/http";
 import { resetMockState } from "../../../shared/api/mock";
 import { getMockStore } from "../../../shared/api/mock/store";
 import type { RetainingWallStructure } from "../../../shared/api/types";
+import { runPreSaveHooks } from "../../../shared/hooks/usePreSaveHook";
 import { WallWizardPage } from "../pages/WallWizardPage";
 
 const tr = { ...trCatalog, ...wallsTr } as Record<string, string>;
@@ -133,6 +134,16 @@ describe("walls wizard: seismic inputs, design codes, save errors and stored res
     expect(Object.keys(storedWall().settings?.factor_overrides ?? {})).toContain("TBDY-seismic.material.tan_phi");
     expect(storedWall().settings?.design_code).toBe("tbdy2018");
   }, 30000);
+
+  it("top project Save persists a surcharge draft that was never run", async () => {
+    renderWizard();
+    fireEvent.click(await step(tr["web.wizard.step.loads"]));
+    const field = await screen.findByRole("textbox", { name: tr["ui.wall.surcharge"] });
+    const before = storedWall().inputs?.surcharge ?? 0;
+    fireEvent.change(field, { target: { value: String(before + 7) } });
+    await runPreSaveHooks();
+    expect(storedWall().inputs?.surcharge).toBe(before + 7);
+  });
 
   it("shows the backend default surcharge (0 kPa) for a stored wall without one", async () => {
     const wall = storedWall();

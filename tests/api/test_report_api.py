@@ -7,6 +7,7 @@ from docx import Document
 
 from geotek.core.models.investigations import (
     Borehole, CPTSounding, Investigations, LabRecord, SPTRecord)
+from geotek.core.models.profile import GroundwaterCondition
 from geotek.core.models.project import ProjectMeta
 from geotek.core.models.structures import RetainingWallStructure
 from geotek.core.models.walls import ShearKey
@@ -246,3 +247,41 @@ def test_wall_report_uses_labels_and_lists_shear_key(shell, open_project, lang, 
     cells = [c.text for line in Document(io.BytesIO(response.content)).tables for row in line.rows for c in row.cells]
     for raw in ("stem_height", "overturning", "static", "global_stability"):
         assert raw not in cells, raw
+
+
+@pytest.mark.parametrize("lang, labels", [
+    ("en", ("Structure design code (used in this calculation)", "ASD — Global factor of safety",
+            "Structure analysis level", "Advanced", "SDS (structure input)",
+            "Retained-side groundwater depth, design [m]", "Front-side groundwater depth, seismic [m]",
+            "Load per anchor [kN/anchor]", "Anchor spacing [m]", "Anchor inclination from horizontal [°]")),
+    ("tr", ("Yapı tasarım kodu (bu hesapta kullanılan)", "ASD — Global güvenlik sayısı",
+            "Yapı analiz düzeyi", "İleri", "SDS (yapı girdisi)",
+            "Tutulan taraf yeraltı suyu derinliği, tasarım [m]", "Ön taraf yeraltı suyu derinliği, deprem [m]",
+            "Ankraj başına yük [kN/ankraj]", "Ankraj aralığı [m]", "Ankraj eğimi (yataydan) [°]")),
+])
+def test_structure_sections_state_their_own_code_level_water_and_anchor_geometry(
+        shell, open_project, lang, labels):
+    pile = open_project.structures[1]
+    pile.support, pile.anchor_depth = "anchored", 1.0
+    pile.anchor_spacing, pile.anchor_inclination = 2.5, 15.0
+    pile.analysis_level, pile.sds = "advanced", 0.4
+    pile.soil.gwt_retained = GroundwaterCondition(depth_insitu=2, depth_design=1.5, depth_seismic=1.0)
+    pile.soil.gwt_front = GroundwaterCondition(depth_insitu=4, depth_design=3.5, depth_seismic=3.0)
+    shell.app.state.session.open_project(open_project)
+    assert poll_job(shell, submit(shell, "/api/m/sheet_pile/structures/sheet/design"))["status"] == "done"
+    response = shell.post(f"{BASE}/docx", json={"language": lang, "sections": ["structure:wall", "structure:sheet"]})
+    assert response.status_code == 200, response.text
+    text = _text(response)
+    for label in labels:
+        assert label in text, label
+    for value in ("2.50", "15.0", "1.50", "1.00", "3.50", "3.00", "0.400"):
+        assert value in text, value
+    assert text.count("report.struct") == 0
+
+
+def test_wall_assumptions_follow_the_report_language(shell, open_project):
+    en = _text(shell.post(f"{BASE}/docx", json={"language": "en", "sections": ["structure:wall"]}))
+    assert "Concrete unit weight" in en and "Beton birim hacim" not in en
+    assert "report.assumption" not in en
+    tr = _text(shell.post(f"{BASE}/docx", json={"language": "tr", "sections": ["structure:wall"]}))
+    assert "Beton birim hacim ağırlığı" in tr

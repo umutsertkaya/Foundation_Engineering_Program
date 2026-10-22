@@ -183,68 +183,90 @@ def _assumptions(structure, settings, D):
     gwt_case = structure.inputs.gwt_case
     out = [
         Assumption(text=f"Beton birim hacim ağırlığı {settings.concrete_unit_weight:g} kN/m³",
-                   source="WallSettings; mevcut varsayılan 24 kN/m³, proje girdisi"),
+                   source="WallSettings; mevcut varsayılan 24 kN/m³, proje girdisi",
+                   code="wall.concrete_unit_weight", params={"value": f"{settings.concrete_unit_weight:g}"}),
         Assumption(text=f"Statik YASS senaryosu {gwt_case}; arka derinlik "
                         f"{structure.soil.retained_profile().gwt.depth_for(gwt_case):g} m, ön derinlik "
                         f"{structure.soil.front_profile().gwt.depth_for(gwt_case):g} m",
-                   source="StructureSoilModel; None olduğunda profil YASS'ı"),
+                   source="StructureSoilModel; None olduğunda profil YASS'ı",
+                   code="wall.gwt_static_case",
+                   params={"case": gwt_case,
+                           "retained": f"{structure.soil.retained_profile().gwt.depth_for(gwt_case):g}",
+                           "front": f"{structure.soil.front_profile().gwt.depth_for(gwt_case):g}"}),
         Assumption(text="Taban, tutulan zemin yüzeyinden H derinliktedir; ön zemin H-D kotundadır; "
-                        "ön kazının kaldırdığı örtü gerilmesi hesaba katılmaz", source="P1 sözleşmesi §1 ve §5"),
+                        "ön kazının kaldırdığı örtü gerilmesi hesaba katılmaz", source="P1 sözleşmesi §1 ve §5",
+                   code="wall.base_level"),
         Assumption(text="Katmanlar yataydır; her katmanın Coulomb katsayısı tüm üst katmanların düşey "
                         "gerilmesine uygulanır; bu yaklaşım katmanlı bir kritik kama çözümü değildir",
-                   source="Das, Principles of Foundation Engineering; P1 §5 yerel katsayı yaklaşımı"),
+                   source="Das, Principles of Foundation Engineering; P1 §5 yerel katsayı yaklaşımı",
+                   code="wall.layered_coulomb"),
         Assumption(text="Coulomb drene itkide c' katkısı ihmal edilir; drenajsız yatay zeminde toplam "
                         "gerilme ve s_u kullanılır, yatay su ikinci kez eklenmez",
-                   source="lateral_pressure sözleşmesi; Rankine toplam gerilme çözümü"),
+                   source="lateral_pressure sözleşmesi; Rankine toplam gerilme çözümü",
+                   code="wall.undrained_pressure"),
         Assumption(text="Topuk üzerindeki zemin katman ve su kotlarında poligonlara bölünür; "
                         "su altında toplam γ_sat ağırlığı ve tabanda ayrıca kaldırma kullanılır",
-                   source="Statik denge; Terzaghi etkin gerilme ilkesi"),
+                   source="Statik denge; Terzaghi etkin gerilme ilkesi",
+                   code="wall.heel_soil_polygons"),
         Assumption(text="Arka/ön su seviyesi yapı YASS değeridir (yoksa profil YASS); hidrostatik yatay "
                         "basınç ve ön/arka taban basınçları arasında doğrusal kaldırma; sızma hesabı yok",
-                   source="P1 §1.4; USACE EM 1110-2-2502 hidrostatik yük modeli"),
+                   source="P1 §1.4; USACE EM 1110-2-2502 hidrostatik yük modeli",
+                   code="wall.hydrostatic_model"),
         Assumption(text="Taşıma gücü yalnız taban katmanıyla hesaplanır; B içinde daha zayıf katman uyarılır; "
-                        "iki tabakalı taşıma gücü ve oturma hesabı yapılmaz", source="P1 §5"),
+                        "iki tabakalı taşıma gücü ve oturma hesabı yapılmaz", source="P1 §5",
+                   code="wall.bearing_base_layer"),
         Assumption(text="Taban delta_base değeri verilmemişse mevcut FoundationSoil varsayılanıyla "
-                        "delta_base=phi kullanılır; aderans 0 alınır", source="FoundationSoil sözleşmesi"),
+                        "delta_base=phi kullanılır; aderans 0 alınır", source="FoundationSoil sözleşmesi",
+                   code="wall.delta_base_default"),
         Assumption(text=f"Taşıma gücü yöntemi: {settings.bearing_method}; eğik yük ve B'=B-2|e| dahil; "
                         "taban/ön arazi eğimi çarpanları 1",
-                   source="Mevcut bearing_capacity/profil adaptörü; Bowles, 5. baskı, Tablo 4-1/4-5"),
+                   source="Mevcut bearing_capacity/profil adaptörü; Bowles, 5. baskı, Tablo 4-1/4-5",
+                   code="wall.bearing_method", params={"method": settings.bearing_method}),
         Assumption(text=("Kaldırma momenti devrilme talebine eklenir: FS_ot=M_R/(M_O+M_U)"
                          if settings.uplift_moment == "overturning" else
                          "Kaldırma momenti dirençten düşülür: FS_ot=(M_R−M_U)/M_O"),
-                   source="Mühendis seçimi; varsayılan güvenli taraf"),
+                   source="Mühendis seçimi; varsayılan güvenli taraf",
+                   code=f"wall.uplift_moment_{settings.uplift_moment}"),
         Assumption(text=("Drene N_gamma YASS düzeltmesi açık: d_w ön suyun taban altı derinliği; "
                          "d_w≤0 için γ', 0<d_w<B için γ'+(d_w/B)(γ−γ'), d_w≥B için γ"
                          if settings.gwt_bearing_correction else
                          "Drene N_gamma YASS geçiş düzeltmesi kullanıcı seçimiyle kapalı; "
                          "tabanda/üstünde su için γ', taban altında γ kullanılır"),
-                   source="Das, Principles of Foundation Engineering, taşıma gücüne yeraltı suyu etkisi (Durum III)"),
+                   source="Das, Principles of Foundation Engineering, taşıma gücüne yeraltı suyu etkisi (Durum III)",
+                   code="wall.gwt_bearing_correction_on" if settings.gwt_bearing_correction
+                   else "wall.gwt_bearing_correction_off"),
         Assumption(text=f"Gömülme D = {D:.2f} m; boyut araması 0.05 m adımla B ≤ 1.2H",
-                   source=SRC_SIZING),
+                   source=SRC_SIZING, code="wall.embedment_search", params={"D": f"{D:.2f}"}),
         Assumption(text="Boyutlandırmada kesit oranları mevcut proportion_for fonksiyonundan alınır",
-                   source=SRC_SIZING),
+                   source=SRC_SIZING, code="wall.section_proportions"),
         Assumption(text="ASD global GS durumunda yük katsayılanmaz; kısmi katsayıda WA ayrı kullanıcı "
                         "girdisidir ve G/EH katsayısından türetilmez; material.gamma uygulanmaz, "
-                        "DC/EV yük katsayıları kullanılır", source="P1 §5; mevcut limit_state sözleşmesi"),
+                        "DC/EV yük katsayıları kullanılır", source="P1 §5; mevcut limit_state sözleşmesi",
+                   code="wall.load_factors"),
     ]
     if structure.wall_type == "cantilever":
         out.append(Assumption(text="Topuk ucundan düşey sanal düzlem: H_v=H+topuk·tanβ; ek üst kısım "
-                                   "en üst katmandır; δ=β", source="Klasik konsol duvar yaklaşımı; P1 §5"))
+                                   "en üst katmandır; δ=β", source="Klasik konsol duvar yaklaşımı; P1 §5",
+                              code="wall.virtual_plane_cantilever"))
     else:
         out.append(Assumption(text="İtki gerçek eğimli arka yüzde; θ=atan(arka kaçıklık/H), "
-                                   "katman başına δ=2φ'/3", source=SRC_TBDY_DELTA))
+                                   "katman başına δ=2φ'/3", source=SRC_TBDY_DELTA, code="wall.real_back_face_gravity"))
     out.append(Assumption(text=(f"Pasif direnç açık; kullanıcı/ayar azaltımı {settings.passive_reduction:g}; "
                                 "yalnız kaymaya katılır, yatay su azaltılmaz" if settings.use_passive else
                                 "Pasif direnç hesaba katılmadı"),
-                          source="Kullanıcı/WallSettings; varsayılan 0.5 için doğrulanmış normatif kaynak yok"))
+                          source="Kullanıcı/WallSettings; varsayılan 0.5 için doğrulanmış normatif kaynak yok",
+                          code="wall.passive_on" if settings.use_passive else "wall.passive_off",
+                          params={"reduction": f"{settings.passive_reduction:g}"}))
     if settings.use_passive:
         out.append(Assumption(
             text=f"Pasif azaltma katsayısı = {settings.passive_reduction:g} — mühendis seçimi (yayımlanmış kaynak gösterilmedi)",
-            source="Kullanıcı girdisi"))
+            source="Kullanıcı girdisi", code="wall.passive_reduction",
+            params={"reduction": f"{settings.passive_reduction:g}"}))
     out += key_assumptions(structure.geometry.key if structure.geometry is not None else None,
                            settings.passive_reduction)
     out.append(Assumption(text="Ön ayak üzerindeki doğal zemin ağırlığı " +
-                               ("dahil" if settings.include_toe_soil else "ihmal edildi"), source="WallSettings"))
+                               ("dahil" if settings.include_toe_soil else "ihmal edildi"), source="WallSettings",
+                      code="wall.toe_soil_included" if settings.include_toe_soil else "wall.toe_soil_ignored"))
     if structure.inputs.surcharge and structure.inputs.surcharge_basis == "inclined" and structure.backfill_slope:
         out.append(Assumption(
             text=f"Sürşarj eğimli yüzey alanına göre verildi; yatay izdüşümde q/cosβ = "
@@ -254,24 +276,30 @@ def _assumptions(structure, settings, D):
             params={"q": structure.inputs.surcharge, "beta": structure.backfill_slope}))
     out.append(Assumption(text="Sürşarjın topuk üzerindeki düşey yükü " +
                                ("dengeleyici sayıldı" if structure.analysis_level == "advanced" and
-                                structure.inputs.surcharge_resists else "dengeleyici sayılmadı"), source="WallDesignInputs"))
+                                structure.inputs.surcharge_resists else "dengeleyici sayılmadı"), source="WallDesignInputs",
+                      code="wall.surcharge_resists" if structure.analysis_level == "advanced"
+                      and structure.inputs.surcharge_resists else "wall.surcharge_not_resists"))
     if structure.analysis_level == "basic":
         out.append(Assumption(text="Temel seviye: ASD, Vesic, pasif ve ön ayak zemini kapalı; taban "
                                    "sürtünmesi onaylı katman değerinden (BASIC aktarımında tanδ=min(tanφ,0.6))",
-                              source=SRC_TBDY_BASE + "; P1 §5"))
+                              source=SRC_TBDY_BASE + "; P1 §5", code="wall.basic_level"))
     if structure.inputs.sds is not None:
         r = structure.inputs.r if structure.inputs.r is not None else TBDY_R["gravity_80sds_mm"]
         out += [Assumption(text=f"Deprem YASS senaryosu seismic; arka derinlik "
                                 f"{structure.soil.retained_profile().gwt.depth_for('seismic'):g} m, ön derinlik "
                                 f"{structure.soil.front_profile().gwt.depth_for('seismic'):g} m",
-                           source="StructureSoilModel; depth_seismic, yoksa depth_insitu"),
+                           source="StructureSoilModel; depth_seismic, yoksa depth_insitu",
+                           code="wall.gwt_seismic_case",
+                           params={"retained": f"{structure.soil.retained_profile().gwt.depth_for('seismic'):g}",
+                                   "front": f"{structure.soil.front_profile().gwt.depth_for('seismic'):g}"}),
                 Assumption(text=f"k_h=0.4·S_DS/r, |k_v|=0.5·k_h, r={r:g}; dinamik itki artımı H_v/2'de",
-                           source=SRC_TBDY_SEISMIC),
+                           source=SRC_TBDY_SEISMIC, code="wall.seismic_kh_kv", params={"r": f"{r:g}"}),
                 Assumption(text="M-O katman bazında; statik su hidrostatiktir; sıvılaşma ve fazla "
                                 "boşluk suyu basıncı hesaplanmaz; "
                                 "drenajsız deprem itkisi durdurulur; β > φ' − ψ için "
                                 "TBDY Denk. 16.24b kullanılır",
-                           source="Mononobe & Matsuo (1929), Okabe (1926); TBDY Denk. 16.24b; E4 kapsam sınırı")]
+                           source="Mononobe & Matsuo (1929), Okabe (1926); TBDY Denk. 16.24b; E4 kapsam sınırı",
+                           code="wall.seismic_scope")]
         retained = structure.soil.retained_profile()
         if retained.gwt.depth_for("seismic") < structure.height:
             out.append(Assumption(
@@ -283,23 +311,26 @@ def _assumptions(structure, settings, D):
                      "yüksekliği bir kez kullanılır (doğrulanmamış mühendislik yaklaşımı); "
                      "dış serbest su modellenmez. Yöneten seçim "
                      "durum uyarılarında; dinamik suyun kuvvet ve konumu forces içindedir.",
-                source="TBDY 2018 16.12.3.2, Denk. 16.26 ve 16.20"))
+                source="TBDY 2018 16.12.3.2, Denk. 16.26 ve 16.20",
+                code="wall.submerged_seismic", params={"mode": settings.submerged_seismic}))
     if structure.inputs.include_global_stability:
         out.append(Assumption(text="Bishop daireleri taban altından geçer; taşınan ağırlık taban izine "
                                    "eşdeğer yük olarak yayılır; kayma modelinde tek yatay su kotu için "
                                    "ön/arka YASS'ın yükseği alınır; bantlar yatay ve en alt bant sonsuzdur; "
                                    "ön taraftaki taban üstü ince şerit de tutulan taraf bantlarıyla temsil edilir; "
                                    "global dilimlerde k_v uygulanmaz",
-                              source="Bishop (1955); mevcut wall_global_stability yaklaşımı; E4 model varsayımı"))
+                              source="Bishop (1955); mevcut wall_global_stability yaklaşımı; E4 model varsayımı",
+                              code="wall.global_model"))
         if layered_design_code(settings).approach != "global_fs":
             out.append(Assumption(
                 text="Kısmi katsayılı global stabilitede sürşarj γ_Q (LS), taban izindeki beton/taşınan "
                      "zemin yükleri elverişsiz γ_G (DC/EV) ile çarpılır. Dilim zemini öz ağırlığı "
                      "karakteristik tutulur (DA1-C2/DA3 için 1.0); DA1-C1/DA2 zemin öz ağırlığı "
                      "katsayılaması uygulanmaz",
-                source="EC7 tasarım yaklaşımı; E4 model sınırı"))
+                source="EC7 tasarım yaklaşımı; E4 model sınırı", code="wall.global_partial_factors"))
     else:
-        out.append(Assumption(text="Toptan göçme tahkiki kullanıcı girdisiyle kapalıdır", source="WallDesignInputs"))
+        out.append(Assumption(text="Toptan göçme tahkiki kullanıcı girdisiyle kapalıdır", source="WallDesignInputs",
+                              code="wall.global_off"))
     return out
 
 
@@ -437,8 +468,7 @@ def _finish(project, structure, geometry, settings, loads, kh, kv, evaluated, it
     warnings = sorted({w for a in analyses.values() for w in a.warnings})
     warnings += _ignored_override_warnings(settings)
     if structure.inputs.sds is not None and loads.kv and settings.kv_sign == "envelope":
-        warnings.append("Düşey deprem katsayısı ±kv zarfı uygulandı (TBDY 16.12.2.3); "
-                        "yöneten işaret kontrol bazında detayda belirtilmiştir.")
+        warnings.append(format_warning("wall.warning.kv_envelope"))
     if structure.inputs.sds is not None:
         r = structure.inputs.r if structure.inputs.r is not None else TBDY_R["gravity_80sds_mm"]
         retained = structure.soil.retained_profile()
@@ -448,22 +478,18 @@ def _finish(project, structure, geometry, settings, loads, kh, kv, evaluated, it
                            for l in retained.layers)
         wet_foundation = any(l.bottom > max(geometry.height, water_depth) for l in foundation.layers)
         if structure.inputs.r is None and (wet_retained or wet_foundation):
-            warnings.append(
-                "coefficients.py notu: TBDY 2018 16.12.2.2 — boşluk suyu basıncı artışı olabilecek "
-                "durumlarda r ≤ 1 gerekebilir; r değerini kontrol edin.")
+            warnings.append(format_warning("wall.warning.pore_pressure_r"))
         if wet_retained and r > 1:
-            warnings.append(
-                "Su altındaki dolgu: TBDY Denk. 16.20 dinamik su ve 16.26 r=1 varsayar "
-                "(water_kh=0.4·S_DS); r>1 ile zemin itkisinin azaltılması mühendis tarafından gerekçelendirilmelidir.")
+            warnings.append(format_warning("wall.warning.submerged_fill_r"))
     if structure.soil.source_profile_id is not None:
         source = next((p for p in project.soil_profiles if p.id == structure.soil.source_profile_id), None)
         if structure.soil.is_stale(source):
-            warnings.append("Yapıya kopyalanan zemin profili kaynak profile göre bayat; yapı kopyasıyla hesaplandı")
+            warnings.append(format_warning("wall.warning.source_profile_stale"))
     assumptions = _assumptions(structure, settings, geometry.embedment)
     assumptions += _approach_assumption(code, structure.approach, "wall.default_approach")
     if "load.LS.extreme_I" in used:
         assumptions.append(Assumption(text=LS_EXTREME_ASSUMPTION, source=LS_EXTREME_SOURCE, code="wall.ls_extreme_i"))
-        warnings.append(LS_EXTREME_ASSUMPTION)
+        warnings.append(format_warning("report.assumption.wall.ls_extreme_i"))
     fails = _failures(analyses, glob)
     if iterations and fails:
         warnings.insert(0, f"B=1.2H'ye kadar uygun genişlik bulunamadı; sağlanamayan: {governing}")
@@ -743,17 +769,31 @@ def design_sheet_pile_structure(project: Project, structure_id: str, progress: P
     reporter = _Progress(progress)
     reporter.emit(0.0, "job.step.static_checks")
     if code.approach == "global_fs":
-        seismic = structure.sds is not None
-        if seismic:
-            reporter.emit(0.3, "job.step.seismic_checks")
+        has_seismic = structure.sds is not None
         log = FactorLog(code)
         # Preserve the basic sheet-pile convention (FS=static 1.5 even with seismic action).
         # EM 1110-2-2504 Table 5-1: fine-grained (undrained, Q-case) front soil needs the larger factor.
         fine = any(layer.behaviour == "undrained" and layer.bottom > structure.retained_height
                    for layer in structure.soil.front_profile().layers)
         factor = log.value("safety.sheet_pile_passive_fine.static" if fine else "safety.sheet_pile_passive.static")
-        result, kh = _sheet_case(structure, structure.soil, seismic=seismic, passive_factor=factor,
-                                 strength_reduction=True)
+        # The static case is always run: the seismic case uses its own (seismic) groundwater levels and may be
+        # less severe, so the seismic result alone must never stand for the whole design.
+        asd_cases: dict[str, tuple[SheetPileResult, float | None]] = {}
+        for seismic in ([False, True] if has_seismic else [False]):
+            if seismic:
+                reporter.emit(0.3, "job.step.seismic_checks")
+            asd_cases["seismic" if seismic else "static"] = _sheet_case(
+                structure, structure.soil, seismic=seismic, passive_factor=factor, strength_reduction=True)
+        gd = max(asd_cases, key=lambda k: asd_cases[k][0].D)
+        gm = max(asd_cases, key=lambda k: asd_cases[k][0].M_max)
+        depth, moment = asd_cases[gd][0], asd_cases[gm][0]
+        anchors = [r.anchor_force for r, _ in asd_cases.values() if r.anchor_force is not None]
+        # Same envelope convention as the partial-factor branch: embedment and toe force from the embedment case,
+        # moment, curves and section modulus from the moment case, anchor force the maximum over the cases.
+        result = replace(moment, D0=depth.D0, D=depth.D, toe_force=depth.toe_force,
+                         anchor_force=max(anchors) if anchors else None,
+                         warnings=list(dict.fromkeys([*depth.warnings, *moment.warnings])))
+        kh = asd_cases["seismic"][1] if has_seismic else None
         assumptions = [
             Assumption(text="Katmanlı Rankine aktif/pasif; ön/arka profil ve YASS ayrı; hidrostatik su; sızma yok",
                        source="Rankine (1857); P1 §1", code="sheet_pile.layered_rankine"),
@@ -768,12 +808,17 @@ def design_sheet_pile_structure(project: Project, structure_id: str, progress: P
             # The user-set increase replaces the default 20 % cantilever statement.
             assumptions = [a for a in assumptions if a.code != "sheet_pile.support_method"]
         assumptions.extend(_sheet_assumptions(structure))
-        if seismic:
+        if has_seismic:
             assumptions.append(Assumption(text="r=1; KDYY dinamik artımı: duvar boyunca (0..uç) düzgün ½·ΔK_ad·σ′v(uç) + "
                                                 "sürşarj için üçgen 2·q·ΔK_ad·(1−z/uç), uç derinliği yinelemeyle; "
                                                 "katman başına pasif M-O/Rankine oranı en çok 1; drenajsız deprem durdurulur; "
                                                 "hidrodinamik ve fazla boşluk suyu basıncı yok", source=SRC_TBDY_SEISMIC,
                                                 code="sheet_pile.seismic", params={"r": 1, "passive_ratio_max": 1}))
+        if has_seismic:
+            assumptions.append(Assumption(
+                text=f"Embedment and toe force: {gd}; moment, curves and section modulus: {gm}; anchor force: case envelope.",
+                source="geotek.services.structures.design_sheet_pile_structure (static and seismic cases)",
+                code="sheet_pile.governing_cases", params={"embedment": gd, "moment": gm}))
         reporter.emit(1.0, "job.step.sizing")
         return StructureBasicSheetPileResult(
             result=result, assumptions=assumptions, kh=kh, warnings=list(result.warnings),

@@ -201,5 +201,19 @@
   "walls.key.col_demand_m": "Key moment demand M (kNm/m)",
   "walls.key.governing.base": "base",
   "walls.key.governing.deep": "key tip",
-  "walls.key.result_note": "The with-key factor is the smaller of the two candidate surfaces; the key can reduce sliding safety, in which case a warning is shown."
+  "walls.key.result_note": "The with-key factor is the smaller of the two candidate surfaces; the key can reduce sliding safety, in which case a warning is shown.",
+  "walls.detail.bishop_centre": "Bishop circle centre",
+  "walls.detail.resultant_outside": "Resultant outside the base",
+  "walls.detail.reduced_passive": "+ reduced passive",
+  "walls.detail.key_passive": "+ key passive",
+  "walls.detail.key_passive_design": "+ key passive P_p,d",
+  "walls.detail.governing_base": "governing surface: base",
+  "walls.detail.governing_deep": "governing surface: key tip",
+  "walls.detail.paren_base": "(base ",
+  "walls.detail.key_tip": "key tip ",
+  "walls.detail.v_without_uplift": "(V without uplift deduction)",
+  "walls.detail.q_ult_on": "q_ult = {value}, effective B'",
+  "walls.detail.required": "required ",
+  "walls.detail.eb_limit": "(e/B limit ",
+  "walls.detail.limit": "(limit "
 }

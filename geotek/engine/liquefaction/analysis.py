@@ -179,6 +179,8 @@ def analyze_cpt(
     depth = processed.depth
     n = depth.size
     warnings = list(processed.warnings)
+    # Points whose Q_tn / I_c iteration did not converge carry no trustworthy resistance: FS stays NaN -> 'invalid'.
+    not_converged = ~np.asarray(processed.converged, dtype=bool)
 
     if method == "youd2001":
         r = youd.cpt_resistance(
@@ -197,6 +199,7 @@ def analyze_cpt(
         r = bi.cpt_resistance(
             processed.qt, processed.sigma_v_eff, fc_used, processed.Ic, ic_cutoff=ic_cutoff
         )
+        not_converged |= ~np.asarray(r["converged"], dtype=bool)
         if not r["converged"].all():
             warnings.append(format_warning("liquefaction.warning.cpt_iteration_not_converged",
                                             count=int((~r["converged"]).sum())))
@@ -210,10 +213,11 @@ def analyze_cpt(
         method, "CPT", depth, sv, se, r["resistance"], r["crr75"], mw, amax_g, youd_f, msf_variant
     )
     # A user FC must not give an FS where the CPT itself is undefined (q_t <= sigma_v0, f_s <= 0).
-    fs = np.where(np.isfinite(r["ic"]), fs, np.nan)
+    fs = np.where(np.isfinite(r["ic"]) & ~not_converged, fs, np.nan)
     status, fs = assign_status(
         depth=depth, gwt_depth=gwt, sigma_v_eff=se, fs=fs, target_fs=target_fs,
-        max_depth=max_depth, clay_like=r["clay_like"], dense=r["dense"], exclude=exclude,
+        max_depth=max_depth, clay_like=np.asarray(r["clay_like"], dtype=bool) & ~not_converged,
+        dense=np.asarray(r["dense"], dtype=bool) & ~not_converged, exclude=exclude,
     )
     warnings += _depth_warning(depth)
     warnings += _msf_warning(method, mw, msf_variant)

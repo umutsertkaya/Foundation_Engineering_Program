@@ -95,6 +95,18 @@ class SlopeModel:
                 total += band.gamma * (b - a)
         return total
 
+    def column_moment(self, y_bot: float, y_top: float) -> float:
+        """First moment about y=0 of the soil column weight, sum(gamma_i * integral y dy) [kPa m]."""
+        tops = [b.top for b in self.layers]
+        total = 0.0
+        for i, band in enumerate(self.layers):
+            upper = math.inf if i == 0 else tops[i]
+            lower = tops[i + 1] if i + 1 < len(tops) else -math.inf
+            a, b = max(y_bot, lower), min(y_top, upper)
+            if b > a:
+                total += band.gamma * 0.5 * (b * b - a * a)
+        return total
+
     def load_at(self, x: float) -> float:
         q = 0.0
         for ld in self.loads:
@@ -119,7 +131,10 @@ def _slip_interval(model: SlopeModel, xc, yc, R, n_probe=600):
     x0, x1 = max(model._sx[0], xc - R), min(model._sx[-1], xc + R)
     if x1 <= x0:
         return None
-    x = np.linspace(x0, x1, n_probe)
+    # Surface vertices are probed explicitly: the depth surface - arc is concave on each linear
+    # segment, so probing the vertices splits below-ground runs correctly at breakpoints.
+    verts = model._sx[(model._sx > x0) & (model._sx < x1)]
+    x = np.unique(np.concatenate([np.linspace(x0, x1, n_probe), verts]))
     ybot = yc - np.sqrt(np.maximum(R**2 - (x - xc) ** 2, 0.0))
     d = model.surface_y(x) - ybot
     pos = d > 1e-9
@@ -163,9 +178,16 @@ def bishop(model: SlopeModel, xc: float, yc: float, R: float, *, n_slices: int =
     ybot = yc - np.sqrt(np.maximum(R**2 - (xm - xc) ** 2, 0.0))
     ytop = model.surface_y(xm)
     h = np.maximum(ytop - ybot, 0.0)
-    W = np.array([model.column_weight(yb, yt) for yb, yt in zip(ybot, ytop)]) * b
-    W += np.array([model.load_at(x) for x in xm]) * b
-    yg = 0.5 * (ybot + ytop)
+    Ws = np.array([model.column_weight(yb, yt) for yb, yt in zip(ybot, ytop)]) * b
+    Wq = np.array([model.load_at(x) for x in xm]) * b
+    W = Ws + Wq
+    # Seismic moment arm of the soil column: true centroid of the layered column weight.
+    Ms = np.array([model.column_moment(yb, yt) for yb, yt in zip(ybot, ytop)]) * b
+    yg = np.where(Ws > 0, Ms / np.where(Ws > 0, Ws, 1.0), 0.5 * (ybot + ytop))
+    # Assumption: the inertia of the surface load is included in kh * W and acts at the ground
+    # surface ytop, the physical location of a surface load's mass (not a conservative choice
+    # relative to the old mid-height arm: yc - ytop < yc - mid-height).
+    arm_s, arm_q = yc - yg, yc - ytop
     sin_a = (xm - xc) / R
     cos_a = np.sqrt(np.maximum(1 - sin_a**2, 0.0))
     bands = [model.band_at(y) for y in ybot]
@@ -173,8 +195,9 @@ def bishop(model: SlopeModel, xc: float, yc: float, R: float, *, n_slices: int =
     tphi = np.tan(np.radians([bd.phi for bd in bands]))
     u = GAMMA_W * np.maximum(0.0, (model.water_level - ybot)) if model.water_level is not None else np.zeros_like(xm)
 
-    driving = float(np.sum(W * sin_a) + np.sum(model.kh * W * (yc - yg)) / R)
-    if driving <= DRIVING_MIN_RATIO * float(np.sum(np.abs(W * sin_a)) + np.sum(model.kh * W * np.abs(yc - yg)) / R):
+    driving = float(np.sum(W * sin_a) + model.kh * np.sum(Ws * arm_s + Wq * arm_q) / R)
+    if driving <= DRIVING_MIN_RATIO * float(
+            np.sum(np.abs(W * sin_a)) + model.kh * np.sum(Ws * np.abs(arm_s) + Wq * np.abs(arm_q)) / R):
         # No driving moment (flat or reversed ground): the quotient would be round-off noise
         # (FS ~ 1e16) instead of a safety factor.
         return None

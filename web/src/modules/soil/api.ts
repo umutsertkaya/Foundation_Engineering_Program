@@ -57,6 +57,32 @@ export function get_profile(id: string): Promise<SoilProfile> {
   return request<SoilProfile>("GET", `/m/soil/profiles/${encodeURIComponent(id)}`);
 }
 
+/**
+ * The stored profile keeps `approved = true` after source data changed; the parameters endpoint
+ * re-evaluates the basis hash. Overlay that live flag so the layer table and the parameters screen
+ * agree (a stale approval must not look approved). Falls back to the stored flags on failure.
+ */
+export async function get_profile_with_live_approvals(id: string): Promise<SoilProfile> {
+  const profile = await get_profile(id);
+  try {
+    const layers = await Promise.all(
+      profile.layers.map(async (layer) => {
+        if (!Object.values(layer.selections ?? {}).some((sel) => sel?.approved)) return layer;
+        const live = await list_layer_parameters(id, layer.id);
+        const selections = { ...(layer.selections ?? {}) };
+        for (const item of live) {
+          const stored = selections[item.parameter];
+          if (stored?.approved && !item.approved) selections[item.parameter] = { ...stored, approved: false };
+        }
+        return { ...layer, selections };
+      }),
+    );
+    return { ...profile, layers };
+  } catch {
+    return profile;
+  }
+}
+
 export function update_profile(id: string, payload: SoilProfile): Promise<SoilProfile> {
   return request<SoilProfile>("PUT", `/m/soil/profiles/${encodeURIComponent(id)}`, payload);
 }

@@ -9,6 +9,7 @@ import { matchPath, NavLink as RouterNavLink, useLocation, useNavigate, useParam
 import type { Language } from "../shared/api/types";
 import { EmptyState } from "../shared/components/EmptyState";
 import { ErrorAlert } from "../shared/components/ErrorAlert";
+import { runPreSaveHooks } from "../shared/hooks/usePreSaveHook";
 import { loadLanguageCatalog } from "./i18n";
 import { useModules } from "./moduleRegistry";
 import { useProjectSession } from "./ProjectProvider";
@@ -38,6 +39,8 @@ export function ModuleShell() {
     setSaving(true);
     setError(null);
     try {
+      // Unsaved structure drafts go into the project first; a blocking hook error aborts the file save.
+      await runPreSaveHooks();
       await save();
       notifications.show({ message: t("shell.saved"), color: "green" });
     } catch (err) {

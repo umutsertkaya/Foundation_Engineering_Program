@@ -24,3 +24,16 @@ it("SPT layering without a profile explains what to do instead of the raw Englis
   expect(screen.getByText("SPT için önce bir zemin profili gerekir")).toBeInTheDocument();
   expect(screen.getByRole("link", { name: "Zemin profillerine git" })).toHaveAttribute("href", "/m/soil/profiles");
 });
+
+it("a source deeper than the active profile names both depths instead of the raw 422", () => {
+  const error = new ApiError(422, { code: "validation", message: "Depth outside the profile (0 - 10.0 m)", details: {}, missing_factors: [] });
+  render(
+    <MantineProvider theme={theme}>
+      <MemoryRouter>
+        <ErrorAlert error={error} sourceDepth={15} />
+      </MemoryRouter>
+    </MantineProvider>,
+  );
+  expect(screen.getByText("Kaynak etkin profilden daha derin")).toBeInTheDocument();
+  expect(screen.getByText(/10\.0 m derinliğe iniyor.*15\.0 m/)).toBeInTheDocument();
+});

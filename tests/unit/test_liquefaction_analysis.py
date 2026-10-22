@@ -122,3 +122,60 @@ def test_msf_andrus_stokoe_high_magnitude_warning(spt_processed, two_layer_profi
         idriss = analyze_spt(spt_processed, two_layer_profile, method="youd2001", amax_g=0.4, mw=mw,
                              fc=[5, 5, 20, 5], msf_variant="idriss")
         assert np.all(r.msf <= idriss.msf)
+
+
+def _fake_result(status, fs):
+    from geotek.engine.liquefaction.common import LiquefactionResult
+    n = len(status)
+    z = np.arange(1, n + 1, dtype=float)
+    blank = np.full(n, np.nan)
+    return LiquefactionResult(
+        method="bi2014", test_type="SPT", source_id="X", amax_g=0.3, mw=7.0, gwt_depth=0.0, target_fs=1.1,
+        depth=z, sigma_v=blank, sigma_v_eff=blank, rd=blank, csr=blank, resistance=blank, fc=blank,
+        crr75=blank, msf=blank, ksigma=blank, crr=blank, fs=np.array(fs, dtype=float),
+        status=np.array(status, dtype=object))
+
+
+def test_summary_lpi_none_when_every_point_invalid_and_flag_when_partial():
+    allbad = _fake_result(["invalid"] * 3, [np.nan] * 3).summary()
+    assert allbad["LPI"] is None and allbad["LPI_category"] is None
+    partial = _fake_result(["liquefiable", "invalid", "safe"], [0.5, np.nan, 2.0]).summary()
+    assert partial["LPI"] > 0 and partial["LPI_incomplete"] is True
+    assert _fake_result(["liquefiable", "safe"], [0.5, 2.0]).summary()["LPI_incomplete"] is False
+
+
+@pytest.mark.parametrize("method", ["youd2001", "bi2014"])
+def test_cpt_points_without_converged_normalisation_are_invalid(method, two_layer_profile):
+    import dataclasses
+    p = process_cpt(_cpt(), two_layer_profile)
+    base = analyze_cpt(p, two_layer_profile, method=method, amax_g=0.35, mw=7.0)
+    idx = int(np.flatnonzero(base.status == LIQUEFIABLE)[0])
+    flags = p.converged.copy()
+    flags[idx] = False
+    r = analyze_cpt(dataclasses.replace(p, converged=flags), two_layer_profile, method=method, amax_g=0.35, mw=7.0)
+    assert r.status[idx] == "invalid" and np.isnan(r.fs[idx])
+    assert r.summary()["LPI_incomplete"] is True
+
+
+def test_liquefaction_dto_exposes_lpi_category_and_incomplete_flag():
+    from types import SimpleNamespace
+
+    from geotek.api.calculation_results import liquefaction_result
+    item = _fake_result(["liquefiable", "invalid", "safe"], [0.5, np.nan, 2.0])
+    out = liquefaction_result(SimpleNamespace(liquefaction={"S": item}, errors={}))
+    s = out.per_sounding["S"]
+    # GWT 0, depths 1,2,3 -> cell 0-1.5 (surface extension, 0..2.5): first cell [0, 1.5], FS 0.5:
+    # F = 0.5, integral of (10 - 0.5 z) over 0..1.5 = 15 - 0.25*2.25 = 14.4375 -> LPI = 7.21875
+    assert s.LPI == pytest.approx(7.21875)
+    assert s.LPI_category == "high" and s.LPI_incomplete is True
+
+
+@pytest.mark.parametrize("method", ["youd2001", "bi2014"])
+def test_all_points_non_converged_are_invalid_not_clay_or_dense(method, two_layer_profile):
+    import dataclasses
+    p = process_cpt(_cpt(), two_layer_profile)
+    p = dataclasses.replace(p, converged=np.zeros(p.depth.size, dtype=bool))
+    r = analyze_cpt(p, two_layer_profile, method=method, amax_g=0.35, mw=7.0, gwt_seismic=0.0)
+    assert set(r.status.tolist()) == {"invalid"}
+    s = r.summary()
+    assert s["LPI"] is None and s["LPI_category"] is None

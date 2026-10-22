@@ -172,7 +172,7 @@ def test_downward_kv_sizes_same_wall_to_450():
     assert project.model_dump_json() == before
     assert result.passed and result.geometry.width == pytest.approx(4.50)
     assert result.kv == -abs(result.kh) / 2
-    assert not any("±kv zarfı" in w for w in result.warnings)
+    assert not any("kv_envelope" in w for w in result.warnings)
 
 
 @pytest.mark.parametrize("advanced,code", [(False, "asd"), (True, "asd"), (True, "aashto_lrfd")])
@@ -220,9 +220,8 @@ def test_check_kv_envelope_selects_each_check_and_keeps_governing_forces_and_pre
         assert analysis.warnings == reference.warnings
         assert (analysis.sum_v, analysis.sum_h, analysis.q_max) == (reference.sum_v, reference.sum_h, reference.q_max)
         assert envelope.pressures[f"{key}:retained"].K == pytest.approx(signed[sign].pressures[f"{key}:retained"].K)
-    warnings = [w for w in envelope.warnings if "±kv zarfı" in w]
-    assert warnings == ["Düşey deprem katsayısı ±kv zarfı uygulandı (TBDY 16.12.2.3); "
-                        "yöneten işaret kontrol bazında detayda belirtilmiştir."]
+    warnings = [w for w in envelope.warnings if "kv_envelope" in w]
+    assert warnings == ["wall.warning.kv_envelope"]
 
 
 def test_kv_envelope_runs_global_stability_for_each_sign_and_keeps_worst_slip(monkeypatch):
@@ -267,7 +266,7 @@ def test_zero_kv_runs_seismic_analysis_once_without_envelope_warning(monkeypatch
     monkeypatch.setattr(service, "verify_wall_layered", capture)
     result = check_structure(project, "wall")
     assert captured == [(False, 0.0), (True, 0.0)]
-    assert not any("±kv zarfı" in w for w in result.warnings)
+    assert not any("kv_envelope" in w for w in result.warnings)
 
 
 @pytest.mark.parametrize("kv_sign", ["envelope", "up", "down"])
@@ -683,10 +682,10 @@ def test_tbdy_default_r_warning_for_wet_retained_or_foundation_layer(water_side,
     setattr(structure.soil, f"gwt_{water_side}", GroundwaterCondition(
         depth_insitu=100, depth_design=100, depth_seismic=depth))
     result = check_structure(project, "wall")
-    warnings = [w for w in result.warnings if "16.12.2.2" in w]
+    warnings = [w for w in result.warnings if "pore_pressure_r" in w]
     assert bool(warnings) == (r is None and depth < structure.soil.profile.bottom)
     if warnings:
-        assert "coefficients.py" in warnings[0] and "r ≤ 1" in warnings[0]
+        assert warnings[0] == "wall.warning.pore_pressure_r"
     assert result.kh == pytest.approx(0.4 * 0.5 / 1.5)  # warning never changes r
 
 
@@ -743,11 +742,10 @@ def test_default_r_warning_uses_seismic_layer_overlap_and_preserves_input(sds, r
     structure.soil.gwt_retained = structure.soil.gwt_front = None
     before = project.model_dump_json()
     result = check_structure(project, "wall")
-    warnings = [w for w in result.warnings if "16.12.2.2" in w]
+    warnings = [w for w in result.warnings if "pore_pressure_r" in w]
     assert len(warnings) == int(expected_warning)
     if warnings:
-        assert ("TBDY 2018 16.12.2.2 — boşluk suyu basıncı artışı olabilecek durumlarda "
-                "r ≤ 1 gerekebilir; r değerini kontrol edin.") in warnings[0]
+        assert warnings[0] == "wall.warning.pore_pressure_r"
     assert project.model_dump_json() == before
     if sds is None:
         assert result.kh is None and result.kv is None
@@ -830,11 +828,10 @@ def test_submerged_r_reduction_warning_includes_explicit_r(sds, r, side, depth, 
     setattr(structure.soil, f"gwt_{side}", GroundwaterCondition(depth_insitu=100., depth_seismic=depth))
     before = project.model_dump_json()
     result = check_structure(project, "wall")
-    warnings = [w for w in result.warnings if "r>1" in w]
+    warnings = [w for w in result.warnings if "submerged_fill_r" in w]
     assert len(warnings) == int(expected)
     if warnings:
-        assert "16.20" in warnings[0] and "16.26" in warnings[0] and "water_kh=0.4·S_DS" in warnings[0]
-        assert "gerekçelendirilmelidir" in warnings[0]
+        assert warnings[0] == "wall.warning.submerged_fill_r"
     assert project.model_dump_json() == before
 
 
@@ -856,14 +853,14 @@ def test_governing_check_ids_match_failing_checks_for_narrow_wall():
 
 
 def test_aashto_wall_makes_ls_extreme_assumption_visible():
-    from geotek.services.structures import LS_EXTREME_ASSUMPTION
+    ls_warning = "report.assumption.wall.ls_extreme_i"
 
     result = check_structure(_project(advanced=True, code="aashto_lrfd"), "wall")
     assert any(f.path == "load.LS.extreme_I" for f in result.factors_used)
     assert any(a.code == "wall.ls_extreme_i" and "0.50" in a.text for a in result.assumptions)
-    assert LS_EXTREME_ASSUMPTION in result.warnings
+    assert ls_warning in result.warnings
     other = check_structure(_project(advanced=True, code="asd"), "wall")
-    assert LS_EXTREME_ASSUMPTION not in other.warnings
+    assert ls_warning not in other.warnings
 
 
 def test_sizing_treats_a_bearing_failure_as_a_failed_trial_width(monkeypatch):
@@ -893,3 +890,59 @@ def test_sizing_treats_a_bearing_failure_as_a_failed_trial_width(monkeypatch):
     monkeypatch.setattr(service, "_evaluate_wall", always_fails)
     with pytest.raises(BearingFailureError, match="effective width"):
         size_structure(project, "wall")
+
+
+def _asd_envelope_project(sds):
+    layer = SoilLayer(id="sand", top=0, bottom=40, gamma=18, gamma_sat=20, design=DesignParameters(phi_eff=30))
+    soil = StructureSoilModel(
+        profile=SoilProfile(id="s", layers=[layer], gwt=GroundwaterCondition(
+            depth_insitu=0, depth_design=0, depth_seismic=100)),
+        gwt_front=GroundwaterCondition(depth_insitu=5, depth_design=5, depth_seismic=100))
+    sheet = SheetPileStructure(id="S", retained_height=5, soil=soil, sds=sds)
+    return Project(meta=ProjectMeta(name="asd-envelope"), structures=[sheet])
+
+
+def test_asd_sheet_pile_keeps_static_case_when_sds_is_set():
+    """ENG-C-001: the dry-water seismic case must not replace the wet static design case.
+
+    Hand calculation (static case): Ka=1/3, Kp=3, gamma'=20-9.81=10.19, passive/1.5.
+    z<=5: p = (Ka*gamma' + gw) z = 13.1... ; z>5 the net water head is constant (49.05 kPa):
+    p = Ka*gamma'*z + 5*gw - Kp*gamma'*(z-5)/1.5.  Free-earth toe from sum of moments about the toe.
+    """
+    import numpy as np
+    from numpy.polynomial import polynomial as P
+    gw, gam = GAMMA_W, 20 - GAMMA_W
+    ka, kp = 1 / 3, 3.0
+    p1 = np.array([0.0, ka * gam + gw])
+    p2 = np.array([5 * gw + kp * gam * 5 / 1.5, ka * gam - kp * gam / 1.5])
+
+    def integral(t, power=0):
+        total = 0.0
+        for coef, lo, hi in ((p1, 0.0, min(t, 5.0)), (p2, 5.0, t)):
+            if hi > lo:
+                antider = P.polyint(P.polymul(coef, [0.0] * power + [1.0]))
+                total += P.polyval(hi, antider) - P.polyval(lo, antider)
+        return total
+
+    lo, hi = 5.5, 39.0
+    for _ in range(200):
+        mid = (lo + hi) / 2
+        if (mid * integral(mid) - integral(mid, 1)) * (lo * integral(lo) - integral(lo, 1)) > 0:
+            lo = mid
+        else:
+            hi = mid
+    toe = (lo + hi) / 2
+    expected_d = 1.2 * (toe - 5)
+    zs = np.linspace(0, toe, 40001)
+    expected_m = max(abs(z * integral(z) - integral(z, 1)) for z in zs[::20])
+    assert expected_d == pytest.approx(18.9086, abs=2e-3)
+
+    static = design_sheet_pile_structure(_asd_envelope_project(None), "S")
+    with_sds = design_sheet_pile_structure(_asd_envelope_project(0.1), "S")
+    assert static.result.D == pytest.approx(expected_d, rel=2e-3)
+    assert static.result.M_max == pytest.approx(expected_m, rel=2e-3)
+    assert with_sds.result.D == pytest.approx(static.result.D, rel=1e-9)
+    assert with_sds.result.M_max == pytest.approx(static.result.M_max, rel=1e-9)
+    assert with_sds.kh is not None
+    assert any(a.code == "sheet_pile.governing_cases" and a.params["embedment"] == "static"
+               for a in with_sds.assumptions)

@@ -73,14 +73,24 @@ def liquefaction_potential_index(depth, fs, gwt_depth: float | None = None) -> f
 
     When the first test point is shallow (at most ``LPI_SURFACE_EXTENSION_DEPTH``), it also
     represents the layer above it: its interval is extended up to the ground surface, where
-    the weight is largest (dropping that layer is on the unsafe side), but not above
-    ``gwt_depth`` when given, since soil above the water table is not counted as liquefiable.
+    the weight is largest (dropping that layer is on the unsafe side). Every cell is clipped
+    to ``[gwt_depth, 20 m]`` when ``gwt_depth`` is given, since soil above the water table is not
+    counted as liquefiable. Depths must be finite and sorted ascending (ValueError otherwise).
     """
+    depth = np.asarray(depth, dtype=float)
+    if depth.size == 0:
+        return 0.0
+    if not np.all(np.isfinite(depth)):
+        raise ValueError("LPI needs finite test depths")
+    if np.any(np.diff(depth) < 0):
+        raise ValueError("LPI needs test depths sorted in ascending order")
     top, bot = tributary_thickness(depth)
     top = top.copy()
     if depth[0] <= LPI_SURFACE_EXTENSION_DEPTH:
-        top[0] = min(top[0], 0.0 if gwt_depth is None else max(0.0, float(gwt_depth)))
-    top, bot = np.minimum(top, 20.0), np.minimum(bot, 20.0)
+        top[0] = 0.0
+    # Every cell is clipped to [GWT, 20 m]: soil above the water table is not counted as liquefiable.
+    lower = 0.0 if gwt_depth is None else max(0.0, float(gwt_depth))
+    top, bot = np.clip(top, lower, 20.0), np.clip(bot, lower, 20.0)
     fs = np.asarray(fs, dtype=float)
     F = np.where(np.isfinite(fs) & (fs < 1.0), 1.0 - fs, 0.0)
     # exact integral of the linear weight over each interval
@@ -150,13 +160,17 @@ class LiquefactionResult:
     def summary(self) -> dict:
         counts = {s: int(np.sum(self.status == s)) for s in np.unique(self.status)}
         liq = self.depth[self.status == LIQUEFIABLE]
-        lpi = self.lpi
+        invalid = int(np.sum(self.status == INVALID))
+        all_invalid = self.status.size > 0 and invalid == self.status.size
+        lpi = None if all_invalid else self.lpi
         return {
             "method": self.method, "test_type": self.test_type, "source_id": self.source_id,
             "status_counts": counts,
             "liquefiable_depths": (float(liq.min()), float(liq.max())) if liq.size else None,
             "min_fs": float(np.nanmin(self.fs)) if np.isfinite(self.fs).any() else None,
-            "LPI": lpi, "LPI_category": lpi_category(lpi),
+            "LPI": lpi, "LPI_category": None if lpi is None else lpi_category(lpi),
+            # Invalid points contribute 0 to the LPI, so a partly invalid sounding may understate it.
+            "LPI_incomplete": 0 < invalid < self.status.size,
         }
 
 

@@ -899,8 +899,8 @@ def test_frozen_legacy_default_two_layer_lateral_pressure():
 
 
 @pytest.mark.parametrize("seismic,expected", [
-    (False, 1.7713828462819479),  # computed at pre-E4 commit 17a6da7
-    (True, 1.298580922529976),  # computed at pre-E4 commit 17a6da7
+    (False, 1.7624732507127798),  # pre-E4 1.77138; vertex probing (ENG-B-004) lands on a different search optimum; that critical circle gives 1.76247 in the old code too
+    (True, 1.2941297669813243),  # pre-E4 1.29858; now with surface vertices probed (ENG-B-004) and true centroid arm (ENG-B-002)
 ])
 def test_frozen_legacy_global_default_basic_B460(seismic, expected):
     from geotek.engine.stability import SoilBand
@@ -1040,3 +1040,70 @@ def test_undrained_bearing_uses_gross_load_and_front_total_stress(monkeypatch, u
     assert results[1].checks["bearing"].value <= results[0].checks["bearing"].value + 1e-10
     assert results[1].sum_v < results[0].sum_v  # Uplift still enters the other checks.
     assert results[1].eccentricity != results[0].eccentricity
+
+
+@pytest.mark.parametrize("theta,expected_ph", [(-10.0, 2402.178), (10.0, 1301.449)])
+def test_coulomb_passive_horizontal_projection_uses_delta_minus_theta(theta, expected_ph):
+    """ENG-B-003: P_h = 1/2 gamma H^2 Kp cos(delta - theta) (passive), hand-derived Kp."""
+    d, p, t = math.radians(10), math.radians(35), math.radians(theta)
+    root = math.sqrt(math.sin(p + d) * math.sin(p) / (math.cos(d - t) * math.cos(-t)))
+    kp = math.cos(p + t) ** 2 / (math.cos(t) ** 2 * math.cos(d - t) * (1 - root) ** 2)
+    hand = 0.5 * 18 * 6**2 * kp * math.cos(d - t)
+    assert hand == pytest.approx(expected_ph, abs=0.01)
+    soil = _soil(layers=[_layer("n", 0, 10, phi=35, gamma=18)])
+    dist = lateral_pressure(soil.retained_profile(), 6, state="passive", method="coulomb",
+                            delta=10, theta=theta)
+    assert dist.force == pytest.approx(hand, rel=1e-6)
+
+
+def test_coulomb_active_horizontal_projection_unchanged_for_leaning_face():
+    d, p, t = math.radians(10), math.radians(35), math.radians(10)
+    root = math.sqrt(math.sin(p + d) * math.sin(p) / (math.cos(d + t) * math.cos(t)))
+    ka = math.cos(p - t) ** 2 / (math.cos(t) ** 2 * math.cos(d + t) * (1 + root) ** 2)
+    soil = _soil(layers=[_layer("n", 0, 10, phi=35, gamma=18)])
+    dist = lateral_pressure(soil.retained_profile(), 6, state="active", method="coulomb", delta=10, theta=10)
+    assert dist.force == pytest.approx(0.5 * 18 * 36 * ka * math.cos(d + t), rel=1e-6)
+
+
+def test_trial_wedge_active_unbounded_slope_raises_and_bad_state_raises():
+    """ENG-B-001: beta = 25 deg >= phi - psi (30 - 11.31) has no finite critical wedge."""
+    with pytest.raises(GeoTekError, match="finite critical wedge"):
+        trial_wedge(H=6, gamma=18, phi=30, beta=25, kh=0.2)
+    # beta = 0, kh = 0.2: closed-form Mononobe-Okabe K_AE = 0.4733 (hand evaluation, delta = 0)
+    res = trial_wedge(H=6, gamma=18, phi=30, kh=0.2)
+    psi = math.atan(0.2)
+    p = math.radians(30)
+    kae = math.cos(p - psi) ** 2 / (math.cos(psi) ** 2 * (1 + math.sqrt(math.sin(p) * math.sin(p - psi) / math.cos(psi))) ** 2)
+    assert res.K == pytest.approx(kae, rel=1e-4)
+    with pytest.raises(GeoTekError):
+        trial_wedge(H=6, gamma=18, phi=30, state="at_rest")
+
+
+@pytest.mark.parametrize("bad", [
+    dict(height=float("inf")), dict(base_width=float("nan")), dict(top_width=float("inf")),
+    dict(embedment=3.0), dict(embedment=4.0), dict(embedment=float("inf")),
+])
+def test_gravity_geometry_rejects_non_finite_and_embedment_not_below_height(bad):
+    """ENG-C-006: embedment >= height (3.0 m wall) and non-finite values are invalid."""
+    base = dict(height=3.0, base_width=2.0, top_width=0.6)
+    base.update(bad)
+    with pytest.raises(ValueError):
+        GravityGeometry(**base)
+    GravityGeometry(height=3.0, base_width=2.0, top_width=0.6, embedment=1.0)
+
+
+def test_trial_wedge_accepts_the_exact_unbounded_boundary_beta_equals_phi_minus_psi():
+    """beta = phi = 30 deg, kh = 0: the limit is finite, K = cos^2(phi) = 0.75 (Rankine-type)."""
+    res = trial_wedge(H=6, gamma=18, phi=30, beta=30)
+    assert res.K == pytest.approx(math.cos(math.radians(30)) ** 2, rel=2e-2)
+
+
+def test_wall_analysis_reports_failed_bearing_check_when_horizontal_load_exceeds_capacity(monkeypatch):
+    from geotek.engine.walls import base
+
+    def boom(**kwargs):
+        from geotek.core.errors import BearingFailureError
+        raise BearingFailureError("Horizontal load exceeds the bearing capacity")
+
+    res, failure = base.try_bearing_capacity(boom, B=2)
+    assert res is None and "Horizontal load exceeds" in failure

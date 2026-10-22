@@ -143,6 +143,8 @@ class StructureSummary(DTO):
     kind: StructureKind
     wall_type: WallType | None
     stale: bool
+    source_stale: bool = False
+    """True only when the source soil profile changed (or vanished) since the copy was made."""
     has_result: bool
 
 
@@ -494,6 +496,9 @@ class SoundingLiquefactionDTO(DTO):
         "non_liquefiable_dense", "excluded_by_user", "beyond_method_depth", "invalid",
     ]]
     warnings: list[str]
+    LPI: ResultNumber = Field(default=None, description="Liquefaction Potential Index (Iwasaki); null if every point is invalid")
+    LPI_category: Literal["very_low", "low", "high", "very_high"] | None = None
+    LPI_incomplete: bool = Field(default=False, description="True when some points are invalid, so the LPI may be understated")
 
 
 class LiquefactionResultDTO(DTO):

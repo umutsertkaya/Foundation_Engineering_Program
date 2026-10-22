@@ -208,7 +208,8 @@ export function SlopeBishopSlice() {
           <Force x1={165} y1={470} x2={162} y2={448} c={K.green} arrow={c.arrow} w={2.5} />
           <Tx x={132} y={462} a="end" c={K.green} s={13}>N′</Tx>
           <Ln x1={140} y1={448} x2={230} y2={428} c={K.red} w={0} />
-          <Ln x1={140} y1={448} x2={102} y2={457} c={K.red} w={2.4} end={c.arrow(K.red)} /><Tx x={80} y={455} a="end" c={K.red} s={13}>S</Tx>
+          {/* The mass slides down-slope (toward -x), so the mobilised resistance points up-slope along the base: direction (90, -20). */}
+          <Ln x1={146} y1={459} x2={196} y2={447.9} c={K.red} w={2.4} end={c.arrow(K.red)} /><Tx x={204} y={452} c={K.red} s={13}>S</Tx>
           <Ang x={140} y={448} r={44} from={0} to={12} label="α" />
           <Tx x={250} y={380} s={13}>Bishop: dilimler arası düşey kesme kuvvetleri sıfır alınır</Tx>
           <Tx x={250} y={402} s={13}>FS = Σ[(c′b + (W − ub) tanφ′) / mα] / Σ[W sinα]</Tx>
@@ -370,7 +371,7 @@ export function AnchoredWallEnvelopes() {
             <Tx x={110} y={324} a="middle" s={13}>p = ΣP / (H − H₁/3 − Hₙ₊₁/3)</Tx>
           </>), c)}
           {panel(220, "Yumuşak kil", (<>
-            <Poly pts={[[250, 80], [250 + 29.92 * 2.6, 80 + 0.25 * 220], [250 + 29.92 * 2.6, 300 - 0.25 * 220], [250, 300]]} fill={K.green} o={0.3} />
+            <Poly pts={[[250, 80], [250 + 29.92 * 2.6, 80 + 0.25 * 220], [250 + 29.92 * 2.6, 300], [250, 300]]} fill={K.green} o={0.3} />
             <Tx x={250 + 29.92 * 2.6 + 2} y={80 + 110} s={13} b c={K.green}>29,92</Tx>
             <Tx x={320} y={330} a="middle" s={13}>p = Ka·γ·H, Ka ≥ 0,22</Tx>
           </>), c)}
@@ -379,7 +380,7 @@ export function AnchoredWallEnvelopes() {
             <Tx x={460 + 54.4 * 1.5 + 2} y={80 + 110} s={13} b c={K.orange}>54,4</Tx>
             <Tx x={530} y={330} a="middle" s={13}>toplam ≥ 3H² (kN/m)</Tx>
           </>), c)}
-          <Tx x={10} y={382} c={K.mut} s={13}>Kırmızı noktalar: ankraj seviyeleri (H = 10 m, 1,5 / 4,5 / 7,5 m). Değerler programın el hesabı örnekleridir.</Tx>
+          <Tx x={10} y={382} c={K.mut} s={13}>Kum: H = 10 m, p = 45 kPa (ankrajlar 1,5 / 4,5 / 7,5 m). Killer: H = 8 m, γ = 17 kN/m³; yumuşak kil 0 → 0,25H rampa sonra tabana kadar sabit, sert kil 29,92 ve 54,4 kPa ordinatları. Değerler programın el hesabı örnekleridir.</Tx>
         </>
       )}
     </Fig>

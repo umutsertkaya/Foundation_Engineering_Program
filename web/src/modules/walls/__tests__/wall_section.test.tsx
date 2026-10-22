@@ -161,6 +161,15 @@ describe("WallCrossSection", () => {
     expect(text).not.toMatch(/walls\.|web\.section/);
   });
 
+  it("labels layers by description / USCS / ordinal, never by a UUID layer id", () => {
+    const uuid = "bec4ae2b3c0d490e9c8b20d2e5350403";
+    const fill = { ...layer(uuid, 0, 4.5), description: "Kum dolgu" };
+    renderThemed(<WallCrossSection wallType="cantilever" geometry={CANTILEVER} height={5} soil={soilModel({ gwt: 2, fill: [fill] })} />);
+    const text = document.querySelector("svg")!.textContent ?? "";
+    expect(text).not.toContain(uuid);
+    expect(text).toContain("Kum dolgu");
+  });
+
   it("renders the gravity wall and works without soil, in dark mode too", () => {
     renderThemed(<WallCrossSection wallType="gravity" geometry={GRAVITY} height={5} />, "dark");
     const svg = document.querySelector("svg")!;

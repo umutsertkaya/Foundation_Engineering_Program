@@ -85,3 +85,61 @@ def test_reversed_slope_gives_explicit_direction_error():
     assert search_critical_circle(normal, **domain).fs > 1.0
     with pytest.raises(GeoTekError, match="mirror the x coordinates"):
         search_critical_circle(reversed_, **domain)
+
+
+def test_seismic_moment_arm_uses_layered_column_centroid():
+    """ENG-B-002: two bands with a heavy lower band; arm = true weight centroid, not mid-height."""
+    model = SlopeModel(surface=[(-30, 0), (0, 0), (20, 10), (50, 10)],
+                       layers=[SoilBand(top=10, gamma=10, c=10, phi=20), SoilBand(top=3, gamma=30, c=10, phi=20)],
+                       kh=0.2)
+    xc, yc, R = 5.0, 15.0, math.sqrt(250)
+    r = bishop(model, xc, yc, R, n_slices=160)
+    assert r.fs == pytest.approx(1.2113, abs=5e-4)  # report reference (old mid-height arm: 1.2228)
+    assert abs(r.fs - 1.2228) > 5e-3
+
+    # Independent check of the column integrals for one slice at x = 10: surface 5, arc bottom 0.
+    ybot, ytop = 0.0, 5.0
+    w = 30.0 * (3 - 0) + 10.0 * (5 - 3)               # 110 kPa
+    m = 30.0 * (3**2 - 0) / 2 + 10.0 * (5**2 - 3**2) / 2  # 135 + 80 = 215
+    assert model.column_weight(ybot, ytop) == pytest.approx(w)
+    assert model.column_moment(ybot, ytop) == pytest.approx(m)
+    assert m / w == pytest.approx(1.9545, abs=1e-4)   # centroid, vs mid-height 2.5
+
+
+def test_seismic_surface_load_inertia_acts_at_surface():
+    """Surface load inertia acts at the ground surface (arm yc - ytop), its physical location;
+    this is not a conservative choice versus the old mid-height arm."""
+    base = dict(surface=[(-30, 0), (0, 0), (20, 10), (50, 10)], layers=[SoilBand(top=10, gamma=18, c=10, phi=20)])
+    loaded = SlopeModel(**base, loads=[SurfaceLoad(x1=10, x2=50, q1=30, q2=30)], kh=0.2)
+    still = SlopeModel(**base, loads=[SurfaceLoad(x1=10, x2=50, q1=30, q2=30)], kh=0.0)
+    a = bishop(loaded, 5, 15, math.sqrt(250), n_slices=80)
+    b = bishop(still, 5, 15, math.sqrt(250), n_slices=80)
+    assert a.fs < b.fs
+
+
+def test_slip_interval_keeps_longest_run_when_arc_reemerges_at_narrow_notch():
+    """ENG-B-004: surface vertices are probed, so the notch splits the runs; the longest run is kept.
+
+    Circle centre (0, 10), R = 10: the arc is above the 0.2 m wide notch (surface y = 1.0 for
+    x in [4.9, 5.1], arc 1.28..1.34), so the mass left of the notch is the longest run.
+    """
+    surface = [(-20, 5), (4.8, 5), (4.9, 1.0), (5.1, 1.0), (5.2, 5), (20, 5)]
+    model = SlopeModel(surface=surface, layers=[SoilBand(top=5, gamma=18, c=5, phi=25)])
+    assert 10 - math.sqrt(100 - 4.9**2) > 1.0
+    assert 10 - math.sqrt(100 - 5.1**2) > 1.0
+    from geotek.engine.stability import _slip_interval
+    xa, xb = _slip_interval(model, 0.0, 10.0, 10.0, n_probe=40)
+    assert xa == pytest.approx(-math.sqrt(75), abs=0.05)   # arc crosses y = 5 at x = -8.66
+    assert 4.8 < xb < 4.9                                    # exits at the notch wall, not beyond it
+
+
+def test_second_below_ground_run_does_not_discard_the_toe_to_crest_circle():
+    """Counter-example (review D1): a ditch-like surface step; the critical circle stays admissible.
+
+    Search over the same grid gave 1.7197 before vertex probing; the critical FS must stay there.
+    """
+    model = SlopeModel(surface=[(-40, 4), (-8, 4), (-6, 0), (0, 0), (20, 10), (60, 10)],
+                       layers=[SoilBand(top=10, gamma=18, c=8, phi=28)])
+    r = search_critical_circle(model, x_range=(-10, 30), y_range=(10, 40), tangent_range=(-10, 9.5),
+                               min_width=1.0)
+    assert r.fs == pytest.approx(1.7197, abs=3e-3)

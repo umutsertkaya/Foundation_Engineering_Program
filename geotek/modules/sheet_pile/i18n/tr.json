@@ -76,7 +76,7 @@
   "sheet_pile.detail.missing_value": "Eksik",
   "sheet_pile.detail.unsaved": "Kaydedilmemiş değişiklikler var; hesap için önce kaydedin.",
   "sheet_pile.detail.missing_factors": "Eksik katsayılar",
-  "sheet_pile.detail.save": "Kaydet",
+  "sheet_pile.detail.save": "Yapı girdilerini kaydet",
   "sheet_pile.detail.run": "Tasarımı çalıştır",
   "sheet_pile.job.running": "Hesap sürüyor…",
   "sheet_pile.job.cancel": "İptal et",
@@ -170,5 +170,16 @@
   "sheet_pile.diagram.excavation": "kazı tabanı",
   "sheet_pile.diagram.anchor": "ankraj",
   "sheet_pile.diagram.note": "Derinlik z perdenin üstünden ölçülür; çizim teorik uca (H + D₀) kadardır.",
-  "sheet_pile.result.toe_force_hint": "Mutlak değer; kazı yönünde etkir."
+  "sheet_pile.result.toe_force_hint": "Mutlak değer; kazı yönünde etkir.",
+  "sheet_pile.detail.save_blocked": "Yapı girdileri eksik veya aralık dışı; kaydedilmedi ve proje dosyası yazılmadı.",
+  "sheet_pile.detail.gw_title": "Hesapta kullanılan yeraltı suyu (zemin yüzeyinden derinlik, m)",
+  "sheet_pile.detail.gw_side": "Taraf",
+  "sheet_pile.detail.gw_retained": "Tutulan taraf",
+  "sheet_pile.detail.gw_front": "Ön taraf",
+  "sheet_pile.detail.gw_insitu": "Arazi",
+  "sheet_pile.detail.gw_design": "Tasarım",
+  "sheet_pile.detail.gw_seismic": "Deprem",
+  "sheet_pile.detail.gw_origin": "Kaynak",
+  "sheet_pile.detail.gw_own": "Yapıya özel seviye",
+  "sheet_pile.detail.gw_profile": "Zemin profili seviyesi"
 }

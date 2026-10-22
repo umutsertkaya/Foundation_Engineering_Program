@@ -2149,7 +2149,7 @@ export interface components {
             /** Fs */
             fs: number[];
             /** U2 */
-            u2?: number[] | null;
+            u2?: (number | null)[] | null;
         };
         /**
          * CantileverGeometry
@@ -3836,6 +3836,19 @@ export interface components {
             status: ("liquefiable" | "marginal" | "safe" | "above_gwt" | "clay_like" | "non_liquefiable_dense" | "excluded_by_user" | "beyond_method_depth" | "invalid")[];
             /** Warnings */
             warnings: string[];
+            /**
+             * Lpi
+             * @description Liquefaction Potential Index (Iwasaki); null if every point is invalid
+             */
+            LPI?: number | null;
+            /** Lpi Category */
+            LPI_category?: ("very_low" | "low" | "high" | "very_high") | null;
+            /**
+             * Lpi Incomplete
+             * @description True when some points are invalid, so the LPI may be understated
+             * @default false
+             */
+            LPI_incomplete: boolean;
         };
         /**
          * StateResponse
@@ -3898,6 +3911,11 @@ export interface components {
             wall_type: ("cantilever" | "gravity") | null;
             /** Stale */
             stale: boolean;
+            /**
+             * Source Stale
+             * @default false
+             */
+            source_stale: boolean;
             /** Has Result */
             has_result: boolean;
         };

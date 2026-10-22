@@ -389,7 +389,7 @@ export const student: Block[] = [
   {
     type: "p",
     text: {
-      tr: "φ = 0 için kod N_c = 5.14, N_q = 1 ve N_γ = 0 kullanır. Bu, kohezyon terimi dışında yalnızca q'nun katkısının kaldığı bir kapasite verir: q_ult = 5.14·s_u·(faktörler) + q. Üstyük terimi N_q = 1 olduğu için yalnızca q'dur ve γ terimi N_γ = 0 olduğu için tamamen düşer. Hansen ve Vesic için φ = 0 kolu ayrıca tanımlanmıştır; Hansen'de kapasite 5.14·s_u·(1 + s'_c + d'_c − i'_c) + q ile yazılır. Eğik yük varsa i'_c, H'nin yapışma kuvvetini (A'·s_u) aşması durumunda hata verir.",
+      tr: "φ = 0 için kod N_c = 5.14, N_q = 1 ve N_γ = 0 kullanır. Bu, kohezyon terimi dışında yalnızca q'nun katkısının kaldığı bir kapasite verir: q_ult = 5.14·s_u·(faktörler) + q. Üstyük terimi N_q = 1 olduğu için yalnızca q'dur ve γ terimi N_γ = 0 olduğu için tamamen düşer. Hansen ve Vesic için φ = 0 kolu ayrıca tanımlanmıştır; Hansen'de kapasite 5.14·s_u·(1 + s'_c + d'_c − i'_c) + q ile yazılır. Eğik yük varsa Hansen'de i'_c, H > A'·s_u olduğunda hata verir; Vesic'te ise i_c = 1 − m·H/(5,14·A'·s_u) pozitif kalmalıdır (m·H ≥ 5,14·A'·s_u ise hata).",
       en: "phi = 0: Nc = 5.14, Nq = 1, Ngamma = 0.",
     },
   },
@@ -456,7 +456,7 @@ export const student: Block[] = [
   {
     type: "warn",
     text: {
-      tr: "Program sınırları ve uyarıları: (1) Meyerhof için D/B > 1 derinlik faktörleri ekstrapole edilir ve uyarı üretilir. (2) φ = 0'da Hansen ve Vesic'te H, A'·c'yi aşarsa hata verilir. (3) Hansen'in α1 ve α2 eğim üsleri kullanıcı seçeneğidir; varsayılan değerleri literatürle doğrulanmamıştır. (4) Taban eğimi ve zemin eğimi faktörleri yoktur ve 1 alınır. (5) Yük kombinasyonları ve su tablası düzeltmesi çağıran modüle aittir. (6) ASD'deki güvenlik sayıları (statik ve deprem) ikincil ve doğrulanmamış olarak işaretlidir; bu sayıları ders kitabı değeri gibi kabul etmeyin, mühendis onayı gerekir. (7) φ, 0 ile 50° dışında kabul edilmez.",
+      tr: "Program sınırları ve uyarıları: (1) Meyerhof için D/B > 1 derinlik faktörleri ekstrapole edilir ve uyarı üretilir. (2) φ = 0'da Hansen'de H > A'·s_u ise, Vesic'te m·H ≥ 5,14·A'·s_u ise (m = (2 + B'/L')/(1 + B'/L')) hata verilir; iki yöntemin sınırı aynı değildir. (3) Hansen'in α1 ve α2 eğim üsleri kullanıcı seçeneğidir; varsayılan değerleri literatürle doğrulanmamıştır. (4) Taban eğimi ve zemin eğimi faktörleri yoktur ve 1 alınır. (5) Yük kombinasyonları ve su tablası düzeltmesi çağıran modüle aittir. (6) ASD'deki güvenlik sayıları (statik ve deprem) ikincil ve doğrulanmamış olarak işaretlidir; bu sayıları ders kitabı değeri gibi kabul etmeyin, mühendis onayı gerekir. (7) φ, 0 ile 50° dışında kabul edilmez.",
       en: "Limits: no base tilt or ground slope factors; ASD factors of safety are unverified.",
     },
   },

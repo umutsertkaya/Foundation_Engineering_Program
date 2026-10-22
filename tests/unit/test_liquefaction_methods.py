@@ -159,8 +159,17 @@ def test_lpi():
     # no GWT given: the first point also represents the layer above it, 0-3 m:
     # 0.5 * (10*3 - 0.25*3^2) = 0.5 * 27.75 (Iwasaki integral starts at the ground surface)
     assert liquefaction_potential_index([2.0, 4.0, 6.0], [0.5, np.nan, 2.0]) == pytest.approx(13.875)
-    # water table below the default interval top (1.5 m > 1 m): nothing to extend
-    assert liquefaction_potential_index([2.0, 4.0, 6.0], [0.5, np.nan, 2.0], gwt_depth=1.5) == pytest.approx(9.0)
+    # ENG-A-003: the first cell is clipped to [GWT, 20] = [1.5, 3] (it used to start at 1 m, above the water table):
+    # 0.5 * (10*(3-1.5) - 0.25*(3^2 - 1.5^2)) = 0.5 * (15 - 1.6875) = 6.65625
+    assert liquefaction_potential_index([2.0, 4.0, 6.0], [0.5, np.nan, 2.0], gwt_depth=1.5) == pytest.approx(6.65625)
+    # a cell lying wholly above the GWT contributes nothing (cell 3-5 m, GWT 6 m)
+    assert liquefaction_potential_index([2.0, 4.0, 6.0], [2.0, 0.5, 2.0], gwt_depth=6.0) == 0.0
+    # single test point (cell 0-3 m) clipped to [2, 3]: 0.5 * (10*1 - 0.25*(9-4)) = 4.375
+    assert liquefaction_potential_index([3.0], [0.5], gwt_depth=2.0) == pytest.approx(4.375)
+    with pytest.raises(ValueError):
+        liquefaction_potential_index([4.0, 2.0], [0.5, 0.5])
+    with pytest.raises(ValueError):
+        liquefaction_potential_index([2.0, np.nan], [0.5, 0.5])
     # GWT at the surface behaves like no GWT
     assert liquefaction_potential_index([2.0, 4.0, 6.0], [0.5, np.nan, 2.0], gwt_depth=0.0) == pytest.approx(13.875)
     assert liquefaction_potential_index([25.0, 26.0], [0.1, 0.1]) == 0.0  # below 20 m

@@ -116,7 +116,7 @@ export interface CPTSounding {
   depth: number[];
   qc: number[];
   fs: number[];
-  u2?: number[] | null;
+  u2?: (number | null)[] | null;
 }
 
 export interface ShearKey {
@@ -317,6 +317,9 @@ export interface SoundingLiquefactionDTO {
     | "invalid"
   )[];
   warnings: string[];
+  LPI?: number | null;
+  LPI_category?: "very_low" | "low" | "high" | "very_high" | null;
+  LPI_incomplete?: boolean;
 }
 
 export interface LiquefactionResultDTO {
@@ -460,6 +463,8 @@ export interface StructureSummary {
   kind: StructureKind;
   wall_type: WallType | null;
   stale: boolean;
+  /** True only when the source soil profile really changed since the copy; `stale` also covers changed inputs. */
+  source_stale?: boolean;
   has_result: boolean;
 }
 

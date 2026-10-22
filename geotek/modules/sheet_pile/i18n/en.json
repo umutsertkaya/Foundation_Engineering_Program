@@ -76,7 +76,7 @@
   "sheet_pile.detail.missing_value": "Missing",
   "sheet_pile.detail.unsaved": "Unsaved changes; save before running.",
   "sheet_pile.detail.missing_factors": "Missing factors",
-  "sheet_pile.detail.save": "Save",
+  "sheet_pile.detail.save": "Save structure inputs",
   "sheet_pile.detail.run": "Run design",
   "sheet_pile.job.running": "Calculating…",
   "sheet_pile.job.cancel": "Cancel",
@@ -170,5 +170,16 @@
   "sheet_pile.diagram.excavation": "excavation level",
   "sheet_pile.diagram.anchor": "anchor",
   "sheet_pile.diagram.note": "Depth z is measured from the pile top; the plot ends at the theoretical toe (H + D₀).",
-  "sheet_pile.result.toe_force_hint": "Absolute value; acts towards the excavation."
+  "sheet_pile.result.toe_force_hint": "Absolute value; acts towards the excavation.",
+  "sheet_pile.detail.save_blocked": "Structure inputs are incomplete or out of range; they were not saved and the project file was not written.",
+  "sheet_pile.detail.gw_title": "Groundwater used in the calculation (depth below ground, m)",
+  "sheet_pile.detail.gw_side": "Side",
+  "sheet_pile.detail.gw_retained": "Retained side",
+  "sheet_pile.detail.gw_front": "Front side",
+  "sheet_pile.detail.gw_insitu": "In-situ",
+  "sheet_pile.detail.gw_design": "Design",
+  "sheet_pile.detail.gw_seismic": "Seismic",
+  "sheet_pile.detail.gw_origin": "Source",
+  "sheet_pile.detail.gw_own": "Structure-specific level",
+  "sheet_pile.detail.gw_profile": "Soil profile level"
 }

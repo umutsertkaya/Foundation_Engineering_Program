@@ -139,7 +139,7 @@ export const topic: Topic = {
     {
       type: "warn",
       text: {
-        tr: "Sınırlar ve uyarılar: (1) Meyerhof için D/B > 1 derinlik faktörleri ekstrapole edilir ve uyarı üretilir. (2) φ = 0 için Hansen ve Vesic'te yatay yük, A'·c'yi aşarsa kod hata verir (H > A's_u). (3) Hansen eğim üssü α1, α2 kullanıcı seçeneğidir; varsayılanı literatürle doğrulanmamıştır. (4) Taban eğimi ve zemin eğimi faktörleri yoktur. (5) Yük kombinasyonları ve su tablası düzeltmesi çağıran modüle aittir. (6) ASD güvenlik sayısı bearing_capacity static = 3.0 ve seismic = 2.0 değerleri asd.yaml dosyasında 'secondary' ve 'unverified' olarak işaretlidir; mühendis onayı gerektirir.",
+        tr: "Sınırlar ve uyarılar: (1) Meyerhof için D/B > 1 derinlik faktörleri ekstrapole edilir ve uyarı üretilir. (2) φ = 0 için Hansen'de H > A'·s_u ise, Vesic'te m·H ≥ 5,14·A'·s_u ise (m = (2 + B'/L')/(1 + B'/L')) kod hata verir; Vesic koşulu Hansen'inkinden farklıdır. (3) Hansen eğim üssü α1, α2 kullanıcı seçeneğidir; varsayılanı literatürle doğrulanmamıştır. (4) Taban eğimi ve zemin eğimi faktörleri yoktur. (5) Yük kombinasyonları ve su tablası düzeltmesi çağıran modüle aittir. (6) ASD güvenlik sayısı bearing_capacity static = 3.0 ve seismic = 2.0 değerleri asd.yaml dosyasında 'secondary' ve 'unverified' olarak işaretlidir; mühendis onayı gerektirir.",
         en: "Limits: no base tilt or ground slope factors; ASD FS values are secondary/unverified.",
       },
     },

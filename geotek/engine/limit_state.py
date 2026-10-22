@@ -45,6 +45,7 @@ from geotek.engine.bearing import bearing_capacity
 from geotek.engine.sheet_pile import SheetPileResult, anchored_sheet_pile, cantilever_sheet_pile
 from geotek.engine.stability import SoilBand
 from geotek.engine.walls.base import (
+    try_bearing_capacity,
     CheckResult, Force, KeySliding, WallAnalysis, attach_without_key, key_result, key_sliding_basic,
     overturning_moments, passive_force, seismic_passive_ratio, strip_key,
 )
@@ -169,6 +170,28 @@ def limit_state_cases(code_id: str | DesignCode, *, seismic: bool = False,
 # --- helpers -----------------------------------------------------------------------------
 
 
+TBDY_TAN_DELTA_BASE_MAX = 0.6
+"""TBDY 2018 Table 16.3: cast-in-place concrete on compacted ground, tan(delta_b) <= 0.6."""
+SRC_TBDY_BASE_CAP = ("TBDY 2018 Tablo 16.3 (karakteristik tan δ ≤ 0.6, sıkıştırılmış zemin üzerinde yerinde dökme beton; "
+                     "öndökümlü 0.4 ve kaya üstü beton 0.5 otomatik seçilmez, daha küçük δ_b girilebilir)")
+
+
+def _base_friction_angle(design_code: str, fd, tan_phi_factor: float = 1.0) -> tuple[float, bool]:
+    """Design base-friction angle [deg] from the design-reduced ``fd``.
+
+    TBDY 2018 Table 16.3 limits the *characteristic* interface coefficient: tan(delta_d) =
+    min(tan(delta_k), 0.6) / gamma_Rphi, so the cap is applied after undoing the material factor
+    (other codes: no cap). 0.6 is the cast-in-place concrete on compacted soil value; precast (0.4)
+    and concrete on rock (0.5) are not selected automatically; enter delta_base to use less (min applies).
+    """
+    db = fd.delta_base if fd.delta_base is not None else fd.phi
+    if design_code == "tbdy2018":
+        tan_k = math.tan(math.radians(db)) * tan_phi_factor
+        if tan_k > TBDY_TAN_DELTA_BASE_MAX:
+            return math.degrees(math.atan(TBDY_TAN_DELTA_BASE_MAX / tan_phi_factor)), True
+    return db, False
+
+
 def _design_angle(phi: float, factor: float) -> float:
     return math.degrees(math.atan(math.tan(math.radians(phi)) / factor))
 
@@ -254,9 +277,9 @@ def verify_wall(
         if fd_d.drainage == "undrained":
             r_base, detail = fd_d.su * b_eff, "s_u,d B'"
         else:
-            db = fd_d.delta_base if fd_d.delta_base is not None else fd_d.phi
+            db, capped = _base_friction_angle(code.id, fd_d, case.tan_phi)
             r_base = v * math.tan(math.radians(db)) + fd_d.adhesion * b_eff
-            detail = f"V_d tan({db:.1f})"
+            detail = f"V_d tan({db:.1f})" + (f"; tan δ_b ≤ {TBDY_TAN_DELTA_BASE_MAX} ({SRC_TBDY_BASE_CAP})" if capped else "")
         rd = r_base / case.r_sliding
         phi_front = 0.0 if fd_d.drainage == "undrained" else fd_d.phi
         pp = passive_force(fd_d, wf.embedment, settings, bf_d.gamma, reduction=1.0,
@@ -284,10 +307,15 @@ def verify_wall(
         if abs(eb) < B / 2:
             phi = 0.0 if fd_d.drainage == "undrained" else fd_d.phi
             c = fd_d.su if fd_d.drainage == "undrained" else fd_d.c
-            bearing = bearing_capacity(method=settings.bearing_method, B=B, D=wf.embedment, phi=phi, c=c,
-                                       gamma=fd_d.gamma, q=fd_d.overburden, V=vb, H=max(hb, 0.0), e_B=eb)
-            checks["bearing"] = _odf("bearing", bearing.Q_ult / case.r_bearing, vb,
-                                     f"q_ult = {bearing.q_ult:.0f} kPa on B' = {bearing.B_eff:.2f} m")
+            bearing, failure = try_bearing_capacity(
+                bearing_capacity,
+                method=settings.bearing_method, B=B, D=wf.embedment, phi=phi, c=c,
+                gamma=fd_d.gamma, q=fd_d.overburden, V=vb, H=max(hb, 0.0), e_B=eb)
+            if bearing is None:
+                checks["bearing"] = CheckResult("bearing", 0.0, 1.0, False, f"Bearing capacity exhausted: {failure}")
+            else:
+                checks["bearing"] = _odf("bearing", bearing.Q_ult / case.r_bearing, vb,
+                                         f"q_ult = {bearing.q_ult:.0f} kPa on B' = {bearing.B_eff:.2f} m")
         else:
             checks["bearing"] = CheckResult("bearing", 0.0, 1.0, False, "Resultant outside the base")
 
@@ -516,9 +544,10 @@ def verify_wall_layered(geometry, soil, loads, settings, *, seismic: bool,
         if fd.drainage == "undrained":
             resistance, detail = fd.su * be, "s_u,d B'"
         else:
-            db = fd.delta_base if fd.delta_base is not None else fd.phi
+            db, capped = _base_friction_angle(settings.design_code, fd, case.tan_phi)
             resistance = v * math.tan(math.radians(db)) + fd.adhesion * be
-            detail = f"V_d tan({db:.3f}) + c_a B'"
+            detail = f"V_d tan({db:.3f}) + c_a B'" + (
+                f"; tan δ_b ≤ {TBDY_TAN_DELTA_BASE_MAX} ({SRC_TBDY_BASE_CAP})" if capped else "")
         rd = resistance / case.r_sliding
         toe_term = 0.0
         if passive is not None:
@@ -542,14 +571,18 @@ def verify_wall_layered(geometry, soil, loads, settings, *, seismic: bool,
         vb = _bearing_vertical_load(unf, fd)
         bearing = None
         if abs(eb) < B / 2:
-            bearing = bearing_capacity(
+            bearing, failure = try_bearing_capacity(
+                bearing_capacity,
                 method=settings.bearing_method, B=B, D=wf.embedment,
                 phi=0.0 if fd.drainage == "undrained" else fd.phi,
                 c=fd.su if fd.drainage == "undrained" else fd.c,
                 gamma=fd.gamma, q=fd.overburden, V=vb, H=max(hb, 0.0), e_B=eb,
             )
-            checks["bearing"] = _odf("bearing", bearing.Q_ult / case.r_bearing, vb,
-                                     f"q_ult = {bearing.q_ult:.3f} kPa, B' = {bearing.B_eff:.3f} m")
+            if bearing is None:
+                checks["bearing"] = CheckResult("bearing", 0.0, 1.0, False, f"Bearing capacity exhausted: {failure}")
+            else:
+                checks["bearing"] = _odf("bearing", bearing.Q_ult / case.r_bearing, vb,
+                                         f"q_ult = {bearing.q_ult:.3f} kPa, B' = {bearing.B_eff:.3f} m")
         else:
             checks["bearing"] = CheckResult("bearing", 0.0, 1.0, False, "Resultant outside the base")
         qmax = (vb_contact / B * (1 + 6 * abs(eb) / B) if abs(eb) <= B / 6 else

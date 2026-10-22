@@ -43,6 +43,11 @@ interface Props {
   onCreated: (profile: SoilProfile) => void;
 }
 
+/** Display-only rounding; the raw values are what gets submitted. */
+function fmt(value: number | null | undefined, digits: number, empty: string): string {
+  return typeof value === "number" && Number.isFinite(value) ? value.toFixed(digits) : empty;
+}
+
 function finite(value: number | string): value is number {
   return typeof value === "number" && Number.isFinite(value);
 }
@@ -92,6 +97,15 @@ function LayeringBody({ kind, onClose, onCreated }: { kind: LayeringKind; onClos
     () => (kind === "cpt" ? (data?.cpts ?? []) : (data?.boreholes ?? [])).map((s) => s.id),
     [data, kind],
   );
+
+  const sourceDepth = useMemo(() => {
+    const depths =
+      kind === "cpt"
+        ? data?.cpts.find((c) => c.id === sourceId)?.depth
+        : data?.boreholes.find((b) => b.id === sourceId)?.spt?.map((r) => r.depth);
+    if (!depths) return null;
+    return depths.length > 0 ? Math.max(...depths) : null;
+  }, [data, kind, sourceId]);
 
   const invalidate = () => {
     if (proposal) setOutdated(true);
@@ -172,9 +186,12 @@ function LayeringBody({ kind, onClose, onCreated }: { kind: LayeringKind; onClos
         <Text size="xs" c="dimmed">
           {t("soil.layering.intro")}
         </Text>
+        <Text size="xs" c="dimmed" data-testid="layering-stress-note">
+          {t("soil.layering.stress_profile_note")}
+        </Text>
       </div>
 
-      <ErrorAlert error={error} onClose={() => setError(null)} />
+      <ErrorAlert error={error} onClose={() => setError(null)} sourceDepth={sourceDepth} />
 
       {noSources ? (
         <Alert color="blue" variant="light">
@@ -291,8 +308,8 @@ function LayeringBody({ kind, onClose, onCreated }: { kind: LayeringKind; onClos
                     <Table.Td>{layer.bottom}</Table.Td>
                     <Table.Td>{layer.description || t("web.common.none")}</Table.Td>
                     <Table.Td>{layer.uscs ?? t("web.common.none")}</Table.Td>
-                    <Table.Td>{kind === "cpt" ? (layer.sbtn_zone ?? t("web.common.none")) : (layer.n60_mean ?? t("web.common.none"))}</Table.Td>
-                    {kind === "cpt" && <Table.Td>{layer.ic_mean ?? t("web.common.none")}</Table.Td>}
+                    <Table.Td>{kind === "cpt" ? (layer.sbtn_zone ?? t("web.common.none")) : fmt(layer.n60_mean, 1, t("web.common.none"))}</Table.Td>
+                    {kind === "cpt" && <Table.Td>{fmt(layer.ic_mean, 2, t("web.common.none"))}</Table.Td>}
                     <Table.Td>{t(`soil.layering.behaviour.${layer.behaviour}`)}</Table.Td>
                     <Table.Td>
                       <Group gap={4} wrap="nowrap">
@@ -317,7 +334,7 @@ function LayeringBody({ kind, onClose, onCreated }: { kind: LayeringKind; onClos
                             onClick={() => setGammas((prev) => ({ ...prev, [i]: suggestionOf(i) as number }))}
                             data-testid={`layering-gamma-use-${i}`}
                           >
-                            {t("soil.layering.gamma_use", { value: suggestionOf(i) })}
+                            {t("soil.layering.gamma_use", { value: fmt(suggestionOf(i), 1, "") })}
                           </Button>
                         )}
                       </Group>
