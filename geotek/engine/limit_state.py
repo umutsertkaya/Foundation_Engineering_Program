@@ -171,16 +171,24 @@ def limit_state_cases(code_id: str | DesignCode, *, seismic: bool = False,
 
 TBDY_TAN_DELTA_BASE_MAX = 0.6
 """TBDY 2018 Table 16.3: cast-in-place concrete on compacted ground, tan(delta_b) <= 0.6."""
-SRC_TBDY_BASE_CAP = "TBDY 2018 Tablo 16.3 (tan δ ≤ 0.6, yerinde dökme beton)"
+SRC_TBDY_BASE_CAP = ("TBDY 2018 Tablo 16.3 (karakteristik tan δ ≤ 0.6, sıkıştırılmış zemin üzerinde yerinde dökme beton; "
+                     "öndökümlü 0.4 ve kaya üstü beton 0.5 otomatik seçilmez, daha küçük δ_b girilebilir)")
 
 
-def _base_friction_angle(design_code: str, fd) -> tuple[float, bool]:
-    """Design base-friction angle [deg]; TBDY 2018 caps tan(delta_b) at 0.6 (other codes: no cap)."""
+def _base_friction_angle(design_code: str, fd, tan_phi_factor: float = 1.0) -> tuple[float, bool]:
+    """Design base-friction angle [deg] from the design-reduced ``fd``.
+
+    TBDY 2018 Table 16.3 limits the *characteristic* interface coefficient: tan(delta_d) =
+    min(tan(delta_k), 0.6) / gamma_Rphi, so the cap is applied after undoing the material factor
+    (other codes: no cap). 0.6 is the cast-in-place concrete on compacted soil value; precast (0.4)
+    and concrete on rock (0.5) are not selected automatically; enter delta_base to use less (min applies).
+    """
     db = fd.delta_base if fd.delta_base is not None else fd.phi
-    if design_code == "tbdy2018" and math.tan(math.radians(db)) > TBDY_TAN_DELTA_BASE_MAX:
-        return math.degrees(math.atan(TBDY_TAN_DELTA_BASE_MAX)), True
+    if design_code == "tbdy2018":
+        tan_k = math.tan(math.radians(db)) * tan_phi_factor
+        if tan_k > TBDY_TAN_DELTA_BASE_MAX:
+            return math.degrees(math.atan(TBDY_TAN_DELTA_BASE_MAX / tan_phi_factor)), True
     return db, False
-
 
 
 def _design_angle(phi: float, factor: float) -> float:
@@ -268,7 +276,7 @@ def verify_wall(
         if fd_d.drainage == "undrained":
             r_base, detail = fd_d.su * b_eff, "s_u,d B'"
         else:
-            db, capped = _base_friction_angle(code.id, fd_d)
+            db, capped = _base_friction_angle(code.id, fd_d, case.tan_phi)
             r_base = v * math.tan(math.radians(db)) + fd_d.adhesion * b_eff
             detail = f"V_d tan({db:.1f})" + (f"; tan δ_b ≤ {TBDY_TAN_DELTA_BASE_MAX} ({SRC_TBDY_BASE_CAP})" if capped else "")
         rd = r_base / case.r_sliding
@@ -530,7 +538,7 @@ def verify_wall_layered(geometry, soil, loads, settings, *, seismic: bool,
         if fd.drainage == "undrained":
             resistance, detail = fd.su * be, "s_u,d B'"
         else:
-            db, capped = _base_friction_angle(settings.design_code, fd)
+            db, capped = _base_friction_angle(settings.design_code, fd, case.tan_phi)
             resistance = v * math.tan(math.radians(db)) + fd.adhesion * be
             detail = f"V_d tan({db:.3f}) + c_a B'" + (
                 f"; tan δ_b ≤ {TBDY_TAN_DELTA_BASE_MAX} ({SRC_TBDY_BASE_CAP})" if capped else "")

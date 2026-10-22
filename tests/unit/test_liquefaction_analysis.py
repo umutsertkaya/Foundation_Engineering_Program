@@ -168,3 +168,14 @@ def test_liquefaction_dto_exposes_lpi_category_and_incomplete_flag():
     # F = 0.5, integral of (10 - 0.5 z) over 0..1.5 = 15 - 0.25*2.25 = 14.4375 -> LPI = 7.21875
     assert s.LPI == pytest.approx(7.21875)
     assert s.LPI_category == "high" and s.LPI_incomplete is True
+
+
+@pytest.mark.parametrize("method", ["youd2001", "bi2014"])
+def test_all_points_non_converged_are_invalid_not_clay_or_dense(method, two_layer_profile):
+    import dataclasses
+    p = process_cpt(_cpt(), two_layer_profile)
+    p = dataclasses.replace(p, converged=np.zeros(p.depth.size, dtype=bool))
+    r = analyze_cpt(p, two_layer_profile, method=method, amax_g=0.35, mw=7.0, gwt_seismic=0.0)
+    assert set(r.status.tolist()) == {"invalid"}
+    s = r.summary()
+    assert s["LPI"] is None and s["LPI_category"] is None

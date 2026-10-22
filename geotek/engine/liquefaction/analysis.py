@@ -216,7 +216,8 @@ def analyze_cpt(
     fs = np.where(np.isfinite(r["ic"]) & ~not_converged, fs, np.nan)
     status, fs = assign_status(
         depth=depth, gwt_depth=gwt, sigma_v_eff=se, fs=fs, target_fs=target_fs,
-        max_depth=max_depth, clay_like=r["clay_like"], dense=r["dense"], exclude=exclude,
+        max_depth=max_depth, clay_like=np.asarray(r["clay_like"], dtype=bool) & ~not_converged,
+        dense=np.asarray(r["dense"], dtype=bool) & ~not_converged, exclude=exclude,
     )
     warnings += _depth_warning(depth)
     warnings += _msf_warning(method, mw, msf_variant)
