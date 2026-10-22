@@ -111,6 +111,8 @@
   "soil.params.unapplied": "Uygulanmamış değişiklik var: onaylamadan önce seçimi uygulayın.",
   "soil.params.pick_needed": "Değerin nasıl seçileceğini belirleyin.",
   "soil.params.no_data_banner": "Bu tabaka için kullanılabilir SPT, CPT veya laboratuvar verisi yok. Bu yüzden Öneri, Yöntem ve İstatistik seçenekleri kapalı. Profilin kaynak sondajlarına veri ekleyin (Saha verisi) ya da değerleri Elle girin.",
+  "soil.params.no_sources_banner": "Bu profile hiçbir sondaj veya CPT bağlı değil; bu yüzden hiçbir parametre üretilemez. Zemin profilleri sayfasında profilin 'Kaynak deneyler' alanından SPT/CPT kayıtlarını seçin ya da değerleri Elle girin.",
+  "soil.params.no_sources_link": "Zemin profillerine git",
   "soil.params.manual_only_hint": "Bu değer için veri yok; yalnızca Elle giriş kullanılabilir.",
   "soil.error.unexpected": "Beklenmeyen hata",
   "soil.params.layer_range": "{top}–{bottom} m",

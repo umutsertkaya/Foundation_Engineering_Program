@@ -7,6 +7,7 @@ import {
   Group,
   Menu,
   Modal,
+  MultiSelect,
   Paper,
   ScrollArea,
   Stack,
@@ -32,7 +33,7 @@ import {
   get_project,
   set_active_profile,
 } from "../../../shared/api/client";
-import { create_profile, get_profile, list_profiles, update_profile } from "../api";
+import { create_profile, get_profile, list_investigations, list_profiles, update_profile } from "../api";
 import type { ProfileOrigin, ProfileSummary, SoilLayer, SoilProfile } from "../../../shared/api/types";
 import { EmptyState } from "../../../shared/components/EmptyState";
 import { useUndoable } from "../../../shared/hooks/useUndoable";
@@ -42,6 +43,7 @@ import { LayerEditor } from "../../../shared/soil/LayerEditor";
 import { LayerLegend } from "../../../shared/soil/LayerLegend";
 import { blankLayer, layerErrorKey, validateGwt, validateLayers } from "../../../shared/soil/layerOps";
 import { SoilColumn } from "../../../shared/soil/SoilColumn";
+import type { InvestigationsDTO } from "../types";
 import { LayeringModal, type LayeringKind } from "../components/LayeringModal";
 
 const NEW_ID = "__new__";
@@ -74,14 +76,16 @@ export function ProfilesPage() {
   const [selectedLayerId, setSelectedLayerId] = useState<string | null>(null);
   const [pendingAction, setPendingAction] = useState<(() => void) | null>(null);
   const [layeringKind, setLayeringKind] = useState<LayeringKind | null>(null);
+  const [investigations, setInvestigations] = useState<InvestigationsDTO | null>(null);
 
   const draft = useUndoable<SoilProfile | null>(null);
   const profile = draft.value;
   const isNew = profile?.id === NEW_ID;
 
   const loadList = useCallback(async () => {
-    const [list, proj] = await Promise.all([list_profiles(), get_project()]);
+    const [list, proj, inv] = await Promise.all([list_profiles(), get_project(), list_investigations()]);
     setProfiles(list);
+    setInvestigations(inv);
     setActiveId(proj.active_profile_id);
     return { list, activeId: proj.active_profile_id };
   }, []);
@@ -130,6 +134,19 @@ export function ProfilesPage() {
     if (draft.dirty) setPendingAction(() => action);
     else action();
   };
+
+  // A profile's own ids stay selectable even if the record was deleted, so the link is visible and removable.
+  const sourceOptions = useMemo(() => {
+    const ids = new Set([
+      ...(investigations?.boreholes ?? []).map((b) => b.id),
+      ...(investigations?.cpts ?? []).map((c) => c.id),
+      ...(profile?.source_ids ?? []),
+    ]);
+    return [...ids].map((id) => ({
+      value: id,
+      label: `${id} (${(investigations?.cpts ?? []).some((c) => c.id === id) ? "CPT" : "SPT"})`,
+    }));
+  }, [investigations, profile?.source_ids]);
 
   const layerIssues = useMemo(
     () => (profile ? validateLayers(profile.layers, { mustStartAtZero: true }) : []),
@@ -371,6 +388,19 @@ export function ProfilesPage() {
                       onCommit={(name) => patch({ name })}
                       inputStyle={{ fontWeight: 700, fontSize: "var(--mantine-font-size-lg)", paddingInline: 0 }}
                     />
+                    <MultiSelect
+                      size="xs"
+                      label={t("web.soil.sources_pick")}
+                      description={t("web.soil.sources_hint")}
+                      placeholder={(profile.source_ids ?? []).length > 0 ? undefined : t("web.soil.sources_placeholder")}
+                      nothingFoundMessage={t("web.soil.sources_none_available")}
+                      data={sourceOptions}
+                      value={profile.source_ids ?? []}
+                      onChange={(ids) => patch({ source_ids: ids })}
+                      searchable
+                      clearable
+                      data-testid="profile-sources"
+                    />
                     <Group gap={6} wrap="wrap">
                       <OriginBadge origin={profile.origin ?? "manual"} />
                       {!isNew && profile.id === activeId && (
@@ -378,14 +408,6 @@ export function ProfilesPage() {
                           {t("web.soil.active_badge")}
                         </Badge>
                       )}
-                      <Text size="xs" c="dimmed">
-                        {t("web.soil.sources")}:{" "}
-                        <Text span ff="monospace" size="xs">
-                          {(profile.source_ids ?? []).length > 0
-                            ? (profile.source_ids ?? []).join(", ")
-                            : t("web.common.none")}
-                        </Text>
-                      </Text>
                       {draft.dirty && (
                         <Badge size="xs" color="orange" variant="light">
                           {t("web.soil.unsaved")}
