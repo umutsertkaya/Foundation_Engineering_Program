@@ -104,7 +104,7 @@ def trial_wedge(
         # Exactly beta = phi - psi has a finite limit (e.g. K = cos^2 phi), so it is accepted.
         raise GeoTekError(
             "No finite critical wedge: the backfill slope is too steep for the friction angle and the "
-            "seismic coefficient (beta >= phi - psi); the active force is unbounded")
+            "seismic coefficient (beta > phi - psi); the active force is unbounded")
     a, c = rhos[max(i - 1, 0)], rhos[min(i + 1, n_grid - 1)]
 
     def fn(r):

@@ -90,4 +90,28 @@ bölüme eklenir.
 
 ## 5. Uygulama sonucu
 
-_(Uygulama ve inceleme sonrası doldurulacak.)_
+Dört dal birleştirildi (motor, yapılar/veri/LPI, arayüz/rapor/eğitim, zemin ekranı). Önemli sayısal sonuçlar:
+
+| Bulgu | Önce | Sonra | Doğrulama |
+|---|---|---|---|
+| ENG-C-001 ASD palplanş zarfı (H 5 m, ön YASS 5 m, SDS 0,1) | D 8,04 m, M 437 kNm/m | **D 18,91 m, M 2399,8 kNm/m** (statik yönetir) | Bağımsız Blum hesabı (quad/brentq) aynı |
+| ENG-C-002 TBDY taban sürtünmesi | R/E 1,387 (geçer) | **0,992 (kalır)**; tanδ_d = min(tanδ_k; 0,6)/γRφ | El hesabı 360·0,6/1,1/198; φ 40°, γRφ 1,25 → 0,48 |
+| ENG-B-002 sismik Bishop | FS 1,2228 | **1,2113** | Bağımsız 4000 dilimli katmanlı hesap 1,21130 |
+| ENG-B-004 daire tarama | — | Yüzey kırık noktaları taranır, en uzun parça alınır | B460 dondurulmuş değer 1,77138 → 1,76247 (farklı arama optimumu; eski kod da aynı daire için 1,76247) |
+| ENG-B-003 pasif izdüşüm θ = −10° | 2556,3 kN/m | **2402,2 kN/m** | Kama dengesi; θ = 0 değişmez |
+| ENG-C-004 ankraj v_max | ≈120 kN/m | **195,7 kN/m** (diyagramın tamamı) | — |
+| ENG-A-003 LPI, GWT 1,5 m | 9,0 | **6,656** | 0,5·(15 − 1,6875) el hesabı |
+
+Varsayımlar (görünür): yüzey yükünün deprem ataleti yüzey kotunda (fiziksel konum; eski orta yükseklik koluna göre
+güvenli taraf **değildir**, ama doğru konumdur). TBDY 0,6 değeri yerinde dökme beton/sıkıştırılmış zemin içindir;
+önüretimli 0,4 ve beton-kaya 0,5 otomatik seçilmez, kullanıcı δ_b girerek küçük değeri kullanabilir. Eksik u2'de
+q_t = q_c, Bq hesaplanmaz, uyarı verilir. ASD palplanşta deprem durumu da statik pasif GS ile çözülür (önceki kural).
+
+**Bağımsız inceleme (Opus, salt okuma):** 11 maddenin 7'si doğrudan geçti. Dört kusur bulundu ve düzeltildi: daire
+reddinin geçerli daireleri de atması (güvensiz), TBDY sınırının azaltılmış değere uygulanması (γRφ > 1'de güvensiz),
+yakınsamayan CPT noktalarının kil/sıkı sayılması, negatif q_ult'un bütün duvar analizini durdurması. Ayrıca kama
+β = φ − ψ sınırında sonlu limit kabul edilir. Düzeltmeler ikinci kez kontrol edildi.
+
+**Açık kalanlar:** UX-002 sunucu tarafı (GET profil hâlâ eski onay bayrağını döndürüyor; profil ekranı canlı onayı
+gösteriyor, yapı zemin seçicileri ham bayrağı görüyor; hesaplar hash denetimiyle korunuyor), motor içindeki bazı Türkçe
+uyarı metinleri (FUN-004 kalanı), FUN-010, UX-001/004/011/012/013, ENG-A-013 genel sertleştirme.
