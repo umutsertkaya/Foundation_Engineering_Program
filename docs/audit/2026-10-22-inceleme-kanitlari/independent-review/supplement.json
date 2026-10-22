@@ -1,0 +1,185 @@
+{
+  "B_passive_projection": {
+    "-10": {
+      "actual": 2556.3448745084993,
+      "independent_horizontal": 2402.1784147595176,
+      "relative_error": 0.06417777247591139,
+      "critical_rho": 16.767005866598222
+    },
+    "10": {
+      "actual": 1222.9624893962932,
+      "independent_horizontal": 1301.449497787344,
+      "relative_error": -0.060307379214091794,
+      "critical_rho": 25.827491919185345
+    }
+  },
+  "B_wall_global_gap": {
+    "circle": [
+      -0.5234670960300066,
+      6.026788142306907,
+      6.732633208094283
+    ],
+    "reported_interval": [
+      -3.524495994644784,
+      5.8968087073358095
+    ],
+    "analytical_crossings": [
+      -3.5244960199963806,
+      2.4775618279363667,
+      2.5000000025778273,
+      5.896850632940892
+    ],
+    "arc_above_base_at_2_49": 0.006209600681659211,
+    "arc_above_base_at_2_5": 0.011225273052044571,
+    "fs": 1.8251950590751207,
+    "required": 1.1,
+    "grid": 4
+  },
+  "A_registry_physical_domain": {
+    "CPT_su_Nkt": {
+      "actual": -3.5714285714285716,
+      "independent_arithmetic": -3.5714285714285716,
+      "validity_ok": true,
+      "warnings": []
+    },
+    "CPTu_su_Ndu": {
+      "actual": -7.142857142857143,
+      "independent_arithmetic": -7.142857142857143,
+      "validity_ok": true,
+      "warnings": []
+    },
+    "R2009_E_CPT": {
+      "actual": -451.91968955576857,
+      "independent_arithmetic": -451.91968955576857,
+      "validity_ok": true,
+      "warnings": []
+    },
+    "Mayne_sigp_CPT": {
+      "actual": -16.5,
+      "independent_arithmetic": -16.5,
+      "validity_ok": true,
+      "warnings": []
+    },
+    "Skempton1986_Dr_SPT": {
+      "actual": 141.4213562373095,
+      "independent_arithmetic": 141.4213562373095,
+      "validity_ok": true,
+      "warnings": []
+    }
+  },
+  "A_partial_u2": {
+    "u2": [
+      100.0,
+      0.0
+    ],
+    "available_model_fields": [
+      "id",
+      "x",
+      "y",
+      "elevation",
+      "gwt_depth",
+      "area_ratio",
+      "predrill_depth",
+      "depth",
+      "qc",
+      "fs",
+      "u2"
+    ],
+    "qt_independent": [
+      5020.0,
+      4000
+    ]
+  },
+  "A_lab_grain_sum": {
+    "accepted": {
+      "depth": 1.0,
+      "w": null,
+      "LL": 30.0,
+      "PL": null,
+      "PI": 10.0,
+      "gravel": 90.0,
+      "FC": 20.0,
+      "D10": null,
+      "D30": null,
+      "D60": null,
+      "gamma": null,
+      "c_eff": null,
+      "phi_eff": null,
+      "su": null
+    },
+    "classification": "GC",
+    "derived_sand": -10
+  },
+  "A_oversize_borehole": {
+    "accepted_diameter": 1000.0,
+    "cb": 1.15,
+    "note": "No source consultation by independent reviewer; range beyond code docstring is unsupported."
+  },
+  "A_CPT_unconverged": {
+    "Ic": [
+      2.212836313558402,
+      2.570232893992252,
+      2.64958817175207
+    ],
+    "n": [
+      0.882114474969664,
+      0.8310229103895372,
+      0.8588725824297753
+    ],
+    "converged": [
+      false,
+      false,
+      true
+    ],
+    "status": [
+      "liquefiable",
+      "liquefiable",
+      "clay_like"
+    ],
+    "FS": [
+      0.29768132130790836,
+      0.3178071050717227,
+      null
+    ],
+    "warnings": [
+      "insitu.warning.cpt_no_u2",
+      "insitu.warning.cpt_not_converged: count=2",
+      "liquefaction.warning.fc_from_ic: c_fc=0.0"
+    ],
+    "independent_first_Ic": 2.4571108063329454,
+    "independent_first_n": 0.7862095009532917
+  },
+  "A_invalid_LPI": {
+    "lpi": 0.0,
+    "category": "very_low"
+  },
+  "A_education": {
+    "quiz_first_interval": 2.7750000000000004,
+    "quiz_text_old": 1.8,
+    "CLML_point": {
+      "LL": 29,
+      "PI": 4.5,
+      "a_line": 6.57,
+      "classification": "M"
+    },
+    "D10_guide": {
+      "diameter": 0.075,
+      "curve_percent": 8,
+      "labeled_percent": 10
+    },
+    "FC35_Ncs30_threshold": 20.833333333333336,
+    "plotted_boundary": 30
+  },
+  "B_battered_surcharge": {
+    "-10": {
+      "actual": 99.5231800918962,
+      "independent_horizontal": 100.85704936939548,
+      "relative_error": -0.013225345038737957
+    },
+    "10": {
+      "actual": 165.29789679574185,
+      "independent_horizontal": 163.28237342529073,
+      "relative_error": 0.012343790258372955
+    }
+  }
+}

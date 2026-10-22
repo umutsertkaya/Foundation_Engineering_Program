@@ -1,0 +1,61 @@
+Ana menü
+
+UX Araştırma 2026
+
+Kaydet
+TR
+EN
+Projeyi kapat
+Proje bilgileri
+Düzenle
+Proje adı	UX Araştırma 2026
+Proje no	UX-001
+Mühendis	Denetim Mühendisi
+Tasarım yönetmeliği	AASHTO LRFD
+3 PROFİL
+0 YAPI
+Saha deprem parametreleri
+PGA (g)
+Mw
+S_DS
+S_D1
+Zemin sınıfı
+
+TBDY 2018 zemin sınıfı
+
+Modüller
+Zemin etüdü ve parametreler
+
+SPT, CPT ve laboratuvar verileri, zemin sınıflandırması, tabakalama, mühendislik parametreleri ve zemin profilleri.
+
+Modülü aç
+Sıvılaşma
+
+SPT ve CPT verilerinden sıvılaşma tetiklenme analizi (Boulanger ve Idriss 2014, Youd vd. 2001), güvenlik sayısı ve LPI.
+
+Modülü aç
+İstinat duvarı
+
+Konsol ve ağırlık istinat duvarlarında statik ve depremli kayma, devrilme, taşıma gücü ve global stabilite tahkikleri.
+
+Modülü aç
+Palplanş / iksa
+
+Konsol ve tek ankrajlı palplanş perdelerinde gömme derinliği, ankraj kuvveti ve iç kuvvetler.
+
+Modülü aç
+Ankrajlı iksa
+
+Zemin ankrajı tasarımı: serbest boy, kök boyu, tendon seçimi ve tasarım, deneme ve kilitleme yükleri.
+
+Modülü aç
+Rapor
+
+Modül sonuçlarından Word (docx) raporu üretir; eski (stale) sonuçlar rapora alınmaz.
+
+Modülü aç
+Eğitim
+
+Programdaki hesapların formüllerini, varsayımlarını ve kaynaklarını anlatan eğitim bölümü.
+
+Modülü aç

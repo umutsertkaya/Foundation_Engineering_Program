@@ -1,0 +1,85 @@
+{
+  "url": "http://127.0.0.1:8771/start",
+  "viewport": {
+    "w": 1440,
+    "h": 900
+  },
+  "scroll": {
+    "w": 1440,
+    "h": 900
+  },
+  "inputs": [
+    {
+      "tag": "INPUT",
+      "type": "radio",
+      "id": "mantine-hrzmmaijv-tr",
+      "aria": null,
+      "ph": "",
+      "value": "tr",
+      "labels": [
+        "TR"
+      ],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "radio",
+      "id": "mantine-hrzmmaijv-en",
+      "aria": null,
+      "ph": "",
+      "value": "en",
+      "labels": [
+        "EN"
+      ],
+      "testid": null
+    }
+  ],
+  "buttons": [
+    {
+      "text": "",
+      "aria": "Tema değiştir",
+      "disabled": false
+    },
+    {
+      "text": "",
+      "aria": "Ayarlar",
+      "disabled": false
+    },
+    {
+      "text": "Yeni proje",
+      "aria": null,
+      "disabled": false
+    },
+    {
+      "text": "İçe aktar (.gtk)",
+      "aria": null,
+      "disabled": false
+    },
+    {
+      "text": "UX Araştırma 2026 (kopya)",
+      "aria": null,
+      "disabled": false
+    },
+    {
+      "text": "UX Araştırma 2026",
+      "aria": null,
+      "disabled": false
+    },
+    {
+      "text": "",
+      "aria": "UX Araştırma 2026 (kopya) için işlemler",
+      "disabled": false
+    },
+    {
+      "text": "",
+      "aria": "UX Araştırma 2026 için işlemler",
+      "disabled": false
+    },
+    {
+      "text": "",
+      "aria": null,
+      "disabled": false
+    }
+  ],
+  "links": []
+}

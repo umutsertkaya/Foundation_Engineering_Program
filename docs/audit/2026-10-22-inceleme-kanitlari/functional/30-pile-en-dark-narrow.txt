@@ -1,0 +1,208 @@
+Sheet pile / shoring
+
+Project: QA İŞLEV GeoTek
+
+Save
+TR
+EN
+Back to main menu
+Sheet piles
+Back to list
+QA Ankrajlı palplanş
+RESULT READY
+Inputs
+Name
+
+Support
+
+Cantilever
+Single anchor
+Retained height H (m)
+Anchor depth (m)
+Backfill slope β (°)
+
+Empty = 0 (level). Must be below 45°; the analysis stops if β > φ′. The front side stays level.
+
+Surcharge (kPa)
+
+Empty is taken as 0.
+
+Surcharge basis
+
+Only matters on sloping ground.
+
+S_DS (optional)
+
+If empty, no seismic case is run.
+
+Allowable stress (MPa)
+
+If empty, the section modulus is not computed.
+
+Advanced inputs
+Soil
+
+Soil copied from profile “QA Kum 0-40m (kaynak test)” (source preserved).
+
+Top (m)	Bottom (m)	γ (kN/m³)	φ' (°)	c' (kPa)
+0	40	18	30	0
+Save
+Run design
+Saved result
+Design result
+SİNGLE ANCHOR
+
+Design basis
+
+Design code: ASD — Global güvenlik sayısı
+
+Approach: Service default
+
+Analysis level: Basic
+
+Embedment increase: 0.0%
+
+Embedment
+
+H retained height
+
+4.00 m
+
+D₀ theoretical embedment
+
+2.44 m
+
+D design embedment
+
+2.44 m
+
+Total length
+
+6.44 m
+
+Moment and forces
+
+M_max (absolute value)
+
+60.10 kNm/m
+
+Depth of M_max
+
+3.44 m
+
+Section modulus
+
+—
+
+No allowable stress entered, so no section modulus.
+
+Anchor
+
+Anchor depth
+
+1.00 m
+
+Anchor force
+
+54.36 kN/m
+
+Load per anchor
+
+54.36 kN per anchor
+
+Spacing: 1.00 m; inclination: 0.00°
+
+Net pressure
+-60
+-40
+-20
+0
+20
+40
+0
+2
+4
+6
+excavation level
+anchor
+kPa
+z (m)
+Shear force
+-60
+-40
+-20
+0
+20
+40
+0
+2
+4
+6
+excavation level
+anchor
+kN/m
+z (m)
+Bending moment
+-80
+-60
+-40
+-20
+0
+20
+0
+2
+4
+6
+excavation level
+anchor
+kNm/m
+z (m)
+
+Depth z is measured from the pile top; the plot ends at the theoretical toe (H + D₀).
+
+The series ends at the theoretical toe (H + D₀), not at the total length.
+
+Showing 33 of 3225 points
+
+z (m)	Net pressure (kPa)	Shear (kN/m)	Moment (kNm/m)
+0.00	5.16	0.00	0.00
+0.25	6.71	1.48	0.18
+0.50	8.26	3.36	0.77
+0.75	9.81	5.61	1.89
+1.00	11.35	8.24	3.60
+1.00	11.36	-46.10	3.56
+1.08	11.83	-45.22	0.09
+1.08	11.84	-45.19	-0.00
+1.25	12.91	-43.06	-7.59
+1.50	14.46	-39.64	-17.94
+1.75	16.01	-35.84	-27.38
+2.00	17.55	-31.64	-35.83
+2.25	19.10	-27.06	-43.17
+2.50	20.65	-22.09	-49.32
+2.75	22.20	-16.73	-54.18
+3.00	23.75	-10.99	-57.66
+3.25	25.30	-4.86	-59.65
+3.44	26.45	-0.04	-60.10
+3.44	26.46	0.01	-60.10
+3.50	26.85	1.66	-60.05
+3.75	28.40	8.57	-58.78
+4.00	29.95	15.86	-55.74
+4.25	22.50	22.42	-50.91
+4.50	15.04	27.11	-44.69
+4.75	7.59	29.94	-37.52
+5.00	0.14	30.90	-29.87
+5.00	0.02	30.90	-29.75
+5.25	-7.31	30.01	-22.22
+5.50	-14.76	27.25	-15.02
+5.75	-22.21	22.63	-8.75
+6.00	-29.66	16.14	-3.86
+6.25	-37.11	7.80	-0.83
+6.44	-42.90	0.04	-0.05
+
+Assumptions
+
+Layered Rankine active/passive pressure; separate front/retained profiles and groundwater; hydrostatic water; no seepage (Rankine (1857); P1 §1)
+Passive pressure divided by FS=1.5; where smaller, the passive pressure from tan φ′ and c′ divided by FS is used (high φ′; USACE EM 1110-2-2504 5-2d) (USACE EM 1110-2-2504 Tablo 5-1: perde duvarı, serbest drenajlı zemin, olağan durum 1.50 (S durumu); ince daneli zeminde Q durumu 2.00 (programda ayrı değer yok))
+Cantilever Blum embedment increased by 20%; free-earth support for anchored walls (Mevcut sheet_pile.py; USS Steel Sheet Piling Design Manual / USACE EM 1110-2-2504)
+Sloping backfill β = 10°: Rankine slope coefficient (resultant parallel to the surface), front side horizontal; c′ ignored on sloping ground; seismic M-O (δ = β) stops when β > φ′ − ψ (Rankine (1857); Mononobe-Okabe; Das, Principles of Foundation Engineering Ch. 7)
+Anchor load = wall force × spacing / cos(inclination); spacing 1 m, inclination 0° (SheetPileStructure; geotek.engine.sheet_pile.anchored_sheet_pile)

@@ -1,0 +1,261 @@
+tr {'bytes': 49749, 'sha256': 'b46470c95f3fced5782f7a05da2eee5be84ff8940a85a7d722ddbbca540260eb', 'valid_zip': True, 'xml_bytes': 129855, 'paragraphs': 163, 'tables': 25, 'table_shapes': [[12, 2], [4, 2], [2, 9], [4, 2], [3, 9], [10, 2], [8, 2], [4, 2], [3, 8], [11, 6], [11, 4], [16, 2], [16, 2], [10, 2], [6, 2], [11, 6], [11, 4], [29, 5], [8, 2], [3, 5], [18, 2], [2, 6], [4, 8], [30, 2], [5, 4]], 'headings': ['Proje bilgileri', 'Zemin profili: QA Kum 0-40m (kaynak test)', 'Zemin profili: QA Sulu iki tabaka', 'İstinat yapısı: QA Konsol 5m', 'Geometri', 'Kayma dişi sonuçları', 'Kontroller', 'Varsayımlar', 'Kullanılan katsayılar', 'Uyarılar', 'Palplanş: QA Konsol palplanş', 'Varsayımlar', 'Palplanş: QA Ankrajlı palplanş', 'Varsayımlar', 'İstinat yapısı: QA Ağırlık sulu 5m', 'Geometri', 'Kontroller', 'Varsayımlar', 'Kullanılan katsayılar', 'Uyarılar', 'Zemin sınıflandırması', 'Robertson SBTn (CPT)', 'Sıvılaşma analizi', 'Uyarılar', 'Ankrajlı duvar analizi', 'Kullanılan zemin tabakaları', 'Ankraj seviyeleri', 'Varsayımlar', 'Uyarılar', 'Kaynaklar', 'Zemin ankrajı tasarımı', 'Varsayımlar', 'Kaynaklar']}
+Sağlamıyor
+Statik | Kayma | 1.430 | >= 1.500 | 1.05 | Sağlamıyor
+Statik | Eksantrisite (e/B) | 0.074 | <= 0.167 | 0.45 | Sağlıyor
+Statik | Taşıma gücü | 1.396 | >= 3.000 | 2.15 | Sağlamıyor
+Deprem | Devrilme | 1.200 | >= 1.500 | 1.25 | Sağlamıyor
+Deprem | Kayma | 0.708 | >= 1.100 | 1.55 | Sağlamıyor
+Deprem | Eksantrisite (e/B) | 0.341 | <= 0.250 | 1.36 | Sağlamıyor
+Deprem | Taşıma gücü | 0.023 | >= 2.000 | 85.17 | Sağlamıyor
+Statik | Toptan göçme | 0.684 | >= 1.500 | 2.19 | Sağlamıyor
+Deprem | Toptan göçme | 0.437 | >= 1.100 | 2.52 | Sağlamıyor
+TABLE 16
+Katsayı | Değer | Kaynak | Durum
+safety.overturning.static | 2.000 | Eksantrisite kriterinden türetilmiş yaklaşık değer; doğrudan kaynak yok | Doğrulanmadı
+safety.sliding.static | 1.500 | FHWA-NHI-06-089 Vol. II (2026-10-20 karşılaştırma, secondary) | İkincil kaynak
+eccentricity.soil.static | 0.167 | FHWA-NHI-06-089 Vol. II, B/6 (secondary) | İkincil kaynak
+safety.bearing_capacity.static | 3.000 | FHWA-NHI-06-089 Vol. II, önerilen 3.0 (secondary) | İkincil kaynak
+safety.overturning.seismic | 1.500 | ASD — yaygın uygulama değeri (FHWA-NHI-06-089 ile karşılaştırılmadı) | Doğrulanmadı
+safety.sliding.seismic | 1.100 | ASD — yaygın uygulama değeri (FHWA-NHI-06-089 ile karşılaştırılmadı) | Doğrulanmadı
+eccentricity.soil.seismic | 0.250 | ASD — yaygın uygulama; sismik değerler doğrulanmadı | Doğrulanmadı
+safety.bearing_capacity.seismic | 2.000 | ASD — yaygın uygulama değeri (FHWA-NHI-06-089 ile karşılaştırılmadı) | Doğrulanmadı
+safety.global_stability.static | 1.500 | FHWA-NHI-06-089 Vol. II (secondary) | İkincil kaynak
+safety.global_stability.seismic | 1.100 | ASD — yaygın uygulama değeri (FHWA-NHI-06-089 ile karşılaştırılmadı) | Doğrulanmadı
+TABLE 17
+Üst [m] | Alt [m] | Bölge | Ad | Ortalama Ic
+0.10 | 1.40 | 6 | Kum - temiz kum ile siltli kum | 1.91
+1.40 | 1.45 | 5 | Kum karışımı - siltli kum ile kumlu silt | 2.06
+1.45 | 3.65 | 6 | Kum - temiz kum ile siltli kum | 1.95
+3.65 | 3.70 | 5 | Kum karışımı - siltli kum ile kumlu silt | 2.08
+3.70 | 3.90 | 6 | Kum - temiz kum ile siltli kum | 2.02
+3.90 | 4.00 | 5 | Kum karışımı - siltli kum ile kumlu silt | 2.06
+4.00 | 4.10 | 6 | Kum - temiz kum ile siltli kum | 2.04
+4.10 | 4.15 | 5 | Kum karışımı - siltli kum ile kumlu silt | 2.06
+4.15 | 4.35 | 6 | Kum - temiz kum ile siltli kum | 2.01
+4.35 | 4.40 | 5 | Kum karışımı - siltli kum ile kumlu silt | 2.07
+4.40 | 4.45 | 6 | Kum - temiz kum ile siltli kum | 2.05
+4.45 | 4.50 | 5 | Kum karışımı - siltli kum ile kumlu silt | 2.09
+4.50 | 4.55 | 6 | Kum - temiz kum ile siltli kum | 2.01
+4.55 | 4.60 | 5 | Kum karışımı - siltli kum ile kumlu silt | 2.06
+4.60 | 4.65 | 6 | Kum - temiz kum ile siltli kum | 2.02
+4.65 | 4.75 | 5 | Kum karışımı - siltli kum ile kumlu silt | 2.08
+4.75 | 4.80 | 6 | Kum - temiz kum ile siltli kum | 2.04
+4.80 | 4.85 | 5 | Kum karışımı - siltli kum ile kumlu silt | 2.12
+4.85 | 4.90 | 6 | Kum - temiz kum ile siltli kum | 2.01
+4.90 | 5.00 | 5 | Kum karışımı - siltli kum ile kumlu silt | 2.10
+5.00 | 5.05 | 6 | Kum - temiz kum ile siltli kum | 2.05
+5.05 | 5.35 | 5 | Kum karışımı - siltli kum ile kumlu silt | 2.10
+5.35 | 5.40 | 6 | Kum - temiz kum ile siltli kum | 2.04
+5.40 | 5.75 | 5 | Kum karışımı - siltli kum ile kumlu silt | 2.09
+5.75 | 5.80 | 6 | Kum - temiz kum ile siltli kum | 2.05
+5.80 | 6.00 | 5 | Kum karışımı - siltli kum ile kumlu silt | 2.12
+6.00 | 9.00 | 3 | Kil - siltli kil ile kil | 3.36
+9.00 | 15.05 | 6 | Kum - temiz kum ile siltli kum | 1.48
+TABLE 18
+Kalem | Değer
+Zemin profili | QA Kum 0-40m (kaynak test)
+Yöntem | Youd vd. (2001)
+amax [g] | 0.400
+Mw | 7.5
+Hedef GS | 1.10
+Deprem YASS [m] | 3.00
+Varsayılan FC [%] | 5.0
+TABLE 19
+Sondaj | En küçük GS | Derinlik [m] | Sıvılaşabilir nokta | Sınırda nokta
+QA-SPT | 0.16 | 7.50 | 7 | 0
+QA-CPT | 0.34 | 5.85 | 60 | 0
+TABLE 20
+Kalem | Değer
+Duvar türü | Palplanş
+Kazı yüksekliği H (m) | 10.00
+Zemin davranışı | Drenajlı (φ′)
+Tutulan zemin eğimi (°) | 0.0
+Sürşarj (kPa) | 0.00
+Sürşarj tabanı | Yatay izdüşüm başına
+Pasif direnç emniyet katsayısı | 1.50
+Gömülme artışı | —
+İzin verilen gerilme (MPa) | —
+Yöntem | Görünür basınç, mafsal yöntemi
+Kuramsal gömülme D0 (m) | 6.80
+Tasarım gömülmesi D (m) | 8.16
+Duvar boyu (m) | 18.16
+Taban tepkisi R_B (kN/m) | 27.1
+En büyük moment (kNm/m) | 274.0
+En büyük kesme (kN/m) | 87.1
+Gerekli mukavemet momenti (cm³) (cm³/m) | —
+TABLE 21
+Üst [m] | Alt [m] | γ [kN/m³] | φ' [°] | c' [kPa] | su [kPa]
+0.00 | 40.00 | 18.00 | 30.0 | 0.0 | —
+TABLE 22
+Derinlik (m) | Eğim (°) | Aralık (m) | Yatay yük (kN/m) | Tasarım yükü T (kN) | Serbest boy (m) | Kök boyu (m) | Tendon
+1.50 | 0.0 | 2.50 | 120.6 | 301.6 | — | — | —
+4.50 | 0.0 | 2.50 | 126.9 | 317.2 | — | — | —
+7.50 | 0.0 | 2.50 | 115.4 | 288.5 | — | — | —
+TABLE 23
+Kalem | Değer
+Kazı yüksekliği H (m) | 10.00
+Ankraj başı derinliği (m) | 6.25
+Ankraj eğimi α (°) | 15.0
+Zemin içsel sürtünme açısı φ′ (°) | 33.0
+Metre başına yatay yük | 172.0
+Ankraj aralığı | 2.50
+Güvenlik sayısı FS (kök) | 2.00
+Kullanılan yük aktarımı (kN/m) | 100.0
+Kilitleme yükü oranı | 1.00
+Deneme yükü katsayısı | 1.33
+Tasarım yükü sınırı (× SMTS) | 0.60
+Kilitleme sınırı (× SMTS) | 0.70
+Deneme yükü sınırı (× SMTS) | 0.80
+Tendon türü | Halat
+Ankraj zemini | Zemin
+Kökün kamadan uzaklığı (m) | —
+Kök değerinin kaynağı | QA: tests/api/test_anchored_wall_api.py BODY
+Tasarım yükü T (kN) | 445.2
+Düşey bileşen T_v (kN) | 115.2
+Kilitleme yükü (kN) | 445.2
+Azami deneme yükü (kN) | 592.1
+Serbest boy (m) | 4.50
+Kök boyu (m) | 8.90
+Toplam boy (m) | 13.40
+Güvenlik sayısı FS (kök) | 2.00
+Kullanılan yük aktarımı (kN/m) | 100.0
+Tendon | 3 × 15 mm strand, ASTM A416 Gr 270 (metric 1860) (FHWA GEC-4 (FHWA-IF-99-015) Table 10, p. 78 (1 strand))
+Tendon kapasitesi SMTS (kN) | 782.1
+Tasarım yükü / SMTS | 0.57
+TABLE 24
+Kontrol | Talep | Sınır | Sonuç
+Tasarım yükü ≤ tendon sınırı | 445.17 | 469.26 | Sağlıyor
+Kilitleme yükü ≤ tendon sınırı | 445.17 | 547.47 | Sağlıyor
+Deneme yükü ≤ tendon sınırı | 592.07 | 625.68 | Sağlıyor
+Kök merkezi üzerinde en az örtü kalınlığı | 4.50 | 8.57 | Sağlıyor
+en {'bytes': 49870, 'sha256': 'b1c2d5c395f577efe5f69cec0dd2aa03c41b0237d3dd9ac4a345612a7768ae56', 'valid_zip': True, 'xml_bytes': 129283, 'paragraphs': 163, 'tables': 25, 'table_shapes': [[12, 2], [4, 2], [2, 9], [4, 2], [3, 9], [10, 2], [8, 2], [4, 2], [3, 8], [11, 6], [11, 4], [16, 2], [16, 2], [10, 2], [6, 2], [11, 6], [11, 4], [29, 5], [8, 2], [3, 5], [18, 2], [2, 6], [4, 8], [30, 2], [5, 4]], 'headings': ['Project information', 'Soil profile: QA Kum 0-40m (kaynak test)', 'Soil profile: QA Sulu iki tabaka', 'Retaining structure: QA Konsol 5m', 'Geometry', 'Shear key results', 'Checks', 'Assumptions', 'Factors used', 'Warnings', 'Sheet pile: QA Konsol palplanş', 'Assumptions', 'Sheet pile: QA Ankrajlı palplanş', 'Assumptions', 'Retaining structure: QA Ağırlık sulu 5m', 'Geometry', 'Checks', 'Assumptions', 'Factors used', 'Warnings', 'Soil classification', 'Robertson SBTn (CPT)', 'Liquefaction analysis', 'Warnings', 'Anchored wall analysis', 'Soil layers used', 'Anchor levels', 'Assumptions', 'Warnings', 'Sources', 'Ground anchor design', 'Assumptions', 'Sources']}
+= 2.000 | 1.08 | Fail
+Static | Sliding | 1.430 | >= 1.500 | 1.05 | Fail
+Static | Eccentricity (e/B) | 0.074 | <= 0.167 | 0.45 | Pass
+Static | Bearing capacity | 1.396 | >= 3.000 | 2.15 | Fail
+Seismic | Overturning | 1.200 | >= 1.500 | 1.25 | Fail
+Seismic | Sliding | 0.708 | >= 1.100 | 1.55 | Fail
+Seismic | Eccentricity (e/B) | 0.341 | <= 0.250 | 1.36 | Fail
+Seismic | Bearing capacity | 0.023 | >= 2.000 | 85.17 | Fail
+Static | Global stability | 0.684 | >= 1.500 | 2.19 | Fail
+Seismic | Global stability | 0.437 | >= 1.100 | 2.52 | Fail
+TABLE 16
+Factor | Value | Source | Status
+safety.overturning.static | 2.000 | Eksantrisite kriterinden türetilmiş yaklaşık değer; doğrudan kaynak yok | Unverified
+safety.sliding.static | 1.500 | FHWA-NHI-06-089 Vol. II (2026-10-20 karşılaştırma, secondary) | Secondary source
+eccentricity.soil.static | 0.167 | FHWA-NHI-06-089 Vol. II, B/6 (secondary) | Secondary source
+safety.bearing_capacity.static | 3.000 | FHWA-NHI-06-089 Vol. II, önerilen 3.0 (secondary) | Secondary source
+safety.overturning.seismic | 1.500 | ASD — yaygın uygulama değeri (FHWA-NHI-06-089 ile karşılaştırılmadı) | Unverified
+safety.sliding.seismic | 1.100 | ASD — yaygın uygulama değeri (FHWA-NHI-06-089 ile karşılaştırılmadı) | Unverified
+eccentricity.soil.seismic | 0.250 | ASD — yaygın uygulama; sismik değerler doğrulanmadı | Unverified
+safety.bearing_capacity.seismic | 2.000 | ASD — yaygın uygulama değeri (FHWA-NHI-06-089 ile karşılaştırılmadı) | Unverified
+safety.global_stability.static | 1.500 | FHWA-NHI-06-089 Vol. II (secondary) | Secondary source
+safety.global_stability.seismic | 1.100 | ASD — yaygın uygulama değeri (FHWA-NHI-06-089 ile karşılaştırılmadı) | Unverified
+TABLE 17
+Top [m] | Bottom [m] | Zone | Name | Mean Ic
+0.10 | 1.40 | 6 | Sands - clean sand to silty sand | 1.91
+1.40 | 1.45 | 5 | Sand mixtures - silty sand to sandy silt | 2.06
+1.45 | 3.65 | 6 | Sands - clean sand to silty sand | 1.95
+3.65 | 3.70 | 5 | Sand mixtures - silty sand to sandy silt | 2.08
+3.70 | 3.90 | 6 | Sands - clean sand to silty sand | 2.02
+3.90 | 4.00 | 5 | Sand mixtures - silty sand to sandy silt | 2.06
+4.00 | 4.10 | 6 | Sands - clean sand to silty sand | 2.04
+4.10 | 4.15 | 5 | Sand mixtures - silty sand to sandy silt | 2.06
+4.15 | 4.35 | 6 | Sands - clean sand to silty sand | 2.01
+4.35 | 4.40 | 5 | Sand mixtures - silty sand to sandy silt | 2.07
+4.40 | 4.45 | 6 | Sands - clean sand to silty sand | 2.05
+4.45 | 4.50 | 5 | Sand mixtures - silty sand to sandy silt | 2.09
+4.50 | 4.55 | 6 | Sands - clean sand to silty sand | 2.01
+4.55 | 4.60 | 5 | Sand mixtures - silty sand to sandy silt | 2.06
+4.60 | 4.65 | 6 | Sands - clean sand to silty sand | 2.02
+4.65 | 4.75 | 5 | Sand mixtures - silty sand to sandy silt | 2.08
+4.75 | 4.80 | 6 | Sands - clean sand to silty sand | 2.04
+4.80 | 4.85 | 5 | Sand mixtures - silty sand to sandy silt | 2.12
+4.85 | 4.90 | 6 | Sands - clean sand to silty sand | 2.01
+4.90 | 5.00 | 5 | Sand mixtures - silty sand to sandy silt | 2.10
+5.00 | 5.05 | 6 | Sands - clean sand to silty sand | 2.05
+5.05 | 5.35 | 5 | Sand mixtures - silty sand to sandy silt | 2.10
+5.35 | 5.40 | 6 | Sands - clean sand to silty sand | 2.04
+5.40 | 5.75 | 5 | Sand mixtures - silty sand to sandy silt | 2.09
+5.75 | 5.80 | 6 | Sands - clean sand to silty sand | 2.05
+5.80 | 6.00 | 5 | Sand mixtures - silty sand to sandy silt | 2.12
+6.00 | 9.00 | 3 | Clays - silty clay to clay | 3.36
+9.00 | 15.05 | 6 | Sands - clean sand to silty sand | 1.48
+TABLE 18
+Item | Value
+Soil profile | QA Kum 0-40m (kaynak test)
+Method | Youd et al. (2001)
+amax [g] | 0.400
+Mw | 7.5
+Target FS | 1.10
+Seismic GWT [m] | 3.00
+Default FC [%] | 5.0
+TABLE 19
+Sounding | Minimum FS | Depth [m] | Liquefiable points | Marginal points
+QA-SPT | 0.16 | 7.50 | 7 | 0
+QA-CPT | 0.34 | 5.85 | 60 | 0
+TABLE 20
+Item | Value
+Wall type | Sheet pile
+Excavation height H (m) | 10.00
+Soil behaviour | Drained (φ′)
+Retained ground slope (°) | 0.0
+Surcharge (kPa) | 0.00
+Surcharge basis | Per horizontal projection
+Passive factor of safety | 1.50
+Embedment increase | —
+Allowable stress (MPa) | —
+Method | Apparent pressure, hinge method
+Theoretical embedment D0 (m) | 6.80
+Design embedment D (m) | 8.16
+Wall length (m) | 18.16
+Base reaction R_B (kN/m) | 27.1
+Max moment (kNm/m) | 274.0
+Max shear (kN/m) | 87.1
+Required section modulus (cm³) (cm³/m) | —
+TABLE 21
+Top [m] | Bottom [m] | γ [kN/m³] | φ' [°] | c' [kPa] | su [kPa]
+0.00 | 40.00 | 18.00 | 30.0 | 0.0 | —
+TABLE 22
+Depth (m) | Inclination (°) | Spacing (m) | Horizontal load (kN/m) | Design load T (kN) | Unbonded length (m) | Bond length (m) | Tendon
+1.50 | 0.0 | 2.50 | 120.6 | 301.6 | — | — | —
+4.50 | 0.0 | 2.50 | 126.9 | 317.2 | — | — | —
+7.50 | 0.0 | 2.50 | 115.4 | 288.5 | — | — | —
+TABLE 23
+Item | Value
+Excavation height H (m) | 10.00
+Anchor head depth (m) | 6.25
+Anchor inclination α (°) | 15.0
+Soil friction angle φ′ (°) | 33.0
+Horizontal load per metre | 172.0
+Anchor spacing | 2.50
+Factor of safety FS (bond) | 2.00
+Load transfer used (kN/m) | 100.0
+Lock-off load ratio | 1.00
+Test load factor | 1.33
+Design load limit (× SMTS) | 0.60
+Lock-off limit (× SMTS) | 0.70
+Test load limit (× SMTS) | 0.80
+Tendon type | Strand
+Anchor ground | Soil
+Bond start behind wedge (m) | —
+Source of the bond value | QA: tests/api/test_anchored_wall_api.py BODY
+Design load T (kN) | 445.2
+Vertical component T_v (kN) | 115.2
+Lock-off load (kN) | 445.2
+Maximum test load (kN) | 592.1
+Unbonded length (m) | 4.50
+Bond length (m) | 8.90
+Total length (m) | 13.40
+Factor of safety FS (bond) | 2.00
+Load transfer used (kN/m) | 100.0
+Tendon | 3 × 15 mm strand, ASTM A416 Gr 270 (metric 1860) (FHWA GEC-4 (FHWA-IF-99-015) Table 10, p. 78 (1 strand))
+Tendon capacity SMTS (kN) | 782.1
+Design load / SMTS | 0.57
+TABLE 24
+Check | Demand | Limit | Result
+Design load ≤ tendon limit | 445.17 | 469.26 | Pass
+Lock-off load ≤ tendon limit | 445.17 | 547.47 | Pass
+Test load ≤ tendon limit | 592.07 | 625.68 | Pass
+Minimum cover over the bond zone centre | 4.50 | 8.57 | Pass
+COMPARE {"table_shapes_equal": true, "numeric_cells_equal": 805, "numeric_differences": []}

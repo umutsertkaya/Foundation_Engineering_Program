@@ -1,0 +1,332 @@
+{
+  "url": "http://127.0.0.1:8771/m/soil/profiles",
+  "viewport": {
+    "w": 390,
+    "h": 844
+  },
+  "scroll": {
+    "w": 550,
+    "h": 2091
+  },
+  "inputs": [
+    {
+      "tag": "INPUT",
+      "type": "radio",
+      "id": "mantine-59n0h4b3j-tr",
+      "aria": null,
+      "ph": "",
+      "value": "tr",
+      "labels": [
+        "TR"
+      ],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "radio",
+      "id": "mantine-59n0h4b3j-en",
+      "aria": null,
+      "ph": "",
+      "value": "en",
+      "labels": [
+        "EN"
+      ],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": "mantine-7iztrcvg0",
+      "aria": "Profil adı",
+      "ph": "Profil adı",
+      "value": "UX Elle Kum Profili",
+      "labels": [],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": "mantine-2u1izavqr",
+      "aria": "YASS — deney anı",
+      "ph": "",
+      "value": "2.5",
+      "labels": [],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": "mantine-n48gv5b2d",
+      "aria": "YASS — tasarım",
+      "ph": "= 2.5",
+      "value": "2.5",
+      "labels": [],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": "mantine-o52g6dfqx",
+      "aria": "YASS — deprem anı",
+      "ph": "= 2.5",
+      "value": "2.5",
+      "labels": [],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": "mantine-mncwq6h0e",
+      "aria": "Kimlik 1",
+      "ph": "",
+      "value": "2274856e87b94806a1f8b45f695d1873",
+      "labels": [],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": "mantine-ho8vyrtcc",
+      "aria": "Üst (m) 2274856e87b94806a1f8b45f695d1873",
+      "ph": "",
+      "value": "0",
+      "labels": [],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": "mantine-e0wsriul3",
+      "aria": "Alt (m) 2274856e87b94806a1f8b45f695d1873",
+      "ph": "",
+      "value": "10",
+      "labels": [],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": "mantine-o3y16c2h7",
+      "aria": "Tanım 2274856e87b94806a1f8b45f695d1873",
+      "ph": "",
+      "value": "",
+      "labels": [],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": "mantine-044h8k9eh",
+      "aria": "USCS 2274856e87b94806a1f8b45f695d1873",
+      "ph": "—",
+      "value": "",
+      "labels": [],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "hidden",
+      "id": "",
+      "aria": null,
+      "ph": "",
+      "value": "",
+      "labels": [],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": "mantine-fzvilkel8",
+      "aria": "Davranış 2274856e87b94806a1f8b45f695d1873",
+      "ph": "",
+      "value": "Drenajlı",
+      "labels": [],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "hidden",
+      "id": "",
+      "aria": null,
+      "ph": "",
+      "value": "drained",
+      "labels": [],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": "mantine-qvxfhih5q",
+      "aria": "γ (kN/m³) 2274856e87b94806a1f8b45f695d1873",
+      "ph": "",
+      "value": "18",
+      "labels": [],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": "mantine-6n4v9h0qt",
+      "aria": "γ_doygun (kN/m³) 2274856e87b94806a1f8b45f695d1873",
+      "ph": "18",
+      "value": "18",
+      "labels": [],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": "mantine-mjnvruj9f",
+      "aria": "φ' (°) 2274856e87b94806a1f8b45f695d1873",
+      "ph": "",
+      "value": "32",
+      "labels": [],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": "mantine-4roql37r3",
+      "aria": "c' (kPa) 2274856e87b94806a1f8b45f695d1873",
+      "ph": "",
+      "value": "0",
+      "labels": [],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": "mantine-a1x8ba0eb",
+      "aria": "s_u (kPa) 2274856e87b94806a1f8b45f695d1873",
+      "ph": "",
+      "value": "",
+      "labels": [],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": "mantine-0n2803981",
+      "aria": "E (kPa) 2274856e87b94806a1f8b45f695d1873",
+      "ph": "",
+      "value": "",
+      "labels": [],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": "mantine-dzm5ft0v2",
+      "aria": "δ_b (°) 2274856e87b94806a1f8b45f695d1873",
+      "ph": "",
+      "value": "",
+      "labels": [],
+      "testid": null
+    }
+  ],
+  "buttons": [
+    {
+      "text": "",
+      "aria": "Gezinme menüsünü aç veya kapat",
+      "disabled": false
+    },
+    {
+      "text": "Kaydet",
+      "aria": null,
+      "disabled": false
+    },
+    {
+      "text": "",
+      "aria": "Tema değiştir",
+      "disabled": false
+    },
+    {
+      "text": "Ana menüye dön",
+      "aria": null,
+      "disabled": false
+    },
+    {
+      "text": "Yeni profil",
+      "aria": null,
+      "disabled": false
+    },
+    {
+      "text": "UX Elle Kum ProfiliElle girilen1 katman",
+      "aria": null,
+      "disabled": false
+    },
+    {
+      "text": "Aktif yap",
+      "aria": null,
+      "disabled": false
+    },
+    {
+      "text": "Çoğalt",
+      "aria": null,
+      "disabled": false
+    },
+    {
+      "text": "Vazgeç",
+      "aria": null,
+      "disabled": true
+    },
+    {
+      "text": "Kaydet",
+      "aria": null,
+      "disabled": true
+    },
+    {
+      "text": "",
+      "aria": "Geri al",
+      "disabled": true
+    },
+    {
+      "text": "",
+      "aria": "Yinele",
+      "disabled": true
+    },
+    {
+      "text": "En alta katman ekle",
+      "aria": null,
+      "disabled": false
+    },
+    {
+      "text": "",
+      "aria": "Altına katman ekle 2274856e87b94806a1f8b45f695d1873",
+      "disabled": false
+    },
+    {
+      "text": "",
+      "aria": "Böl 2274856e87b94806a1f8b45f695d1873",
+      "disabled": false
+    },
+    {
+      "text": "",
+      "aria": "Alttaki katmanla birleştir 2274856e87b94806a1f8b45f695d1873",
+      "disabled": true
+    },
+    {
+      "text": "",
+      "aria": "Katmanı sil 2274856e87b94806a1f8b45f695d1873",
+      "disabled": true
+    }
+  ],
+  "links": [
+    {
+      "text": "Arazi verileri",
+      "href": "/m/soil"
+    },
+    {
+      "text": "Zemin profilleri",
+      "href": "/m/soil/profiles"
+    },
+    {
+      "text": "Mühendislik parametreleri",
+      "href": "/m/soil/parameters"
+    },
+    {
+      "text": "Sınıflandırma",
+      "href": "/m/soil/classification"
+    }
+  ]
+}

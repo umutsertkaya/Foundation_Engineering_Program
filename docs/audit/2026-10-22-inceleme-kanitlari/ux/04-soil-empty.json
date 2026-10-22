@@ -1,0 +1,92 @@
+{
+  "url": "http://127.0.0.1:8771/m/soil",
+  "viewport": {
+    "w": 1440,
+    "h": 900
+  },
+  "scroll": {
+    "w": 1440,
+    "h": 900
+  },
+  "inputs": [
+    {
+      "tag": "INPUT",
+      "type": "radio",
+      "id": "mantine-59n0h4b3j-tr",
+      "aria": null,
+      "ph": "",
+      "value": "tr",
+      "labels": [
+        "TR"
+      ],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "radio",
+      "id": "mantine-59n0h4b3j-en",
+      "aria": null,
+      "ph": "",
+      "value": "en",
+      "labels": [
+        "EN"
+      ],
+      "testid": null
+    }
+  ],
+  "buttons": [
+    {
+      "text": "",
+      "aria": "Gezinme menüsünü aç veya kapat",
+      "disabled": false
+    },
+    {
+      "text": "Kaydet",
+      "aria": null,
+      "disabled": false
+    },
+    {
+      "text": "",
+      "aria": "Tema değiştir",
+      "disabled": false
+    },
+    {
+      "text": "Ana menüye dön",
+      "aria": null,
+      "disabled": false
+    },
+    {
+      "text": "CPT verisi içe aktar (CSV)",
+      "aria": null,
+      "disabled": false
+    },
+    {
+      "text": "SPT verisi içe aktar (CSV)",
+      "aria": null,
+      "disabled": false
+    },
+    {
+      "text": "Yeni sondaj (elle)",
+      "aria": null,
+      "disabled": false
+    }
+  ],
+  "links": [
+    {
+      "text": "Arazi verileri",
+      "href": "/m/soil"
+    },
+    {
+      "text": "Zemin profilleri",
+      "href": "/m/soil/profiles"
+    },
+    {
+      "text": "Mühendislik parametreleri",
+      "href": "/m/soil/parameters"
+    },
+    {
+      "text": "Sınıflandırma",
+      "href": "/m/soil/classification"
+    }
+  ]
+}

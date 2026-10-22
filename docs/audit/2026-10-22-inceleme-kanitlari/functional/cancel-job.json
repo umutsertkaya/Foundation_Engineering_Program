@@ -1,0 +1,14 @@
+{
+  "job": {
+    "job_id": "f4c648da-8e1c-4859-bbea-393baa918f0c",
+    "kind": "wall_size",
+    "status": "cancelled",
+    "progress": 0.0,
+    "message_key": null,
+    "result": null,
+    "error": null
+  },
+  "prior_result_hash": "2f5b3f04a63660562cdaf74eea3ea26fe2c7b9cc695b62afd6c61fce71a26c93",
+  "after_result_hash": "2f5b3f04a63660562cdaf74eea3ea26fe2c7b9cc695b62afd6c61fce71a26c93",
+  "prior_result_preserved": true
+}

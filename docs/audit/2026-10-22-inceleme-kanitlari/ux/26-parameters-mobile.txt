@@ -1,0 +1,417 @@
+Zemin etüdü ve parametreler
+
+Proje: UX Araştırma 2026
+
+KAYDEDİLMEMİŞ DEĞİŞİKLİKLER
+Kaydet
+TR
+EN
+Ana menüye dön
+Arazi verileri
+Zemin profilleri
+Mühendislik parametreleri
+Sınıflandırma
+Mühendislik parametreleri
+
+Her tabaka için: korelasyon ve laboratuvar adayları, seçiminiz ve onay. Yalnızca onaylanan değerler tasarım değeri olur.
+
+Profil
+UX Elle Kum Profili
+UX CPT Profili
+UX SPT Profili
+Hepsi için öner
+
+TABAKALAR
+
+0–5.975 m
+
+1/7 ONAYLI
+
+5.975–9.075 m
+
+0/7 ONAYLI
+
+9.075–15 m
+
+0/7 ONAYLI
+
+b5bba18300e942b280af754aef89431d
+
+Seçilen değerleri onayla
+
+Etkin içsel sürtünme açısı φ'
+
+[°]
+
+ONAYLI
+
+22.10.2026 tarihinde onaylandı.
+
+Seçilen:
+
+40.022 °
+
+mean(KM1990_phi_CPT,RC1983_phi_CPT)
+
+Adaylar
+
+Yöntem	Değer	n / min / ort. / maks.	Güvenilirlik	Kaynak
+
+
+mean(KM1990_phi_CPT,RC1983_phi_CPT)
+
+Kulhawy & Mayne (1990); Mayne (2007) NCHRP Synthesis 368; Robertson & Campanella (1983), Can. Geotech. J. 20(4)
+
+ÖNERİ
+	
+
+40.022 °
+
+	2 / 38.373 / 40.022 / 41.67	B	CPT	
+
+
+
+KM1990_phi_CPT
+
+Kulhawy & Mayne (1990); Mayne (2007) NCHRP Synthesis 368
+
+	
+
+38.373 °
+
+	118 / 36.606 / 38.373 / 44.933	B	CPT	
+
+
+
+RC1983_phi_CPT
+
+Robertson & Campanella (1983), Can. Geotech. J. 20(4)
+
+	
+
+41.67 °
+
+	118 / 38.146 / 41.67 / 53.72	B	CPT	
+
+Seçim yolu
+
+Öneri
+Yöntem
+İstatistik
+Elle
+Seçimi uygula
+Onayla
+
+Seçimi değiştirmek onayını geri alır.
+
+Etkin kohezyon c'
+
+[kPa]
+
+ONAYSIZ
+
+Seçilen:
+
+Henüz seçim yok.
+
+Adaylar
+
+Yöntem	Değer	n / min / ort. / maks.	Güvenilirlik	Kaynak
+
+
+FHWA_GEC5_c_eff
+
+FHWA GEC-5: granüler zeminde c' = 0
+
+ÖNERİ
+	
+
+0 kPa
+
+	—	—	Birleşik	
+
+Seçim yolu
+
+Öneri
+Yöntem
+İstatistik
+Elle
+
+Değerin nasıl seçileceğini belirleyin.
+
+Seçimi uygula
+Onayla
+
+Drenajsız kayma dayanımı su
+
+[kPa]
+
+ONAYSIZ
+
+Seçilen:
+
+Henüz seçim yok.
+
+Adaylar
+
+Yöntem	Değer	n / min / ort. / maks.	Güvenilirlik	Kaynak
+
+
+CPT_su_Nkt
+
+Lunne, Robertson & Powell (1997); Robertson & Cabal (2015) CPT Guide
+
+GEÇERLİLİK ARALIĞI DIŞINDA
+	
+
+333.11 kPa
+
+	118 / 246.1 / 333.11 / 453.24	A	CPT	
+I_c = 1.69 < 2.6: correlation is for clay-like (undrained) soils
+I_c = 1.75 < 2.6: correlation is for clay-like (undrained) soils
+I_c = 1.79 < 2.6: correlation is for clay-like (undrained) soils
+I_c = 1.80 < 2.6: correlation is for clay-like (undrained) soils
+I_c = 1.81 < 2.6: correlation is for clay-like (undrained) soils
+I_c = 1.84 < 2.6: correlation is for clay-like (undrained) soils
+I_c = 1.87 < 2.6: correlation is for clay-like (undrained) soils
+I_c = 1.85 < 2.6: correlation is for clay-like (undrained) soils
+I_c = 1.86 < 2.6: correlation is for clay-like (undrained) soils
+I_c = 1.88 < 2.6: correlation is for clay-like (undrained) soils
+I_c = 1.90 < 2.6: correlation is for clay-like (undrained) soils
+I_c = 1.89 < 2.6: correlation is for clay-like (undrained) soils
+I_c = 1.93 < 2.6: correlation is for clay-like (undrained) soils
+I_c = 1.94 < 2.6: correlation is for clay-like (undrained) soils
+I_c = 1.91 < 2.6: correlation is for clay-like (undrained) soils
+I_c = 1.96 < 2.6: correlation is for clay-like (undrained) soils
+I_c = 1.97 < 2.6: correlation is for clay-like (undrained) soils
+I_c = 2.01 < 2.6: correlation is for clay-like (undrained) soils
+I_c = 1.98 < 2.6: correlation is for clay-like (undrained) soils
+I_c = 2.00 < 2.6: correlation is for clay-like (undrained) soils
+I_c = 1.99 < 2.6: correlation is for clay-like (undrained) soils
+I_c = 2.02 < 2.6: correlation is for clay-like (undrained) soils
+I_c = 2.06 < 2.6: correlation is for clay-like (undrained) soils
+I_c = 2.04 < 2.6: correlation is for clay-like (undrained) soils
+I_c = 1.92 < 2.6: correlation is for clay-like (undrained) soils
+I_c = 1.95 < 2.6: correlation is for clay-like (undrained) soils
+I_c = 2.03 < 2.6: correlation is for clay-like (undrained) soils
+I_c = 2.05 < 2.6: correlation is for clay-like (undrained) soils
+
+
+
+CPTu_su_Ndu
+
+Lunne, Robertson & Powell (1997)
+
+GEÇERLİLİK ARALIĞI DIŞINDA
+	
+
+0.94419 kPa
+
+	118 / 0 / 0.94419 / 1.4015	B	CPT	
+I_c = 1.69 < 2.6: correlation is for clay-like (undrained) soils
+I_c = 1.75 < 2.6: correlation is for clay-like (undrained) soils
+I_c = 1.79 < 2.6: correlation is for clay-like (undrained) soils
+I_c = 1.80 < 2.6: correlation is for clay-like (undrained) soils
+I_c = 1.81 < 2.6: correlation is for clay-like (undrained) soils
+I_c = 1.84 < 2.6: correlation is for clay-like (undrained) soils
+I_c = 1.87 < 2.6: correlation is for clay-like (undrained) soils
+I_c = 1.85 < 2.6: correlation is for clay-like (undrained) soils
+I_c = 1.86 < 2.6: correlation is for clay-like (undrained) soils
+I_c = 1.88 < 2.6: correlation is for clay-like (undrained) soils
+I_c = 1.90 < 2.6: correlation is for clay-like (undrained) soils
+I_c = 1.89 < 2.6: correlation is for clay-like (undrained) soils
+I_c = 1.93 < 2.6: correlation is for clay-like (undrained) soils
+I_c = 1.94 < 2.6: correlation is for clay-like (undrained) soils
+I_c = 1.91 < 2.6: correlation is for clay-like (undrained) soils
+I_c = 1.96 < 2.6: correlation is for clay-like (undrained) soils
+I_c = 1.97 < 2.6: correlation is for clay-like (undrained) soils
+I_c = 2.01 < 2.6: correlation is for clay-like (undrained) soils
+I_c = 1.98 < 2.6: correlation is for clay-like (undrained) soils
+I_c = 2.00 < 2.6: correlation is for clay-like (undrained) soils
+I_c = 1.99 < 2.6: correlation is for clay-like (undrained) soils
+I_c = 2.02 < 2.6: correlation is for clay-like (undrained) soils
+I_c = 2.06 < 2.6: correlation is for clay-like (undrained) soils
+I_c = 2.04 < 2.6: correlation is for clay-like (undrained) soils
+I_c = 1.92 < 2.6: correlation is for clay-like (undrained) soils
+I_c = 1.95 < 2.6: correlation is for clay-like (undrained) soils
+I_c = 2.03 < 2.6: correlation is for clay-like (undrained) soils
+I_c = 2.05 < 2.6: correlation is for clay-like (undrained) soils
+
+Program bu değer için öneri üretmedi.
+
+Seçim yolu
+
+Öneri
+Yöntem
+İstatistik
+Elle
+
+Değerin nasıl seçileceğini belirleyin.
+
+Seçimi uygula
+Onayla
+
+Elastisite modülü E
+
+[kPa]
+
+ONAYSIZ
+
+Seçilen:
+
+Henüz seçim yok.
+
+Adaylar
+
+Yöntem	Değer	n / min / ort. / maks.	Güvenilirlik	Kaynak
+
+
+mean(R2009_E_CPT)
+
+Robertson (2009), Can. Geotech. J. 46(11)
+
+ÖNERİ
+	
+
+40141 kPa
+
+	1 / 40141 / 40141 / 40141	B	CPT	
+
+
+
+R2009_E_CPT
+
+Robertson (2009), Can. Geotech. J. 46(11)
+
+	
+
+40141 kPa
+
+	118 / 24007 / 40141 / 54729	B	CPT	
+
+Seçim yolu
+
+Öneri
+Yöntem
+İstatistik
+Elle
+
+Değerin nasıl seçileceğini belirleyin.
+
+Seçimi uygula
+Onayla
+
+Birim hacim ağırlık γ
+
+[kN/m³]
+
+ONAYSIZ
+
+Seçilen:
+
+Henüz seçim yok.
+
+Adaylar
+
+Yöntem	Değer	n / min / ort. / maks.	Güvenilirlik	Kaynak
+
+
+mean(RC2010_gamma_CPT)
+
+Robertson & Cabal (2010), 2nd Int. Symp. on Cone Penetration Testing
+
+ÖNERİ
+	
+
+17.919 kN/m³
+
+	1 / 17.919 / 17.919 / 17.919	B	CPT	
+
+
+
+RC2010_gamma_CPT
+
+Robertson & Cabal (2010), 2nd Int. Symp. on Cone Penetration Testing
+
+	
+
+17.919 kN/m³
+
+	118 / 17.454 / 17.919 / 18.52	B	CPT	
+
+Seçim yolu
+
+Öneri
+Yöntem
+İstatistik
+Elle
+
+Değerin nasıl seçileceğini belirleyin.
+
+Seçimi uygula
+Onayla
+
+Doygun birim hacim ağırlık γsat
+
+ONAYSIZ
+
+Seçilen:
+
+Henüz seçim yok.
+
+Adaylar
+
+Bu tabaka için uygulanabilir korelasyon veya laboratuvar değeri yok.
+
+Program bu değer için öneri üretmedi.
+
+Seçim yolu
+
+Öneri
+Yöntem
+İstatistik
+Elle
+
+Bu değer için veri yok; yalnızca Elle giriş kullanılabilir.
+
+Seçimi uygula
+Onayla
+
+Taban sürtünme açısı δ
+
+[°]
+
+ONAYSIZ
+
+Seçilen:
+
+Henüz seçim yok.
+
+Adaylar
+
+Yöntem	Değer	n / min / ort. / maks.	Güvenilirlik	Kaynak
+
+
+TBDY2018_delta_base
+
+EN 1997-1 6.5.3(10): δd = φ'cv,d (yerinde dökme beton); TBDY 2018 16.8.4.3, Tablo 16.3: tan δ ≤ 0.6 (yerinde dökme beton – sıkıştırılmış taban zemini)
+
+ÖNERİ
+	
+
+30.964 °
+
+	—	—	Birleşik	
+Kritik hal içsel sürtünme açısı (φ'cv) modellenmemiştir; yerine φ' = 40.02189726085889° kullanılmıştır. φ' pik değer ise bu kabul güvensiz taraftadır.
+
+Seçim yolu
+
+Öneri
+Yöntem
+İstatistik
+Elle
+
+Değerin nasıl seçileceğini belirleyin.
+
+Seçimi uygula
+Onayla

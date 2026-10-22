@@ -1,0 +1,139 @@
+Soil investigation and parameters
+
+Project: UX Araştırma 2026
+
+UNSAVED CHANGES
+Save
+TR
+EN
+Back to main menu
+Site data
+Soil profiles
+Engineering parameters
+Classification
+Soil Models
+
+Layered design profiles, origin details and groundwater levels.
+
+New profile
+
+PROFİLES (4)
+
+UX Elle Kum Profili
+
+MANUAL
+1 LAYERS
+
+UX CPT Profili
+
+CPT ORİGİN
+3 LAYERS
+
+UX SPT Profili
+
+SPT ORİGİN
+2 LAYERS
+
+UX CPT Profili (kopya)
+
+CPT ORİGİN
+3 LAYERS
+CPT ORİGİN
+ACTİVE PROFİLE
+
+Source tests: CPT-UX-MPa
+
+Duplicate
+Discard
+Save
+
+Groundwater levels
+
+GWT (in situ)
+GWT (design)
+GWT (seismic)
+
+Depth below ground surface (m); empty = in-situ value
+
+Sand
+
+Clay (low plasticity)
+
+GWT (in situ)
+
+GWT (design)
+
+GWT (seismic)
+
+Soil column (to scale)
+
+z (m)
+0
+2
+4
+6
+8
+10
+12
+14
+0.00–5.97 m · Sand
+φ' 40°
+5.97–9.07 m · Clay (lo…
+sᵤ —
+9.07–15.00 m · Sand
+φ' —
+
+Layers
+
+Layers must start at the surface (0 m) and be contiguous. γ in kN/m³.
+
+Add layer at bottom
+VALİD
+Id	Top (m)	Bottom (m)	Description	USCS	Behaviour	γ (kN/m³)	γ_sat (kN/m³)	φ' (°)	c' (kPa)	s_u (kPa)	E (kPa)	δ_b (°)	Parameters / Actions
+
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+APPROVED
+
+
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+SUGGESTED
+
+
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+SUGGESTED

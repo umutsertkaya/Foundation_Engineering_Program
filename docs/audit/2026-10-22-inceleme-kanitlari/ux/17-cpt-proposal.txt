@@ -1,0 +1,146 @@
+Zemin etüdü ve parametreler
+
+Proje: UX Araştırma 2026
+
+KAYDEDİLMEMİŞ DEĞİŞİKLİKLER
+Kaydet
+TR
+EN
+Ana menüye dön
+Arazi verileri
+Zemin profilleri
+Mühendislik parametreleri
+Sınıflandırma
+Zemin Modelleri
+
+Katmanlı tasarım profilleri, köken bilgileri ve yeraltı su seviyeleri.
+
+Yeni profil
+
+PROFİLLER (1)
+
+UX Elle Kum Profili
+
+ELLE GİRİLEN
+1 KATMAN
+ELLE GİRİLEN
+AKTİF PROFİL
+
+Kaynak deneyler: —
+
+Çoğalt
+Vazgeç
+Kaydet
+
+Yeraltı suyu seviyeleri
+
+YASS (arazi)
+YASS (tasarım)
+YASS (deprem)
+
+Zemin yüzeyinden derinlik (m); boş = arazi değeri
+
+Kum
+
+YASS (arazi)
+
+YASS (tasarım)
+
+YASS (deprem)
+
+Zemin kolonu (ölçekli)
+
+z (m)
+0
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+0.00–10.00 m · Kum
+φ' 32°
+
+Tabakalar
+
+Tabakalar yüzeyden (0 m) başlamalı ve aralıksız devam etmelidir. γ birimi kN/m³.
+
+En alta katman ekle
+GEÇERLİ
+Kimlik	Üst (m)	Alt (m)	Tanım	USCS	Davranış	γ (kN/m³)	γ_sat (kN/m³)	φ' (°)	c' (kPa)	s_u (kPa)	E (kPa)	δ_b (°)	Parametreler / İşlemler
+
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+ONAYLI
+
+CPT'den otomatik tabakalama
+
+Program tabaka sınırlarını önerir; hiçbir şey otomatik onaylanmaz. Öneriyi inceler, sonra ondan bir profil oluşturursunuz. Tasarım parametreleri siz onaylayana kadar boş kalır.
+
+CPT sondajı
+CPT-UX-MPa
+CPT-UX-kPa
+Yöntem
+CPT: davranış indeksi (Ic) bölgeleri
+
+Ayarlar (boş = sunucu varsayılanı)
+
+Ic yumuşatma penceresi [m]
+Asgari tabaka kalınlığı [m]
+ΔIc altındaki bölgeleri birleştir
+Tabakaları öner
+
+CPT-UX-MPa için öneri
+
+YALNIZCA ÖNERİ. HİÇBİR ŞEY OTOMATİK ONAYLANMAZ.
+
+Sunucunun kullandığı ayarlar: CPT: davranış indeksi (Ic) bölgeleri; Ic yumuşatma penceresi [m] = 0.5; Asgari tabaka kalınlığı [m] = 0.5; ΔIc altındaki bölgeleri birleştir = 0.15
+
+Üst [m]	Alt [m]	Tanım	USCS	SBTn bölgesi	Ort. Ic	Davranış	γ [kN/m³]
+0	5.975	—	—	6	1.9591580084795448	Drenajlı	
+17.919418366190715 kullan
+
+5.975	9.075	—	—	3	3.1307894197485227	Drenajsız	
+16.903647204215073 kullan
+
+9.075	15	—	—	6	1.3788141070044135	Drenajlı	
+20.11239257172385 kullan
+Önerilen tüm değerleri kullan
+
+Her tabaka için önerilen değeri onaylayın veya kendi değerinizi yazın. Sizin yerinize hiçbir değer doldurulmaz.
+
+Birim hacim ağırlıkları sizin girdilerinizdir (onayladığınız bir öneri veya yazdığınız değer); profil yalnızca sayıyı saklar, nereden geldiğini saklamaz. Doygun birim hacim ağırlığı tabakalama ile belirlenmez.
+
+Uyarılar
+
+Drenaj davranışı yalnızca Ic < 2.6 ölçütünden (Robertson 2009) türetilmiştir; yükleme durumu için mühendis tarafından doğrulanmalıdır; 1. bölge drenajsız varsayılmıştır.
+0 m ile 0.1 m arasında veri yok; aralık en yakın örneklerden ekstrapole edildi.
+Asgari kalınlıktan ince bir tabaka komşu tabakayla birleştirildi.
+5.975-9.075 m tabakasında drenajlı ve drenajsız örnekler birlikte bulunuyor; davranış geçiş niteliğindedir.
+0-5.975 m tabakası içindeki ince mercekler çevre tabakaya katılarak düzeltildi.
+5.975-9.075 m tabakası içindeki ince mercekler çevre tabakaya katılarak düzeltildi.
+9.075-15 m tabakası içindeki ince mercekler çevre tabakaya katılarak düzeltildi.
+Profil adı
+Yeraltı suyu derinliği, yerinde [m]
+
+Zorunlu. Sondaj kaydetmişse ondan doldurulur; kontrol edin.
+
+Önce tüm birim hacim ağırlıklarını, yeraltı suyu derinliğini ve bir ad girin.
+
+Kapat
+Öneriden profil oluştur

@@ -1,0 +1,51 @@
+{
+  "source": "Live browser measurement taken after 09-profile-mobile capture",
+  "url": "http://127.0.0.1:8771/m/soil/profiles",
+  "viewport": {
+    "width": 390,
+    "height": 844
+  },
+  "documentScrollWidth": 550,
+  "buttons": [
+    {
+      "text": "Kaydet (project)",
+      "x": 16,
+      "y": 114.296875,
+      "width": 84.6875,
+      "height": 36,
+      "right": 100.6875
+    },
+    {
+      "text": "Ana menüye dön",
+      "x": 16,
+      "y": 160.296875,
+      "width": 150.796875,
+      "height": 36,
+      "right": 166.796875
+    },
+    {
+      "text": "Aktif yap",
+      "x": 291,
+      "y": 368.984375,
+      "width": 100.015625,
+      "height": 30,
+      "right": 391.015625
+    },
+    {
+      "text": "Kaydet (profile)",
+      "x": 291,
+      "y": 476.984375,
+      "width": 89.34375,
+      "height": 30,
+      "right": 380.34375
+    },
+    {
+      "text": "En alta katman ekle",
+      "x": 355,
+      "y": 1915.28125,
+      "width": 169.28125,
+      "height": 26,
+      "right": 524.28125
+    }
+  ]
+}

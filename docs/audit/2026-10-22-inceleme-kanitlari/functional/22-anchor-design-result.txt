@@ -1,0 +1,111 @@
+Ankrajlı iksa
+
+Proje: QA İŞLEV GeoTek
+
+KAYDEDİLMEMİŞ DEĞİŞİKLİKLER
+Kaydet
+TR
+EN
+Ana menüye dön
+Ankrajlı duvar
+Tek ankraj
+Ankraj tasarımı
+GÜNCEL
+
+Tek bir zemin ankrajını tasarlar (GEC-4): serbest boy, kök boyu, tendon, kilitleme ve deneme yükleri. Güvenlik sayısı, yük aktarımı ve kilitleme oranı varsayılmaz; GEC-4 sınır değerleri ve en küçük boylar varsayım olarak gösterilir, tablo değerleri yalnız öneridir.
+
+Kazı yüksekliği H (m)
+Ankraj başı derinliği (m)
+Ankraj eğimi α (°)
+Zemin içsel sürtünme açısı φ′ (°)
+Ankraj yükü girişi
+Yatay ankraj yükü T_h (kN/m)
+Ankraj aralığı s (m)
+Güvenlik sayısı FS (kök)
+Kök girdisi
+Nihai yük aktarımı q_u (kN/m)
+Kilitleme yükü oranı (tasarım yüküne)
+Kök değerinin kaynağı
+
+Sonuçta ve raporda görünür
+
+Zemin
+Kaya
+Tendon türü
+Tendon (kitaplık)
+Halat sayısı
+
+Boşsa: yeterli en küçük sayı
+
+Sınırlar ve boylar (GEC-4 varsayılanları gösterilir)
+
+En küçük kök boyu (m)
+En büyük kök boyu (m)
+En küçük serbest boy (m)
+Kökün kamadan uzaklığı (m)
+Kama başlangıcı taban altı (m)
+En az örtü kalınlığı (m)
+Deneme yükü katsayısı
+Tasarım yükü sınırı (× SMTS)
+Kilitleme sınırı (× SMTS)
+Deneme yükü sınırı (× SMTS)
+GEC-4 referans değerlerini göster
+Ankrajı tasarla
+
+Tasarım yükü T (kN)
+
+445,2 kN
+
+Kilitleme yükü (kN)
+
+445,2 kN
+
+Azami deneme yükü (kN)
+
+592,1 kN
+
+Düşey bileşen T_v (kN)
+
+115,2 kN
+
+Serbest boy (m)
+
+4,50 m
+
+Kök boyu (m)
+
+8,90 m
+
+Toplam boy (m)
+
+13,40 m
+
+Tendon
+
+3 × 15 mm strand, ASTM A416 Gr 270 (metric 1860)
+
+Tendon kapasitesi 782 kN, tasarım kullanım oranı 0,57, belirleyen: tasarım yükü. Kaynak: FHWA GEC-4 (FHWA-IF-99-015) Table 10, p. 78 (1 strand)
+
+Kontrol	Talep	Sınır	Sonuç
+Tasarım yükü ≤ tendon sınırı	445,17	469,26	
+UYGUN
+
+Kilitleme yükü ≤ tendon sınırı	445,17	547,47	
+UYGUN
+
+Deneme yükü ≤ tendon sınırı	592,07	625,68	
+UYGUN
+
+Kök merkezi üzerinde en az örtü kalınlığı	4,50	8,57	
+UYGUN
+Varsayımlar
+Kök bölgesi kayma yüzeyinin 2 m ötesinde başlar; mesafe yüzeye dik ölçülür (GEC-4 Şekil 37a: χ = 1,5 m veya 0,2H, büyüğü).
+En az serbest boy 4.5 m (strand) kabul edildi (GEC-4 5.3.4).
+Kayma yüzeyi kazı tabanı köşesinden başlar (GEC-4 5.3.2).
+Arka zemin yatay, duvar yüzü düşey kabul edildi; eğimli zemin bu aşamada desteklenmiyor.
+Azami deneme yükü = 1.33 × tasarım yükü (GEC-4 s. 75-77).
+Tendon sınırları 0,6 / 0,7 / 0,8 SMTS (tasarım / kilitleme / deneme), GEC-4 s. 77.
+Yük aktarımı değeri kaynağı: QA: tests/api/test_anchored_wall_api.py BODY (ön tasarım; ankraj deneyi ile doğrulanır).
+En küçük kök boyu 4.5 m (soil, strand) alındı (GEC-4 Ek E, 3B).
+
+Kaynaklar: FHWA GEC-4 (FHWA-IF-99-015) sections 5.3.2-5.3.4, 5.3.6-5.3.8, fig. 37 (lengths, spacing, tendon limits); FHWA GEC-4 (FHWA-IF-99-015) appendix E part 3B, p. E-15 (minimum bond length); FHWA GEC-4 (FHWA-IF-99-015) Eq. 19-21, p. 66-67 (anchor load)

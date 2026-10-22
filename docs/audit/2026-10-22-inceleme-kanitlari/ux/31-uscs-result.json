@@ -1,0 +1,198 @@
+{
+  "url": "http://127.0.0.1:8771/m/soil/classification",
+  "viewport": {
+    "w": 1440,
+    "h": 900
+  },
+  "scroll": {
+    "w": 1440,
+    "h": 1865
+  },
+  "inputs": [
+    {
+      "tag": "INPUT",
+      "type": "radio",
+      "id": "mantine-ri7rqybly-tr",
+      "aria": null,
+      "ph": "",
+      "value": "tr",
+      "labels": [
+        "TR"
+      ],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "radio",
+      "id": "mantine-ri7rqybly-en",
+      "aria": null,
+      "ph": "",
+      "value": "en",
+      "labels": [
+        "EN"
+      ],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": "mantine-a00rlzq6o",
+      "aria": null,
+      "ph": "",
+      "value": "BH-UX-dot",
+      "labels": [
+        "Sondaj"
+      ],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "hidden",
+      "id": "",
+      "aria": null,
+      "ph": "",
+      "value": "BH-UX-dot",
+      "labels": [],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": "mantine-v4ddp09o0",
+      "aria": null,
+      "ph": "",
+      "value": "70",
+      "labels": [
+        "İnce dane FC (%) *"
+      ],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": "mantine-e2gxnaby2",
+      "aria": null,
+      "ph": "",
+      "value": "",
+      "labels": [
+        "Çakıl (%)"
+      ],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": "mantine-ha90o9x93",
+      "aria": null,
+      "ph": "",
+      "value": "45",
+      "labels": [
+        "LL"
+      ],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": "mantine-gsre7to32",
+      "aria": null,
+      "ph": "",
+      "value": "25",
+      "labels": [
+        "PI"
+      ],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": "mantine-chewtp20w",
+      "aria": null,
+      "ph": "",
+      "value": "",
+      "labels": [
+        "D10 (mm)"
+      ],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": "mantine-0lmdz7zkw",
+      "aria": null,
+      "ph": "",
+      "value": "",
+      "labels": [
+        "D30 (mm)"
+      ],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": "mantine-4h11jx5bm",
+      "aria": null,
+      "ph": "",
+      "value": "",
+      "labels": [
+        "D60 (mm)"
+      ],
+      "testid": null
+    }
+  ],
+  "buttons": [
+    {
+      "text": "",
+      "aria": "Gezinme menüsünü aç veya kapat",
+      "disabled": false
+    },
+    {
+      "text": "Kaydet",
+      "aria": null,
+      "disabled": false
+    },
+    {
+      "text": "",
+      "aria": "Tema değiştir",
+      "disabled": false
+    },
+    {
+      "text": "Ana menüye dön",
+      "aria": null,
+      "disabled": false
+    },
+    {
+      "text": "CPT · Robertson SBTn",
+      "aria": null,
+      "disabled": false
+    },
+    {
+      "text": "Laboratuvar · USCS",
+      "aria": null,
+      "disabled": false
+    },
+    {
+      "text": "Sınıflandır",
+      "aria": null,
+      "disabled": false
+    }
+  ],
+  "links": [
+    {
+      "text": "Arazi verileri",
+      "href": "/m/soil"
+    },
+    {
+      "text": "Zemin profilleri",
+      "href": "/m/soil/profiles"
+    },
+    {
+      "text": "Mühendislik parametreleri",
+      "href": "/m/soil/parameters"
+    },
+    {
+      "text": "Sınıflandırma",
+      "href": "/m/soil/classification"
+    }
+  ]
+}

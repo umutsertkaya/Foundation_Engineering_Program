@@ -1,0 +1,310 @@
+Zemin etüdü ve parametreler
+
+Proje: UX Araştırma 2026
+
+KAYDEDİLMEMİŞ DEĞİŞİKLİKLER
+Kaydet
+TR
+EN
+Ana menüye dön
+Arazi verileri
+Zemin profilleri
+Mühendislik parametreleri
+Sınıflandırma
+Zemin sınıflandırma
+
+CPT davranış tipi (Robertson SBTn) ve laboratuvar sınıflandırması (USCS, ASTM D2487).
+
+Sınıflandırma motoru organik zeminleri (OL, OH, Pt) tanımaz: bunun için etüv kurutulmuş likit limit gerekir. SBTn bölge 8 ve 9 varsayılan olarak kapalıdır ve gösterilmez. Grafik eğrileri çizilen eksenlere kırpılır; A ve U çizgileri LL 20 ve LL 8'in altında negatif değer verir ve orada çizilmez.
+
+CPT · Robertson SBTn
+Laboratuvar · USCS
+Sondaj
+0
+10
+20
+30
+40
+50
+60
+70
+80
+90
+100
+0
+10
+20
+30
+40
+50
+60
+Likit limit LL (%)
+Plastisite indisi PI (%)
+U çizgisi
+A çizgisi
+
+Bu sondajda laboratuvar kaydı yok.
+
+Örnek sınıflandır
+
+Laboratuvar değerlerini girin; boş alanlar ölçülmemiş sayılır ve motor neyi varsaymak zorunda kaldığını bildirir.
+
+İnce dane FC (%) *
+Çakıl (%)
+LL
+PI
+D10 (mm)
+D30 (mm)
+D60 (mm)
+Sınıflandır
+USCS grup simgeleri
+GW
+	
+
+İyi derecelenmiş çakıl
+
+	
+
+Gravel with a broad particle-size distribution and little fines.
+
+
+
+GP
+	
+
+Kötü derecelenmiş çakıl
+
+	
+
+Gravel with a narrow or gap-graded particle-size distribution and little fines.
+
+
+
+GM
+	
+
+Siltli çakıl
+
+	
+
+Gravel whose fines have silty behaviour.
+
+
+
+GC
+	
+
+Killi çakıl
+
+	
+
+Gravel whose fines have clayey behaviour.
+
+
+
+GC-GM
+	
+
+Siltli, killi çakıl
+
+	
+
+Gravel whose fines fall in the silty-clay transition.
+
+
+
+SW
+	
+
+İyi derecelenmiş kum
+
+	
+
+Sand with a broad particle-size distribution and little fines.
+
+
+
+SP
+	
+
+Kötü derecelenmiş kum
+
+	
+
+Sand with a narrow or gap-graded particle-size distribution and little fines.
+
+
+
+SM
+	
+
+Siltli kum
+
+	
+
+Sand whose fines have silty behaviour.
+
+
+
+SC
+	
+
+Killi kum
+
+	
+
+Sand whose fines have clayey behaviour.
+
+
+
+SC-SM
+	
+
+Siltli, killi kum
+
+	
+
+Sand whose fines fall in the silty-clay transition.
+
+
+
+GW-GM
+	
+
+Silt içeren iyi derecelenmiş çakıl
+
+	
+
+Well-graded gravel with a secondary silty fines fraction.
+
+
+
+GW-GC
+	
+
+Kil içeren iyi derecelenmiş çakıl
+
+	
+
+Well-graded gravel with a secondary clayey fines fraction.
+
+
+
+GP-GM
+	
+
+Silt içeren kötü derecelenmiş çakıl
+
+	
+
+Poorly graded gravel with a secondary silty fines fraction.
+
+
+
+GP-GC
+	
+
+Kil içeren kötü derecelenmiş çakıl
+
+	
+
+Poorly graded gravel with a secondary clayey fines fraction.
+
+
+
+SW-SM
+	
+
+Silt içeren iyi derecelenmiş kum
+
+	
+
+Well-graded sand with a secondary silty fines fraction.
+
+
+
+SW-SC
+	
+
+Kil içeren iyi derecelenmiş kum
+
+	
+
+Well-graded sand with a secondary clayey fines fraction.
+
+
+
+SP-SM
+	
+
+Silt içeren kötü derecelenmiş kum
+
+	
+
+Poorly graded sand with a secondary silty fines fraction.
+
+
+
+SP-SC
+	
+
+Kil içeren kötü derecelenmiş kum
+
+	
+
+Poorly graded sand with a secondary clayey fines fraction.
+
+
+
+CL
+	
+
+Düşük plastisiteli kil
+
+	
+
+Inorganic clay in the low liquid-limit group.
+
+
+
+ML
+	
+
+Silt
+
+	
+
+Inorganic silt in the low liquid-limit group.
+
+
+
+CL-ML
+	
+
+Siltli kil
+
+	
+
+Fine-grained soil in the silty-clay transition.
+
+
+
+CH
+	
+
+Yüksek plastisiteli kil
+
+	
+
+Inorganic clay in the high liquid-limit group.
+
+
+
+MH
+	
+
+Elastik silt
+
+	
+
+Inorganic silt in the high liquid-limit group.

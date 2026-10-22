@@ -1,0 +1,208 @@
+Palplanş / iksa
+
+Proje: QA İŞLEV GeoTek
+
+Kaydet
+TR
+EN
+Ana menüye dön
+Perdeler
+Listeye dön
+QA Konsol palplanş
+SONUÇ VAR
+Girdiler
+Ad
+
+Mesnet
+
+Konsol
+Tek ankrajlı
+Tutulan yükseklik H (m)
+Arka zemin eğimi β (°)
+
+Boş bırakılırsa 0 (yatay). 45° altında olmalı; β > φ′ ise hesap durdurulur. Ön taraf yatay kalır.
+
+Sürşarj (kPa)
+
+Boş bırakılırsa 0 alınır.
+
+Sürşarj tabanı
+
+Yalnız eğimli zeminde fark eder.
+
+S_DS (isteğe bağlı)
+
+Boşsa depremli durum hesaplanmaz.
+
+İzin verilen gerilme (MPa)
+
+Boşsa kesit modülü hesaplanmaz.
+
+Gelişmiş girdiler
+Zemin
+
+Zemin, “QA Kum 0-40m (kaynak test)” profilinden kopyalandı (kaynak korunuyor).
+
+Üst (m)	Alt (m)	γ (kN/m³)	φ' (°)	c' (kPa)
+0	40	18	30	0
+
+Kaydedilmemiş değişiklikler var; hesap için önce kaydedin.
+
+Kaydet
+Tasarımı çalıştır
+Kaydedilmiş sonuç
+Tasarım sonucu
+KONSOL
+
+Tasarım esası
+
+Tasarım kodu: ASD — Global güvenlik sayısı
+
+Yaklaşım: Servis varsayılanı
+
+Analiz düzeyi: Temel
+
+Gömülme artışı: 20,0%
+
+Gömülme
+
+H tutulan yükseklik
+
+4,00 m
+
+D₀ teorik gömülme
+
+5,98 m
+
+D tasarım gömülmesi
+
+7,18 m
+
+Toplam boy
+
+11,18 m
+
+Moment ve kuvvetler
+
+M_max (mutlak değer)
+
+323,99 kNm/m
+
+M_max derinliği
+
+7,40 m
+
+Uç kuvveti
+
+283,86 kN/m
+
+Mutlak değer; kazı yönünde etkir.
+
+Kesit modülü
+
+—
+
+Kesit modülü için izin verilen gerilme girilmedi.
+
+Net basınç
+-150
+-100
+-50
+0
+50
+0
+2
+4
+6
+8
+kazı tabanı
+kPa
+z (m)
+Kesme kuvveti
+-300
+-200
+-100
+0
+100
+0
+2
+4
+6
+8
+kazı tabanı
+kN/m
+z (m)
+Eğilme momenti
+0
+100
+200
+300
+400
+0
+2
+4
+6
+8
+kazı tabanı
+kNm/m
+z (m)
+
+Derinlik z perdenin üstünden ölçülür; çizim teorik uca (H + D₀) kadardır.
+
+Tablo serisi toplam boyda değil, teorik uçta (H + D₀) biter.
+
+4993 noktanın 44 tanesi gösteriliyor
+
+z (m)	Net basınç (kPa)	Kesme (kN/m)	Moment (kNm/m)
+0,00	5,16	0,00	0,00
+0,25	6,71	1,48	0,18
+0,50	8,26	3,36	0,77
+0,75	9,81	5,61	1,89
+1,00	11,36	8,26	3,61
+1,25	12,91	11,29	6,05
+1,50	14,46	14,71	9,29
+1,75	16,01	18,52	13,44
+2,00	17,55	22,72	18,59
+2,25	19,10	27,30	24,83
+2,50	20,65	32,27	32,27
+2,75	22,20	37,63	41,00
+3,00	23,75	43,37	51,12
+3,25	25,30	49,50	62,72
+3,50	26,85	56,02	75,90
+3,75	28,40	62,93	90,76
+4,00	29,95	70,22	107,39
+4,25	22,50	76,77	125,81
+4,50	15,04	81,47	145,63
+4,75	7,59	84,30	166,38
+5,00	0,14	85,26	187,62
+5,00	0,02	85,26	187,96
+5,25	-7,31	84,37	208,86
+5,50	-14,76	81,61	229,65
+5,75	-22,21	76,99	249,51
+6,00	-29,66	70,50	267,98
+6,25	-37,11	62,16	284,61
+6,50	-44,56	51,95	298,91
+6,75	-52,02	39,87	310,42
+7,00	-59,47	25,94	318,69
+7,25	-66,92	10,14	323,24
+7,40	-71,27	0,05	323,99
+7,40	-71,33	-0,09	323,99
+7,50	-74,37	-7,52	323,60
+7,75	-81,82	-27,04	319,32
+8,00	-89,27	-48,43	309,93
+8,25	-96,72	-71,68	294,95
+8,50	-104,17	-96,79	273,93
+8,75	-111,62	-123,77	246,40
+9,00	-119,07	-152,60	211,89
+9,25	-126,53	-183,30	169,94
+9,50	-133,98	-215,87	120,09
+9,75	-141,43	-250,29	61,86
+9,98	-148,28	-283,61	0,49
+
+Varsayımlar
+
+Katmanlı Rankine aktif/pasif; ön/arka profil ve YASS ayrı; hidrostatik su; sızma yok (Rankine (1857); P1 §1)
+Pasif basınç GS=1.5 ile bölündü; tanφ′ ve c′ de GS ile bölünerek bulunan pasif basınç daha küçükse o alındı (yüksek φ′; USACE EM 1110-2-2504 5-2d) (USACE EM 1110-2-2504 Tablo 5-1: perde duvarı, serbest drenajlı zemin, olağan durum 1.50 (S durumu); ince daneli zeminde Q durumu 2.00 (programda ayrı değer yok))
+Konsolda Blum gömülmesi %20 artırılır; ankrajlıda serbest zemin desteği (Mevcut sheet_pile.py; USS Steel Sheet Piling Design Manual / USACE EM 1110-2-2504)
+Eğimli arka zemin β = 10°: Rankine eğimli dolgu katsayısı (bileşke yüzeye paralel), ön taraf yatay; eğimli zeminde c′ ihmal; deprem M-O (δ = β), β > φ′ − ψ ise durdurulur (Rankine (1857); Mononobe-Okabe; Das, Principles of Foundation Engineering Ch. 7)
+Kaydedildi

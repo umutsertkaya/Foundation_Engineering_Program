@@ -1,0 +1,187 @@
+[
+  {
+    "path": "report.md",
+    "bytes": 21371,
+    "sha256": "e237c8c565976fa2819ec5fb84400e4151a7d4525ca48ab41945c19374d82395"
+  },
+  {
+    "path": "scenarios.csv",
+    "bytes": 2708,
+    "sha256": "80c122e7a8f357124d46a22987ee8ed0052398c578476807b57281a23cc2eee5"
+  },
+  {
+    "path": "requests.csv",
+    "bytes": 45094,
+    "sha256": "b7f3e520971dd29ad6796dfe37f2f8453efde7a770a75e000a29ec37cea4788f"
+  },
+  {
+    "path": "jobs-summary.json",
+    "bytes": 8410,
+    "sha256": "5862b3169d3fd2c8ed8ff7d9222c62e968d0aed4998609bdb6a967b69d70955c"
+  },
+  {
+    "path": "docx-inspection.json",
+    "bytes": 4373,
+    "sha256": "bcc923c7078353f42c106d7eaf40a61351629ec4e78af63e6c15e3c2460fbb59"
+  },
+  {
+    "path": "docx-dto-comparison.json",
+    "bytes": 7897,
+    "sha256": "0a9bf1b8c384e6acefd1a9ce4dec65f7df9d707f8760dbb426f27488fa5722fc"
+  },
+  {
+    "path": "wall-draft-loss.json",
+    "bytes": 98,
+    "sha256": "7b28902f615d40df831829d83719834cfe290e767fb3d710fd63934d1a75e77b"
+  },
+  {
+    "path": "discard-job.json",
+    "bytes": 357,
+    "sha256": "82c9aa40f18b6f91943b3a8d488c55a7523ac021452da90c4245f851966651dd"
+  },
+  {
+    "path": "cancel-job.json",
+    "bytes": 424,
+    "sha256": "67ceae027ac77c8ab3f61bf8b121dbb9edee3469c057d500b6e03506b59b123f"
+  },
+  {
+    "path": "pile-cancel-job.json",
+    "bytes": 180,
+    "sha256": "7b4d4a318a9c822fd3f845a848170bbd09200361ad66edaae0c91c7a2c30b87e"
+  },
+  {
+    "path": "narrow-metrics.json",
+    "bytes": 732,
+    "sha256": "9305434e3895a4f9cc78cf2141d771a77c5741f2fdd4055205cc55cfcb080595"
+  },
+  {
+    "path": "envelope-seismic.json",
+    "bytes": 540810,
+    "sha256": "653e6d2d39432f9c9e6e706b562d4689075aec2958e32117e6b2e78145ab9040"
+  },
+  {
+    "path": "envelope-static.json",
+    "bytes": 957765,
+    "sha256": "c60e26c27d58870dd2d406cfd5da7a37df3e646f34f849e418f1b4323340a954"
+  },
+  {
+    "path": "docx/qa-all-tr.docx",
+    "bytes": 49749,
+    "sha256": "b46470c95f3fced5782f7a05da2eee5be84ff8940a85a7d722ddbbca540260eb"
+  },
+  {
+    "path": "docx/qa-all-en.docx",
+    "bytes": 49870,
+    "sha256": "b1c2d5c395f577efe5f69cec0dd2aa03c41b0237d3dd9ac4a345612a7768ae56"
+  },
+  {
+    "path": "docx/qa-all-en-tables.csv",
+    "bytes": 15704,
+    "sha256": "30d595f9b6c69c30bb0406e4af6da919dd8a5dea341b23766343d295b66194f0"
+  },
+  {
+    "path": "docx/qa-all-tr-tables.csv",
+    "bytes": 16236,
+    "sha256": "1b061904604461de045a92ab00bfdaa809e026b870b08c959a30abfaea62e13f"
+  },
+  {
+    "path": "screenshots/04-wall-wizard-geometry.png",
+    "bytes": 99345,
+    "sha256": "97b8957cca5ede8fcfa0231d47ce5f31847c00ce034d1c4b3728695e9658c29a"
+  },
+  {
+    "path": "screenshots/08-wall-missing-factor-block.png",
+    "bytes": 209705,
+    "sha256": "3392cb880cbfd87b61272c301c02ef62ca6d75bc4e4b1c7bd00d3e4e7357544c"
+  },
+  {
+    "path": "screenshots/09-wall-advanced-check.png",
+    "bytes": 192428,
+    "sha256": "ee8648fd5992f458fd0e3e1771a78ed5d04f42bd6064e0542676a42dcc50258f"
+  },
+  {
+    "path": "screenshots/18-pile-False-result.png",
+    "bytes": 336061,
+    "sha256": "10c293d440da641a4f2d7a3dae432471c7f50458c1b48b01d6bd215c9767acc5"
+  },
+  {
+    "path": "screenshots/18-pile-True-result.png",
+    "bytes": 318755,
+    "sha256": "c165e844117c58a5e0efc5c84d80d26057263a75a0f433190aa8732464ea9f18"
+  },
+  {
+    "path": "screenshots/20-anchor-multilevel-result.png",
+    "bytes": 285687,
+    "sha256": "035517c5521ef7ef3b6e4cd685f445dd626941eb144d6c591a4870cd199b989f"
+  },
+  {
+    "path": "screenshots/22-anchor-design-result.png",
+    "bytes": 218949,
+    "sha256": "5dfe42ef28bf1c9f7a8a5a66c2e7a0ca74d010e6eb7da58074efb24844a8b1b1"
+  },
+  {
+    "path": "screenshots/24-liquefaction-Boulanger-result.png",
+    "bytes": 136127,
+    "sha256": "a20ab4f4c075a8610b7b13f99891fe081bb455563ef3912102e1baa2e5616eb0"
+  },
+  {
+    "path": "screenshots/28-report-en-downloaded.png",
+    "bytes": 65179,
+    "sha256": "fde95589e84d06ffecd3f76a3365b260da81a2587527ed6ad734f94a91cb32a9"
+  },
+  {
+    "path": "screenshots/29-wall-en-dark-narrow-viewport.png",
+    "bytes": 73129,
+    "sha256": "5309fe1ea03813450ab05e0311c5b105e41cfc85021ec0bd04400ae78ad23cef"
+  },
+  {
+    "path": "screenshots/32-liq-cpt-en-dark-narrow-viewport.png",
+    "bytes": 70789,
+    "sha256": "5464bc28da086af9989433847c5ffd2def6a044c082d454c216d96f01ab96dde"
+  },
+  {
+    "path": "screenshots/36-pile-saved-input-stale.png",
+    "bytes": 341162,
+    "sha256": "e949190c91c28e3dd2639ab348fa77e9cf85ab9178994df4dbf9c8592d89fe3d"
+  },
+  {
+    "path": "screenshots/37-envelope-seismic-inputs-ui.png",
+    "bytes": 102717,
+    "sha256": "0e1a6b1975661680f5b3a7724a958f7e84b1c00963832806652b82718cfd4304"
+  },
+  {
+    "path": "screenshots/38-envelope-seismic-result-ui.png",
+    "bytes": 379679,
+    "sha256": "04f63f5a62c5d2eeef2d34f33dffe8add4b8ed59d2eb8c86bc27bccf379259f9"
+  },
+  {
+    "path": "screenshots/39-envelope-static-result-ui.png",
+    "bytes": 486775,
+    "sha256": "783bf02c937bd44c27186cefb02c96c752c4741c9d90873118e29c1263fcad66"
+  },
+  {
+    "path": "screenshots/44-report-stale-disabled.png",
+    "bytes": 77159,
+    "sha256": "eb4f7e967dbda8ddb3f43065fa1df65b17b40541ddda2095144366f4d3e1c0a2"
+  },
+  {
+    "path": "screenshots/46-wall-job-discarded-after-reopen.png",
+    "bytes": 194907,
+    "sha256": "491cc6937ed0445c1b61647823eecd44dc15f279dd7a1cdbfb8f96a2af128c8e"
+  },
+  {
+    "path": "screenshots/47-wall-cancelled-real-job.png",
+    "bytes": 186532,
+    "sha256": "d6d5bf6d2eda5c8efa317b9e8178171e03024fe2a1603fe8959848426df34b1a"
+  },
+  {
+    "path": "screenshots/49-wall-global-save-local-draft.png",
+    "bytes": 152940,
+    "sha256": "c3d1cebdbc4a88658ad61e0fe4535db7783e5bf9b7e012ccc9f1d7355e84a782"
+  },
+  {
+    "path": "screenshots/50-wall-global-save-reload-lost.png",
+    "bytes": 154220,
+    "sha256": "d6fec9b3db125cda1b6c931dc9448541bd2b5b3b8469c98a3d17f16c37287bd5"
+  }
+]

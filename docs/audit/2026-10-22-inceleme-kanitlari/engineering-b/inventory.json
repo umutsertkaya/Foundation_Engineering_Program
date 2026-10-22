@@ -1,0 +1,809 @@
+{
+  "commit": "b9392f9de48de0d27501b362f976275c9d5a665c",
+  "engine": [
+    {
+      "path": "geotek/engine/earth_pressure/__init__.py",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "symbols": []
+    },
+    {
+      "path": "geotek/engine/earth_pressure/coefficients.py",
+      "sha256": "3106985a71a969217c20ddf0f828cb1923309cc55ddb61547444356633cf1484",
+      "symbols": [
+        {
+          "name": "_rad",
+          "line": 31,
+          "end_line": 32,
+          "public": false,
+          "arguments": "*angles"
+        },
+        {
+          "name": "surcharge_per_horizontal",
+          "line": 35,
+          "end_line": 49,
+          "public": true,
+          "arguments": "q: float, beta: float, basis: SurchargeBasis='horizontal'"
+        },
+        {
+          "name": "rankine_ka",
+          "line": 52,
+          "end_line": 63,
+          "public": true,
+          "arguments": "phi: float, beta: float=0.0"
+        },
+        {
+          "name": "rankine_kp",
+          "line": 66,
+          "end_line": 74,
+          "public": true,
+          "arguments": "phi: float, beta: float=0.0"
+        },
+        {
+          "name": "coulomb_ka",
+          "line": 77,
+          "end_line": 83,
+          "public": true,
+          "arguments": "phi: float, delta: float=0.0, theta: float=0.0, beta: float=0.0"
+        },
+        {
+          "name": "coulomb_kp",
+          "line": 86,
+          "end_line": 96,
+          "public": true,
+          "arguments": "phi: float, delta: float=0.0, theta: float=0.0, beta: float=0.0"
+        },
+        {
+          "name": "seismic_angle",
+          "line": 99,
+          "end_line": 103,
+          "public": true,
+          "arguments": "kh: float, kv: float=0.0"
+        },
+        {
+          "name": "mononobe_okabe_kae",
+          "line": 106,
+          "end_line": 126,
+          "public": true,
+          "arguments": "phi: float, delta: float=0.0, theta: float=0.0, beta: float=0.0, kh: float=0.0, kv: float=0.0"
+        },
+        {
+          "name": "tbdy_kae_steep",
+          "line": 129,
+          "end_line": 144,
+          "public": true,
+          "arguments": "phi: float, delta: float=0.0, theta: float=0.0, kh: float=0.0, kv: float=0.0"
+        },
+        {
+          "name": "mononobe_okabe_kpe",
+          "line": 147,
+          "end_line": 163,
+          "public": true,
+          "arguments": "phi: float, delta: float=0.0, theta: float=0.0, beta: float=0.0, kh: float=0.0, kv: float=0.0"
+        },
+        {
+          "name": "seed_whitman_dkae",
+          "line": 166,
+          "end_line": 168,
+          "public": true,
+          "arguments": "kh: float"
+        },
+        {
+          "name": "tbdy_seismic_coefficients",
+          "line": 175,
+          "end_line": 185,
+          "public": true,
+          "arguments": "sds: float, r: float"
+        },
+        {
+          "name": "seismic_coefficient",
+          "line": 188,
+          "end_line": 196,
+          "public": true,
+          "arguments": "pga_g: float, f_pga: float=1.0, displacement_factor: float=0.5"
+        }
+      ]
+    },
+    {
+      "path": "geotek/engine/earth_pressure/wedge.py",
+      "sha256": "284274f3db72ed5ae17007e16a275bd480b6636cddfde7a941cebe5cdbd5aeca",
+      "symbols": [
+        {
+          "name": "WedgeResult",
+          "line": 25,
+          "end_line": 32,
+          "kind": "class",
+          "fields": [
+            "force",
+            "K",
+            "rho",
+            "state"
+          ]
+        },
+        {
+          "name": "_wall_force",
+          "line": 35,
+          "end_line": 64,
+          "public": false,
+          "arguments": "rho, *, H, gamma, phi, delta, theta, beta, q, kh, kv, state"
+        },
+        {
+          "name": "trial_wedge",
+          "line": 67,
+          "end_line": 109,
+          "public": true,
+          "arguments": "*, H: float, gamma: float, phi: float, delta: float=0.0, theta: float=0.0, beta: float=0.0, q: float=0.0, kh: float=0.0, kv: float=0.0, state: Literal['active', 'passive']='active', n_grid: int=720"
+        }
+      ]
+    },
+    {
+      "path": "geotek/engine/earth_pressure/log_spiral.py",
+      "sha256": "b2a99e340fccac904e9ab8b6d777bfe6e2f2775f2bf9257c3c6232d0836f4ba4",
+      "symbols": [
+        {
+          "name": "LogSpiralResult",
+          "line": 31,
+          "end_line": 36,
+          "kind": "class",
+          "fields": [
+            "Kp",
+            "Kp_horizontal",
+            "pole_x"
+          ]
+        },
+        {
+          "name": "_moment",
+          "line": 39,
+          "end_line": 40,
+          "public": false,
+          "arguments": "o, point, force"
+        },
+        {
+          "name": "_polygon_area_centroid",
+          "line": 43,
+          "end_line": 52,
+          "public": false,
+          "arguments": "pts: np.ndarray"
+        },
+        {
+          "name": "_passive_force",
+          "line": 55,
+          "end_line": 80,
+          "public": false,
+          "arguments": "x0, *, H, gamma, phi, delta"
+        },
+        {
+          "name": "log_spiral_kp",
+          "line": 83,
+          "end_line": 110,
+          "public": true,
+          "arguments": "phi: float, delta: float=0.0, *, H: float=1.0, gamma: float=1.0"
+        }
+      ]
+    },
+    {
+      "path": "geotek/engine/earth_pressure/distribution.py",
+      "sha256": "253564a8de83af4d03875c88f8aa201dd2f410e57932d2b53cba23f6c2a0411f",
+      "symbols": [
+        {
+          "name": "PressureDistribution",
+          "line": 39,
+          "end_line": 60,
+          "kind": "class",
+          "fields": [
+            "z",
+            "sigma_v_eff",
+            "K",
+            "sigma_h_eff",
+            "u",
+            "sigma_h",
+            "force",
+            "z_resultant",
+            "state",
+            "method",
+            "warnings"
+          ]
+        },
+        {
+          "name": "PressureDistribution.component",
+          "line": 58,
+          "end_line": 60,
+          "public": true,
+          "arguments": "self, which: Literal['effective', 'water']"
+        },
+        {
+          "name": "resultant",
+          "line": 63,
+          "end_line": 69,
+          "public": true,
+          "arguments": "z, p"
+        },
+        {
+          "name": "_layer_coefficients",
+          "line": 72,
+          "end_line": 131,
+          "public": false,
+          "arguments": "layer: SoilLayer, state, method, delta, beta, drainage, warnings, *, theta=0.0, kh=0.0, kv=0.0, steep_seismic=False, slope_cohesion='error'"
+        },
+        {
+          "name": "_insert_crossings",
+          "line": 134,
+          "end_line": 144,
+          "public": false,
+          "arguments": "z, seg, y"
+        },
+        {
+          "name": "lateral_pressure",
+          "line": 147,
+          "end_line": 283,
+          "public": true,
+          "arguments": "profile: SoilProfile, height: float, *, state: State='active', method: Method='rankine', delta: float=0.0, beta: float=0.0, surcharge: float=0.0, gwt_case: Literal['insitu', 'design', 'seismic']='design', drainage: Literal['drained', 'undrained']='drained', top: float=0.0, min_efp: float | None=None, theta: float=0.0, kh: float=0.0, kv: float=0.0, layerwise: bool=False, delta_ratio: float | None=None, total_stress_surcharge: float=0.0, submerged_kh: dict[str, float] | None=None, steep_seismic: bool=False, slope_cohesion: Literal['error', 'ignore']='error'"
+        }
+      ]
+    },
+    {
+      "path": "geotek/engine/bearing.py",
+      "sha256": "6dd30f21b17791f8f35c274dab74aeb7c7a2484c6c50704c3eae1b6203aa19a8",
+      "symbols": [
+        {
+          "name": "bearing_factors",
+          "line": 27,
+          "end_line": 44,
+          "public": true,
+          "arguments": "phi: float, method: Method"
+        },
+        {
+          "name": "BearingResult",
+          "line": 48,
+          "end_line": 57,
+          "kind": "class",
+          "fields": [
+            "method",
+            "q_ult",
+            "Q_ult",
+            "B_eff",
+            "L_eff",
+            "factors",
+            "warnings"
+          ]
+        },
+        {
+          "name": "_depth_k",
+          "line": 60,
+          "end_line": 62,
+          "public": false,
+          "arguments": "D: float, B: float"
+        },
+        {
+          "name": "bearing_capacity",
+          "line": 65,
+          "end_line": 173,
+          "public": true,
+          "arguments": "*, method: Method, B: float, D: float, phi: float, gamma: float, q: float, c: float=0.0, L: float | None=None, V: float | None=None, H: float=0.0, e_B: float=0.0, e_L: float=0.0, hansen_alpha1: float=5.0, hansen_alpha2: float=5.0"
+        }
+      ]
+    },
+    {
+      "path": "geotek/engine/stability.py",
+      "sha256": "9dc30b5dd19edbeeb44fe92e73a23fe130ac5f004b6c2eb7eb5d6ad9b971665c",
+      "symbols": [
+        {
+          "name": "SoilBand",
+          "line": 35,
+          "end_line": 40,
+          "kind": "class",
+          "fields": [
+            "top",
+            "gamma",
+            "c",
+            "phi"
+          ]
+        },
+        {
+          "name": "SurfaceLoad",
+          "line": 44,
+          "end_line": 49,
+          "kind": "class",
+          "fields": [
+            "x1",
+            "x2",
+            "q1",
+            "q2"
+          ]
+        },
+        {
+          "name": "SlopeModel",
+          "line": 53,
+          "end_line": 103,
+          "kind": "class",
+          "fields": [
+            "surface",
+            "layers",
+            "water_level",
+            "loads",
+            "kh"
+          ]
+        },
+        {
+          "name": "SlopeModel.__post_init__",
+          "line": 60,
+          "end_line": 68,
+          "public": false,
+          "arguments": "self"
+        },
+        {
+          "name": "SlopeModel.descends_toward_positive_x",
+          "line": 71,
+          "end_line": 74,
+          "public": true,
+          "arguments": "self"
+        },
+        {
+          "name": "SlopeModel.surface_y",
+          "line": 76,
+          "end_line": 77,
+          "public": true,
+          "arguments": "self, x"
+        },
+        {
+          "name": "SlopeModel.band_at",
+          "line": 79,
+          "end_line": 84,
+          "public": true,
+          "arguments": "self, y: float"
+        },
+        {
+          "name": "SlopeModel.column_weight",
+          "line": 86,
+          "end_line": 96,
+          "public": true,
+          "arguments": "self, y_bot: float, y_top: float"
+        },
+        {
+          "name": "SlopeModel.load_at",
+          "line": 98,
+          "end_line": 103,
+          "public": true,
+          "arguments": "self, x: float"
+        },
+        {
+          "name": "SlipResult",
+          "line": 107,
+          "end_line": 115,
+          "kind": "class",
+          "fields": [
+            "fs",
+            "xc",
+            "yc",
+            "radius",
+            "x_entry",
+            "x_exit",
+            "slices",
+            "iterations"
+          ]
+        },
+        {
+          "name": "_slip_interval",
+          "line": 118,
+          "end_line": 141,
+          "public": false,
+          "arguments": "model: SlopeModel, xc, yc, R, n_probe=600"
+        },
+        {
+          "name": "bishop",
+          "line": 144,
+          "end_line": 198,
+          "public": true,
+          "arguments": "model: SlopeModel, xc: float, yc: float, R: float, *, n_slices: int=40, min_width: float=0.0, exit_max: float | None=None, entry_min: float | None=None, tol: float=1e-06, max_iter: int=200"
+        },
+        {
+          "name": "search_critical_circle",
+          "line": 201,
+          "end_line": 252,
+          "public": true,
+          "arguments": "model: SlopeModel, *, x_range: tuple[float, float], y_range: tuple[float, float], tangent_range: tuple[float, float], n_x: int=15, n_y: int=15, n_tangent: int=12, min_width: float=0.0, exit_max: float | None=None, entry_min: float | None=None, n_slices: int=40, refine: bool=True"
+        }
+      ]
+    },
+    {
+      "path": "geotek/engine/walls/global_stability.py",
+      "sha256": "e28f11bb4acbaf4533d4bc414c100406757e24260387afc9b673285699bfa10a",
+      "symbols": [
+        {
+          "name": "_footprint_load",
+          "line": 27,
+          "end_line": 40,
+          "public": false,
+          "arguments": "weights, width"
+        },
+        {
+          "name": "wall_global_stability",
+          "line": 43,
+          "end_line": 164,
+          "public": true,
+          "arguments": "geometry: CantileverGeometry | GravityGeometry, backfill: Backfill, foundation_bands: list[SoilBand], loads: WallLoads | None=None, settings: WallSettings | None=None, *, seismic: bool=False, water_level: float | None=None, grid: int=12, tan_phi_factor: float=1.0, cohesion_factor: float=1.0, required: float | None=None, retained_bands: list[SoilBand] | None=None, surcharge_factor: float=1.0, footprint_factors: dict[str, float] | None=None"
+        }
+      ]
+    }
+  ],
+  "education": [
+    {
+      "path": "web/src/modules/education/content/earth_pressure.ts",
+      "sha256": "56daf04af20bf449f9a948dad4615d8e7389c12b8151ea029229db317ebcf006",
+      "figure_ids": [
+        "ep-active-passive",
+        "wall-stability-checks"
+      ],
+      "figure_symbols": {
+        "ep-active-passive": "EpActivePassive",
+        "wall-stability-checks": "WallStabilityChecks"
+      },
+      "formula_count": 9,
+      "worked_count": 0
+    },
+    {
+      "path": "web/src/modules/education/content/ep_student_a.ts",
+      "sha256": "25ee69b5ae2a75cd3c262c5c4e9f29f7ed920cc7e390a110f04bb58a88da4529",
+      "figure_ids": [
+        "ep-rankine-diagram",
+        "ep-states-movement",
+        "ep-mohr-rankine",
+        "ep-cohesive-crack",
+        "ep-layered-water"
+      ],
+      "figure_symbols": {
+        "ep-rankine-diagram": "EpRankineDiagram",
+        "ep-states-movement": "EpStatesMovement",
+        "ep-mohr-rankine": "EpMohrRankine",
+        "ep-cohesive-crack": "EpCohesiveCrack",
+        "ep-layered-water": "EpLayeredWater"
+      },
+      "formula_count": 0,
+      "worked_count": 2
+    },
+    {
+      "path": "web/src/modules/education/content/ep_student_b.ts",
+      "sha256": "14ee40cbd76b5e65132dad3a5b8c8f60b47dc26a7826228f0983d40789c029f7",
+      "figure_ids": [
+        "ep-coulomb-wedge",
+        "ep-ka-phi",
+        "ep-seismic-wedge",
+        "wall-stability-checks",
+        "ep-wall-forces"
+      ],
+      "figure_symbols": {
+        "ep-coulomb-wedge": "EpCoulombWedge",
+        "ep-ka-phi": "EpKaPhi",
+        "ep-seismic-wedge": "EpSeismicWedge",
+        "wall-stability-checks": "WallStabilityChecks",
+        "ep-wall-forces": "EpWallForces"
+      },
+      "formula_count": 2,
+      "worked_count": 1
+    },
+    {
+      "path": "web/src/modules/education/content/bearing.ts",
+      "sha256": "c0fdce358447ace6f6913bbe22233df2623e929417a9171324a8978f31dca7a9",
+      "figure_ids": [
+        "bear-failure-wedge",
+        "bear-factor-trend"
+      ],
+      "figure_symbols": {
+        "bear-failure-wedge": "BearFailureMechanism",
+        "bear-factor-trend": "BearFactorTrend"
+      },
+      "formula_count": 7,
+      "worked_count": 0
+    },
+    {
+      "path": "web/src/modules/education/content/bearing_student.ts",
+      "sha256": "0469794ff98098838ec097fe833f5f91091ec792d306434f0c3e924b642a6bde",
+      "figure_ids": [
+        "bear-failure-wedge",
+        "bear-terzaghi-zones",
+        "bear-factor-trend",
+        "bear-factor-tables",
+        "bear-eccentric-width",
+        "bear-water-cases"
+      ],
+      "figure_symbols": {
+        "bear-failure-wedge": "BearFailureMechanism",
+        "bear-terzaghi-zones": "BearZones",
+        "bear-factor-trend": "BearFactorTrend",
+        "bear-factor-tables": "BearFactorTables",
+        "bear-eccentric-width": "BearEccentricWidth",
+        "bear-water-cases": "BearWaterCases"
+      },
+      "formula_count": 9,
+      "worked_count": 2
+    },
+    {
+      "path": "web/src/modules/education/content/slope.ts",
+      "sha256": "1c0c10ffd1cd57daa2c469a7cd51b63d13a61721bd402ccb79f8a4fe9f6a37bb",
+      "figure_ids": [
+        "slope-bishop-slice",
+        "slope-search-domain"
+      ],
+      "figure_symbols": {
+        "slope-bishop-slice": "SlopeBishopSlice",
+        "slope-search-domain": "SlopeSearchDomain"
+      },
+      "formula_count": 2,
+      "worked_count": 0
+    },
+    {
+      "path": "web/src/modules/education/content/slope_student.ts",
+      "sha256": "4c238fdc2fa5aec94a870738fae515af7cc2f6e6964d43e73d7a8f84d0bea969",
+      "figure_ids": [
+        "slp-slip-circle",
+        "slp-bishop-slice",
+        "slp-search-results",
+        "slp-search-bounds",
+        "slp-reversed-geometry"
+      ],
+      "figure_symbols": {
+        "slp-slip-circle": "SlpSlipCircle",
+        "slp-bishop-slice": "SlopeBishopSlice",
+        "slp-search-results": "SlopeSearchDomain",
+        "slp-search-bounds": "SlpSearchBounds",
+        "slp-reversed-geometry": "SlpReversedGeometry"
+      },
+      "formula_count": 1,
+      "worked_count": 4
+    },
+    {
+      "path": "web/src/modules/education/content/sloping_surcharge.ts",
+      "sha256": "53be284d5d1aa095ca4c5aa6546108828e88efc28bf7afda05de7f6d2b70ae3c",
+      "figure_ids": [
+        "ep-active-passive",
+        "slope-surcharge-wedge",
+        "sp-seismic-kdyy"
+      ],
+      "figure_symbols": {
+        "ep-active-passive": "EpActivePassive",
+        "slope-surcharge-wedge": "SlopeSurchargeWedge",
+        "sp-seismic-kdyy": "SpSeismicKdyy"
+      },
+      "formula_count": 2,
+      "worked_count": 0
+    },
+    {
+      "path": "web/src/modules/education/content/sloping_surcharge_student.ts",
+      "sha256": "62912eae49597ddf4e9912ce278ed5d8bc8773e62a4a42b65930aa8050073325",
+      "figure_ids": [
+        "sur-beta-wedge",
+        "sur-surcharge-basis",
+        "sur-beta-regions",
+        "sur-sheet-moment"
+      ],
+      "figure_symbols": {
+        "sur-beta-wedge": "SlopeSurchargeWedge",
+        "sur-surcharge-basis": "SurSurchargeBasis",
+        "sur-beta-regions": "SurBetaRegions",
+        "sur-sheet-moment": "SpNetDiagram"
+      },
+      "formula_count": 0,
+      "worked_count": 6
+    }
+  ],
+  "figures": [
+    "web/src/modules/education/figures/epDraw.tsx",
+    "web/src/modules/education/figures/bearDraw.tsx",
+    "web/src/modules/education/figures/spDraw.tsx",
+    "web/src/modules/education/figures/extraDraw.tsx",
+    "web/src/modules/education/figures/extraDraw2.tsx",
+    "web/src/modules/education/figures/index.tsx"
+  ],
+  "tests": [
+    {
+      "path": "tests/unit/test_earth_pressure.py",
+      "tests": [
+        "test_rankine_values",
+        "test_sloping_rankine_equals_coulomb_with_delta_beta",
+        "test_coulomb_table_value",
+        "test_mononobe_okabe",
+        "test_seismic_helpers",
+        "test_log_spiral_reduces_to_rankine",
+        "test_log_spiral_bounds",
+        "test_log_spiral_independent_of_scale",
+        "test_log_spiral_near_chart_value",
+        "test_uniform_dry_sand",
+        "test_water_table",
+        "test_layer_boundary_jump",
+        "test_tension_crack_warning_reports_depth_across_layer_boundary",
+        "test_cohesion_tension_crack_and_min_efp",
+        "test_undrained_total_stress",
+        "test_passive_below_dredge_line",
+        "test_at_rest_and_methods",
+        "test_errors"
+      ],
+      "execution": "not rerun by B; runtime agent owns suite"
+    },
+    {
+      "path": "tests/unit/test_earth_pressure_crosscheck.py",
+      "tests": [
+        "test_coulomb_active_matches_wedge",
+        "test_coulomb_passive_matches_wedge",
+        "test_mononobe_okabe_matches_wedge"
+      ],
+      "execution": "not rerun by B; runtime agent owns suite"
+    },
+    {
+      "path": "tests/unit/test_bearing.py",
+      "tests": [
+        "test_factor_table",
+        "test_undrained_factors",
+        "test_surface_strip_reduces_to_basic_terms",
+        "test_vesic_square_hand_calc",
+        "test_inclination_and_eccentricity_reduce_capacity",
+        "test_vesic_inclination_hand_calc",
+        "test_meyerhof_inclination_hand_calc",
+        "test_errors"
+      ],
+      "execution": "not rerun by B; runtime agent owns suite"
+    },
+    {
+      "path": "tests/unit/test_stability.py",
+      "tests": [
+        "test_cohesionless_slope_tends_to_infinite_slope",
+        "test_phi_zero_circle_matches_closed_form_moment_balance",
+        "test_fs_scales_with_cohesion_when_phi_zero",
+        "test_water_load_and_seismic_reduce_fs",
+        "test_boundary_and_exit_constraints",
+        "test_slice_output",
+        "test_flat_ground_has_no_driving_moment",
+        "test_reversed_slope_gives_explicit_direction_error"
+      ],
+      "execution": "not rerun by B; runtime agent owns suite"
+    },
+    {
+      "path": "tests/unit/test_walls.py",
+      "tests": [
+        "test_gravity_wall_hand_calc",
+        "test_cantilever_hand_calc",
+        "test_cantilever_sloping_backfill_virtual_back",
+        "test_seismic_case_adds_increment_and_inertia",
+        "test_undrained_sliding_and_passive",
+        "test_resultant_outside_base_fails_bearing",
+        "test_non_asd_code_is_refused",
+        "test_geometry_validation",
+        "test_global_stability_sensitivity"
+      ],
+      "execution": "not rerun by B; runtime agent owns suite"
+    },
+    {
+      "path": "tests/unit/test_walls_layered.py",
+      "tests": [
+        "test_hand_uplift_overturning_choices",
+        "test_uplift_choice_only_reclassifies_upward_base_uplift",
+        "test_equ_uses_factored_uplift_moment_choice",
+        "test_bearing_groundwater_transition_is_continuous_and_monotone",
+        "test_bearing_groundwater_transition_can_be_disabled",
+        "test_da1_c2_global_surcharge_factoring_reduces_fs",
+        "test_global_load_factors_preserve_characteristic_soil_and_factored_centroid",
+        "test_submerged_tbdy_closed_form",
+        "test_submerged_envelope_compares_soil_plus_water",
+        "test_submerged_permeability_classification_and_unknown_fallback",
+        "test_submerged_permeability_is_per_layer_and_water_added_once",
+        "test_dry_seismic_path_is_bit_identical",
+        "test_dynamic_water_location_and_partial_submergence_warning",
+        "test_partial_submergence_keeps_dry_mo_above_water_and_splits_one_layer",
+        "test_tbdy_kae_steep_en_e3_reference",
+        "test_tbdy_kae_steep_continuous_at_mo_boundary",
+        "test_tbdy_kae_steep_rejects_nonpositive_denominator",
+        "test_steep_distribution_opt_in_is_beta_independent_and_keeps_delta",
+        "test_steep_opt_in_preserves_mo_inside_domain",
+        "test_steep_eq_vertical_component_keeps_wall_friction",
+        "test_steep_eq_inclination_keeps_delta_in_partially_submerged_layer",
+        "test_layered_steep_seismic_returns_result_and_tbdy_1624b_warning",
+        "test_seismic_with_zero_coefficients_and_submerged_fill_stays_static",
+        "test_pervious_requires_explicit_unreduced_water_kh_but_impervious_does_not",
+        "test_homogeneous_thrust_matches_trial_wedge",
+        "test_homogeneous_all_external_checks_match_legacy",
+        "test_two_layers_closed_form_and_surcharge_split",
+        "test_water_force_lever_and_uplift",
+        "test_front_head_and_trapezoidal_uplift_even_when_passive_disabled",
+        "test_front_free_water_above_ground_is_kept_with_and_without_passive",
+        "test_heel_weights_use_layer_total_weights_at_water_table",
+        "test_front_overburden_removes_excavation_and_uses_front_water",
+        "test_base_layer_and_weaker_layer_warning_within_B",
+        "test_passive_uses_front_layers_and_is_only_added_to_sliding",
+        "test_virtual_plane_maps_layer_boundaries_and_extends_top_layer",
+        "test_bands_keep_fill_out_of_foundation_and_use_structure_elevations",
+        "test_global_model_uses_retained_bands_and_preserves_legacy_none",
+        "test_mixed_undrained_retained_layer_uses_total_stress_without_double_water",
+        "test_unknown_or_unmapped_load_kind_raises",
+        "test_layered_partial_design_requires_explicit_WA",
+        "test_absent_design_parameters_are_not_invented",
+        "test_front_dominant_water_rejected_by_layered_adapters",
+        "test_exactly_balanced_horizontal_actions_are_rejected",
+        "test_ponded_front_water_loads_undrained_passive_boundary_once",
+        "test_front_water_normal_to_actual_gravity_face",
+        "test_undrained_base_total_overburden_and_gross_bearing_load",
+        "test_foundation_band_weights_use_bishop_water_envelope",
+        "test_multilayer_foundation_weights_match_bishop_model_water_level",
+        "test_two_layer_dry_seismic_thrust_uses_each_layers_coefficient",
+        "test_layered_gravity_wall_keeps_layer_directions_and_application_points",
+        "test_sloping_layered_backfill_water_uses_shifted_virtual_plane_head",
+        "test_layered_bishop_fs_is_finite_and_weaker_retained_band_reduces_it",
+        "test_frozen_legacy_default_two_layer_lateral_pressure",
+        "test_frozen_legacy_global_default_basic_B460",
+        "test_reverse_or_zero_horizontal_load_rejected",
+        "test_front_water_dominant_real_loading_rejected",
+        "test_ponded_front_water_loads_undrained_boundary_once",
+        "test_gravity_front_water_normal_force_and_centroid",
+        "test_undrained_bearing_uses_gross_load_and_front_total_stress"
+      ],
+      "execution": "not rerun by B; runtime agent owns suite"
+    },
+    {
+      "path": "tests/verification/test_earth_pressure_textbook.py",
+      "tests": [
+        "test_rankine_thirty_degree_exact_limits",
+        "test_coulomb_active_rounded_reference",
+        "test_coulomb_independent_hand_formula",
+        "test_mononobe_okabe_independent_hand_formula",
+        "test_mononobe_okabe_zero_acceleration_rankine_limit",
+        "test_seed_whitman_increment",
+        "test_log_spiral_smooth_wall_rankine_limit"
+      ],
+      "execution": "not rerun by B; runtime agent owns suite"
+    },
+    {
+      "path": "tests/verification/test_bearing_textbook.py",
+      "tests": [
+        "test_bearing_factors_bowles_table_4_4",
+        "test_ultimate_independent_hand_calculation"
+      ],
+      "execution": "not rerun by B; runtime agent owns suite"
+    },
+    {
+      "path": "tests/verification/test_bishop_circle_hand.py",
+      "tests": [
+        "test_phi_zero_circle_matches_exact_arc_moment",
+        "test_effective_stress_circle_matches_independent_integral",
+        "test_hydrostatic_fs_loss_matches_independent_calculation"
+      ],
+      "execution": "not rerun by B; runtime agent owns suite"
+    },
+    {
+      "path": "tests/verification/test_bishop_stability_number.py",
+      "tests": [
+        "test_published_phi_zero_stability_number"
+      ],
+      "execution": "not rerun by B; runtime agent owns suite"
+    }
+  ],
+  "figure_occurrences": 34,
+  "unique_figure_ids": [
+    "bear-eccentric-width",
+    "bear-factor-tables",
+    "bear-factor-trend",
+    "bear-failure-wedge",
+    "bear-terzaghi-zones",
+    "bear-water-cases",
+    "ep-active-passive",
+    "ep-cohesive-crack",
+    "ep-coulomb-wedge",
+    "ep-ka-phi",
+    "ep-layered-water",
+    "ep-mohr-rankine",
+    "ep-rankine-diagram",
+    "ep-seismic-wedge",
+    "ep-states-movement",
+    "ep-wall-forces",
+    "slope-bishop-slice",
+    "slope-search-domain",
+    "slope-surcharge-wedge",
+    "slp-bishop-slice",
+    "slp-reversed-geometry",
+    "slp-search-bounds",
+    "slp-search-results",
+    "slp-slip-circle",
+    "sp-seismic-kdyy",
+    "sur-beta-regions",
+    "sur-beta-wedge",
+    "sur-sheet-moment",
+    "sur-surcharge-basis",
+    "wall-stability-checks"
+  ]
+}

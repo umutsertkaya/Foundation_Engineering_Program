@@ -1,0 +1,96 @@
+{
+  "checks": {
+    "C001_polynomial": {
+      "D0": 15.757163393745422,
+      "D": 18.908596072494507,
+      "M": 2399.835292167504,
+      "z_M": 14.766743550573882
+    },
+    "C002_legacy": {
+      "uncapped": 1.3869415391359998,
+      "capped": 0.9917355371900826
+    },
+    "C002_layered": {
+      "uncapped": 1.3845456024095417,
+      "capped": 0.9900223174692516
+    },
+    "A003_LPI": {
+      "two_point_reference": 7.12,
+      "single_reference": 3.875
+    }
+  },
+  "broken_links": [],
+  "table_anomalies": [
+    {
+      "file": "2026-10-22-arayuz-islev-muhendislik-incelemesi.md",
+      "line": 915,
+      "expected": 4,
+      "actual": 6
+    }
+  ],
+  "document_counts": {
+    "2026-10-22-arayuz-islev-muhendislik-incelemesi.md": {
+      "lines": 1046,
+      "links": 99,
+      "findings": [
+        "UX-001",
+        "UX-002",
+        "UX-003",
+        "UX-004",
+        "UX-005",
+        "UX-006",
+        "UX-007",
+        "UX-008",
+        "UX-009",
+        "UX-010",
+        "UX-011",
+        "UX-012",
+        "UX-013",
+        "FUN-001",
+        "FUN-002",
+        "FUN-003",
+        "FUN-004",
+        "FUN-005",
+        "FUN-006",
+        "FUN-007",
+        "FUN-008",
+        "FUN-009",
+        "FUN-010",
+        "ENG-A-001",
+        "ENG-A-002",
+        "ENG-A-003",
+        "ENG-A-004",
+        "ENG-A-005",
+        "ENG-A-006",
+        "ENG-A-007",
+        "ENG-A-008",
+        "ENG-A-009",
+        "ENG-A-010",
+        "ENG-A-011",
+        "ENG-A-012",
+        "ENG-A-013",
+        "ENG-B-001",
+        "ENG-B-002",
+        "ENG-B-003",
+        "ENG-B-004",
+        "ENG-B-005",
+        "ENG-B-006",
+        "ENG-B-007",
+        "ENG-B-008",
+        "ENG-B-009",
+        "ENG-B-010",
+        "ENG-C-001",
+        "ENG-C-002",
+        "ENG-C-003",
+        "ENG-C-004",
+        "ENG-C-005",
+        "ENG-C-006"
+      ]
+    },
+    "2026-10-22-kullanilabilirlik-iyilestirme-onerileri.md": {
+      "lines": 328,
+      "links": 18,
+      "findings": []
+    }
+  }
+}

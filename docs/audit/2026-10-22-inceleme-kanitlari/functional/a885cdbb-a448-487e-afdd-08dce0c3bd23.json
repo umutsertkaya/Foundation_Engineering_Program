@@ -1,0 +1,723 @@
+{
+  "kind": "retaining_wall",
+  "id": "a885cdbb-a448-487e-afdd-08dce0c3bd23",
+  "name": "QA Ağırlık sulu 5m",
+  "wall_type": "gravity",
+  "height": 5.0,
+  "embedment": 0.6,
+  "backfill_slope": 0.0,
+  "geometry": {
+    "height": 5.0,
+    "base_width": 3.0,
+    "top_width": 0.8,
+    "back_offset": 0.2,
+    "embedment": 0.6,
+    "key": null
+  },
+  "soil": {
+    "source_profile_id": "1cc6f2953c454494b19d789af46a377f",
+    "source_hash": "bde2abfb76937838",
+    "profile": {
+      "id": "1cc6f2953c454494b19d789af46a377f",
+      "name": "QA Sulu iki tabaka",
+      "source_ids": [],
+      "origin": "manual",
+      "layering": null,
+      "gwt": {
+        "depth_insitu": 2.0,
+        "depth_design": 2.0,
+        "depth_seismic": 2.0
+      },
+      "layers": [
+        {
+          "id": "44df0dc3320b473ba2d0b22fe937d43c",
+          "top": 0.0,
+          "bottom": 6.0,
+          "description": "",
+          "uscs": null,
+          "sbtn_zone": null,
+          "behaviour": "drained",
+          "gamma": 18.0,
+          "gamma_sat": 20.0,
+          "permeability": null,
+          "params": {},
+          "design": {
+            "phi_eff": 30.0,
+            "c_eff": 0.0,
+            "su": null,
+            "E": null,
+            "delta_base": null
+          },
+          "selections": {},
+          "source_ids": [],
+          "liquefiable": null,
+          "residual_su": null
+        },
+        {
+          "id": "f9c08c5ac3f54f92af1b199c81f71324",
+          "top": 6.0,
+          "bottom": 40.0,
+          "description": "",
+          "uscs": null,
+          "sbtn_zone": null,
+          "behaviour": "drained",
+          "gamma": 19.0,
+          "gamma_sat": 21.0,
+          "permeability": null,
+          "params": {},
+          "design": {
+            "phi_eff": 32.0,
+            "c_eff": 0.0,
+            "su": null,
+            "E": null,
+            "delta_base": null
+          },
+          "selections": {},
+          "source_ids": [],
+          "liquefiable": null,
+          "residual_su": null
+        }
+      ]
+    },
+    "retained_fill": [],
+    "gwt_retained": null,
+    "gwt_front": null
+  },
+  "inputs": {
+    "surcharge": 15.0,
+    "surcharge_basis": "horizontal",
+    "surcharge_resists": false,
+    "sds": 0.5,
+    "r": null,
+    "gwt_case": "design",
+    "include_global_stability": true
+  },
+  "settings": {
+    "kv_sign": "envelope",
+    "submerged_seismic": "envelope",
+    "uplift_moment": "overturning",
+    "gwt_bearing_correction": true,
+    "design_code": "asd",
+    "bearing_method": "vesic",
+    "use_passive": false,
+    "passive_reduction": 0.5,
+    "include_toe_soil": false,
+    "concrete_unit_weight": 24.0,
+    "foundation_on": "soil",
+    "factor_overrides": {}
+  },
+  "analysis_level": "advanced",
+  "approach": null,
+  "result_hash": "54e7a3c23a88f47f36ee13cd2e9e9a765a2eca50c0f38838357422de13129bf6",
+  "result": {
+    "structure_id": "a885cdbb-a448-487e-afdd-08dce0c3bd23",
+    "geometry": {
+      "height": 5.0,
+      "base_width": 3.0,
+      "top_width": 0.8,
+      "back_offset": 0.2,
+      "embedment": 0.6,
+      "key": null
+    },
+    "passed": false,
+    "governing": "static:overturning, static:sliding, static:bearing, seismic:overturning, seismic:sliding, seismic:eccentricity, seismic:bearing, static:global_stability, seismic:global_stability",
+    "governing_check_ids": [
+      "static:overturning",
+      "static:sliding",
+      "static:bearing",
+      "seismic:overturning",
+      "seismic:sliding",
+      "seismic:eccentricity",
+      "seismic:bearing",
+      "static:global_stability",
+      "seismic:global_stability"
+    ],
+    "minimum_width_governs": false,
+    "checks": [
+      {
+        "case": "static",
+        "name": "overturning",
+        "value": 1.8525415734042674,
+        "required": 2.0,
+        "passed": false,
+        "comparison": ">=",
+        "utilisation": 1.0795979041510848,
+        "detail": "M_R = 529.2, M_O = 285.7 kNm/m",
+        "kv_sign": null
+      },
+      {
+        "case": "static",
+        "name": "sliding",
+        "value": 1.430448557388133,
+        "required": 1.5,
+        "passed": false,
+        "comparison": ">=",
+        "utilisation": 1.048622120839397,
+        "detail": "V tan(30) + c_a B'",
+        "kv_sign": null
+      },
+      {
+        "case": "static",
+        "name": "eccentricity",
+        "value": 0.0742499566340642,
+        "required": 0.1667,
+        "passed": true,
+        "comparison": "<=",
+        "utilisation": 0.44541065767285065,
+        "detail": "e = 0.223 m (e/B limit 0.167)",
+        "kv_sign": null
+      },
+      {
+        "case": "static",
+        "name": "bearing",
+        "value": 1.3955626202464175,
+        "required": 3.0,
+        "passed": false,
+        "comparison": ">=",
+        "utilisation": 2.1496706464309594,
+        "detail": "q_ult = 104 kPa on B' = 2.55 m; q_eff = 75 kPa",
+        "kv_sign": null
+      },
+      {
+        "case": "seismic",
+        "name": "overturning",
+        "value": 1.2003623143410662,
+        "required": 1.5,
+        "passed": false,
+        "comparison": ">=",
+        "utilisation": 1.249622703144774,
+        "detail": "kv yukarı: M_R = 546.5, M_O = 455.3 kNm/m",
+        "kv_sign": "up"
+      },
+      {
+        "case": "seismic",
+        "name": "sliding",
+        "value": 0.7075166388763192,
+        "required": 1.1,
+        "passed": false,
+        "comparison": ">=",
+        "utilisation": 1.5547337540316006,
+        "detail": "kv yukarı: V tan(30) + c_a B'",
+        "kv_sign": "up"
+      },
+      {
+        "case": "seismic",
+        "name": "eccentricity",
+        "value": 0.3409723684309672,
+        "required": 0.25,
+        "passed": false,
+        "comparison": "<=",
+        "utilisation": 1.3638894737238687,
+        "detail": "kv yukarı: e = 1.023 m (e/B limit 0.250)",
+        "kv_sign": "up"
+      },
+      {
+        "case": "seismic",
+        "name": "bearing",
+        "value": 0.02348323671287132,
+        "required": 2.0,
+        "passed": false,
+        "comparison": ">=",
+        "utilisation": 85.16713536783396,
+        "detail": "kv yukarı: q_ult = 5 kPa on B' = 0.95 m; q_eff = 200 kPa",
+        "kv_sign": "up"
+      },
+      {
+        "case": "static",
+        "name": "global_stability",
+        "value": 0.6838864290523129,
+        "required": 1.5,
+        "passed": false,
+        "comparison": ">=",
+        "utilisation": 2.193346638093998,
+        "detail": "Bishop circle centre (-3.81, 11.63), R = 13.45 m",
+        "kv_sign": null
+      },
+      {
+        "case": "seismic",
+        "name": "global_stability",
+        "value": 0.43690294661943463,
+        "required": 1.1,
+        "passed": false,
+        "comparison": ">=",
+        "utilisation": 2.517721632484566,
+        "detail": "kv yukarı: Bishop circle centre (-3.97, 13.76), R = 15.41 m",
+        "kv_sign": "up"
+      }
+    ],
+    "shear_key": [],
+    "forces": {
+      "static": [
+        {
+          "name": "Wall",
+          "fx": 0.0,
+          "fy": -228.0,
+          "x": 1.8631578947368421,
+          "y": 2.017543859649123,
+          "kind": "DC"
+        },
+        {
+          "name": "Earth pressure",
+          "fx": -55.16896455272847,
+          "fy": -22.61587981760351,
+          "x": 2.9283969345026466,
+          "y": 1.7900766374338315,
+          "kind": "EH"
+        },
+        {
+          "name": "Surcharge pressure",
+          "fx": -21.79385500226296,
+          "fy": -8.934139139449911,
+          "x": 2.9,
+          "y": 2.5000000000000018,
+          "kind": "LS"
+        },
+        {
+          "name": "Water (retained)",
+          "fx": -44.144999999999996,
+          "fy": -1.7657999999999998,
+          "x": 2.96,
+          "y": 1.0,
+          "kind": "WA"
+        },
+        {
+          "name": "Uplift",
+          "fx": 0.0,
+          "fy": 88.28999999999999,
+          "x": 1.5000000000000002,
+          "y": 0.0,
+          "kind": "WA"
+        },
+        {
+          "name": "Water (front)",
+          "fx": 44.144999999999996,
+          "fy": -17.657999999999998,
+          "x": 0.39999999999999997,
+          "y": 1.0,
+          "kind": "WA"
+        }
+      ],
+      "seismic": [
+        {
+          "name": "Wall",
+          "fx": 0.0,
+          "fy": -228.0,
+          "x": 1.8631578947368421,
+          "y": 2.017543859649123,
+          "kind": "DC"
+        },
+        {
+          "name": "Wall (inertia)",
+          "fx": -30.4,
+          "fy": 0.0,
+          "x": 1.8631578947368421,
+          "y": 2.017543859649123,
+          "kind": "EQ"
+        },
+        {
+          "name": "Wall (vertical seismic)",
+          "fx": 0.0,
+          "fy": 15.2,
+          "x": 1.8631578947368421,
+          "y": 2.017543859649123,
+          "kind": "EQ"
+        },
+        {
+          "name": "Earth pressure",
+          "fx": -55.16896455272847,
+          "fy": -22.61587981760351,
+          "x": 2.9283969345026466,
+          "y": 1.7900766374338315,
+          "kind": "EH"
+        },
+        {
+          "name": "Surcharge pressure",
+          "fx": -21.79385500226296,
+          "fy": -8.934139139449911,
+          "x": 2.9,
+          "y": 2.5000000000000018,
+          "kind": "LS"
+        },
+        {
+          "name": "Seismic increment",
+          "fx": -38.371694904280105,
+          "fy": -15.73003313345726,
+          "x": 2.9,
+          "y": 2.5,
+          "kind": "EQ"
+        },
+        {
+          "name": "Water (retained)",
+          "fx": -44.144999999999996,
+          "fy": -1.7657999999999998,
+          "x": 2.96,
+          "y": 1.0,
+          "kind": "WA"
+        },
+        {
+          "name": "Dinamik su itkisi (TBDY Denk. 16.20)",
+          "fx": -10.300500000000003,
+          "fy": 0.0,
+          "x": 2.952,
+          "y": 1.2000000000000002,
+          "kind": "EQ"
+        },
+        {
+          "name": "Uplift",
+          "fx": 0.0,
+          "fy": 88.28999999999999,
+          "x": 1.5000000000000002,
+          "y": 0.0,
+          "kind": "WA"
+        },
+        {
+          "name": "Water (front)",
+          "fx": 44.144999999999996,
+          "fy": -17.657999999999998,
+          "x": 0.39999999999999997,
+          "y": 1.0,
+          "kind": "WA"
+        }
+      ]
+    },
+    "pressures": [
+      {
+        "side": "retained",
+        "case": "static",
+        "z": [
+          0.0,
+          2.0,
+          5.0
+        ],
+        "sigma_h_eff": [
+          4.358771000452593,
+          14.819821401538814,
+          23.702996700461195
+        ],
+        "u": [
+          0.0,
+          0.0,
+          29.43
+        ],
+        "sigma_h": [
+          4.358771000452593,
+          14.819821401538814,
+          53.13299670046119
+        ],
+        "force": 121.10781955499142,
+        "z_resultant": 3.3701604670267833
+      },
+      {
+        "side": "front",
+        "case": "static",
+        "z": [
+          0.0,
+          0.5999999999999996
+        ],
+        "sigma_h_eff": [
+          0.0,
+          0.0
+        ],
+        "u": [
+          23.544000000000004,
+          29.43
+        ],
+        "sigma_h": [
+          23.544000000000004,
+          29.43
+        ],
+        "force": 15.892199999999992,
+        "z_resultant": 0.3111111111111109
+      },
+      {
+        "side": "retained",
+        "case": "seismic",
+        "z": [
+          0.0,
+          2.0,
+          2.0,
+          5.0
+        ],
+        "sigma_h_eff": [
+          5.435606289146572,
+          18.481061383098346,
+          23.445778009797877,
+          37.49945318155319
+        ],
+        "u": [
+          0.0,
+          0.0,
+          0.0,
+          29.43
+        ],
+        "sigma_h": [
+          5.435606289146572,
+          18.481061383098346,
+          23.445778009797877,
+          66.92945318155319
+        ],
+        "force": 159.4795144592715,
+        "z_resultant": 3.3568441354497036
+      },
+      {
+        "side": "front",
+        "case": "seismic",
+        "z": [
+          0.0,
+          0.5999999999999996
+        ],
+        "sigma_h_eff": [
+          0.0,
+          0.0
+        ],
+        "u": [
+          23.544000000000004,
+          29.43
+        ],
+        "sigma_h": [
+          23.544000000000004,
+          29.43
+        ],
+        "force": 15.892199999999992,
+        "z_resultant": 0.3111111111111109
+      }
+    ],
+    "slip_circles": [
+      {
+        "case": "static",
+        "xc": -3.805680072946239,
+        "yc": 11.632079149098669,
+        "radius": 13.454141795595095,
+        "fs": 0.6838864290523129
+      },
+      {
+        "case": "seismic",
+        "xc": -3.9698770772445133,
+        "yc": 13.763251683072838,
+        "radius": 15.405802181204521,
+        "fs": 0.43690294661943463
+      }
+    ],
+    "assumptions": [
+      {
+        "text": "Beton birim hacim ağırlığı 24 kN/m³",
+        "source": "WallSettings; mevcut varsayılan 24 kN/m³, proje girdisi",
+        "code": null,
+        "params": {}
+      },
+      {
+        "text": "Statik YASS senaryosu design; arka derinlik 2 m, ön derinlik 2 m",
+        "source": "StructureSoilModel; None olduğunda profil YASS'ı",
+        "code": null,
+        "params": {}
+      },
+      {
+        "text": "Taban, tutulan zemin yüzeyinden H derinliktedir; ön zemin H-D kotundadır; ön kazının kaldırdığı örtü gerilmesi hesaba katılmaz",
+        "source": "P1 sözleşmesi §1 ve §5",
+        "code": null,
+        "params": {}
+      },
+      {
+        "text": "Katmanlar yataydır; her katmanın Coulomb katsayısı tüm üst katmanların düşey gerilmesine uygulanır; bu yaklaşım katmanlı bir kritik kama çözümü değildir",
+        "source": "Das, Principles of Foundation Engineering; P1 §5 yerel katsayı yaklaşımı",
+        "code": null,
+        "params": {}
+      },
+      {
+        "text": "Coulomb drene itkide c' katkısı ihmal edilir; drenajsız yatay zeminde toplam gerilme ve s_u kullanılır, yatay su ikinci kez eklenmez",
+        "source": "lateral_pressure sözleşmesi; Rankine toplam gerilme çözümü",
+        "code": null,
+        "params": {}
+      },
+      {
+        "text": "Topuk üzerindeki zemin katman ve su kotlarında poligonlara bölünür; su altında toplam γ_sat ağırlığı ve tabanda ayrıca kaldırma kullanılır",
+        "source": "Statik denge; Terzaghi etkin gerilme ilkesi",
+        "code": null,
+        "params": {}
+      },
+      {
+        "text": "Arka/ön su seviyesi yapı YASS değeridir (yoksa profil YASS); hidrostatik yatay basınç ve ön/arka taban basınçları arasında doğrusal kaldırma; sızma hesabı yok",
+        "source": "P1 §1.4; USACE EM 1110-2-2502 hidrostatik yük modeli",
+        "code": null,
+        "params": {}
+      },
+      {
+        "text": "Taşıma gücü yalnız taban katmanıyla hesaplanır; B içinde daha zayıf katman uyarılır; iki tabakalı taşıma gücü ve oturma hesabı yapılmaz",
+        "source": "P1 §5",
+        "code": null,
+        "params": {}
+      },
+      {
+        "text": "Taban delta_base değeri verilmemişse mevcut FoundationSoil varsayılanıyla delta_base=phi kullanılır; aderans 0 alınır",
+        "source": "FoundationSoil sözleşmesi",
+        "code": null,
+        "params": {}
+      },
+      {
+        "text": "Taşıma gücü yöntemi: vesic; eğik yük ve B'=B-2|e| dahil; taban/ön arazi eğimi çarpanları 1",
+        "source": "Mevcut bearing_capacity/profil adaptörü; Bowles, 5. baskı, Tablo 4-1/4-5",
+        "code": null,
+        "params": {}
+      },
+      {
+        "text": "Kaldırma momenti devrilme talebine eklenir: FS_ot=M_R/(M_O+M_U)",
+        "source": "Mühendis seçimi; varsayılan güvenli taraf",
+        "code": null,
+        "params": {}
+      },
+      {
+        "text": "Drene N_gamma YASS düzeltmesi açık: d_w ön suyun taban altı derinliği; d_w≤0 için γ', 0<d_w<B için γ'+(d_w/B)(γ−γ'), d_w≥B için γ",
+        "source": "Das, Principles of Foundation Engineering, taşıma gücüne yeraltı suyu etkisi (Durum III)",
+        "code": null,
+        "params": {}
+      },
+      {
+        "text": "Gömülme D = 0.60 m; boyut araması 0.05 m adımla B ≤ 1.2H",
+        "source": "Ön boyutlandırma oranları (Das, Principles of Foundation Engineering; mühendislik yargısı)",
+        "code": null,
+        "params": {}
+      },
+      {
+        "text": "Boyutlandırmada kesit oranları mevcut proportion_for fonksiyonundan alınır",
+        "source": "Ön boyutlandırma oranları (Das, Principles of Foundation Engineering; mühendislik yargısı)",
+        "code": null,
+        "params": {}
+      },
+      {
+        "text": "ASD global GS durumunda yük katsayılanmaz; kısmi katsayıda WA ayrı kullanıcı girdisidir ve G/EH katsayısından türetilmez; material.gamma uygulanmaz, DC/EV yük katsayıları kullanılır",
+        "source": "P1 §5; mevcut limit_state sözleşmesi",
+        "code": null,
+        "params": {}
+      },
+      {
+        "text": "İtki gerçek eğimli arka yüzde; θ=atan(arka kaçıklık/H), katman başına δ=2φ'/3",
+        "source": "TBDY 2018 16.12.2.9 (aktif durumda δ ≤ 2φ'/3)",
+        "code": null,
+        "params": {}
+      },
+      {
+        "text": "Pasif direnç hesaba katılmadı",
+        "source": "Kullanıcı/WallSettings; varsayılan 0.5 için doğrulanmış normatif kaynak yok",
+        "code": null,
+        "params": {}
+      },
+      {
+        "text": "Ön ayak üzerindeki doğal zemin ağırlığı ihmal edildi",
+        "source": "WallSettings",
+        "code": null,
+        "params": {}
+      },
+      {
+        "text": "Sürşarjın topuk üzerindeki düşey yükü dengeleyici sayılmadı",
+        "source": "WallDesignInputs",
+        "code": null,
+        "params": {}
+      },
+      {
+        "text": "Deprem YASS senaryosu seismic; arka derinlik 2 m, ön derinlik 2 m",
+        "source": "StructureSoilModel; depth_seismic, yoksa depth_insitu",
+        "code": null,
+        "params": {}
+      },
+      {
+        "text": "k_h=0.4·S_DS/r, |k_v|=0.5·k_h, r=1.5; dinamik itki artımı H_v/2'de",
+        "source": "TBDY 2018 Denk. 16.22, Tablo 16.7, 16.12.2.8",
+        "code": null,
+        "params": {}
+      },
+      {
+        "text": "M-O katman bazında; statik su hidrostatiktir; sıvılaşma ve fazla boşluk suyu basıncı hesaplanmaz; drenajsız deprem itkisi durdurulur; β > φ' − ψ için TBDY Denk. 16.24b kullanılır",
+        "source": "Mononobe & Matsuo (1929), Okabe (1926); TBDY Denk. 16.24b; E4 kapsam sınırı",
+        "code": null,
+        "params": {}
+      },
+      {
+        "text": "Su altı deprem seçimi: envelope; γ*=γ_sat−γ_w; geçirimsiz tanψ=γ_sat/γ*·kh/(1−kv), geçirimli tanψ=γ/γ*·kh/(1−kv) (γ doğal birim ağırlık); dinamik su kh=0.4·S_DS (r=1). Taban sanal arka düzlemin altıdır; kısmi batıklık katman bazında mühendislik yargısıdır; karışık geçirgenlikte herhangi bir geçirimli katman için tam su yüksekliği bir kez kullanılır (doğrulanmamış mühendislik yaklaşımı); dış serbest su modellenmez. Yöneten seçim durum uyarılarında; dinamik suyun kuvvet ve konumu forces içindedir.",
+        "source": "TBDY 2018 16.12.3.2, Denk. 16.26 ve 16.20",
+        "code": null,
+        "params": {}
+      },
+      {
+        "text": "Bishop daireleri taban altından geçer; taşınan ağırlık taban izine eşdeğer yük olarak yayılır; kayma modelinde tek yatay su kotu için ön/arka YASS'ın yükseği alınır; bantlar yatay ve en alt bant sonsuzdur; ön taraftaki taban üstü ince şerit de tutulan taraf bantlarıyla temsil edilir; global dilimlerde k_v uygulanmaz",
+        "source": "Bishop (1955); mevcut wall_global_stability yaklaşımı; E4 model varsayımı",
+        "code": null,
+        "params": {}
+      }
+    ],
+    "factors_used": [
+      {
+        "path": "safety.overturning.static",
+        "value": 2.0,
+        "source": "Eksantrisite kriterinden türetilmiş yaklaşık değer; doğrudan kaynak yok",
+        "status": "unverified"
+      },
+      {
+        "path": "safety.sliding.static",
+        "value": 1.5,
+        "source": "FHWA-NHI-06-089 Vol. II (2026-10-20 karşılaştırma, secondary)",
+        "status": "secondary"
+      },
+      {
+        "path": "eccentricity.soil.static",
+        "value": 0.1667,
+        "source": "FHWA-NHI-06-089 Vol. II, B/6 (secondary)",
+        "status": "secondary"
+      },
+      {
+        "path": "safety.bearing_capacity.static",
+        "value": 3.0,
+        "source": "FHWA-NHI-06-089 Vol. II, önerilen 3.0 (secondary)",
+        "status": "secondary"
+      },
+      {
+        "path": "safety.overturning.seismic",
+        "value": 1.5,
+        "source": "ASD — yaygın uygulama değeri (FHWA-NHI-06-089 ile karşılaştırılmadı)",
+        "status": "unverified"
+      },
+      {
+        "path": "safety.sliding.seismic",
+        "value": 1.1,
+        "source": "ASD — yaygın uygulama değeri (FHWA-NHI-06-089 ile karşılaştırılmadı)",
+        "status": "unverified"
+      },
+      {
+        "path": "eccentricity.soil.seismic",
+        "value": 0.25,
+        "source": "ASD — yaygın uygulama; sismik değerler doğrulanmadı",
+        "status": "unverified"
+      },
+      {
+        "path": "safety.bearing_capacity.seismic",
+        "value": 2.0,
+        "source": "ASD — yaygın uygulama değeri (FHWA-NHI-06-089 ile karşılaştırılmadı)",
+        "status": "unverified"
+      },
+      {
+        "path": "safety.global_stability.static",
+        "value": 1.5,
+        "source": "FHWA-NHI-06-089 Vol. II (secondary)",
+        "status": "secondary"
+      },
+      {
+        "path": "safety.global_stability.seismic",
+        "value": 1.1,
+        "source": "ASD — yaygın uygulama değeri (FHWA-NHI-06-089 ile karşılaştırılmadı)",
+        "status": "unverified"
+      }
+    ],
+    "warnings": [
+      "Eğimli arka yüzdeki zemin ağırlığı Coulomb itkisine dahildir; ayrıca eklenmedi",
+      "Kazı Destek Yapıları Tasarım ve Uygulama Esasları (16.07.2026 değişikliği) ek şartları kontrol edilmelidir; bu belge yazılımda incelenmedi.",
+      "Kısmen su altındaki dolgu yönetmelik formüllerinin kapsamı dışındadır; katman bazında mühendislik yargısı uygulandı — sonucu kontrol edin.",
+      "Su altındaki dolgu: deprem itkisi TBDY 2018 Denk. 16.26 ile hesaplandı (EN 1998-5 Ek E ile uyumlu); seçim: envelope, yöneten: pervious.",
+      "Düşey deprem katsayısı ±kv zarfı uygulandı (TBDY 16.12.2.3); yöneten işaret kontrol bazında detayda belirtilmiştir.",
+      "coefficients.py notu: TBDY 2018 16.12.2.2 — boşluk suyu basıncı artışı olabilecek durumlarda r ≤ 1 gerekebilir; r değerini kontrol edin.",
+      "Su altındaki dolgu: TBDY Denk. 16.20 dinamik su ve 16.26 r=1 varsayar (water_kh=0.4·S_DS); r>1 ile zemin itkisinin azaltılması mühendis tarafından gerekçelendirilmelidir."
+    ],
+    "kh": 0.13333333333333333,
+    "kv": 0.06666666666666667,
+    "iterations": 0,
+    "result_hash": "54e7a3c23a88f47f36ee13cd2e9e9a765a2eca50c0f38838357422de13129bf6"
+  }
+}

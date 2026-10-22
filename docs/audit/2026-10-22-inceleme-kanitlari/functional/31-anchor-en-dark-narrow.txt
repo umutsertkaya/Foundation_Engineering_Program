@@ -1,0 +1,129 @@
+Anchored excavation
+
+Project: QA İŞLEV GeoTek
+
+Save
+TR
+EN
+Back to main menu
+Anchored wall
+Single anchor
+Anchored excavation support
+UP TO DATE
+
+Anchor loads from the FHWA GEC-4 apparent pressure envelopes (single level also by free earth support, the larger governs); embedment, internal forces, basal heave in clay and optionally the anchor design of every level. External stability must be checked separately.
+
+Wall and loads
+Wall type
+Excavation height H (m)
+Soil behaviour
+Retained ground slope β (°)
+
+Sloping ground: single anchor level only; enter 0 with several levels.
+
+Surcharge q (kPa)
+Surcharge basis
+Passive factor of safety
+
+Divisor on passive resistance, ≥ 1. GEC-4 5.5.3 suggests 1.5; no default.
+
+Embedment increase
+
+Empty: 0 for one level, 0.2 for several
+
+Anchor load method
+Section modulus W (cm³/m)
+Allowable stress (MPa)
+Stiffness EI (kNm²)
+
+Stored only; deflections are not computed
+
+Anchor levels
+#	Depth (m)	Spacing (m)	Inclination (°)	
+1	
+	
+	
+	
+
+2	
+	
+	
+	
+
+3	
+	
+	
+	
+Add anchor level
+Soil
+Soil profile
+Load soil
+Top [m]	Bottom [m]	γ [kN/m³]	φ' [°]	c' [kPa]	su [kPa]
+0.00	40.00	18.0	30.0	0.0	—
+
+The analysis keeps its own copy of the profile; the project profile is not changed.
+
+Design the anchors of every level
+
+Needs the engineering inputs below; nothing is assumed.
+
+Run analysis
+Result
+APPARENT PRESSURE, HİNGE METHOD
+
+Theoretical embedment D0 (m)
+
+6.80 m
+
+Design embedment D (m)
+
+8.16 m
+
+Wall length (m)
+
+18.16 m
+
+Base reaction R_B (kN/m)
+
+27.1 kN/m
+
+Max moment (kNm/m)
+
+274.0 kNm/m
+
+Max shear (kN/m)
+
+87.1 kN/m
+
+Required section modulus (cm³)
+
+—
+
+Apparent pressure envelope (sand): p_max = 45.0 kPa, total thrust 390.0 kN/m.
+
+Anchor levels
+Depth (m)	Inclination (°)	Spacing (m)	Horizontal load (kN/m)	Design load T (kN)
+1.50	0.0	2.50	120.6	301.6
+4.50	0.0	2.50	126.9	317.2
+7.50	0.0	2.50	115.4	288.5
+Excavation base 10.0 m
+Toe 18.2 m
+1.5 m · 121 kN/m
+4.5 m · 127 kN/m
+7.5 m · 115 kN/m
+Moment [kNm/m]
+±274.0
+Shear [kN/m]
+±257.9
+Warnings
+External (global) stability and deep-seated (Kranz) failure are not checked. Analyse slip surfaces passing behind and through the anchors separately by limit equilibrium; GEC-4 5.8.3 requires FS ≥ 1.3 (1.5 for critical permanent works).
+Embedment comes from moment equilibrium about the toe (deeper than the GEC-4 5.5.3 force criterion, on the safe side). A toe force residual of 257.9 kN/m is not balanced and is not included in the shear maximum; assess it separately for the embedded section.
+Assumptions
+Apparent pressure envelope (sand), level ground: FHWA GEC-4 5.2.4–5.2.6 (sand and stiff clay trapezoid, figures 24 and 27; soft clay figure 23c). The method is empirical.
+Anchor loads by the hinge method: hinges at every anchor except the first; bending moments from the same model.
+Embedment: moment equilibrium about the toe under the base reaction R_B and the net pressure below the base (passive divided by the given factor of safety; where smaller, the passive pressure from tan φ′ and c′ divided by that factor is used, USACE EM 1110-2-2504 5-2d). This is deeper than the GEC-4 5.5.3 force criterion.
+Embedment increase not given: D = D0 (1 + 0.2).
+Anchor design inputs not given: anchor loads only, no free or bond length.
+No steel or concrete section design: shear and moment demands are reported, M/W is compared with a given stress only.
+
+Sources: FHWA GEC-4 (FHWA-IF-99-015) 5.2.4-5.2.6, figures 23, 24, 27-29, eq. 9-12 (apparent earth pressure envelopes); FHWA GEC-4 (FHWA-IF-99-015) 5.3.3, figures 33-34 (hinge and tributary methods), 5.4.1 (wall moments); FHWA GEC-4 (FHWA-IF-99-015) 5.5.3 (embedment; passive factor of safety); FHWA GEC-4 (FHWA-IF-99-015) 5.8.3 (external stability: not analysed, check separately)

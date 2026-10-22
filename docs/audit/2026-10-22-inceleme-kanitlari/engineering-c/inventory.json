@@ -1,0 +1,3048 @@
+{
+  "python": [
+    {
+      "file": "geotek/engine/sheet_pile.py",
+      "symbols": [
+        {
+          "name": "strength_reduced_profile",
+          "line": 41,
+          "end": 56,
+          "kind": "FunctionDef",
+          "doc": "Copy of ``profile`` with tan(phi') and c' divided by ``factor`` in every layer.\n\nThis is the way USACE EM 1110-2-2504 (para. 5-2d, Table 5-1) applies its factor of safety on\npassive pressure (\"effective\" phi and c). Undrained strengths (s_u) are left unchanged: for\nthose the pressure is linear in s_u and dividing the whole force by the factor is the\nsmaller (safer) value, so ``min`` of the two methods picks it."
+        },
+        {
+          "name": "_evaluate",
+          "line": 59,
+          "end": 80,
+          "kind": "FunctionDef",
+          "doc": "Value of a piecewise-linear diagram at depths z (absolute); zero outside its range.\n\nAt a jump (duplicate node) the value just below is returned, or just above where the\nboolean array ``left`` is True."
+        },
+        {
+          "name": "NetPressure",
+          "line": 84,
+          "end": 93,
+          "kind": "ClassDef",
+          "doc": null
+        },
+        {
+          "name": "net_pressure",
+          "line": 96,
+          "end": 217,
+          "kind": "FunctionDef",
+          "doc": "Net pressure diagram. ``active_factor``, ``surcharge_factor`` and ``water_factor`` are\nload factors on the soil, surcharge and water parts of the driving pressure (partial\nfactor design); the passive side is divided by ``passive_factor`` (see the module docstring).\n\nSeismic (simplified): ``seismic_increment`` [kPa] is a uniform dynamic pressure added\nbehind the wall over the retained height H (resultant at H/2, TBDY 16.12.2.8);\n``seismic_increment_below`` is the horizontal dynamic coefficient increment\nDelta K_h = (1 - kv) K_AE,h - K_A,h (>= 0) applied to the retained effective vertical stress\nplus surcharge below the dredge line, where the M-O active pressure also acts on the\nembedded part (Ebeling & Morrison 1992); ``passive_seismic_ratio`` (K_PE / K_P <= 1) scales the\npassive effective pressure.\n\n``backfill_slope`` [deg] is the retained ground slope beta (active side only; the front\nground stays horizontal). Rankine uses the slope coefficient with the resultant parallel to\nthe surface; c' is dropped on sloping ground with a warning. ``surcharge`` is per horizontal\nprojection (see ``surcharge_per_horizontal``).\n\n``passive_strength_reduction`` applies the global factor of safety the USACE EM 1110-2-2504\nway as well (tan(phi') and c' divided by ``passive_factor``) and takes the smaller passive\npressure; it is for global-FS (ASD) design, not for partial factors on the resistance\n(EN 1997-1 gamma_R;e, KDYY gamma_Re), which divide the force only.\n\n``seismic_dk`` (Delta K_ad = K_AE,total - K_A,static) with ``seismic_toe`` [m] is the KDYY\nhandbook increment: a uniform 0.5 Delta K_ad sigma'_v(toe) over the whole wall length\n0..toe (AASHTO 2010) plus a triangular surcharge part 2 q Delta K_ad (1 - z/toe)\n(Kumbasar & Kip). It replaces ``seismic_increment`` and ``seismic_increment_below``; the toe\ndepth is part of the solution, so the solvers iterate on it. ``seismic_toe=None`` adds nothing.\n\n``passive_width_ratio`` (<= 1) is the effective passive width over the member spacing for\nsoldier pile walls; it scales the effective passive pressure only, not the water."
+        },
+        {
+          "name": "_cumulative",
+          "line": 220,
+          "end": 222,
+          "kind": "FunctionDef",
+          "doc": "Running integral of y from z[0]."
+        },
+        {
+          "name": "SheetPileResult",
+          "line": 226,
+          "end": 246,
+          "kind": "ClassDef",
+          "doc": null
+        },
+        {
+          "name": "_root",
+          "line": 253,
+          "end": 264,
+          "kind": "FunctionDef",
+          "doc": "First sign change of fun on z[start_index:], refined with brentq."
+        },
+        {
+          "name": "_internal_forces",
+          "line": 267,
+          "end": 275,
+          "kind": "FunctionDef",
+          "doc": null
+        },
+        {
+          "name": "_section",
+          "line": 278,
+          "end": 283,
+          "kind": "FunctionDef",
+          "doc": null
+        },
+        {
+          "name": "_iterate_toe",
+          "line": 286,
+          "end": 297,
+          "kind": "FunctionDef",
+          "doc": "Fixed point on the toe depth for the KDYY seismic increment (it depends on the toe)."
+        },
+        {
+          "name": "cantilever_sheet_pile",
+          "line": 300,
+          "end": 310,
+          "kind": "FunctionDef",
+          "doc": null
+        },
+        {
+          "name": "_cantilever_once",
+          "line": 313,
+          "end": 335,
+          "kind": "FunctionDef",
+          "doc": null
+        },
+        {
+          "name": "anchored_sheet_pile",
+          "line": 338,
+          "end": 354,
+          "kind": "FunctionDef",
+          "doc": null
+        },
+        {
+          "name": "_anchored_once",
+          "line": 357,
+          "end": 389,
+          "kind": "FunctionDef",
+          "doc": null
+        }
+      ],
+      "constants": [
+        {
+          "name": "DZ",
+          "line": 37,
+          "expression": "0.002"
+        },
+        {
+          "name": "_NO_DRIVE",
+          "line": 249,
+          "expression": "'The net pressure above the dredge line does not drive the wall (e.g. tension crack deeper than H); no embedment is needed for equilibrium'"
+        },
+        {
+          "name": "F",
+          "line": 316,
+          "expression": "_cumulative(z, net)"
+        },
+        {
+          "name": "R",
+          "line": 329,
+          "expression": "float(np.interp(toe, z, F))"
+        },
+        {
+          "name": "F",
+          "line": 361,
+          "expression": "_cumulative(z, net)"
+        },
+        {
+          "name": "T",
+          "line": 372,
+          "expression": "float(np.interp(toe, z, F))"
+        }
+      ],
+      "review": "enumerated; consult report method matrix for numerical coverage"
+    },
+    {
+      "file": "geotek/engine/anchored_wall.py",
+      "symbols": [
+        {
+          "name": "AnchoredWallStop",
+          "line": 111,
+          "end": 117,
+          "kind": "ClassDef",
+          "doc": "The case is outside what the method supports; ``code`` selects a translated message."
+        },
+        {
+          "name": "inputs_hash",
+          "line": 120,
+          "end": 123,
+          "kind": "FunctionDef",
+          "doc": null
+        },
+        {
+          "name": "missing_inputs",
+          "line": 126,
+          "end": 136,
+          "kind": "FunctionDef",
+          "doc": "Required engineering inputs without a value (empty when the analysis can run)."
+        },
+        {
+          "name": "_layers_over",
+          "line": 139,
+          "end": 145,
+          "kind": "FunctionDef",
+          "doc": null
+        },
+        {
+          "name": "retained_averages",
+          "line": 148,
+          "end": 163,
+          "kind": "FunctionDef",
+          "doc": "Thickness-weighted gamma and phi' (drained) or Su (undrained) over 0..H."
+        },
+        {
+          "name": "su_below_base",
+          "line": 166,
+          "end": 178,
+          "kind": "FunctionDef",
+          "doc": "Lowest design Su of the layers between the base and ``depth`` below it."
+        },
+        {
+          "name": "basal_heave",
+          "line": 181,
+          "end": 211,
+          "kind": "FunctionDef",
+          "doc": "Bottom heave of a cut in clay (GEC-4 eq. 34-36, see module docstring)."
+        },
+        {
+          "name": "_trapezoid",
+          "line": 214,
+          "end": 218,
+          "kind": "FunctionDef",
+          "doc": "GEC-4 figures 24 and 27: points, ordinates and the length that multiplies p."
+        },
+        {
+          "name": "apparent_envelope",
+          "line": 221,
+          "end": 311,
+          "kind": "FunctionDef",
+          "doc": "GEC-4 apparent pressure envelope over 0..H for level ground (see module docstring)."
+        },
+        {
+          "name": "_hinge_model",
+          "line": 314,
+          "end": 349,
+          "kind": "FunctionDef",
+          "doc": "Support reactions [kN/m] and the shear/moment diagram of the hinge model above the base."
+        },
+        {
+          "name": "_thin",
+          "line": 352,
+          "end": 359,
+          "kind": "FunctionDef",
+          "doc": "Down-sample diagrams for transport; the extremes of every series are always kept."
+        },
+        {
+          "name": "_design_levels",
+          "line": 362,
+          "end": 387,
+          "kind": "FunctionDef",
+          "doc": null
+        },
+        {
+          "name": "_envelope_moment",
+          "line": 390,
+          "end": 392,
+          "kind": "FunctionDef",
+          "doc": null
+        },
+        {
+          "name": "run_analysis",
+          "line": 395,
+          "end": 606,
+          "kind": "FunctionDef",
+          "doc": null
+        },
+        {
+          "name": "__init__",
+          "line": 114,
+          "end": 117,
+          "kind": "FunctionDef",
+          "doc": null
+        },
+        {
+          "name": "bearing_factor",
+          "line": 194,
+          "end": 197,
+          "kind": "FunctionDef",
+          "doc": null
+        }
+      ],
+      "constants": [
+        {
+          "name": "ENGINE_VERSION",
+          "line": 72,
+          "expression": "'2'"
+        },
+        {
+          "name": "SAND_FACTOR",
+          "line": 74,
+          "expression": "0.65"
+        },
+        {
+          "name": "STIFF_CLAY_LIMIT",
+          "line": 75,
+          "expression": "4.0"
+        },
+        {
+          "name": "HENKEL_LIMIT",
+          "line": 76,
+          "expression": "5.14"
+        },
+        {
+          "name": "TRANSITION_KA",
+          "line": 77,
+          "expression": "0.22"
+        },
+        {
+          "name": "STIFF_MIN_TOTAL",
+          "line": 79,
+          "expression": "3.0"
+        },
+        {
+          "name": "STIFF_CRITICAL_TOTAL",
+          "line": 81,
+          "expression": "4.0"
+        },
+        {
+          "name": "SOFT_RAMP",
+          "line": 83,
+          "expression": "0.25"
+        },
+        {
+          "name": "BASAL_FS",
+          "line": 84,
+          "expression": "{'temporary': 1.5, 'permanent': 2.5}"
+        },
+        {
+          "name": "MAX_POINTS",
+          "line": 86,
+          "expression": "500"
+        },
+        {
+          "name": "NC_CHART_H_OVER_B",
+          "line": 87,
+          "expression": "(0.0, 1.0, 2.0, 2.5, 3.0, 4.0)"
+        },
+        {
+          "name": "NC_CHART",
+          "line": 88,
+          "expression": "{0.0: (5.19, 6.31, 6.97, 7.18, 7.32, 7.46), 0.5: (5.69, 6.94, 7.65, 7.87, 8.02, 8.15), 1.0: (6.18, 7.56, 8.34, 8.59, 8.76, 8.94)}"
+        },
+        {
+          "name": "GEC4",
+          "line": 95,
+          "expression": "'FHWA GEC-4 (FHWA-IF-99-015)'"
+        },
+        {
+          "name": "SOURCES_ENVELOPE",
+          "line": 96,
+          "expression": "[f'{GEC4} 5.2.4-5.2.6, figures 23, 24, 27-29, eq. 9-12 (apparent earth pressure envelopes)', f'{GEC4} 5.3.3, figures 33-34 (hinge and tributary methods), 5.4.1 (wall moments)', f'{GEC4} 5.5.3 (embedment; passive factor of safety)']"
+        },
+        {
+          "name": "SOURCES_SINGLE",
+          "line": 101,
+          "expression": "['USS Steel Sheet Piling Design Manual; USACE EM 1110-2-2504 (free earth support)']"
+        },
+        {
+          "name": "SOURCES_BASAL",
+          "line": 104,
+          "expression": "[f'{GEC4} 5.8.2.2, eq. 34-36, figure 51 (basal heave; Terzaghi, Peck and Mesri 1996)', 'Skempton (1951) bearing capacity factor Nc for the base of a cut']"
+        },
+        {
+          "name": "SOURCE_EXTERNAL",
+          "line": 108,
+          "expression": "f'{GEC4} 5.8.3 (external stability: not analysed, check separately)'"
+        },
+        {
+          "name": "H",
+          "line": 316,
+          "expression": "supports[-1]"
+        },
+        {
+          "name": "C0",
+          "line": 320,
+          "expression": "lambda x: float(np.interp(x, zg, c0))"
+        },
+        {
+          "name": "C1",
+          "line": 321,
+          "expression": "lambda x: float(np.interp(x, zg, c1))"
+        },
+        {
+          "name": "H",
+          "line": 400,
+          "expression": "inputs.excavation_height"
+        }
+      ],
+      "review": "enumerated; consult report method matrix for numerical coverage"
+    },
+    {
+      "file": "geotek/engine/anchors.py",
+      "symbols": [
+        {
+          "name": "_within",
+          "line": 45,
+          "end": 47,
+          "kind": "FunctionDef",
+          "doc": "One tolerance for counting tendons and for the checks."
+        },
+        {
+          "name": "MissingAnchorInputsError",
+          "line": 50,
+          "end": 55,
+          "kind": "ClassDef",
+          "doc": "Engineering inputs the design needs but the caller did not provide."
+        },
+        {
+          "name": "inputs_hash",
+          "line": 58,
+          "end": 62,
+          "kind": "FunctionDef",
+          "doc": "Stable digest of the inputs, used to mark a stored result as out of date."
+        },
+        {
+          "name": "missing_inputs",
+          "line": 65,
+          "end": 77,
+          "kind": "FunctionDef",
+          "doc": "Required engineering inputs without a value (empty when the design can run)."
+        },
+        {
+          "name": "wedge_geometry",
+          "line": 80,
+          "end": 86,
+          "kind": "FunctionDef",
+          "doc": "Return (horizontal distance, length along the anchor) from the wall to the failure surface."
+        },
+        {
+          "name": "_select_tendon",
+          "line": 89,
+          "end": 147,
+          "kind": "FunctionDef",
+          "doc": null
+        },
+        {
+          "name": "design_anchor",
+          "line": 150,
+          "end": 307,
+          "kind": "FunctionDef",
+          "doc": "Design one ground anchor. Raises MissingAnchorInputsError / GeoTekError, never assumes."
+        },
+        {
+          "name": "__init__",
+          "line": 53,
+          "end": 55,
+          "kind": "FunctionDef",
+          "doc": null
+        }
+      ],
+      "constants": [
+        {
+          "name": "_EPS",
+          "line": 40,
+          "expression": "1e-09"
+        },
+        {
+          "name": "ENGINE_VERSION",
+          "line": 41,
+          "expression": "'2'"
+        },
+        {
+          "name": "H",
+          "line": 159,
+          "expression": "inputs.excavation_height"
+        }
+      ],
+      "review": "enumerated; consult report method matrix for numerical coverage"
+    },
+    {
+      "file": "geotek/engine/anchor_tables.py",
+      "symbols": [
+        {
+          "name": "TendonSection",
+          "line": 16,
+          "end": 23,
+          "kind": "ClassDef",
+          "doc": null
+        },
+        {
+          "name": "TransferLoad",
+          "line": 70,
+          "end": 75,
+          "kind": "ClassDef",
+          "doc": null
+        }
+      ],
+      "constants": [
+        {
+          "name": "GEC4",
+          "line": 12,
+          "expression": "'FHWA GEC-4 (FHWA-IF-99-015)'"
+        },
+        {
+          "name": "STRAND_15MM_ID",
+          "line": 26,
+          "expression": "'strand_15mm_gr270'"
+        },
+        {
+          "name": "TENDON_BY_ID",
+          "line": 49,
+          "expression": "{t.id: t for t in TENDONS}"
+        },
+        {
+          "name": "MIN_FREE_LENGTH",
+          "line": 51,
+          "expression": "{'strand': 4.5, 'bar': 3.0}"
+        },
+        {
+          "name": "MIN_FREE_LENGTH_SOURCE",
+          "line": 53,
+          "expression": "f'{GEC4} section 5.3.4, p. 67'"
+        },
+        {
+          "name": "MIN_BOND_LENGTH",
+          "line": 55,
+          "expression": "{('soil', 'strand'): 4.5, ('soil', 'bar'): 4.5, ('rock', 'strand'): 4.5, ('rock', 'bar'): 3.0}"
+        },
+        {
+          "name": "MIN_BOND_LENGTH_SOURCE",
+          "line": 57,
+          "expression": "f'{GEC4} appendix E part 3B, p. E-15'"
+        },
+        {
+          "name": "MIN_HORIZONTAL_SPACING",
+          "line": 59,
+          "expression": "1.2"
+        },
+        {
+          "name": "TYPICAL_BOND_LENGTH_MAX",
+          "line": 62,
+          "expression": "{'soil': 12.0, 'rock': 10.0}"
+        },
+        {
+          "name": "INCLINATION_RANGE",
+          "line": 65,
+          "expression": "(10.0, 45.0)"
+        },
+        {
+          "name": "_T6",
+          "line": 78,
+          "expression": "f'{GEC4} Table 6, p. 71 (small-diameter straight-shaft gravity-grouted, soil)'"
+        },
+        {
+          "name": "_T8",
+          "line": 79,
+          "expression": "f'{GEC4} Table 8, p. 74 (ground anchors in competent rock)'"
+        }
+      ],
+      "review": "enumerated; consult report method matrix for numerical coverage"
+    },
+    {
+      "file": "geotek/engine/limit_state.py",
+      "symbols": [
+        {
+          "name": "LimitStateCase",
+          "line": 55,
+          "end": 78,
+          "kind": "ClassDef",
+          "doc": null
+        },
+        {
+          "name": "_partial_case",
+          "line": 81,
+          "end": 108,
+          "kind": "FunctionDef",
+          "doc": null
+        },
+        {
+          "name": "_lrfd_case",
+          "line": 111,
+          "end": 139,
+          "kind": "FunctionDef",
+          "doc": null
+        },
+        {
+          "name": "limit_state_cases",
+          "line": 142,
+          "end": 166,
+          "kind": "FunctionDef",
+          "doc": "Combinations to verify. ``approach`` names an entry of the code's ``approaches``\n(EC7: DA1, DA2, DA3); default is the first one. ``overrides`` are user factor values."
+        },
+        {
+          "name": "_design_angle",
+          "line": 172,
+          "end": 173,
+          "kind": "FunctionDef",
+          "doc": null
+        },
+        {
+          "name": "_design_backfill",
+          "line": 176,
+          "end": 181,
+          "kind": "FunctionDef",
+          "doc": null
+        },
+        {
+          "name": "_design_foundation",
+          "line": 184,
+          "end": 191,
+          "kind": "FunctionDef",
+          "doc": null
+        },
+        {
+          "name": "_factor_forces",
+          "line": 194,
+          "end": 202,
+          "kind": "FunctionDef",
+          "doc": null
+        },
+        {
+          "name": "_sums",
+          "line": 205,
+          "end": 210,
+          "kind": "FunctionDef",
+          "doc": null
+        },
+        {
+          "name": "_odf",
+          "line": 213,
+          "end": 215,
+          "kind": "FunctionDef",
+          "doc": null
+        },
+        {
+          "name": "verify_wall",
+          "line": 221,
+          "end": 311,
+          "kind": "FunctionDef",
+          "doc": "External stability for each limit-state combination of ``settings.design_code``.\n\nEC7 adds an 'EQU' entry holding the overturning check."
+        },
+        {
+          "name": "_key_sliding",
+          "line": 314,
+          "end": 334,
+          "kind": "FunctionDef",
+          "doc": "Shear key sliding in partial-factor form: R_d of the base surface (``rd_base`` incl. toe\npassive) and of the plane through the key tip, each plus the design key passive.\n\nReturns (ShearKeyResult, governing R_d, detail). The key passive is divided by gamma_R,e and\nmultiplied by the passive participation, like the toe passive."
+        },
+        {
+          "name": "_ec7_equ",
+          "line": 337,
+          "end": 352,
+          "kind": "FunctionDef",
+          "doc": null
+        },
+        {
+          "name": "layered_design_code",
+          "line": 357,
+          "end": 394,
+          "kind": "FunctionDef",
+          "doc": "Code copy with explicit, project-supplied WA paths; never infer WA from G/EH.\n\nPartial-code tables support null. LRFD load tables currently accept floats only,\nso an absent WA key is the missing value until an override supplies that float.\nNothing is written to a code file and the legacy code reader is unchanged."
+        },
+        {
+          "name": "required_layered_inputs",
+          "line": 397,
+          "end": 437,
+          "kind": "FunctionDef",
+          "doc": "The existing code path/source mechanism, scoped to actions present in this wall."
+        },
+        {
+          "name": "_design_structure_soil",
+          "line": 440,
+          "end": 455,
+          "kind": "FunctionDef",
+          "doc": null
+        },
+        {
+          "name": "layered_limit_state_cases",
+          "line": 458,
+          "end": 470,
+          "kind": "FunctionDef",
+          "doc": "Layered combinations with the WA factor recorded only if water acts."
+        },
+        {
+          "name": "verify_wall_layered",
+          "line": 473,
+          "end": 597,
+          "kind": "FunctionDef",
+          "doc": "External stability of the structure copy, using design strengths in every layer."
+        },
+        {
+          "name": "verify_wall_global_stability",
+          "line": 600,
+          "end": 638,
+          "kind": "FunctionDef",
+          "doc": "Bishop with design strengths; retained bands select E4 surface-action factoring.\n\nODF = F_d / gamma_R,e (EC7) or F x phi (LRFD). None keeps the legacy path."
+        },
+        {
+          "name": "_design_profile",
+          "line": 644,
+          "end": 654,
+          "kind": "FunctionDef",
+          "doc": null
+        },
+        {
+          "name": "SheetPileDesign",
+          "line": 658,
+          "end": 665,
+          "kind": "ClassDef",
+          "doc": null
+        },
+        {
+          "name": "design_sheet_pile",
+          "line": 668,
+          "end": 710,
+          "kind": "FunctionDef",
+          "doc": "Embedment, design moment and anchor force for every combination, plus the envelope.\n\nDriving soil pressure x gamma_G (EC7) or EH (LRFD), surcharge x gamma_Q / LS, water behind\nx gamma_G (EC7) or 1.0 (LRFD); passive resistance / gamma_R,e (EC7) or x phi (LRFD).\nThe Blum depth increase for cantilevers (default 20 %) models the toe reaction and is kept."
+        },
+        {
+          "name": "f",
+          "line": 85,
+          "end": 86,
+          "kind": "FunctionDef",
+          "doc": null
+        },
+        {
+          "name": "inv",
+          "line": 117,
+          "end": 121,
+          "kind": "FunctionDef",
+          "doc": null
+        },
+        {
+          "name": "is_water",
+          "line": 364,
+          "end": 365,
+          "kind": "FunctionDef",
+          "doc": null
+        },
+        {
+          "name": "profile_design",
+          "line": 441,
+          "end": 450,
+          "kind": "FunctionDef",
+          "doc": null
+        }
+      ],
+      "constants": [
+        {
+          "name": "B",
+          "line": 243,
+          "expression": "wf.width"
+        },
+        {
+          "name": "B",
+          "line": 510,
+          "expression": "wf.width"
+        }
+      ],
+      "review": "enumerated; consult report method matrix for numerical coverage"
+    },
+    {
+      "file": "geotek/core/models/walls.py",
+      "symbols": [
+        {
+          "name": "Backfill",
+          "line": 16,
+          "end": 29,
+          "kind": "ClassDef",
+          "doc": "Retained (drained) backfill. Water behind the wall is not modelled: drainage assumed."
+        },
+        {
+          "name": "FoundationSoil",
+          "line": 32,
+          "end": 53,
+          "kind": "ClassDef",
+          "doc": "Soil below the base. ``gamma`` is the effective unit weight for the N_gamma term and\n``overburden`` the effective vertical stress at base level on the toe side."
+        },
+        {
+          "name": "ShearKey",
+          "line": 56,
+          "end": 73,
+          "kind": "ClassDef",
+          "doc": "Concrete shear key (kayma dişi) cast under the base slab; a full-length strip, per metre of wall.\n\n``position`` places the key under the toe, the middle of the base or the heel; ``width`` is its\nhorizontal size and ``depth`` how far it projects below the base bottom."
+        },
+        {
+          "name": "_check_key",
+          "line": 76,
+          "end": 78,
+          "kind": "FunctionDef",
+          "doc": null
+        },
+        {
+          "name": "CantileverGeometry",
+          "line": 81,
+          "end": 110,
+          "kind": "ClassDef",
+          "doc": "Reinforced concrete cantilever wall; stem back face vertical, front face battered."
+        },
+        {
+          "name": "GravityGeometry",
+          "line": 113,
+          "end": 132,
+          "kind": "ClassDef",
+          "doc": "Trapezoidal gravity wall: base width B, top width, back face offset at the top."
+        },
+        {
+          "name": "WallLoads",
+          "line": 135,
+          "end": 144,
+          "kind": "ClassDef",
+          "doc": null
+        },
+        {
+          "name": "WallSettings",
+          "line": 147,
+          "end": 166,
+          "kind": "ClassDef",
+          "doc": null
+        },
+        {
+          "name": "_check",
+          "line": 26,
+          "end": 29,
+          "kind": "FunctionDef",
+          "doc": null
+        },
+        {
+          "name": "_check",
+          "line": 48,
+          "end": 53,
+          "kind": "FunctionDef",
+          "doc": null
+        },
+        {
+          "name": "span",
+          "line": 67,
+          "end": 73,
+          "kind": "FunctionDef",
+          "doc": "(x_front, x_back) of the key in the wall frame (origin at the toe)."
+        },
+        {
+          "name": "_check",
+          "line": 94,
+          "end": 98,
+          "kind": "FunctionDef",
+          "doc": null
+        },
+        {
+          "name": "width",
+          "line": 101,
+          "end": 102,
+          "kind": "FunctionDef",
+          "doc": null
+        },
+        {
+          "name": "height",
+          "line": 105,
+          "end": 106,
+          "kind": "FunctionDef",
+          "doc": null
+        },
+        {
+          "name": "x_stem_back",
+          "line": 109,
+          "end": 110,
+          "kind": "FunctionDef",
+          "doc": null
+        },
+        {
+          "name": "_check",
+          "line": 124,
+          "end": 128,
+          "kind": "FunctionDef",
+          "doc": null
+        },
+        {
+          "name": "width",
+          "line": 131,
+          "end": 132,
+          "kind": "FunctionDef",
+          "doc": null
+        }
+      ],
+      "constants": [],
+      "review": "enumerated; consult report method matrix for numerical coverage"
+    },
+    {
+      "file": "geotek/core/models/anchors.py",
+      "symbols": [
+        {
+          "name": "_Model",
+          "line": 19,
+          "end": 20,
+          "kind": "ClassDef",
+          "doc": null
+        },
+        {
+          "name": "TendonSpec",
+          "line": 23,
+          "end": 44,
+          "kind": "ClassDef",
+          "doc": "Prestressing steel selection; ``None`` library id / count means choose automatically."
+        },
+        {
+          "name": "AnchorDesignInputs",
+          "line": 47,
+          "end": 119,
+          "kind": "ClassDef",
+          "doc": null
+        },
+        {
+          "name": "Notice",
+          "line": 122,
+          "end": 126,
+          "kind": "ClassDef",
+          "doc": "A translatable message: ``anchored_wall.warning.<code>`` / ``.assumption.<code>``."
+        },
+        {
+          "name": "AnchorCheck",
+          "line": 129,
+          "end": 135,
+          "kind": "ClassDef",
+          "doc": "``ok`` when demand <= limit; for ``overburden`` demand is the required cover, limit the available."
+        },
+        {
+          "name": "TendonResult",
+          "line": 138,
+          "end": 151,
+          "kind": "ClassDef",
+          "doc": null
+        },
+        {
+          "name": "AnchorDesignResult",
+          "line": 154,
+          "end": 196,
+          "kind": "ClassDef",
+          "doc": null
+        },
+        {
+          "name": "AnchorRecord",
+          "line": 199,
+          "end": 204,
+          "kind": "ClassDef",
+          "doc": "Stored anchor design: the inputs, the last result and the hash of its inputs."
+        },
+        {
+          "name": "AnchorLevel",
+          "line": 207,
+          "end": 215,
+          "kind": "ClassDef",
+          "doc": "One anchor row of the wall; loads are per metre of wall, anchors repeat at ``spacing``."
+        },
+        {
+          "name": "AnchorDesignCommon",
+          "line": 218,
+          "end": 241,
+          "kind": "ClassDef",
+          "doc": "Anchor design inputs shared by every level; geometry and load come from the analysis.\n\nSame meaning and rules as ``AnchorDesignInputs``; nothing is assumed when left out."
+        },
+        {
+          "name": "WallSection",
+          "line": 244,
+          "end": 251,
+          "kind": "ClassDef",
+          "doc": "Generic wall section: strength check only, no steel or concrete design."
+        },
+        {
+          "name": "AnchoredWallAnalysisInputs",
+          "line": 254,
+          "end": 312,
+          "kind": "ClassDef",
+          "doc": null
+        },
+        {
+          "name": "LevelResult",
+          "line": 315,
+          "end": 326,
+          "kind": "ClassDef",
+          "doc": null
+        },
+        {
+          "name": "EnvelopeResult",
+          "line": 329,
+          "end": 341,
+          "kind": "ClassDef",
+          "doc": null
+        },
+        {
+          "name": "BasalHeaveResult",
+          "line": 344,
+          "end": 360,
+          "kind": "ClassDef",
+          "doc": "Bottom heave of a cut in clay, GEC-4 5.8.2.2 eq. 34-36 (Terzaghi et al. 1996)."
+        },
+        {
+          "name": "AnalysisResult",
+          "line": 363,
+          "end": 391,
+          "kind": "ClassDef",
+          "doc": null
+        },
+        {
+          "name": "AnalysisRecord",
+          "line": 394,
+          "end": 397,
+          "kind": "ClassDef",
+          "doc": null
+        },
+        {
+          "name": "AnchoredWallState",
+          "line": 400,
+          "end": 404,
+          "kind": "ClassDef",
+          "doc": "``Project.modules[\"anchored_wall\"]``; later phases add fields with defaults."
+        },
+        {
+          "name": "_consistent",
+          "line": 37,
+          "end": 44,
+          "kind": "FunctionDef",
+          "doc": null
+        },
+        {
+          "name": "_consistent",
+          "line": 102,
+          "end": 119,
+          "kind": "FunctionDef",
+          "doc": null
+        },
+        {
+          "name": "_consistent",
+          "line": 297,
+          "end": 312,
+          "kind": "FunctionDef",
+          "doc": null
+        }
+      ],
+      "constants": [
+        {
+          "name": "ANCHOR_STATE_VERSION",
+          "line": 16,
+          "expression": "1"
+        }
+      ],
+      "review": "enumerated; consult report method matrix for numerical coverage"
+    },
+    {
+      "file": "geotek/services/walls_basic.py",
+      "symbols": [
+        {
+          "name": "Assumption",
+          "line": 61,
+          "end": 65,
+          "kind": "ClassDef",
+          "doc": null
+        },
+        {
+          "name": "BasicWallInput",
+          "line": 68,
+          "end": 104,
+          "kind": "ClassDef",
+          "doc": null
+        },
+        {
+          "name": "BasicWallResult",
+          "line": 108,
+          "end": 133,
+          "kind": "ClassDef",
+          "doc": null
+        },
+        {
+          "name": "_ceil",
+          "line": 136,
+          "end": 137,
+          "kind": "FunctionDef",
+          "doc": null
+        },
+        {
+          "name": "_round",
+          "line": 140,
+          "end": 141,
+          "kind": "FunctionDef",
+          "doc": null
+        },
+        {
+          "name": "proportion",
+          "line": 144,
+          "end": 146,
+          "kind": "FunctionDef",
+          "doc": "Geometry for base width B from the preliminary sizing ratios (None if not feasible)."
+        },
+        {
+          "name": "proportion_for",
+          "line": 149,
+          "end": 168,
+          "kind": "FunctionDef",
+          "doc": "``proportion`` without an input model (shared with the advanced-level sizing).\n\n``key`` is attached unchanged; a base too narrow for it is infeasible (None)."
+        },
+        {
+          "name": "key_assumptions",
+          "line": 175,
+          "end": 205,
+          "kind": "FunctionDef",
+          "doc": "Visible assumptions of the shear key sliding model (empty without a key)."
+        },
+        {
+          "name": "_assumptions",
+          "line": 208,
+          "end": 231,
+          "kind": "FunctionDef",
+          "doc": null
+        },
+        {
+          "name": "_foundation",
+          "line": 234,
+          "end": 240,
+          "kind": "FunctionDef",
+          "doc": null
+        },
+        {
+          "name": "_bands",
+          "line": 243,
+          "end": 246,
+          "kind": "FunctionDef",
+          "doc": null
+        },
+        {
+          "name": "size_wall",
+          "line": 249,
+          "end": 330,
+          "kind": "FunctionDef",
+          "doc": "Smallest base width (in 0.05 m steps) satisfying every ASD check, static and seismic."
+        },
+        {
+          "name": "check_wall",
+          "line": 333,
+          "end": 372,
+          "kind": "FunctionDef",
+          "doc": "Check user-entered dimensions with the same basis as ``size_wall`` (no sizing loop)."
+        },
+        {
+          "name": "BasicSheetPileInput",
+          "line": 384,
+          "end": 413,
+          "kind": "ClassDef",
+          "doc": null
+        },
+        {
+          "name": "BasicSheetPileResult",
+          "line": 417,
+          "end": 421,
+          "kind": "ClassDef",
+          "doc": null
+        },
+        {
+          "name": "design_sheet_pile_basic",
+          "line": 424,
+          "end": 485,
+          "kind": "FunctionDef",
+          "doc": "Homogeneous soil; FS 1.5 on passive; Blum +20 % for cantilevers; TBDY seismic (r = 1)."
+        },
+        {
+          "name": "_check",
+          "line": 95,
+          "end": 104,
+          "kind": "FunctionDef",
+          "doc": null
+        },
+        {
+          "name": "summary_rows",
+          "line": 125,
+          "end": 133,
+          "kind": "FunctionDef",
+          "doc": "(case, check, value, required, passed, comparison) for a compact table."
+        },
+        {
+          "name": "evaluate",
+          "line": 271,
+          "end": 281,
+          "kind": "FunctionDef",
+          "doc": null
+        },
+        {
+          "name": "failing",
+          "line": 283,
+          "end": 286,
+          "kind": "FunctionDef",
+          "doc": null
+        },
+        {
+          "name": "_check",
+          "line": 402,
+          "end": 413,
+          "kind": "FunctionDef",
+          "doc": null
+        }
+      ],
+      "constants": [
+        {
+          "name": "STEP",
+          "line": 49,
+          "expression": "0.05"
+        },
+        {
+          "name": "TAN_DELTA_BASE_MAX",
+          "line": 51,
+          "expression": "0.6"
+        },
+        {
+          "name": "SRC_SIZING",
+          "line": 54,
+          "expression": "'Ön boyutlandırma oranları (Das, Principles of Foundation Engineering; mühendislik yargısı)'"
+        },
+        {
+          "name": "SRC_TBDY_DELTA",
+          "line": 55,
+          "expression": "\"TBDY 2018 16.12.2.9 (aktif durumda δ ≤ 2φ'/3)\""
+        },
+        {
+          "name": "SRC_TBDY_BASE",
+          "line": 56,
+          "expression": "'TBDY 2018 Tablo 16.3 (tan δ ≤ 0.6, yerinde dökme beton)'"
+        },
+        {
+          "name": "SRC_TBDY_SEISMIC",
+          "line": 57,
+          "expression": "'TBDY 2018 Denk. 16.22, Tablo 16.7, 16.12.2.8'"
+        },
+        {
+          "name": "SRC_CONSERVATIVE",
+          "line": 58,
+          "expression": "'Temel seviye güvenli varsayımı'"
+        },
+        {
+          "name": "SRC_SHEAR_KEY",
+          "line": 171,
+          "expression": "'Das, Principles of Foundation Engineering (taban dişi, D1 = D + diş derinliği); ODTÜ CE366 Recitation 5 P1 (P_p = 65D + 32.5D², FS_p = 2)'"
+        },
+        {
+          "name": "PASSIVE_FS_BASIC",
+          "line": 377,
+          "expression": "1.5"
+        },
+        {
+          "name": "PASSIVE_FS_FINE",
+          "line": 378,
+          "expression": "2.0"
+        },
+        {
+          "name": "SRC_SHEET_PASSIVE",
+          "line": 380,
+          "expression": "'Pasif dirence GS = 1.5 — USS Steel Sheet Piling Design Manual / USACE EM 1110-2-2504 uygulaması (doğrulanmadı)'"
+        },
+        {
+          "name": "H",
+          "line": 254,
+          "expression": "inp.height"
+        },
+        {
+          "name": "D",
+          "line": 255,
+          "expression": "inp.embedment if inp.embedment is not None else max(0.6, _ceil(H / 10))"
+        },
+        {
+          "name": "B",
+          "line": 288,
+          "expression": "max(_ceil(0.3 * H), 0.9)"
+        },
+        {
+          "name": "D",
+          "line": 338,
+          "expression": "geometry.embedment"
+        },
+        {
+          "name": "H",
+          "line": 426,
+          "expression": "inp.retained_height"
+        },
+        {
+          "name": "B",
+          "line": 304,
+          "expression": "round(B + STEP, 6)"
+        }
+      ],
+      "review": "enumerated; consult report method matrix for numerical coverage"
+    },
+    {
+      "file": "geotek/services/walls_advanced.py",
+      "symbols": [
+        {
+          "name": "MissingFactor",
+          "line": 42,
+          "end": 46,
+          "kind": "ClassDef",
+          "doc": null
+        },
+        {
+          "name": "_paths",
+          "line": 49,
+          "end": 76,
+          "kind": "FunctionDef",
+          "doc": null
+        },
+        {
+          "name": "required_inputs",
+          "line": 79,
+          "end": 91,
+          "kind": "FunctionDef",
+          "doc": "Factors the analysis needs but the code file (plus overrides) does not provide."
+        },
+        {
+          "name": "FactorRow",
+          "line": 94,
+          "end": 98,
+          "kind": "ClassDef",
+          "doc": null
+        },
+        {
+          "name": "list_factors",
+          "line": 101,
+          "end": 122,
+          "kind": "FunctionDef",
+          "doc": "Every factor of a design code with its value (None = not given) and source label."
+        },
+        {
+          "name": "_ensure_complete",
+          "line": 125,
+          "end": 129,
+          "kind": "FunctionDef",
+          "doc": null
+        },
+        {
+          "name": "foundation_from_profile",
+          "line": 135,
+          "end": 157,
+          "kind": "FunctionDef",
+          "doc": "Foundation soil at the wall base from the layer's engineer-approved design parameters.\n\n``base_depth`` is measured from the profile surface (front ground). gamma for the N_gamma\nterm is effective if the water table is at or above the base; the overburden is the\neffective vertical stress at base level."
+        },
+        {
+          "name": "bands_from_profile",
+          "line": 160,
+          "end": 178,
+          "kind": "FunctionDef",
+          "doc": "Soil bands below the base for global stability; elevation 0 = base level."
+        },
+        {
+          "name": "AdvancedWallResult",
+          "line": 185,
+          "end": 195,
+          "kind": "ClassDef",
+          "doc": null
+        },
+        {
+          "name": "analyze_wall_advanced",
+          "line": 198,
+          "end": 238,
+          "kind": "FunctionDef",
+          "doc": null
+        },
+        {
+          "name": "check_wall_advanced",
+          "line": 241,
+          "end": 257,
+          "kind": "FunctionDef",
+          "doc": "``analyze_wall_advanced`` for the static case and, if asked, the seismic case, merged."
+        },
+        {
+          "name": "_merge",
+          "line": 260,
+          "end": 269,
+          "kind": "FunctionDef",
+          "doc": null
+        },
+        {
+          "name": "_failing",
+          "line": 272,
+          "end": 275,
+          "kind": "FunctionDef",
+          "doc": null
+        },
+        {
+          "name": "AdvancedSizingResult",
+          "line": 279,
+          "end": 286,
+          "kind": "ClassDef",
+          "doc": null
+        },
+        {
+          "name": "size_wall_advanced",
+          "line": 289,
+          "end": 346,
+          "kind": "FunctionDef",
+          "doc": "Smallest base width (0.05 m steps, basic-level proportions) passing every check of the code.\n\nSame search as ``walls_basic.size_wall``; the slow global stability check runs only once\nthe external checks pass."
+        },
+        {
+          "name": "passed",
+          "line": 194,
+          "end": 195,
+          "kind": "FunctionDef",
+          "doc": null
+        },
+        {
+          "name": "run",
+          "line": 315,
+          "end": 318,
+          "kind": "FunctionDef",
+          "doc": null
+        }
+      ],
+      "constants": [
+        {
+          "name": "HINTS",
+          "line": 34,
+          "expression": "{('tbdy2018', 'material'): \"TBDY değer vermez. Karşılaştırma için EC7 M2: tanφ' 1.25, c' 1.25, c_u 1.4 (bunlar EC7 değeridir, TBDY değil).\", ('tbdy2018', 'load'): 'TBDY değer vermez (16.7.3.1). TS 500 uygulamasında 1.4G + 1.6Q + 1.6H ve 0.9G + 1.6H kullanıldığı görülmektedir (TS 500 metni ile doğrulanmadı).'}"
+        },
+        {
+          "name": "B",
+          "line": 320,
+          "expression": "max(_ceil(0.3 * height), 0.9)"
+        },
+        {
+          "name": "B",
+          "line": 337,
+          "expression": "round(B + STEP, 6)"
+        }
+      ],
+      "review": "enumerated; consult report method matrix for numerical coverage"
+    },
+    {
+      "file": "geotek/services/structures.py",
+      "symbols": [
+        {
+          "name": "StructureWallResult",
+          "line": 52,
+          "end": 57,
+          "kind": "ClassDef",
+          "doc": null
+        },
+        {
+          "name": "_Progress",
+          "line": 60,
+          "end": 70,
+          "kind": "ClassDef",
+          "doc": null
+        },
+        {
+          "name": "_wall",
+          "line": 73,
+          "end": 77,
+          "kind": "FunctionDef",
+          "doc": null
+        },
+        {
+          "name": "_settings",
+          "line": 80,
+          "end": 94,
+          "kind": "FunctionDef",
+          "doc": null
+        },
+        {
+          "name": "_fingerprint",
+          "line": 97,
+          "end": 116,
+          "kind": "FunctionDef",
+          "doc": null
+        },
+        {
+          "name": "calculation_fingerprint",
+          "line": 119,
+          "end": 123,
+          "kind": "FunctionDef",
+          "doc": "Current input hash, using the same effective code as the calculation service."
+        },
+        {
+          "name": "_water",
+          "line": 126,
+          "end": 127,
+          "kind": "FunctionDef",
+          "doc": null
+        },
+        {
+          "name": "required_factors",
+          "line": 130,
+          "end": 154,
+          "kind": "FunctionDef",
+          "doc": null
+        },
+        {
+          "name": "_ensure_complete",
+          "line": 157,
+          "end": 160,
+          "kind": "FunctionDef",
+          "doc": null
+        },
+        {
+          "name": "_loads",
+          "line": 163,
+          "end": 174,
+          "kind": "FunctionDef",
+          "doc": null
+        },
+        {
+          "name": "_assumptions",
+          "line": 182,
+          "end": 303,
+          "kind": "FunctionDef",
+          "doc": null
+        },
+        {
+          "name": "_case_key",
+          "line": 306,
+          "end": 307,
+          "kind": "FunctionDef",
+          "doc": null
+        },
+        {
+          "name": "_capacity_ratio",
+          "line": 310,
+          "end": 314,
+          "kind": "FunctionDef",
+          "doc": "Normalise FS/ODF and e/B checks so that the lowest ratio governs."
+        },
+        {
+          "name": "_seismic_loads",
+          "line": 317,
+          "end": 321,
+          "kind": "FunctionDef",
+          "doc": null
+        },
+        {
+          "name": "_kv_sign",
+          "line": 324,
+          "end": 325,
+          "kind": "FunctionDef",
+          "doc": null
+        },
+        {
+          "name": "_kv_detail",
+          "line": 328,
+          "end": 330,
+          "kind": "FunctionDef",
+          "doc": null
+        },
+        {
+          "name": "_evaluate_wall",
+          "line": 333,
+          "end": 402,
+          "kind": "FunctionDef",
+          "doc": null
+        },
+        {
+          "name": "_failures",
+          "line": 405,
+          "end": 407,
+          "kind": "FunctionDef",
+          "doc": null
+        },
+        {
+          "name": "_finish",
+          "line": 410,
+          "end": 476,
+          "kind": "FunctionDef",
+          "doc": null
+        },
+        {
+          "name": "size_structure",
+          "line": 479,
+          "end": 524,
+          "kind": "FunctionDef",
+          "doc": null
+        },
+        {
+          "name": "check_structure",
+          "line": 527,
+          "end": 540,
+          "kind": "FunctionDef",
+          "doc": null
+        },
+        {
+          "name": "StructureSheetPileDesign",
+          "line": 544,
+          "end": 549,
+          "kind": "ClassDef",
+          "doc": "Service envelope with explicit structure input assumptions."
+        },
+        {
+          "name": "StructureBasicSheetPileResult",
+          "line": 553,
+          "end": 557,
+          "kind": "ClassDef",
+          "doc": "Basic envelope carrying structure anchor geometry for reporting."
+        },
+        {
+          "name": "_sheet_soil",
+          "line": 560,
+          "end": 566,
+          "kind": "FunctionDef",
+          "doc": "Apply the front water override to an independent structure soil copy."
+        },
+        {
+          "name": "_ignored_override_warnings",
+          "line": 569,
+          "end": 576,
+          "kind": "FunctionDef",
+          "doc": "Overrides accepted by the code tables but never read by the engine must not look applied.\n\nThe material factor on unit weight (``<combination>.material.gamma``) is not used yet\n(docs/tasks/T12-MATERIAL-FACTORS.md)."
+        },
+        {
+          "name": "_approach_assumption",
+          "line": 579,
+          "end": 585,
+          "kind": "FunctionDef",
+          "doc": "Make the EC7-style default design approach visible instead of a silent choice."
+        },
+        {
+          "name": "_sheet_assumptions",
+          "line": 588,
+          "end": 617,
+          "kind": "FunctionDef",
+          "doc": null
+        },
+        {
+          "name": "_sheet_case",
+          "line": 620,
+          "end": 733,
+          "kind": "FunctionDef",
+          "doc": "Existing Blum/free-earth solver with independent active/passive structure profiles.\n\nOnly the pressure adapter is new; numerical integration/root/section routines are\nshared with sheet_pile.py. No global monkeypatch or shared state is used."
+        },
+        {
+          "name": "design_sheet_pile_structure",
+          "line": 736,
+          "end": 809,
+          "kind": "FunctionDef",
+          "doc": null
+        },
+        {
+          "name": "__init__",
+          "line": 61,
+          "end": 62,
+          "kind": "FunctionDef",
+          "doc": null
+        },
+        {
+          "name": "emit",
+          "line": 64,
+          "end": 70,
+          "kind": "FunctionDef",
+          "doc": null
+        },
+        {
+          "name": "solve_toe",
+          "line": 695,
+          "end": 699,
+          "kind": "FunctionDef",
+          "doc": null
+        },
+        {
+          "name": "seismic_part",
+          "line": 672,
+          "end": 678,
+          "kind": "FunctionDef",
+          "doc": null
+        }
+      ],
+      "constants": [
+        {
+          "name": "LS_EXTREME_ASSUMPTION",
+          "line": 177,
+          "expression": "'Extreme Event I trafik/yaya yükü (LS) katsayısı 0.50 kabul edildi: bu bir AASHTO tablo değeri değil, projeye özel γEQ varsayımıdır; projenin gerçek değeriyle değiştirilmelidir'"
+        },
+        {
+          "name": "LS_EXTREME_SOURCE",
+          "line": 179,
+          "expression": "'Proje varsayımı (karar 2026-10-20); aashto_lrfd.yaml load.LS.extreme_I, unverified'"
+        },
+        {
+          "name": "H",
+          "line": 484,
+          "expression": "structure.height"
+        },
+        {
+          "name": "D",
+          "line": 485,
+          "expression": "structure.geometry.embedment if structure.geometry is not None else structure.embedment if structure.embedment is not None else max(0.6, _ceil(H / 10))"
+        },
+        {
+          "name": "B",
+          "line": 492,
+          "expression": "max(_ceil(0.3 * H), 0.9)"
+        },
+        {
+          "name": "H",
+          "line": 627,
+          "expression": "structure.retained_height"
+        },
+        {
+          "name": "D0",
+          "line": 724,
+          "expression": "toe - H"
+        },
+        {
+          "name": "B",
+          "line": 513,
+          "expression": "round(B + STEP, 6)"
+        }
+      ],
+      "review": "enumerated; consult report method matrix for numerical coverage"
+    },
+    {
+      "file": "geotek/engine/walls/__init__.py",
+      "symbols": [],
+      "constants": [],
+      "review": "enumerated; consult report method matrix for numerical coverage"
+    },
+    {
+      "file": "geotek/engine/walls/base.py",
+      "symbols": [
+        {
+          "name": "Force",
+          "line": 27,
+          "end": 40,
+          "kind": "ClassDef",
+          "doc": null
+        },
+        {
+          "name": "CheckResult",
+          "line": 44,
+          "end": 54,
+          "kind": "ClassDef",
+          "doc": null
+        },
+        {
+          "name": "KeySliding",
+          "line": 58,
+          "end": 80,
+          "kind": "ClassDef",
+          "doc": "Shear key data the sliding check needs (see ``evaluate_checks``)."
+        },
+        {
+          "name": "ShearKeyResult",
+          "line": 84,
+          "end": 109,
+          "kind": "ClassDef",
+          "doc": "Sliding with a shear key: both candidate surfaces, the governing one and the key demands.\n\nThe ``fs_*`` values are the sliding resistance over the driving force for the checked case\n(global factor of safety for ASD, R_d / E_d for partial-factor codes)."
+        },
+        {
+          "name": "WallAnalysis",
+          "line": 113,
+          "end": 134,
+          "kind": "ClassDef",
+          "doc": null
+        },
+        {
+          "name": "polygon_area_centroid",
+          "line": 137,
+          "end": 147,
+          "kind": "FunctionDef",
+          "doc": null
+        },
+        {
+          "name": "weight_forces",
+          "line": 150,
+          "end": 165,
+          "kind": "FunctionDef",
+          "doc": "Weight and, in the seismic case, horizontal inertia toward the front.\n\nThe vertical seismic coefficient is a separate EQ force (+kv W upward), so that load\nfactors on the weight and on the seismic action stay independent."
+        },
+        {
+          "name": "clip_polygon_y",
+          "line": 168,
+          "end": 186,
+          "kind": "FunctionDef",
+          "doc": "Clip a polygon to a horizontal strip (Sutherland-Hodgman half planes)."
+        },
+        {
+          "name": "earth_thrust_forces",
+          "line": 189,
+          "end": 224,
+          "kind": "FunctionDef",
+          "doc": "Active thrust on a back face from the heel ``base_point`` rising H with lean theta.\n\nSplit into soil (H/3), surcharge (H/2) and seismic increment (fraction of H) parts."
+        },
+        {
+          "name": "seismic_passive_ratio",
+          "line": 227,
+          "end": 232,
+          "kind": "FunctionDef",
+          "doc": "Pseudo-static passive ratio (1 - kv) K_PE / K_P <= 1 (Mononobe-Okabe passive, horizontal\nfront ground, delta = 0); 1 in the static case. phi = 0 for undrained soil."
+        },
+        {
+          "name": "passive_force",
+          "line": 235,
+          "end": 249,
+          "kind": "FunctionDef",
+          "doc": "Rankine passive resistance on the front of the toe (sliding only), multiplied by\n``reduction`` (default: the ASD ``settings.passive_reduction``) and by the seismic passive\nratio (see ``seismic_passive_ratio``)."
+        },
+        {
+          "name": "key_weight_forces",
+          "line": 252,
+          "end": 259,
+          "kind": "FunctionDef",
+          "doc": "Self-weight (and seismic inertia) of the shear key, below the base bottom (y < 0)."
+        },
+        {
+          "name": "key_passive_from_diagram",
+          "line": 262,
+          "end": 286,
+          "kind": "FunctionDef",
+          "doc": "(force, arm below the base bottom) of a piecewise-linear passive diagram over the key.\n\n``z`` is the depth below the front ground; the key face spans ``embedment`` to\n``embedment + depth``. Jumps at layer boundaries appear as repeated ``z`` values."
+        },
+        {
+          "name": "key_sliding_basic",
+          "line": 289,
+          "end": 321,
+          "kind": "FunctionDef",
+          "doc": "Shear key passive resistance and key-tip plane data for a homogeneous foundation.\n\nRankine passive on the key front face from the front ground (``embedment`` above the base\nbottom) down to the key bottom: p_p = K_p sigma_v + 2 c sqrt(K_p) (K_p = 1 and s_u for\nundrained soil), sigma_v = gamma_front D + gamma_foundation (z - D), multiplied by the passive\nreduction factor and, in the seismic case, by the M-O passive ratio."
+        },
+        {
+          "name": "key_zone_thrust_basic",
+          "line": 324,
+          "end": 374,
+          "kind": "FunctionDef",
+          "doc": "Active thrust between the base level and the key-tip plane on the vertical line through\nthe heel (homogeneous backfill over the foundation soil).\n\nThe plane through the key tip extends the sliding block below the base, so the retained side\npushes on it down to the key bottom. Layer-local Coulomb coefficients with delta = beta on that\nvertical soil plane (Rankine-equivalent), the same convention as the layered wall path; c' is\nignored by the Coulomb solution (conservative). Only the horizontal component is used."
+        },
+        {
+          "name": "key_band_force",
+          "line": 377,
+          "end": 387,
+          "kind": "FunctionDef",
+          "doc": "Force of a piecewise-linear pressure diagram between depths ``top`` and ``top + depth``."
+        },
+        {
+          "name": "key_warnings",
+          "line": 390,
+          "end": 391,
+          "kind": "FunctionDef",
+          "doc": null
+        },
+        {
+          "name": "strip_key",
+          "line": 394,
+          "end": 396,
+          "kind": "FunctionDef",
+          "doc": "The same wall without its shear key (for the with/without comparison)."
+        },
+        {
+          "name": "attach_without_key",
+          "line": 399,
+          "end": 407,
+          "kind": "FunctionDef",
+          "doc": "Record the sliding ratio of the key-less wall in each result with a shear key."
+        },
+        {
+          "name": "key_result",
+          "line": 410,
+          "end": 421,
+          "kind": "FunctionDef",
+          "doc": "Governing surface = smaller ratio. ``rb``/``rd`` already include all passives;\n``driving_deep`` adds the key-zone actions (``KeySliding.deep_forces``) to ``driving``."
+        },
+        {
+          "name": "evaluate_checks",
+          "line": 424,
+          "end": 534,
+          "kind": "FunctionDef",
+          "doc": "ASD checks. With a shear key, sliding takes the smaller of two surfaces: (a) the base\ninterface (V tan(delta_b) + c_a B') plus the key passive, (b) a horizontal plane through the key\ntip ((V + W_soil) tan(phi) + c B' + key passive); toe passive, if used, acts on both."
+        },
+        {
+          "name": "overturning_moments",
+          "line": 537,
+          "end": 544,
+          "kind": "FunctionDef",
+          "doc": "Reclassify only base uplift; the net moment and contact resultant are unchanged."
+        },
+        {
+          "name": "moment",
+          "line": 38,
+          "end": 40,
+          "kind": "FunctionDef",
+          "doc": "Moment about the toe, counter-clockwise positive (forward overturning)."
+        },
+        {
+          "name": "passed",
+          "line": 133,
+          "end": 134,
+          "kind": "FunctionDef",
+          "doc": null
+        },
+        {
+          "name": "band",
+          "line": 362,
+          "end": 363,
+          "kind": "FunctionDef",
+          "doc": null
+        }
+      ],
+      "constants": [],
+      "review": "enumerated; consult report method matrix for numerical coverage"
+    },
+    {
+      "file": "geotek/engine/walls/global_stability.py",
+      "symbols": [
+        {
+          "name": "_footprint_load",
+          "line": 27,
+          "end": 40,
+          "kind": "FunctionDef",
+          "doc": "Linear pressure over [0, width] carrying the total weight with its centroid preserved."
+        },
+        {
+          "name": "wall_global_stability",
+          "line": 43,
+          "end": 164,
+          "kind": "FunctionDef",
+          "doc": "Critical Bishop circle and the global stability check.\n\nBy default the required FS comes from the ASD design code. For partial-factor design the\ncaller passes design-strength divisors (applied to tan phi and c of every band and the\nbackfill) and the required factor (e.g. gamma_R;e, or 1/phi for LRFD).\n\n``retained_bands`` supplies the horizontally layered retained mass above the base.\nIts first band extends upward to the sloping surface. None keeps the legacy model.\n``surcharge_factor`` applies to the surface surcharge; ``footprint_factors``\nsupplies unfavourable DC/EV factors for carried loads. Slice soil weights stay\ncharacteristic; DA1-C1/DA2 soil-weight factoring and vertical inertia are not modelled."
+        }
+      ],
+      "constants": [
+        {
+          "name": "EPS",
+          "line": 24,
+          "expression": "1e-06"
+        },
+        {
+          "name": "D",
+          "line": 132,
+          "expression": "geometry.embedment"
+        },
+        {
+          "name": "L",
+          "line": 133,
+          "expression": "4 * H"
+        }
+      ],
+      "review": "enumerated; consult report method matrix for numerical coverage"
+    },
+    {
+      "file": "geotek/engine/walls/layered.py",
+      "symbols": [
+        {
+          "name": "soil_from_basic",
+          "line": 35,
+          "end": 55,
+          "kind": "FunctionDef",
+          "doc": "Explicit compatibility adapter; does not change the legacy basic service."
+        },
+        {
+          "name": "foundation_from_structure",
+          "line": 58,
+          "end": 109,
+          "kind": "FunctionDef",
+          "doc": "Base stratum only; front q is effective (drained) or total (undrained)."
+        },
+        {
+          "name": "_profile_bands",
+          "line": 112,
+          "end": 137,
+          "kind": "FunctionDef",
+          "doc": null
+        },
+        {
+          "name": "bands_from_structure",
+          "line": 140,
+          "end": 150,
+          "kind": "FunctionDef",
+          "doc": "Retained bands above the base, natural foundation bands below; y=0 at base.\n\nFoundation weights use the Bishop water envelope (higher front/retained GWT).\nRetained weights use their own design GWT. Select cases with ``soil_at_case``."
+        },
+        {
+          "name": "soil_at_case",
+          "line": 153,
+          "end": 162,
+          "kind": "FunctionDef",
+          "doc": "Independent copy with the selected water heads exposed as the design heads."
+        },
+        {
+          "name": "_plane",
+          "line": 165,
+          "end": 169,
+          "kind": "FunctionDef",
+          "doc": null
+        },
+        {
+          "name": "_plane_profile",
+          "line": 172,
+          "end": 180,
+          "kind": "FunctionDef",
+          "doc": null
+        },
+        {
+          "name": "_submerged_dynamic",
+          "line": 183,
+          "end": 270,
+          "kind": "FunctionDef",
+          "doc": "TBDY 16.26; compare horizontal soil increments plus ONE 16.20 water force.\n\nMixed permeability uses the full water head if any wetted layer is pervious\n(unverified engineering approach; no layered hydrodynamic model is claimed)."
+        },
+        {
+          "name": "_retained_pressures",
+          "line": 273,
+          "end": 298,
+          "kind": "FunctionDef",
+          "doc": null
+        },
+        {
+          "name": "_integrals",
+          "line": 301,
+          "end": 314,
+          "kind": "FunctionDef",
+          "doc": "Force and first depth moment per material, including signed differences later."
+        },
+        {
+          "name": "_thrusts",
+          "line": 317,
+          "end": 346,
+          "kind": "FunctionDef",
+          "doc": null
+        },
+        {
+          "name": "_soil_weights",
+          "line": 349,
+          "end": 362,
+          "kind": "FunctionDef",
+          "doc": null
+        },
+        {
+          "name": "_front_pressure",
+          "line": 365,
+          "end": 379,
+          "kind": "FunctionDef",
+          "doc": "Front ground starts at H-D. Water is never reduced as passive soil resistance."
+        },
+        {
+          "name": "front_water_distribution",
+          "line": 382,
+          "end": 405,
+          "kind": "FunctionDef",
+          "doc": "Front hydrostatic diagram, including free water above the front ground.\n\nSoil intervals treated in total stress have no second water component. Depths\nin this diagram are measured from ``top`` in the structure frame."
+        },
+        {
+          "name": "_front_water",
+          "line": 408,
+          "end": 417,
+          "kind": "FunctionDef",
+          "doc": null
+        },
+        {
+          "name": "wall_pressures_layered",
+          "line": 420,
+          "end": 429,
+          "kind": "FunctionDef",
+          "doc": "Unfactored diagnostic diagrams; retained depths are from the virtual plane top."
+        },
+        {
+          "name": "_front_passive_ratio",
+          "line": 432,
+          "end": 439,
+          "kind": "FunctionDef",
+          "doc": "Smallest seismic passive ratio (1 - kv) K_PE / K_P over the front layers in [top, bottom]."
+        },
+        {
+          "name": "_key_sliding_layered",
+          "line": 442,
+          "end": 480,
+          "kind": "FunctionDef",
+          "doc": "Shear key passive resistance from the layered front profile, the key-tip foundation and\nthe actions on the block above the key-tip plane (see ``_key_zone_forces``)."
+        },
+        {
+          "name": "_key_zone_forces",
+          "line": 483,
+          "end": 535,
+          "kind": "FunctionDef",
+          "doc": "Horizontal actions between the base and the key-tip plane on the block above that plane.\n\nRetained side: active soil, surcharge and seismic increments on the vertical line through the\nheel, from base level to the key bottom (layer-local Coulomb, delta = beta, theta = 0), plus\nthe water and TBDY 16.20 dynamic water increments. Front side: the hydrostatic increment."
+        },
+        {
+          "name": "wall_forces_layered",
+          "line": 538,
+          "end": 598,
+          "kind": "FunctionDef",
+          "doc": null
+        },
+        {
+          "name": "_check_forward_loading",
+          "line": 604,
+          "end": 607,
+          "kind": "FunctionDef",
+          "doc": null
+        },
+        {
+          "name": "_bearing_vertical_load",
+          "line": 610,
+          "end": 614,
+          "kind": "FunctionDef",
+          "doc": "Gross V for total-stress bearing; existing contact eccentricity is retained."
+        },
+        {
+          "name": "analyze_wall_layered",
+          "line": 617,
+          "end": 654,
+          "kind": "FunctionDef",
+          "doc": null
+        },
+        {
+          "name": "water",
+          "line": 155,
+          "end": 157,
+          "kind": "FunctionDef",
+          "doc": null
+        },
+        {
+          "name": "diagram",
+          "line": 202,
+          "end": 212,
+          "kind": "FunctionDef",
+          "doc": null
+        },
+        {
+          "name": "choices",
+          "line": 214,
+          "end": 215,
+          "kind": "FunctionDef",
+          "doc": null
+        }
+      ],
+      "constants": [
+        {
+          "name": "UPLIFT_NAMES",
+          "line": 601,
+          "expression": "('Uplift', 'Key uplift')"
+        },
+        {
+          "name": "H",
+          "line": 274,
+          "expression": "geometry.height"
+        }
+      ],
+      "review": "enumerated; consult report method matrix for numerical coverage"
+    },
+    {
+      "file": "geotek/engine/walls/walls.py",
+      "symbols": [
+        {
+          "name": "WallForces",
+          "line": 46,
+          "end": 52,
+          "kind": "ClassDef",
+          "doc": null
+        },
+        {
+          "name": "gravity_wall_polygon",
+          "line": 55,
+          "end": 57,
+          "kind": "FunctionDef",
+          "doc": null
+        },
+        {
+          "name": "cantilever_polygons",
+          "line": 60,
+          "end": 68,
+          "kind": "FunctionDef",
+          "doc": "Base slab, stem, soil over the heel and soil over the toe (to the embedment level)."
+        },
+        {
+          "name": "wall_forces",
+          "line": 71,
+          "end": 113,
+          "kind": "FunctionDef",
+          "doc": "Unfactored forces on the wall system, each tagged with its load type."
+        },
+        {
+          "name": "_analyze",
+          "line": 116,
+          "end": 130,
+          "kind": "FunctionDef",
+          "doc": null
+        },
+        {
+          "name": "analyze_gravity_wall",
+          "line": 133,
+          "end": 136,
+          "kind": "FunctionDef",
+          "doc": null
+        },
+        {
+          "name": "analyze_cantilever_wall",
+          "line": 139,
+          "end": 142,
+          "kind": "FunctionDef",
+          "doc": null
+        }
+      ],
+      "constants": [],
+      "review": "enumerated; consult report method matrix for numerical coverage"
+    }
+  ],
+  "education": [
+    {
+      "file": "web/src/modules/education/content/sheet_pile.ts",
+      "formula_or_numeric_lines": [
+        {
+          "line": 21,
+          "text": "sources: ["
+        },
+        {
+          "line": 72,
+          "text": "expr: \"Ka = tan²(45° − φ/2),   Kp = tan²(45° + φ/2)   (yatay yüzey, β = 0, δ = 0)\","
+        },
+        {
+          "line": 83,
+          "text": "expr: \"p_aktif(z) = Ka·(σ'v(z) + q) + γw·max(0, z − GWT)     (z ≥ 0)\","
+        },
+        {
+          "line": 91,
+          "text": "expr: \"p_pasif(z) = Kp·σ'v(z − H) / GS + γw·max(0, z − max(GWT, H))     (z > H)\","
+        },
+        {
+          "line": 103,
+          "text": "expr: \"p_net(z) = p_aktif(z) − p_pasif(z)     (pozitif = duvarı kazıya doğru iter)\","
+        },
+        {
+          "line": 111,
+          "text": "expr: \"Σ M_toe = ∫₀^(H+D0) p_net(z)·(H + D0 − z) dz = 0\","
+        },
+        {
+          "line": 122,
+          "text": "expr: \"D = D0 × (1 + artış),   artış = 0,20 (varsayılan, konsol)\","
+        },
+        {
+          "line": 130,
+          "text": "expr: \"R = F(H + D0) = ∫₀^(H+D0) p_net(z) dz\","
+        },
+        {
+          "line": 175,
+          "text": "type: \"example\","
+        },
+        {
+          "line": 206,
+          "text": "expr: \"p_pasif,tasarım = min( p_pasif / GS ,  p_pasif(tanφ′ / GS, c′ / GS) )      (global FS yolu)\","
+        }
+      ]
+    },
+    {
+      "file": "web/src/modules/education/content/sheet_pile_student.ts",
+      "formula_or_numeric_lines": [
+        {
+          "line": 47,
+          "text": "expr: \"K_a = tan²(45° − φ/2),    K_p = tan²(45° + φ/2)      (yatay yüzey, düz arka yüzey için)\","
+        },
+        {
+          "line": 56,
+          "text": "expr: \"p_aktif(z) = K_a·(σ'_v(z) + q) + γ_w·max(0, z − GWT)      (z ≥ 0)\\np_pasif(z) = K_p·σ'_v(z − H) / GS + γ_w·max(0, z − max(GWT, H))      (z > H)\\np_net(z) = p_aktif(z) − p_pasif(z)\","
+        },
+        {
+          "line": 78,
+          "text": "{ label: { tr: \"Yüzeyde aktif basınç (z = 0)\", en: \"Active pressure at surface\" }, expr: \"p_aktif(0) = K_a · 0 = 0\", result: \"0 kPa\" },"
+        },
+        {
+          "line": 79,
+          "text": "{ label: { tr: \"Kazı tabanında aktif basınç (z = 5)\", en: \"Active at dredge line\" }, expr: \"p_aktif(5) = K_a · γ · 5 = 0.3333 × 18 × 5\", result: \"30 kPa\" },"
+        },
+        {
+          "line": 80,
+          "text": "{ label: { tr: \"Kazı tabanının altında (z = 6, D'nin 1 m altı)\", en: \"Active at z = 6\" }, expr: \"p_aktif(6) = K_a · 18 · 6 = 0.3333 × 108\", result: \"36 kPa\" },"
+        },
+        {
+          "line": 81,
+          "text": "{ label: { tr: \"Aynı derinlikte pasif basınç (kazı tabanından 1 m aşağı)\", en: \"Passive 1 m below dredge line\" }, expr: \"p_pasif = K_p · γ · 1 = 3 × 18 × 1\", result: \"54 kPa\" },"
+        },
+        {
+          "line": 82,
+          "text": "{ label: { tr: \"Net basınç (z = 6)\", en: \"Net at z = 6\" }, expr: \"p_net(6) = 36 − 54\", result: \"−18 kPa (perdeyi kazıdan uzağa iter)\" },"
+        },
+        {
+          "line": 127,
+          "text": "expr: \"Σ M_uç = ∫₀^(H+D0) p_net(z)·(H + D0 − z) dz = 0\","
+        },
+        {
+          "line": 136,
+          "text": "expr: \"R = ∫₀^(H+D0) p_net(z) dz      (perde ucundaki yoğunlaşmış kuvvet)\\nD = D0 × (1 + artış)      (konsol varsayılan artış = 0.20)\","
+        },
+        {
+          "line": 152,
+          "text": "{ text: { tr: \"Aktif basınç: p_a(z) = K_a·γ·z (z ≤ H + D0). Pasif basınç: p_p(z) = K_p·γ·(z − H) (z > H). Net: p_net = p_a − p_p.\", en: \"Active pressure: p_a(z) = K_a·γ·z (z ≤ H + D0). Passive pressure: p_p(z) = K_p·γ·(z − H) (z > H). Net: p_net = p_a − p_p.\" }, expr: \"p_a = K_a·γ·z,  p_p = K_p·γ·(z − H)\" },"
+        },
+        {
+          "line": 153,
+          "text": "{ text: { tr: \"Perde ucuna göre moment: aktif resultante K_a·γ·(H+D0)²/2 kolu (H+D0)/3; pasif resultante K_p·γ·D0²/2 kolu D0/3. Denge: aktif moment = pasif moment.\", en: \"Moment about the wall tip: active resultant K_a·γ·(H+D0)²/2 with arm (H+D0)/3; passive resultant K_p·γ·D0²/2 with arm D0/3. Balance: active moment = passive moment.\" }, expr: \"K_a·γ·(H+D0)³/6 = K_p·γ·D0³/6\" },"
+        },
+        {
+          "line": 154,
+          "text": "{ text: { tr: \"Her iki tarafı γ/6 ile sadeleştirip (H + D0)³ / D0³ oranını yazın.\", en: \"Cancel γ/6 on both sides and write the ratio (H + D0)³ / D0³.\" }, expr: \"(H + D0)³ / D0³ = K_p / K_a\" },"
+        },
+        {
+          "line": 155,
+          "text": "{ text: { tr: \"Kübik kök alıp D0 için çözün (r = (K_a / K_p)^(1/3)):\", en: \"Take the cube root and solve for D0 (r = (K_a / K_p)^(1/3)):\" }, expr: \"D0 = H · r / (1 − r)\" },"
+        },
+        {
+          "line": 167,
+          "text": "{ label: { tr: \"Oran r\", en: \"Ratio r\" }, expr: \"r = (K_a / K_p)^(1/3) = (1/9)^(1/3)\", result: \"r = 0.4807\" },"
+        },
+        {
+          "line": 168,
+          "text": "{ label: { tr: \"Teorik gömme D0\", en: \"Theoretical D0\" }, expr: \"D0 = H · r / (1 − r) = 5 × 0.4807 / 0.5193\", result: \"D0 = 4.63 m\" },"
+        },
+        {
+          "line": 169,
+          "text": "{ label: { tr: \"Tasarım gömme D\", en: \"Design D\" }, expr: \"D = 1.2 × D0 = 1.2 × 4.63\", result: \"D = 5.56 m (perde boyu H + D = 10.56 m)\" },"
+        },
+        {
+          "line": 170,
+          "text": "{ label: { tr: \"Perde ucundaki R (magnitüd)\", en: \"Toe force magnitude\" }, expr: \"|R| = ½·γ·[K_a(H+D0)² − K_p·D0²] = ½ × 18 × [(1/3)(9.63)² − 3 × 4.63²]\", result: \"|R| ≈ 300.4 kN/m (işaret: negatif, bölüm 3 notuna bakın)\" },"
+        },
+        {
+          "line": 208,
+          "text": "expr: \"p_pasif,tasarım = p_pasif / GS      (GS ≥ 1)\","
+        },
+        {
+          "line": 225,
+          "text": "{ label: { tr: \"Oran r (GS ile)\", en: \"Ratio r with GS\" }, expr: \"r = (K_a / (K_p/GS))^(1/3) = (0.3333 / 2)^(1/3) = (1/6)^(1/3)\", result: \"r = 0.5503\" },"
+        },
+        {
+          "line": 226,
+          "text": "{ label: { tr: \"Teorik gömme D0\", en: \"D0 with GS\" }, expr: \"D0 = 5 × 0.5503 / (1 − 0.5503) = 2.7516 / 0.4497\", result: \"D0 = 6.12 m (Örnek 2’de 4.63 m idi)\" },"
+        },
+        {
+          "line": 227,
+          "text": "{ label: { tr: \"Tasarım D\", en: \"Design D\" }, expr: \"D = 1.2 × 6.12\", result: \"D = 7.34 m\" },"
+        },
+        {
+          "line": 228,
+          "text": "{ label: { tr: \"Moment: z0 (kesme sıfır)\", en: \"Shear-zero depth\" }, expr: \"z0 = H·√K_p,t / (√K_p,t − √K_a) = 5 × √2 / (√2 − √(1/3))\", result: \"z0 = 8.45 m (kazı tabanından 3.45 m aşağı)\" },"
+        },
+        {
+          "line": 266,
+          "text": "expr: \"V(z) = ∫₀^z p_net(s) ds,    M(z) = ∫₀^z V(s) ds      (konsol, kesme sıfır olduğu derinlikte M_max)\","
+        },
+        {
+          "line": 285,
+          "text": "{ label: { tr: \"Kesme sıfır derinliği\", en: \"Shear-zero depth\" }, expr: \"z0 = 5 × √3 / (√3 − √(1/3)) = 8.660 / 1.1547\", result: \"z0 = 7.50 m\" },"
+        },
+        {
+          "line": 286,
+          "text": "{ label: { tr: \"Küpler\", en: \"Cubes\" }, expr: \"z0³ = 421.875;  (z0 − H)³ = 2.5³ = 15.625\", result: \"—\" },"
+        },
+        {
+          "line": 287,
+          "text": "{ label: { tr: \"Moment\", en: \"Moment\" }, expr: \"M_max = 18 × [(1/3)(421.875) − 3 × 15.625] / 6 = 18 × (140.625 − 46.875) / 6\", result: \"M_max = 281.25 kNm/m\" },"
+        }
+      ]
+    },
+    {
+      "file": "web/src/modules/education/content/anchors.ts",
+      "formula_or_numeric_lines": [
+        {
+          "line": 20,
+          "text": "sources: ["
+        },
+        {
+          "line": 65,
+          "text": "expr: \"∫₀^(H+D0) p_net(z)·(z − z_a) dz = 0\","
+        },
+        {
+          "line": 77,
+          "text": "expr: \"T = ∫₀^(H+D0) p_net(z) dz   (T > 0 olmalıdır)\","
+        },
+        {
+          "line": 85,
+          "text": "expr: \"P_ankraj = T · s / cos θ\","
+        },
+        {
+          "line": 118,
+          "text": "type: \"example\","
+        }
+      ]
+    },
+    {
+      "file": "web/src/modules/education/content/anchors_student.ts",
+      "formula_or_numeric_lines": [
+        {
+          "line": 79,
+          "text": "expr: \"Σ M_ankraj = ∫₀^(H+D) p_net(z)·(z − z_a) dz = 0\","
+        },
+        {
+          "line": 101,
+          "text": "{ label: { tr: \"Deneme 1: D = 1.0 m\", en: \"Trial 1: D = 1.0 m\" }, expr: \"f(1) = 6·[(6³)/3 − 1·(6²)/2] − 54·[1/3 + 4·1/2] = 6·54 − 54·2.333\", result: \"f = +198 kNm/m (pozitif, D küçük)\" },"
+        },
+        {
+          "line": 102,
+          "text": "{ label: { tr: \"Deneme 2: D = 2.0 m\", en: \"Trial 2: D = 2.0 m\" }, expr: \"f(2) = 6·[(7³)/3 − (7²)/2] − 54·[8/3 + 4·4/2] = 6 × 89.83 − 54 × 10.67\", result: \"f = −37 kNm/m (negatif, D büyük)\" },"
+        },
+        {
+          "line": 103,
+          "text": "{ label: { tr: \"Deneme 3: D = 1.9 m (kökün yakını)\", en: \"Trial 3: D = 1.9 m\" }, expr: \"f(1.9) = 6·[(6.9³)/3 − (6.9²)/2] − 54·[1.9³/3 + 4·1.9²/2] = 6 × 85.70 − 54 × 9.51\", result: \"f ≈ +0.8 kNm/m (≈ 0; küçük pozitif artık)\" },"
+        },
+        {
+          "line": 104,
+          "text": "{ label: { tr: \"Sonuç D0\", en: \"Result D0\" }, expr: \"f(1.9) ≈ +0.8 ve f(1.9023) ≈ 0 → D0 ≈ 1.902 m\", result: \"D0 = 1.90 m (tasarım = D0)\" },"
+        },
+        {
+          "line": 105,
+          "text": "{ label: { tr: \"Yatay denge: T\", en: \"Horizontal equilibrium: T\" }, expr: \"T = ½·K_a·γ·(H+D)² − ½·K_p·γ·D² = 3 × 6.902² − 27 × 1.902²\", result: \"T = 142.9 − 97.7 = 45.2 kN/m\" },"
+        },
+        {
+          "line": 136,
+          "text": "expr: \"T = ∫₀^(H+D) p_net(z) dz      (T > 0 olmalıdır)\\nP_ankraj = T · s / cos θ\","
+        },
+        {
+          "line": 151,
+          "text": "{ label: { tr: \"Yatay kuvvet\", en: \"Horizontal force\" }, expr: \"T = 45.22 kN/m\", result: \"45.22 kN/m\" },"
+        },
+        {
+          "line": 152,
+          "text": "{ label: { tr: \"Tek ankraj yükü\", en: \"Load per anchor\" }, expr: \"P = T · s / cos θ = 45.22 × 2 / cos 15°\", result: \"P = 90.43 / 0.9659\" },"
+        },
+        {
+          "line": 153,
+          "text": "{ label: { tr: \"Sonuç\", en: \"Result\" }, expr: \"P ≈ 93.6 kN\", result: \"93.6 kN per anchor\" },"
+        },
+        {
+          "line": 191,
+          "text": "expr: \"z0 = √(2T / (K_a·γ))      (kazı tabanının üstünde, z0 < H ise)\\nM_max = T·(z0 − z_a) − K_a·γ·z0³ / 6\","
+        },
+        {
+          "line": 204,
+          "text": "{ label: { tr: \"Kesme sıfır derinliği\", en: \"Shear zero depth\" }, expr: \"z0 = √(2 × 45.22 / 6) = √15.07\", result: \"z0 = 3.88 m (kazı tabanının 1.12 m üstünde)\" },"
+        },
+        {
+          "line": 205,
+          "text": "{ label: { tr: \"Moment\", en: \"Moment\" }, expr: \"M_max = 45.22 × (3.88 − 1) − 6 × 3.88³ / 6 = 130.3 − 58.5\", result: \"M_max ≈ 71.8 kNm/m\" },"
+        },
+        {
+          "line": 206,
+          "text": "{ label: { tr: \"Konsol ile karşılaştırma\", en: \"Compare with cantilever\" }, expr: \"konsol M_max = 281.25 kNm/m (önceki konu, aynı H ve zemin)\", result: \"ankraj momenti yaklaşık %74 düşürdü\" },"
+        }
+      ]
+    },
+    {
+      "file": "web/src/modules/education/content/ground_anchors.ts",
+      "formula_or_numeric_lines": [
+        {
+          "line": 20,
+          "text": "sources: ["
+        },
+        {
+          "line": 65,
+          "text": "expr: \"T = T_h · s / cos α ,   T_h = q_h · s   (GEC-4 denk. 19-20)\","
+        },
+        {
+          "line": 73,
+          "text": "expr: \"T_v = T · sin α   (GEC-4 denk. 21)\","
+        },
+        {
+          "line": 85,
+          "text": "expr: \"k = tan(45° − φ′/2);   x = (H + e − z_h) · k / (1 + k · tan α);   L_kama = x / cos α\","
+        },
+        {
+          "line": 97,
+          "text": "expr: \"χ_eksen = χ / sin(45° + φ′/2 + α)   ;   L_serbest = max( L_kama + χ_eksen ; L_min )\","
+        },
+        {
+          "line": 105,
+          "text": "expr: \"L_kök = max( T · FS / q_u ; L_kök,min ) ,   q_u = π · d_h · τ_ult  (veya doğrudan q_u)\","
+        },
+        {
+          "line": 134,
+          "text": "type: \"example\","
+        },
+        {
+          "line": 147,
+          "text": "expr: \"T_tasarım ≤ 0,60 · SMTS ;   T_kilit ≤ 0,70 · SMTS ;   T_deneme = 1,33 · T ≤ 0,80 · SMTS\","
+        }
+      ]
+    },
+    {
+      "file": "web/src/modules/education/content/ground_anchors_student.ts",
+      "formula_or_numeric_lines": [
+        {
+          "line": 58,
+          "text": "expr: \"T = T_h · s / cos α   ,   T_v = T · sin α\","
+        },
+        {
+          "line": 85,
+          "text": "{ label: { tr: \"Yatay yük (bir ankraj)\", en: \"Horizontal load per anchor\" }, expr: \"T_h · s = 172 × 2,5\", result: \"430 kN\" },"
+        },
+        {
+          "line": 86,
+          "text": "{ label: { tr: \"Eksenel tasarım yükü\", en: \"Design axial load\" }, expr: \"T = 430 / cos 15° = 430 / 0,96593\", result: \"445,17 kN\" },"
+        },
+        {
+          "line": 87,
+          "text": "{ label: { tr: \"Düşey bileşen\", en: \"Vertical component\" }, expr: \"T_v = 445,17 × sin 15° = 445,17 × 0,25882\", result: \"115,22 kN\" },"
+        },
+        {
+          "line": 88,
+          "text": "{ label: { tr: \"Kilitleme yükü (örnek girdi: oran 1,0)\", en: \"Lock-off load (example input ratio 1.0)\" }, expr: \"P_kilit = 1,0 × 445,17\", result: \"445,17 kN\" },"
+        },
+        {
+          "line": 89,
+          "text": "{ label: { tr: \"Deneme yükü\", en: \"Test load\" }, expr: \"P_deneme = 1,33 × 445,17\", result: \"592,07 kN\" },"
+        },
+        {
+          "line": 114,
+          "text": "expr: \"k = tan(45° − φ′/2) ;   x = (H + e − z_h) · k / (1 + k · tan α) ;   L_kama = x / cos α\","
+        },
+        {
+          "line": 126,
+          "text": "expr: \"χ_eksen = χ / sin(45° + φ′/2 + α) ;   L_serbest = max( L_kama + χ_eksen ;  L_min )\","
+        },
+        {
+          "line": 150,
+          "text": "{ label: { tr: \"k = tan(45° − 16,5°)\", en: \"k\" }, expr: \"k = tan 28,5° = 0,54296\", result: \"0,54296\" },"
+        },
+        {
+          "line": 151,
+          "text": "{ label: { tr: \"A: yükseklik farkı ve x\", en: \"A: rise and x\" }, expr: \"x = (10 − 6,25) × 0,54296 / (1 + 0,54296 × tan 15°) = 2,0361 / 1,14548\", result: \"1,7775 m\" },"
+        },
+        {
+          "line": 152,
+          "text": "{ label: { tr: \"A: kama uzunluğu\", en: \"A: wedge length\" }, expr: \"L_kama = 1,7775 / cos 15° = 1,7775 / 0,96593\", result: \"1,840 m\" },"
+        },
+        {
+          "line": 153,
+          "text": "{ label: { tr: \"χ ankraj ekseni boyunca\", en: \"chi along axis\" }, expr: \"χ_eksen = 2,0 / sin(76,5°) = 2,0 / 0,97237\", result: \"2,0568 m\" },"
+        },
+        {
+          "line": 154,
+          "text": "{ label: { tr: \"A: gerekli serbest boy ve sonuç\", en: \"A: required free length\" }, expr: \"L_gerekli = 1,840 + 2,057 = 3,897 < 4,5 → L_serbest = 4,5 m (minimum belirleyici)\", result: \"4,50 m\" },"
+        },
+        {
+          "line": 155,
+          "text": "{ label: { tr: \"B: x ve kama uzunluğu (yükseklik 7,5 m)\", en: \"B: x and wedge length\" }, expr: \"x = 7,5 × 0,54296 / 1,14548 = 3,5550 m ;  L_kama = 3,5550 / 0,96593\", result: \"3,680 m\" },"
+        },
+        {
+          "line": 156,
+          "text": "{ label: { tr: \"B: gerekli serbest boy\", en: \"B: required free length\" }, expr: \"L_gerekli = 3,680 + 2,057 = 5,737 > 4,5 → kama belirleyici\", result: \"5,74 m\" },"
+        },
+        {
+          "line": 189,
+          "text": "expr: \"L_kök = max( T · FS / q_u ;  L_kök,min )   ,   q_u = π · d_h · τ_ult\","
+        },
+        {
+          "line": 214,
+          "text": "{ label: { tr: \"Zemin: hesaplanan kök boyu\", en: \"Soil: calculated bond length\" }, expr: \"L_kök = 445,17 × 2,0 / 100 = 8,903\", result: \"8,90 m\" },"
+        },
+        {
+          "line": 215,
+          "text": "{ label: { tr: \"Zemin: minimum (4,5 m) ile karşılaştırma\", en: \"Soil: compare with minimum\" }, expr: \"8,90 > 4,5 → hesap belirleyici\", result: \"8,90 m\" },"
+        },
+        {
+          "line": 216,
+          "text": "{ label: { tr: \"Zemin: ankraj kapasitesi\", en: \"Soil: allowable capacity\" }, expr: \"Q = q_u · L_kök / FS = 100 × 8,903 / 2,0\", result: \"445,17 kN (= T)\" },"
+        },
+        {
+          "line": 217,
+          "text": "{ label: { tr: \"Kaya: hesaplanan kök boyu\", en: \"Rock: calculated bond length\" }, expr: \"L_kök = 445,17 × 3,0 / 730 = 1,829\", result: \"1,83 m\" },"
+        },
+        {
+          "line": 218,
+          "text": "{ label: { tr: \"Kaya: minimum belirleyici\", en: \"Rock: minimum governs\" }, expr: \"1,83 < 4,5 (halat) → L_kök = 4,5 m\", result: \"4,50 m (minimum)\" },"
+        },
+        {
+          "line": 250,
+          "text": "expr: \"T ≤ 0,60 · SMTS ;   P_kilit ≤ 0,70 · SMTS ;   P_deneme = 1,33 · T ≤ 0,80 · SMTS\","
+        },
+        {
+          "line": 271,
+          "text": "{ label: { tr: \"2 halat: toplam SMTS\", en: \"Two strands: total SMTS\" }, expr: \"SMTS = 2 × 260,7 = 521,4 kN\", result: \"521,4 kN\" },"
+        },
+        {
+          "line": 272,
+          "text": "{ label: { tr: \"2 halat: tasarım sınırı\", en: \"Two strands: design limit\" }, expr: \"0,60 × 521,4 = 312,8 kN < 445,17 → yetmez\", result: \"2 halat yetersiz\" },"
+        },
+        {
+          "line": 273,
+          "text": "{ label: { tr: \"3 halat: toplam SMTS ve sınırlar\", en: \"Three strands: total SMTS and limits\" }, expr: \"SMTS = 782,1 kN ; 0,60 × 782,1 = 469,3 ≥ 445,17 ✓ ; 0,70 × 782,1 = 547,5 ≥ 445,17 ✓ ; 0,80 × 782,1 = 625,7 ≥ 592,07 ✓\", result: \"3 halat yeterli\" },"
+        },
+        {
+          "line": 274,
+          "text": "{ label: { tr: \"3 halat: kullanım oranları\", en: \"Three strands: utilisation\" }, expr: \"T / SMTS = 445,17 / 782,1 = 0,569 ; P_deneme / SMTS = 592,07 / 782,1 = 0,757\", result: \"0,57 ve 0,76\" },"
+        },
+        {
+          "line": 275,
+          "text": "{ label: { tr: \"Örtü: kök merkezi derinliği (z_h = 6,25 m, L_serbest = 4,5, L_kök = 8,903)\", en: \"Cover: bond centre depth\" }, expr: \"z = 6,25 + (4,5 + 8,903/2) × sin 15° = 6,25 + 8,952 × 0,25882\", result: \"8,57 m ≥ 4,5 m ✓\" },"
+        }
+      ]
+    },
+    {
+      "file": "web/src/modules/education/content/anchored_wall.ts",
+      "formula_or_numeric_lines": [
+        {
+          "line": 21,
+          "text": "sources: ["
+        },
+        {
+          "line": 71,
+          "text": "expr: \"p = 0,65 · Ka · γ · H² / (H − H1/3 − Hn+1/3)   ;   ek sürşarj: Ka · q\","
+        },
+        {
+          "line": 100,
+          "text": "type: \"example\","
+        },
+        {
+          "line": 113,
+          "text": "expr: \"N_s = γ · H / S_u,b\","
+        },
+        {
+          "line": 139,
+          "text": "expr: \"Ka (Henkel) = 1 − 4·S_u/(γH) + 2√2·(d/H)·(1 − 5,14·S_u,b/(γH))\","
+        },
+        {
+          "line": 146,
+          "text": "type: \"example\","
+        },
+        {
+          "line": 180,
+          "text": "type: \"example\","
+        },
+        {
+          "line": 199,
+          "text": "type: \"example\","
+        },
+        {
+          "line": 212,
+          "text": "expr: \"FS_1 = N_c · S_u,b / (γH + q − S_u·H/B′)   ;   FS_2 = N_c · S_u,b / (γH + q)\","
+        },
+        {
+          "line": 224,
+          "text": "expr: \"N_c = min( 5 (1 + 0,2 H/B) (1 + 0,2 B/L) ; N_c,şekil51c ) ,   H/B ≤ 2,5\","
+        },
+        {
+          "line": 249,
+          "text": "type: \"example\","
+        }
+      ]
+    },
+    {
+      "file": "web/src/modules/education/content/anchored_wall_student.ts",
+      "formula_or_numeric_lines": [
+        {
+          "line": 55,
+          "text": "expr: \"P = 0,65 · K_a · γ · H²   ;   p_max = P / (H − H_1/3 − H_n+1/3)\","
+        },
+        {
+          "line": 79,
+          "text": "{ label: { tr: \"K_a\", en: \"K_a\" }, expr: \"K_a = tan²(45° − 15°) = tan²(30°) = 0,3333\", result: \"0,3333\" },"
+        },
+        {
+          "line": 80,
+          "text": "{ label: { tr: \"Toplam kuvvet\", en: \"Total thrust\" }, expr: \"P = 0,65 × 0,3333 × 18 × 10² = 0,65 × 0,3333 × 1800 = 390\", result: \"390 kN/m\" },"
+        },
+        {
+          "line": 81,
+          "text": "{ label: { tr: \"Zarf ordinatı\", en: \"Envelope ordinate\" }, expr: \"p_max = 390 / (10 − 1,5/3 − 2,5/3) = 390 / (10 − 0,5 − 0,8333) = 390 / 8,6667\", result: \"45,0 kPa\" },"
+        },
+        {
+          "line": 82,
+          "text": "{ label: { tr: \"Menteşe yükleri (program ile aynı, toplam 390 kN/m)\", en: \"Hinge loads\" }, expr: \"T_1 = 120,625 ; T_2 = 126,875 ; T_3 = 115,417 kN/m\", result: \"Σ T = 362,917\" },"
+        },
+        {
+          "line": 83,
+          "text": "{ label: { tr: \"Tabana aktarılan kuvvet (R_B) ve kontrol\", en: \"Base reaction and check\" }, expr: \"R_B = 390 − 362,917 = 27,083 ; Σ T + R_B = 390 ✓\", result: \"27,08 kN/m\" },"
+        },
+        {
+          "line": 84,
+          "text": "{ label: { tr: \"Ankraj eksenel yükü (eğim 0°, aralık 2,5 m)\", en: \"Axial load per anchor\" }, expr: \"P_1 = 120,625 × 2,5 / cos 0° = 301,56 kN\", result: \"301,56 kN\" },"
+        },
+        {
+          "line": 109,
+          "text": "{ label: { tr: \"Toplam zarf\", en: \"Total envelope\" }, expr: \"P = 390 kN/m (Örnek 1 ile aynı)\", result: \"390 kN/m\" },"
+        },
+        {
+          "line": 110,
+          "text": "{ label: { tr: \"Ankraj 1 katkı alanı\", en: \"Anchor 1 tributary\" }, expr: \"T_1 = 112,5 kN/m (alan birimi kN/m)\", result: \"112,50\" },"
+        },
+        {
+          "line": 111,
+          "text": "{ label: { tr: \"Ankraj 2 katkı alanı\", en: \"Anchor 2 tributary\" }, expr: \"T_2 = 135,0 kN/m\", result: \"135,00\" },"
+        },
+        {
+          "line": 112,
+          "text": "{ label: { tr: \"Ankraj 3 katkı alanı\", en: \"Anchor 3 tributary\" }, expr: \"T_3 = 121,406 kN/m\", result: \"121,41\" },"
+        },
+        {
+          "line": 113,
+          "text": "{ label: { tr: \"Tabana kalan\", en: \"Base reaction\" }, expr: \"R_B = 390 − (112,5 + 135,0 + 121,406) = 21,094\", result: \"21,09 kN/m\" },"
+        },
+        {
+          "line": 150,
+          "text": "{ label: { tr: \"γH\", en: \"gamma H\" }, expr: \"γH = 17 × 8 = 136\", result: \"136 kPa\" },"
+        },
+        {
+          "line": 151,
+          "text": "{ label: { tr: \"Stabilite sayısı\", en: \"Stability number\" }, expr: \"N_s = 136 / 30 = 4,533\", result: \"4 < 4,533 < 5,14 → yumuşak kil\" },"
+        },
+        {
+          "line": 152,
+          "text": "{ label: { tr: \"K_a (sabit)\", en: \"K_a\" }, expr: \"K_a = 0,22\", result: \"0,22\" },"
+        },
+        {
+          "line": 153,
+          "text": "{ label: { tr: \"Ordinat\", en: \"Ordinate\" }, expr: \"p_max = 0,22 × 136 = 29,92\", result: \"29,92 kPa\" },"
+        },
+        {
+          "line": 154,
+          "text": "{ label: { tr: \"Toplam (zarf alanı; z = 0 → 2 m rampa, 2 → 8 m sabit)\", en: \"Total thrust\" }, expr: \"P = ½ × 2 × 29,92 + (8 − 2) × 29,92 = 29,92 + 179,52\", result: \"209,44 kN/m\" },"
+        },
+        {
+          "line": 193,
+          "text": "{ label: { tr: \"c = 0,4: ordinat\", en: \"c = 0.4: ordinate\" }, expr: \"p = 0,4 × 17 × 8 = 54,4\", result: \"54,4 kPa\" },"
+        },
+        {
+          "line": 194,
+          "text": "{ label: { tr: \"Zarf uzunluğu\", en: \"Envelope length\" }, expr: \"H − H1/3 − H_n+1/3 = 8 − 2/3 − 3/3 = 6,333\", result: \"6,333 m\" },"
+        },
+        {
+          "line": 195,
+          "text": "{ label: { tr: \"c = 0,4 toplam\", en: \"c = 0.4 total\" }, expr: \"P = 54,4 × 6,333 = 344,53 ≥ 3H² = 192\", result: \"344,53 kN/m\" },"
+        },
+        {
+          "line": 196,
+          "text": "{ label: { tr: \"c = 0,2: ordinat ve toplam\", en: \"c = 0.2: ordinate and total\" }, expr: \"p = 0,2 × 17 × 8 = 27,2 ; P = 27,2 × 6,333 = 172,27 < 192\", result: \"172,27 → 192 (3H²)\" },"
+        },
+        {
+          "line": 197,
+          "text": "{ label: { tr: \"c = 0,2: düzeltilmiş ordinat\", en: \"c = 0.2: corrected ordinate\" }, expr: \"p = 192 / 6,333 = 30,32\", result: \"30,32 kPa\" },"
+        },
+        {
+          "line": 229,
+          "text": "expr: \"FS = N_c · s_u / (γH + q)   (denk. 37, derinlik mekanizması)\","
+        },
+        {
+          "line": 245,
+          "text": "{ label: { tr: \"Etkin genişlik\", en: \"Effective width\" }, expr: \"B' = B / √2 = 10 / 1,4142 = 7,071 m\", result: \"7,071 m\" },"
+        },
+        {
+          "line": 246,
+          "text": "{ label: { tr: \"N_c (Skempton tarzı, H/B = 0,6)\", en: \"N_c\" }, expr: \"N_c = 5 × (1 + 0,2 × 0,6) = 5,6 (kodun ve testin kullandığı değer; bağıntının kaynak metnini doğrulayamadım)\", result: \"5,6\" },"
+        },
+        {
+          "line": 247,
+          "text": "{ label: { tr: \"Derinlik mekanizması (denk. 37)\", en: \"Depth mechanism\" }, expr: \"FS = 5,6 × 20 / (17 × 6 + 0) = 112 / 102\", result: \"1,098\" },"
+        },
+        {
+          "line": 248,
+          "text": "{ label: { tr: \"Yan kesme mekanizması (denk. 35, N_c = 5,0)\", en: \"Side-shear mechanism\" }, expr: \"FS = 5,0 × 20 / (102 − 20 × 6 / 7,071) = 100 / 85,03\", result: \"1,176\" },"
+        },
+        {
+          "line": 249,
+          "text": "{ label: { tr: \"Belirleyici ve karar\", en: \"Governing and decision\" }, expr: \"min(1,098 ; 1,176) = 1,098 < 1,5 (geçici) → yetersiz\", result: \"1,098 — başarısız\" },"
+        },
+        {
+          "line": 267,
+          "text": "{ label: { tr: \"Taşıma faktörü (grafik, H/B = 5)\", en: \"N_c from chart\" }, expr: \"N_c ≈ 7,46 (Skempton 7,5 ile sınırlanmış grafik değeri)\", result: \"7,46\" },"
+        },
+        {
+          "line": 268,
+          "text": "{ label: { tr: \"Derinlik mekanizması (denk. 37)\", en: \"Depth mechanism\" }, expr: \"FS = 7,46 × 30 / (18 × 10) = 223,8 / 180\", result: \"1,2433\" },"
+        },
+        {
+          "line": 269,
+          "text": "{ label: { tr: \"Karar (geçici)\", en: \"Decision (temporary)\" }, expr: \"1,2433 < 1,5 → yetersiz\", result: \"başarısız\" },"
+        }
+      ]
+    },
+    {
+      "file": "web/src/modules/education/content/shear_key.ts",
+      "formula_or_numeric_lines": [
+        {
+          "line": 21,
+          "text": "sources: ["
+        },
+        {
+          "line": 63,
+          "text": "expr: \"P_p = ½ · K_p · γ · D²   (diş derinliği D boyunca)\","
+        },
+        {
+          "line": 77,
+          "text": "expr: \"FS_diş-ucu = R_düzlem / (H_itici + ΔH_diş)\","
+        },
+        {
+          "line": 141,
+          "text": "type: \"example\","
+        }
+      ]
+    },
+    {
+      "file": "web/src/modules/education/content/shear_key_student.ts",
+      "formula_or_numeric_lines": [
+        {
+          "line": 47,
+          "text": "expr: \"σ_v(z) = γ_ön · D + γ_temel · (z − D)      (dişin ön yüzündeki düşey gerilme, D ≤ z ≤ D + d)\\np_p(z) = K_p · σ_v(z) + 2c · √K_p      (drenajlı; φ = 0 ise K_p = 1 ve c = s_u)\","
+        },
+        {
+          "line": 69,
+          "text": "{ label: { tr: \"Dişin üst ve alt yüzündeki σ_v\", en: \"sigma_v at top and bottom of key\" }, expr: \"σ_v(üst) = 20 × 1.0 = 20 kPa;  σ_v(alt) = 20 + 20 × 1.43 = 48.6 kPa\", result: \"20 → 48.6 kPa (doğrusal)\" },"
+        },
+        {
+          "line": 70,
+          "text": "{ label: { tr: \"Pasif kuvvet integrali\", en: \"Passive integral\" }, expr: \"P_p = K_p · γ · (d + d²/2)  [σ_v ortalaması (20 + 48.6)/2 ile d = 1.43 çarpımı]\", result: \"P_p = 3.2546 × 20 × (1.43 + 1.0225) = 3.2546 × 49.05\" },"
+        },
+        {
+          "line": 71,
+          "text": "{ label: { tr: \"Toplam pasif (tam)\", en: \"Full passive\" }, expr: \"P_p(tam) = 159.6 kN/m\", result: \"yayımlanmış 159.4 kN/m ile %0.14 fark (K_p yuvarlaması)\" },"
+        },
+        {
+          "line": 72,
+          "text": "{ label: { tr: \"Kayma hesabında kullanılan\", en: \"Used in sliding\" }, expr: \"P_p(kullanılan) = 0.5 × 159.6\", result: \"79.8 kN/m\" },"
+        },
+        {
+          "line": 117,
+          "text": "expr: \"FS_base = (V·tan δ_b + R_pasif) / H_itici\\nFS_diş-ucu = (V_blok·tan φ + R_pasif) / (H_itici + ΔH_diş)      (ΔH_diş: diş bölgesi arka itkisi)\","
+        },
+        {
+          "line": 139,
+          "text": "{ label: { tr: \"Bant üstündeki basınç (taban seviyesi)\", en: \"Pressure at base level\" }, expr: \"σ_h,üst = K_a · σ_v = 0.3333 × 118\", result: \"39.3 kPa\" },"
+        },
+        {
+          "line": 140,
+          "text": "{ label: { tr: \"Dişin yüksekliği boyunca integral\", en: \"Integral over key depth\" }, expr: \"ΔH = (118 × 0.6 + ½ × 18 × 0.6²) / 3 = (70.8 + 3.24) / 3\", result: \"ΔH = 24.68 kN/m\" },"
+        },
+        {
+          "line": 141,
+          "text": "{ label: { tr: \"Yönetici yüzeyin değişimi\", en: \"Change of governing surface\" }, expr: \"FS_diş-ucu = (V_blok·tan φ + R) / (H_itici + ΔH)\", result: \"itici kuvvet 118.0 → 142.7 kN/m (sayılar aşağıda)\" },"
+        },
+        {
+          "line": 194,
+          "text": "{ label: { tr: \"Diş yok\", en: \"No key\" }, expr: \"FS = 319.56 × 0.5774 / 118.0\", result: \"FS = 1.56\" },"
+        },
+        {
+          "line": 195,
+          "text": "{ label: { tr: \"Diş var, taban yüzeyi\", en: \"With key, base surface\" }, expr: \"FS_base = (326.76 × 0.5774 + 29.16) / 118.0 = 217.8 / 118.0\", result: \"FS_base = 1.85\" },"
+        },
+        {
+          "line": 196,
+          "text": "{ label: { tr: \"Diş var, diş ucu düzlemi\", en: \"With key, key-tip plane\" }, expr: \"FS_deep = ((326.76 + 32.4) × 0.5774 + 29.16) / (118.0 + 24.68) = 236.6 / 142.7\", result: \"FS_deep = 1.66 (yönetici)\" },"
+        },
+        {
+          "line": 197,
+          "text": "{ label: { tr: \"Dişsiz duvarda diş ucu etkisi çıkarılsa\", en: \"Without the key-zone thrust\" }, expr: \"FS = 236.6 / 118.0\", result: \"2.00 (kontrol amaçlı; gerçek değil)\" },"
+        },
+        {
+          "line": 279,
+          "text": "{ label: { tr: \"σ_v\", en: \"sigma_v\" }, expr: \"σ_v(üst) = 0;  σ_v(alt) = 20 × 1.43 = 28.6 kPa\", result: \"0 → 28.6 kPa\" },"
+        },
+        {
+          "line": 280,
+          "text": "{ label: { tr: \"Pasif integral\", en: \"Passive integral\" }, expr: \"P_p = ½ · K_p · γ · d² = ½ × 3.2546 × 20 × 1.43²\", result: \"P_p = 66.55 kN/m\" },"
+        },
+        {
+          "line": 281,
+          "text": "{ label: { tr: \"Kullanılan (×0.5)\", en: \"Used (×0.5)\" }, expr: \"0.5 × 66.55\", result: \"33.3 kN/m\" },"
+        }
+      ]
+    }
+  ],
+  "anchor_tables": {
+    "tendons": [
+      {
+        "id": "strand_15mm_gr270",
+        "type": "strand",
+        "label": "15 mm strand, ASTM A416 Gr 270 (metric 1860)",
+        "smts_kn": 260.7,
+        "area_mm2": 140.0,
+        "source": "FHWA GEC-4 (FHWA-IF-99-015) Table 10, p. 78 (1 strand)"
+      },
+      {
+        "id": "bar_150_26",
+        "type": "bar",
+        "label": "26 mm bar, Grade 150 (1035 N/mm²), ASTM A722",
+        "smts_kn": 568.0,
+        "area_mm2": 548.0,
+        "source": "FHWA GEC-4 (FHWA-IF-99-015) Table 9, p. 77"
+      },
+      {
+        "id": "bar_150_32",
+        "type": "bar",
+        "label": "32 mm bar, Grade 150 (1035 N/mm²), ASTM A722",
+        "smts_kn": 835.0,
+        "area_mm2": 806.0,
+        "source": "FHWA GEC-4 (FHWA-IF-99-015) Table 9, p. 77"
+      },
+      {
+        "id": "bar_150_36",
+        "type": "bar",
+        "label": "36 mm bar, Grade 150 (1035 N/mm²), ASTM A722",
+        "smts_kn": 1055.0,
+        "area_mm2": 1019.0,
+        "source": "FHWA GEC-4 (FHWA-IF-99-015) Table 9, p. 77"
+      },
+      {
+        "id": "bar_150_45",
+        "type": "bar",
+        "label": "45 mm bar, Grade 150 (1035 N/mm²), ASTM A722",
+        "smts_kn": 1779.0,
+        "area_mm2": 1716.0,
+        "source": "FHWA GEC-4 (FHWA-IF-99-015) Table 9, p. 77"
+      },
+      {
+        "id": "bar_150_64",
+        "type": "bar",
+        "label": "64 mm bar, Grade 150 (1035 N/mm²), ASTM A722",
+        "smts_kn": 3461.0,
+        "area_mm2": 3348.0,
+        "source": "FHWA GEC-4 (FHWA-IF-99-015) Table 9, p. 77"
+      },
+      {
+        "id": "bar_160_26",
+        "type": "bar",
+        "label": "26 mm bar, Grade 160 (1104 N/mm²), ASTM A722",
+        "smts_kn": 605.0,
+        "area_mm2": 548.0,
+        "source": "FHWA GEC-4 (FHWA-IF-99-015) Table 9, p. 77"
+      },
+      {
+        "id": "bar_160_32",
+        "type": "bar",
+        "label": "32 mm bar, Grade 160 (1104 N/mm²), ASTM A722",
+        "smts_kn": 890.0,
+        "area_mm2": 806.0,
+        "source": "FHWA GEC-4 (FHWA-IF-99-015) Table 9, p. 77"
+      },
+      {
+        "id": "bar_160_36",
+        "type": "bar",
+        "label": "36 mm bar, Grade 160 (1104 N/mm²), ASTM A722",
+        "smts_kn": 1125.0,
+        "area_mm2": 1019.0,
+        "source": "FHWA GEC-4 (FHWA-IF-99-015) Table 9, p. 77"
+      }
+    ],
+    "transfer_loads": [
+      {
+        "id": "sand_gravel_loose",
+        "ground": "Sand and gravel",
+        "condition": "Loose (SPT 4-10)",
+        "q_u_kn_per_m": 145,
+        "source": "FHWA GEC-4 (FHWA-IF-99-015) Table 6, p. 71 (small-diameter straight-shaft gravity-grouted, soil)"
+      },
+      {
+        "id": "sand_gravel_medium",
+        "ground": "Sand and gravel",
+        "condition": "Medium dense (SPT 11-30)",
+        "q_u_kn_per_m": 220,
+        "source": "FHWA GEC-4 (FHWA-IF-99-015) Table 6, p. 71 (small-diameter straight-shaft gravity-grouted, soil)"
+      },
+      {
+        "id": "sand_gravel_dense",
+        "ground": "Sand and gravel",
+        "condition": "Dense (SPT 31-50)",
+        "q_u_kn_per_m": 290,
+        "source": "FHWA GEC-4 (FHWA-IF-99-015) Table 6, p. 71 (small-diameter straight-shaft gravity-grouted, soil)"
+      },
+      {
+        "id": "sand_loose",
+        "ground": "Sand",
+        "condition": "Loose (SPT 4-10)",
+        "q_u_kn_per_m": 100,
+        "source": "FHWA GEC-4 (FHWA-IF-99-015) Table 6, p. 71 (small-diameter straight-shaft gravity-grouted, soil)"
+      },
+      {
+        "id": "sand_medium",
+        "ground": "Sand",
+        "condition": "Medium dense (SPT 11-30)",
+        "q_u_kn_per_m": 145,
+        "source": "FHWA GEC-4 (FHWA-IF-99-015) Table 6, p. 71 (small-diameter straight-shaft gravity-grouted, soil)"
+      },
+      {
+        "id": "sand_dense",
+        "ground": "Sand",
+        "condition": "Dense (SPT 31-50)",
+        "q_u_kn_per_m": 190,
+        "source": "FHWA GEC-4 (FHWA-IF-99-015) Table 6, p. 71 (small-diameter straight-shaft gravity-grouted, soil)"
+      },
+      {
+        "id": "sand_silt_loose",
+        "ground": "Sand and silt",
+        "condition": "Loose (SPT 4-10)",
+        "q_u_kn_per_m": 70,
+        "source": "FHWA GEC-4 (FHWA-IF-99-015) Table 6, p. 71 (small-diameter straight-shaft gravity-grouted, soil)"
+      },
+      {
+        "id": "sand_silt_medium",
+        "ground": "Sand and silt",
+        "condition": "Medium dense (SPT 11-30)",
+        "q_u_kn_per_m": 100,
+        "source": "FHWA GEC-4 (FHWA-IF-99-015) Table 6, p. 71 (small-diameter straight-shaft gravity-grouted, soil)"
+      },
+      {
+        "id": "sand_silt_dense",
+        "ground": "Sand and silt",
+        "condition": "Dense (SPT 31-50)",
+        "q_u_kn_per_m": 130,
+        "source": "FHWA GEC-4 (FHWA-IF-99-015) Table 6, p. 71 (small-diameter straight-shaft gravity-grouted, soil)"
+      },
+      {
+        "id": "silt_clay_stiff",
+        "ground": "Silt-clay mixture, low plasticity / micaceous fine sand-silt",
+        "condition": "Stiff (SPT 10-20)",
+        "q_u_kn_per_m": 30,
+        "source": "FHWA GEC-4 (FHWA-IF-99-015) Table 6, p. 71 (small-diameter straight-shaft gravity-grouted, soil)"
+      },
+      {
+        "id": "silt_clay_hard",
+        "ground": "Silt-clay mixture, low plasticity / micaceous fine sand-silt",
+        "condition": "Hard (SPT 21-40)",
+        "q_u_kn_per_m": 60,
+        "source": "FHWA GEC-4 (FHWA-IF-99-015) Table 6, p. 71 (small-diameter straight-shaft gravity-grouted, soil)"
+      },
+      {
+        "id": "rock_granite_basalt",
+        "ground": "Rock",
+        "condition": "Granite or basalt",
+        "q_u_kn_per_m": 730,
+        "source": "FHWA GEC-4 (FHWA-IF-99-015) Table 8, p. 74 (ground anchors in competent rock)"
+      },
+      {
+        "id": "rock_dolomitic_limestone",
+        "ground": "Rock",
+        "condition": "Dolomitic limestone",
+        "q_u_kn_per_m": 580,
+        "source": "FHWA GEC-4 (FHWA-IF-99-015) Table 8, p. 74 (ground anchors in competent rock)"
+      },
+      {
+        "id": "rock_soft_limestone",
+        "ground": "Rock",
+        "condition": "Soft limestone",
+        "q_u_kn_per_m": 440,
+        "source": "FHWA GEC-4 (FHWA-IF-99-015) Table 8, p. 74 (ground anchors in competent rock)"
+      },
+      {
+        "id": "rock_sandstone",
+        "ground": "Rock",
+        "condition": "Sandstone",
+        "q_u_kn_per_m": 440,
+        "source": "FHWA GEC-4 (FHWA-IF-99-015) Table 8, p. 74 (ground anchors in competent rock)"
+      },
+      {
+        "id": "rock_slate_hard_shale",
+        "ground": "Rock",
+        "condition": "Slates and hard shales",
+        "q_u_kn_per_m": 360,
+        "source": "FHWA GEC-4 (FHWA-IF-99-015) Table 8, p. 74 (ground anchors in competent rock)"
+      },
+      {
+        "id": "rock_soft_shale",
+        "ground": "Rock",
+        "condition": "Soft shales",
+        "q_u_kn_per_m": 150,
+        "source": "FHWA GEC-4 (FHWA-IF-99-015) Table 8, p. 74 (ground anchors in competent rock)"
+      }
+    ],
+    "minimum_free_length": {
+      "strand": 4.5,
+      "bar": 3.0
+    },
+    "minimum_bond_length": {
+      "('soil', 'strand')": 4.5,
+      "('soil', 'bar')": 4.5,
+      "('rock', 'strand')": 4.5,
+      "('rock', 'bar')": 3.0
+    },
+    "minimum_horizontal_spacing": 1.2,
+    "typical_bond_length_max": {
+      "soil": 12.0,
+      "rock": 10.0
+    },
+    "inclination_range": [
+      10.0,
+      45.0
+    ],
+    "safety_factor_guidance": [
+      [
+        "soil",
+        2.0,
+        "FHWA GEC-4 (FHWA-IF-99-015) section 5.3.6, p. 71"
+      ],
+      [
+        "rock",
+        3.0,
+        "FHWA GEC-4 (FHWA-IF-99-015) section 5.3.6, p. 74"
+      ],
+      [
+        "intermediate_geomaterial",
+        2.0,
+        "FHWA GEC-4 (FHWA-IF-99-015) section 5.3.6, p. 74"
+      ]
+    ],
+    "source_review": "Source labels copied from repository; no source PDF/text independently inspected this session"
+  }
+}

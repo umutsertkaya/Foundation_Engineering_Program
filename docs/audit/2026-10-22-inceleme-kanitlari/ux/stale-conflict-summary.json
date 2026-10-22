@@ -1,0 +1,18 @@
+{
+  "profile_id": "a2a0ff79cab6471c9d3701e6ea6e12da",
+  "layer_id": "b5bba18300e942b280af754aef89431d",
+  "get_profile_selection": {
+    "parameter": "phi_eff",
+    "approved": true,
+    "approved_at": "2026-10-22T14:55:28.180311Z",
+    "basis_hash": "114ee97f626b54e12c79f687172ba84d4a20b4c02e7804780bdd1dd1d548c7a7",
+    "mode": "correlation"
+  },
+  "get_parameters_selection": {
+    "parameter": "phi_eff",
+    "approved": false,
+    "approved_at": "2026-10-22T14:55:28.180311Z",
+    "basis_hash": "114ee97f626b54e12c79f687172ba84d4a20b4c02e7804780bdd1dd1d548c7a7",
+    "mode": "correlation"
+  }
+}

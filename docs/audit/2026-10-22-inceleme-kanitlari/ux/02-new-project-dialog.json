@@ -1,0 +1,155 @@
+{
+  "url": "http://127.0.0.1:8771/start",
+  "viewport": {
+    "w": 1440,
+    "h": 900
+  },
+  "scroll": {
+    "w": 1440,
+    "h": 900
+  },
+  "inputs": [
+    {
+      "tag": "INPUT",
+      "type": "radio",
+      "id": "mantine-jmka2pr9r-tr",
+      "aria": null,
+      "ph": "",
+      "value": "tr",
+      "labels": [
+        "TR"
+      ],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "radio",
+      "id": "mantine-jmka2pr9r-en",
+      "aria": null,
+      "ph": "",
+      "value": "en",
+      "labels": [
+        "EN"
+      ],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": "mantine-ztjc4uv43",
+      "aria": null,
+      "ph": "",
+      "value": "",
+      "labels": [
+        "Proje adı *"
+      ],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": "mantine-q3k4h6ta2",
+      "aria": null,
+      "ph": "",
+      "value": "",
+      "labels": [
+        "Proje no"
+      ],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": "mantine-n16ca5sk5",
+      "aria": null,
+      "ph": "",
+      "value": "",
+      "labels": [
+        "Mühendis"
+      ],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": "mantine-ut86tlck1",
+      "aria": null,
+      "ph": "",
+      "value": "TR",
+      "labels": [
+        "Rapor dili"
+      ],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "hidden",
+      "id": "",
+      "aria": null,
+      "ph": "",
+      "value": "tr",
+      "labels": [],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": "mantine-64wf5vzbc",
+      "aria": null,
+      "ph": "",
+      "value": "AASHTO LRFD",
+      "labels": [
+        "Tasarım yönetmeliği"
+      ],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "hidden",
+      "id": "",
+      "aria": null,
+      "ph": "",
+      "value": "aashto_lrfd",
+      "labels": [],
+      "testid": null
+    }
+  ],
+  "buttons": [
+    {
+      "text": "",
+      "aria": "Tema değiştir",
+      "disabled": false
+    },
+    {
+      "text": "",
+      "aria": "Ayarlar",
+      "disabled": false
+    },
+    {
+      "text": "Yeni proje",
+      "aria": null,
+      "disabled": false
+    },
+    {
+      "text": "İçe aktar (.gtk)",
+      "aria": null,
+      "disabled": false
+    },
+    {
+      "text": "",
+      "aria": null,
+      "disabled": false
+    },
+    {
+      "text": "İptal",
+      "aria": null,
+      "disabled": false
+    },
+    {
+      "text": "Oluştur",
+      "aria": null,
+      "disabled": false
+    }
+  ],
+  "links": []
+}

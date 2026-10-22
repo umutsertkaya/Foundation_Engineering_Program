@@ -1,0 +1,37 @@
+Rapor
+
+Proje: QA İŞLEV GeoTek
+
+Kaydet
+TR
+EN
+Ana menüye dön
+Rapor
+Rapor
+
+Kayıtlı sonuçlardan Word (docx) raporu üretir. Eski veya sonuçsuz bölümler rapora alınmaz.
+
+QA İŞLEV GeoTek
+GÜNCEL
+QA Kum 0-40m (kaynak test)
+GÜNCEL
+QA Sulu iki tabaka
+GÜNCEL
+QA Konsol 5m
+GÜNCEL
+QA Konsol palplanş
+GÜNCEL
+QA Ankrajlı palplanş
+GÜNCEL
+QA Ağırlık sulu 5m
+GÜNCEL
+Zemin sınıflandırması
+GÜNCEL
+Sıvılaşma analizi
+GÜNCEL
+Ankrajlı duvar analizi
+GÜNCEL
+Zemin ankrajı tasarımı
+GÜNCEL
+Raporu oluştur ve indir
+Yenile

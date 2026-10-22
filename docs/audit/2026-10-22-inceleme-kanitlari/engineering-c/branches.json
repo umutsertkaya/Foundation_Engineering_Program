@@ -1,0 +1,1372 @@
+{
+  "anchor_branches": {
+    "axial_strand": {
+      "accepted": true,
+      "actual": {
+        "load_source": "axial",
+        "horizontal_load_per_anchor": 429.8369926986354,
+        "design_load": 445.0,
+        "vertical_load_per_anchor": 115.17447507062172,
+        "vertical_load_per_m": null,
+        "lock_off_load": 400.5,
+        "test_load": 591.85,
+        "wedge_angle_deg": 60.0,
+        "wedge_distance": 4.0,
+        "wedge_length": 4.141104721640332,
+        "beyond_wedge": 2.0,
+        "beyond_wedge_along_anchor": 2.0705523608201664,
+        "free_length_required": 6.211657082460498,
+        "free_length_minimum": 4.5,
+        "free_length": 6.211657082460498,
+        "free_length_governing": "wedge",
+        "transfer_load": 100.0,
+        "transfer_load_source": "direct",
+        "safety_factor": 2.0,
+        "bond_length_calculated": 8.9,
+        "bond_length": 8.9,
+        "bond_length_governing": "calculated",
+        "transfer_load_ref": null,
+        "bond_capacity": 445.0,
+        "total_length": 15.111657082460498,
+        "bond_centre_depth": 4.759439905292953,
+        "tendon": {
+          "type": "strand",
+          "label": "15 mm strand, ASTM A416 Gr 270 (metric 1860)",
+          "source": "FHWA GEC-4 (FHWA-IF-99-015) Table 10, p. 78 (1 strand)",
+          "count": 3,
+          "smts_each": 260.7,
+          "smts_total": 782.0999999999999,
+          "area_total_mm2": 420.0,
+          "design_utilisation": 0.5689809487277843,
+          "lock_off_utilisation": 0.5120828538550058,
+          "test_utilisation": 0.7567446618079531,
+          "count_governing": "design"
+        },
+        "checks": [
+          {
+            "id": "tendon_design",
+            "demand": 445.0,
+            "limit": 469.25999999999993,
+            "ok": true
+          },
+          {
+            "id": "tendon_lock_off",
+            "demand": 400.5,
+            "limit": 547.4699999999999,
+            "ok": true
+          },
+          {
+            "id": "tendon_test",
+            "demand": 591.85,
+            "limit": 625.68,
+            "ok": true
+          },
+          {
+            "id": "overburden",
+            "demand": 4.5,
+            "limit": 4.759439905292953,
+            "ok": true
+          }
+        ],
+        "warnings": [
+          {
+            "code": "transfer_load_unreferenced",
+            "params": {}
+          }
+        ],
+        "assumptions": [
+          {
+            "code": "beyond_wedge_default",
+            "params": {
+              "value": 2.0
+            }
+          },
+          {
+            "code": "min_free_length_default",
+            "params": {
+              "value": 4.5,
+              "tendon": "strand"
+            }
+          },
+          {
+            "code": "wedge_origin_at_corner",
+            "params": {}
+          },
+          {
+            "code": "level_ground_vertical_wall",
+            "params": {}
+          },
+          {
+            "code": "gec4_test_factor",
+            "params": {
+              "value": 1.33
+            }
+          },
+          {
+            "code": "gec4_tendon_limits",
+            "params": {}
+          },
+          {
+            "code": "min_bond_length_default",
+            "params": {
+              "value": 4.5,
+              "ground": "soil",
+              "tendon": "strand"
+            }
+          }
+        ],
+        "sources": [
+          "FHWA GEC-4 (FHWA-IF-99-015) sections 5.3.2-5.3.4, 5.3.6-5.3.8, fig. 37 (lengths, spacing, tendon limits)",
+          "FHWA GEC-4 (FHWA-IF-99-015) appendix E part 3B, p. E-15 (minimum bond length)",
+          "FHWA GEC-4 (FHWA-IF-99-015) Eq. 19-21, p. 66-67 (anchor load)"
+        ]
+      }
+    },
+    "automatic_bar": {
+      "accepted": true,
+      "actual": {
+        "load_source": "axial",
+        "horizontal_load_per_anchor": 429.8369926986354,
+        "design_load": 445.0,
+        "vertical_load_per_anchor": 115.17447507062172,
+        "vertical_load_per_m": null,
+        "lock_off_load": 400.5,
+        "test_load": 591.85,
+        "wedge_angle_deg": 60.0,
+        "wedge_distance": 4.0,
+        "wedge_length": 4.141104721640332,
+        "beyond_wedge": 2.0,
+        "beyond_wedge_along_anchor": 2.0705523608201664,
+        "free_length_required": 6.211657082460498,
+        "free_length_minimum": 3.0,
+        "free_length": 6.211657082460498,
+        "free_length_governing": "wedge",
+        "transfer_load": 100.0,
+        "transfer_load_source": "direct",
+        "safety_factor": 2.0,
+        "bond_length_calculated": 8.9,
+        "bond_length": 8.9,
+        "bond_length_governing": "calculated",
+        "transfer_load_ref": null,
+        "bond_capacity": 445.0,
+        "total_length": 15.111657082460498,
+        "bond_centre_depth": 4.759439905292953,
+        "tendon": {
+          "type": "bar",
+          "label": "32 mm bar, Grade 150 (1035 N/mm²), ASTM A722",
+          "source": "FHWA GEC-4 (FHWA-IF-99-015) Table 9, p. 77",
+          "count": 1,
+          "smts_each": 835.0,
+          "smts_total": 835.0,
+          "area_total_mm2": 806.0,
+          "design_utilisation": 0.5329341317365269,
+          "lock_off_utilisation": 0.47964071856287427,
+          "test_utilisation": 0.7088023952095809,
+          "count_governing": "user"
+        },
+        "checks": [
+          {
+            "id": "tendon_design",
+            "demand": 445.0,
+            "limit": 501.0,
+            "ok": true
+          },
+          {
+            "id": "tendon_lock_off",
+            "demand": 400.5,
+            "limit": 584.5,
+            "ok": true
+          },
+          {
+            "id": "tendon_test",
+            "demand": 591.85,
+            "limit": 668.0,
+            "ok": true
+          },
+          {
+            "id": "overburden",
+            "demand": 4.5,
+            "limit": 4.759439905292953,
+            "ok": true
+          }
+        ],
+        "warnings": [
+          {
+            "code": "transfer_load_unreferenced",
+            "params": {}
+          }
+        ],
+        "assumptions": [
+          {
+            "code": "beyond_wedge_default",
+            "params": {
+              "value": 2.0
+            }
+          },
+          {
+            "code": "min_free_length_default",
+            "params": {
+              "value": 3.0,
+              "tendon": "bar"
+            }
+          },
+          {
+            "code": "wedge_origin_at_corner",
+            "params": {}
+          },
+          {
+            "code": "level_ground_vertical_wall",
+            "params": {}
+          },
+          {
+            "code": "gec4_test_factor",
+            "params": {
+              "value": 1.33
+            }
+          },
+          {
+            "code": "gec4_tendon_limits",
+            "params": {}
+          },
+          {
+            "code": "min_bond_length_default",
+            "params": {
+              "value": 4.5,
+              "ground": "soil",
+              "tendon": "bar"
+            }
+          }
+        ],
+        "sources": [
+          "FHWA GEC-4 (FHWA-IF-99-015) sections 5.3.2-5.3.4, 5.3.6-5.3.8, fig. 37 (lengths, spacing, tendon limits)",
+          "FHWA GEC-4 (FHWA-IF-99-015) appendix E part 3B, p. E-15 (minimum bond length)",
+          "FHWA GEC-4 (FHWA-IF-99-015) Eq. 19-21, p. 66-67 (anchor load)"
+        ]
+      }
+    },
+    "custom_bar": {
+      "accepted": true,
+      "actual": {
+        "load_source": "axial",
+        "horizontal_load_per_anchor": 429.8369926986354,
+        "design_load": 445.0,
+        "vertical_load_per_anchor": 115.17447507062172,
+        "vertical_load_per_m": null,
+        "lock_off_load": 400.5,
+        "test_load": 591.85,
+        "wedge_angle_deg": 60.0,
+        "wedge_distance": 4.0,
+        "wedge_length": 4.141104721640332,
+        "beyond_wedge": 2.0,
+        "beyond_wedge_along_anchor": 2.0705523608201664,
+        "free_length_required": 6.211657082460498,
+        "free_length_minimum": 3.0,
+        "free_length": 6.211657082460498,
+        "free_length_governing": "wedge",
+        "transfer_load": 100.0,
+        "transfer_load_source": "direct",
+        "safety_factor": 2.0,
+        "bond_length_calculated": 8.9,
+        "bond_length": 8.9,
+        "bond_length_governing": "calculated",
+        "transfer_load_ref": null,
+        "bond_capacity": 445.0,
+        "total_length": 15.111657082460498,
+        "bond_centre_depth": 4.759439905292953,
+        "tendon": {
+          "type": "custom",
+          "label": "custom bar",
+          "source": "user input",
+          "count": 1,
+          "smts_each": 1000.0,
+          "smts_total": 1000.0,
+          "area_total_mm2": 900.0,
+          "design_utilisation": 0.445,
+          "lock_off_utilisation": 0.4005,
+          "test_utilisation": 0.59185,
+          "count_governing": "user"
+        },
+        "checks": [
+          {
+            "id": "tendon_design",
+            "demand": 445.0,
+            "limit": 600.0,
+            "ok": true
+          },
+          {
+            "id": "tendon_lock_off",
+            "demand": 400.5,
+            "limit": 700.0,
+            "ok": true
+          },
+          {
+            "id": "tendon_test",
+            "demand": 591.85,
+            "limit": 800.0,
+            "ok": true
+          },
+          {
+            "id": "overburden",
+            "demand": 4.5,
+            "limit": 4.759439905292953,
+            "ok": true
+          }
+        ],
+        "warnings": [
+          {
+            "code": "transfer_load_unreferenced",
+            "params": {}
+          }
+        ],
+        "assumptions": [
+          {
+            "code": "beyond_wedge_default",
+            "params": {
+              "value": 2.0
+            }
+          },
+          {
+            "code": "min_free_length_default",
+            "params": {
+              "value": 3.0,
+              "tendon": "bar"
+            }
+          },
+          {
+            "code": "wedge_origin_at_corner",
+            "params": {}
+          },
+          {
+            "code": "level_ground_vertical_wall",
+            "params": {}
+          },
+          {
+            "code": "gec4_test_factor",
+            "params": {
+              "value": 1.33
+            }
+          },
+          {
+            "code": "gec4_tendon_limits",
+            "params": {}
+          },
+          {
+            "code": "min_bond_length_default",
+            "params": {
+              "value": 4.5,
+              "ground": "soil",
+              "tendon": "bar"
+            }
+          }
+        ],
+        "sources": [
+          "FHWA GEC-4 (FHWA-IF-99-015) sections 5.3.2-5.3.4, 5.3.6-5.3.8, fig. 37 (lengths, spacing, tendon limits)",
+          "FHWA GEC-4 (FHWA-IF-99-015) appendix E part 3B, p. E-15 (minimum bond length)",
+          "FHWA GEC-4 (FHWA-IF-99-015) Eq. 19-21, p. 66-67 (anchor load)"
+        ]
+      }
+    },
+    "rock_bar": {
+      "accepted": true,
+      "actual": {
+        "load_source": "axial",
+        "horizontal_load_per_anchor": 429.8369926986354,
+        "design_load": 445.0,
+        "vertical_load_per_anchor": 115.17447507062172,
+        "vertical_load_per_m": null,
+        "lock_off_load": 400.5,
+        "test_load": 591.85,
+        "wedge_angle_deg": 60.0,
+        "wedge_distance": 4.0,
+        "wedge_length": 4.141104721640332,
+        "beyond_wedge": 2.0,
+        "beyond_wedge_along_anchor": 2.0705523608201664,
+        "free_length_required": 6.211657082460498,
+        "free_length_minimum": 3.0,
+        "free_length": 6.211657082460498,
+        "free_length_governing": "wedge",
+        "transfer_load": 730.0,
+        "transfer_load_source": "direct",
+        "safety_factor": 2.0,
+        "bond_length_calculated": 1.2191780821917808,
+        "bond_length": 3.0,
+        "bond_length_governing": "minimum",
+        "transfer_load_ref": null,
+        "bond_capacity": 1095.0,
+        "total_length": 9.211657082460498,
+        "bond_centre_depth": 3.995923722240517,
+        "tendon": {
+          "type": "bar",
+          "label": "32 mm bar, Grade 150 (1035 N/mm²), ASTM A722",
+          "source": "FHWA GEC-4 (FHWA-IF-99-015) Table 9, p. 77",
+          "count": 1,
+          "smts_each": 835.0,
+          "smts_total": 835.0,
+          "area_total_mm2": 806.0,
+          "design_utilisation": 0.5329341317365269,
+          "lock_off_utilisation": 0.47964071856287427,
+          "test_utilisation": 0.7088023952095809,
+          "count_governing": "user"
+        },
+        "checks": [
+          {
+            "id": "tendon_design",
+            "demand": 445.0,
+            "limit": 501.0,
+            "ok": true
+          },
+          {
+            "id": "tendon_lock_off",
+            "demand": 400.5,
+            "limit": 584.5,
+            "ok": true
+          },
+          {
+            "id": "tendon_test",
+            "demand": 591.85,
+            "limit": 668.0,
+            "ok": true
+          }
+        ],
+        "warnings": [
+          {
+            "code": "safety_factor_below_guidance",
+            "params": {
+              "value": 2.0,
+              "guidance": 3.0
+            }
+          },
+          {
+            "code": "transfer_load_unreferenced",
+            "params": {}
+          }
+        ],
+        "assumptions": [
+          {
+            "code": "beyond_wedge_default",
+            "params": {
+              "value": 2.0
+            }
+          },
+          {
+            "code": "min_free_length_default",
+            "params": {
+              "value": 3.0,
+              "tendon": "bar"
+            }
+          },
+          {
+            "code": "wedge_origin_at_corner",
+            "params": {}
+          },
+          {
+            "code": "level_ground_vertical_wall",
+            "params": {}
+          },
+          {
+            "code": "gec4_test_factor",
+            "params": {
+              "value": 1.33
+            }
+          },
+          {
+            "code": "gec4_tendon_limits",
+            "params": {}
+          },
+          {
+            "code": "min_bond_length_default",
+            "params": {
+              "value": 3.0,
+              "ground": "rock",
+              "tendon": "bar"
+            }
+          },
+          {
+            "code": "overburden_not_checked_rock",
+            "params": {}
+          }
+        ],
+        "sources": [
+          "FHWA GEC-4 (FHWA-IF-99-015) sections 5.3.2-5.3.4, 5.3.6-5.3.8, fig. 37 (lengths, spacing, tendon limits)",
+          "FHWA GEC-4 (FHWA-IF-99-015) appendix E part 3B, p. E-15 (minimum bond length)",
+          "FHWA GEC-4 (FHWA-IF-99-015) Eq. 19-21, p. 66-67 (anchor load)"
+        ]
+      }
+    },
+    "missing_required": {
+      "accepted": false,
+      "error": "MissingAnchorInputsError",
+      "message": "Missing anchor design inputs: safety_factor, ultimate_transfer_load|ultimate_bond_stress, lock_off_ratio"
+    },
+    "min_relax": {
+      "accepted": true,
+      "actual": {
+        "load_source": "axial",
+        "horizontal_load_per_anchor": 429.8369926986354,
+        "design_load": 445.0,
+        "vertical_load_per_anchor": 115.17447507062172,
+        "vertical_load_per_m": null,
+        "lock_off_load": 400.5,
+        "test_load": 489.50000000000006,
+        "wedge_angle_deg": 60.0,
+        "wedge_distance": 4.0,
+        "wedge_length": 4.141104721640332,
+        "beyond_wedge": 2.0,
+        "beyond_wedge_along_anchor": 2.0705523608201664,
+        "free_length_required": 6.211657082460498,
+        "free_length_minimum": 1.0,
+        "free_length": 6.211657082460498,
+        "free_length_governing": "wedge",
+        "transfer_load": 100.0,
+        "transfer_load_source": "direct",
+        "safety_factor": 2.0,
+        "bond_length_calculated": 8.9,
+        "bond_length": 8.9,
+        "bond_length_governing": "calculated",
+        "transfer_load_ref": null,
+        "bond_capacity": 445.0,
+        "total_length": 15.111657082460498,
+        "bond_centre_depth": 4.759439905292953,
+        "tendon": {
+          "type": "strand",
+          "label": "15 mm strand, ASTM A416 Gr 270 (metric 1860)",
+          "source": "FHWA GEC-4 (FHWA-IF-99-015) Table 10, p. 78 (1 strand)",
+          "count": 3,
+          "smts_each": 260.7,
+          "smts_total": 782.0999999999999,
+          "area_total_mm2": 420.0,
+          "design_utilisation": 0.5689809487277843,
+          "lock_off_utilisation": 0.5120828538550058,
+          "test_utilisation": 0.6258790436005627,
+          "count_governing": "design"
+        },
+        "checks": [
+          {
+            "id": "tendon_design",
+            "demand": 445.0,
+            "limit": 469.25999999999993,
+            "ok": true
+          },
+          {
+            "id": "tendon_lock_off",
+            "demand": 400.5,
+            "limit": 547.4699999999999,
+            "ok": true
+          },
+          {
+            "id": "tendon_test",
+            "demand": 489.50000000000006,
+            "limit": 625.68,
+            "ok": true
+          },
+          {
+            "id": "overburden",
+            "demand": 4.5,
+            "limit": 4.759439905292953,
+            "ok": true
+          }
+        ],
+        "warnings": [
+          {
+            "code": "test_factor_below_gec4",
+            "params": {
+              "value": 1.1
+            }
+          },
+          {
+            "code": "min_free_length_below_gec4",
+            "params": {
+              "value": 1.0,
+              "gec4": 4.5
+            }
+          },
+          {
+            "code": "transfer_load_unreferenced",
+            "params": {}
+          },
+          {
+            "code": "min_bond_length_below_gec4",
+            "params": {
+              "value": 1.0,
+              "gec4": 4.5
+            }
+          }
+        ],
+        "assumptions": [
+          {
+            "code": "beyond_wedge_default",
+            "params": {
+              "value": 2.0
+            }
+          },
+          {
+            "code": "wedge_origin_at_corner",
+            "params": {}
+          },
+          {
+            "code": "level_ground_vertical_wall",
+            "params": {}
+          },
+          {
+            "code": "gec4_tendon_limits",
+            "params": {}
+          }
+        ],
+        "sources": [
+          "FHWA GEC-4 (FHWA-IF-99-015) sections 5.3.2-5.3.4, 5.3.6-5.3.8, fig. 37 (lengths, spacing, tendon limits)",
+          "FHWA GEC-4 (FHWA-IF-99-015) appendix E part 3B, p. E-15 (minimum bond length)",
+          "FHWA GEC-4 (FHWA-IF-99-015) Eq. 19-21, p. 66-67 (anchor load)"
+        ]
+      }
+    }
+  },
+  "anchor_axial_expected": {
+    "T": 445,
+    "horizontal": 429.8369926986354,
+    "vertical": 115.17447507062172,
+    "test": 591.85,
+    "lock": 400.5,
+    "bond": 8.9,
+    "strand_count": 3,
+    "automatic_bar_smts": 835
+  },
+  "clay_envelopes": {
+    "80": {
+      "accepted": true,
+      "actual": {
+        "kind": "stiff_clay",
+        "p_max": 40.8,
+        "total_thrust": 258.4,
+        "gamma": 17.0,
+        "phi_deg": null,
+        "su": 80.0,
+        "ka": null,
+        "z": [
+          0.0,
+          1.3333333333333333,
+          6.0,
+          8.0
+        ],
+        "p": [
+          0.0,
+          40.8,
+          40.8,
+          0.0
+        ],
+        "ns": 1.7,
+        "su_below": 80.0
+      }
+    },
+    "34": {
+      "accepted": true,
+      "actual": {
+        "kind": "stiff_clay",
+        "p_max": 40.8,
+        "total_thrust": 258.4,
+        "gamma": 17.0,
+        "phi_deg": null,
+        "su": 34.0,
+        "ka": null,
+        "z": [
+          0.0,
+          1.3333333333333333,
+          6.0,
+          8.0
+        ],
+        "p": [
+          0.0,
+          40.8,
+          40.8,
+          0.0
+        ],
+        "ns": 4.0,
+        "su_below": 34.0
+      }
+    },
+    "33.999": {
+      "accepted": true,
+      "actual": {
+        "kind": "soft_clay",
+        "p_max": 29.92,
+        "total_thrust": 209.44,
+        "gamma": 17.0,
+        "phi_deg": null,
+        "su": 33.999,
+        "ka": 0.22,
+        "z": [
+          0.0,
+          2.0,
+          8.0
+        ],
+        "p": [
+          0.0,
+          29.92,
+          29.92
+        ],
+        "ns": 4.000117650519132,
+        "su_below": 33.999
+      }
+    },
+    "30": {
+      "accepted": true,
+      "actual": {
+        "kind": "soft_clay",
+        "p_max": 29.92,
+        "total_thrust": 209.44,
+        "gamma": 17.0,
+        "phi_deg": null,
+        "su": 30.0,
+        "ka": 0.22,
+        "z": [
+          0.0,
+          2.0,
+          8.0
+        ],
+        "p": [
+          0.0,
+          29.92,
+          29.92
+        ],
+        "ns": 4.533333333333333,
+        "su_below": 30.0
+      }
+    },
+    "26.459143968871597": {
+      "accepted": true,
+      "actual": {
+        "kind": "soft_clay",
+        "p_max": 30.163424124513618,
+        "total_thrust": 211.14396887159532,
+        "gamma": 17.0,
+        "phi_deg": null,
+        "su": 26.459143968871597,
+        "ka": 0.22178988326848248,
+        "z": [
+          0.0,
+          2.0,
+          8.0
+        ],
+        "p": [
+          0.0,
+          30.163424124513618,
+          30.163424124513618
+        ],
+        "ns": 5.14,
+        "su_below": 26.459143968871597
+      }
+    },
+    "15": {
+      "accepted": true,
+      "actual": {
+        "kind": "soft_clay",
+        "p_max": 159.29717882377528,
+        "total_thrust": 1115.080251766427,
+        "gamma": 17.0,
+        "phi_deg": null,
+        "su": 15.0,
+        "ka": 1.171302785468936,
+        "z": [
+          0.0,
+          2.0,
+          8.0
+        ],
+        "p": [
+          0.0,
+          159.29717882377528,
+          159.29717882377528
+        ],
+        "ns": 9.066666666666666,
+        "su_below": 15.0
+      }
+    }
+  },
+  "clay_expected": {
+    "stiff_p": 40.8,
+    "stiff_total": 258.4,
+    "soft_p": 29.92,
+    "soft_total": 209.44,
+    "henkel15_ka": 1.171302785468936,
+    "henkel15_total": 1115.080251766427
+  },
+  "basal": {
+    "shallow": {
+      "accepted": true,
+      "actual": {
+        "b_eff": 7.071067811865475,
+        "b_eff_basis": "width",
+        "nc": 5.6000000000000005,
+        "su_below": 20.0,
+        "su_retained": 20.0,
+        "gamma": 17.0,
+        "surcharge": 0.0,
+        "fs": 1.0980392156862746,
+        "fs_required": 1.5,
+        "ok": false
+      }
+    },
+    "narrow": {
+      "accepted": true,
+      "actual": {
+        "b_eff": 1.414213562373095,
+        "b_eff_basis": "width",
+        "nc": 7.46,
+        "su_below": 30.0,
+        "su_retained": 30.0,
+        "gamma": 17.0,
+        "surcharge": 0.0,
+        "fs": 1.3164705882352943,
+        "fs_required": 1.5,
+        "ok": false
+      }
+    },
+    "stiff_layer": {
+      "accepted": true,
+      "actual": {
+        "b_eff": 2.0,
+        "b_eff_basis": "stiff_layer",
+        "nc": 6.380000000000002,
+        "su_below": 60.0,
+        "su_retained": 60.0,
+        "gamma": 17.0,
+        "surcharge": 0.0,
+        "fs": 2.8147058823529423,
+        "fs_required": 2.5,
+        "ok": true
+      }
+    },
+    "short_profile": {
+      "accepted": true,
+      "actual": {
+        "b_eff": 7.071067811865475,
+        "b_eff_basis": "width",
+        "nc": 5.6000000000000005,
+        "su_below": 20.0,
+        "su_retained": 20.0,
+        "gamma": 17.0,
+        "surcharge": 0.0,
+        "fs": 1.0980392156862746,
+        "fs_required": 1.5,
+        "ok": false
+      }
+    }
+  },
+  "soldier": {
+    "actual": {
+      "D0": 15.854140538203026,
+      "D": 19.024968645843632,
+      "m_member": 3830.319985541829,
+      "m_per_m": 1276.773328513943,
+      "v_member": 531.2499640128281,
+      "v_per_m": 177.08332133760933,
+      "W_cm3": 19151.599927709143,
+      "levels": [
+        {
+          "depth": 1.5,
+          "inclination_deg": 20.0,
+          "spacing": 2.5,
+          "horizontal_load_per_m": 120.62499000000344,
+          "horizontal_load_per_anchor": 301.5624750000086,
+          "axial_load_per_anchor": 320.91608290783205,
+          "vertical_load_per_m": 43.903905868659564,
+          "design": null,
+          "design_missing": [],
+          "design_error": null
+        },
+        {
+          "depth": 4.5,
+          "inclination_deg": 20.0,
+          "spacing": 2.5,
+          "horizontal_load_per_m": 126.87501000000785,
+          "horizontal_load_per_anchor": 317.1875250000196,
+          "axial_load_per_anchor": 337.5439138116685,
+          "vertical_load_per_m": 46.17872711222962,
+          "design": null,
+          "design_missing": [],
+          "design_error": null
+        },
+        {
+          "depth": 7.5,
+          "inclination_deg": 20.0,
+          "spacing": 2.5,
+          "horizontal_load_per_m": 115.41667866238313,
+          "horizontal_load_per_anchor": 288.5416966559578,
+          "axial_load_per_anchor": 307.05966001375754,
+          "vertical_load_per_m": 42.008235570974584,
+          "design": null,
+          "design_missing": [],
+          "design_error": null
+        }
+      ]
+    },
+    "expected": {
+      "D0": 15.854140689901424,
+      "D": 19.024968827881708,
+      "member_factor": 3,
+      "section_multiplier_from_kNm_per_m_to_cm3_member": 15.0,
+      "first_anchor_axial": 320.9161095122672,
+      "first_anchor_vertical_per_m": 43.903909508360655
+    }
+  },
+  "key": {
+    "actual": {
+      "toe": {
+        "shear_key": {
+          "position": "toe",
+          "width": 0.5,
+          "depth": 0.6,
+          "passive_full": 29.15999999999998,
+          "passive_used": 14.57999999999999,
+          "reduction": 0.5,
+          "arm": 0.33333333333333326,
+          "fs_base_surface": 2.0979909152447265,
+          "fs_deep_surface": 1.900878933438922,
+          "fs_with_key": 1.900878933438922,
+          "governing": "deep",
+          "fs_without_key": 1.9245008972987516,
+          "demand_v": 29.15999999999998,
+          "demand_m": 9.71999999999999
+        },
+        "sum_v": 367.2,
+        "m_res": 937.8,
+        "fs": 1.900878933438922
+      },
+      "middle": {
+        "shear_key": {
+          "position": "middle",
+          "width": 0.5,
+          "depth": 0.6,
+          "passive_full": 29.15999999999998,
+          "passive_used": 14.57999999999999,
+          "reduction": 0.5,
+          "arm": 0.33333333333333326,
+          "fs_base_surface": 2.0979909152447265,
+          "fs_deep_surface": 1.900878933438922,
+          "fs_with_key": 1.900878933438922,
+          "governing": "deep",
+          "fs_without_key": 1.9245008972987516,
+          "demand_v": 29.15999999999998,
+          "demand_m": 9.71999999999999
+        },
+        "sum_v": 367.2,
+        "m_res": 950.4,
+        "fs": 1.900878933438922
+      },
+      "heel": {
+        "shear_key": {
+          "position": "heel",
+          "width": 0.5,
+          "depth": 0.6,
+          "passive_full": 29.15999999999998,
+          "passive_used": 14.57999999999999,
+          "reduction": 0.5,
+          "arm": 0.33333333333333326,
+          "fs_base_surface": 2.0979909152447265,
+          "fs_deep_surface": 1.900878933438922,
+          "fs_with_key": 1.900878933438922,
+          "governing": "deep",
+          "fs_without_key": 1.9245008972987516,
+          "demand_v": 29.15999999999998,
+          "demand_m": 9.71999999999999
+        },
+        "sum_v": 367.2,
+        "m_res": 963.0,
+        "fs": 1.900878933438922
+      }
+    },
+    "expected": {
+      "raw_passive": 29.159999999999997,
+      "used_passive": 14.579999999999998,
+      "soil_beside_weight": 37.8,
+      "key_weight": 7.199999999999999,
+      "deep_extra_horizontal": 22.679999999999996
+    }
+  },
+  "ec7_equ": {
+    "expected": 2.888602144816513,
+    "actual": 2.8886021448165127
+  },
+  "tbdy_layered_cap": {
+    "inputs": {
+      "q": 94,
+      "H": 6,
+      "B": 4,
+      "top": 1,
+      "phi_fill": 30,
+      "phi_foundation": 40
+    },
+    "expected": {
+      "V": 450.2983473120548,
+      "H": 248.09267025394152,
+      "sliding_cap": 0.9900223174696055
+    },
+    "actual": {
+      "V": 450.2983473120548,
+      "H": 248.0926702539415,
+      "sliding": 1.3845456024100367,
+      "passed": true,
+      "check_passed": {
+        "eccentricity": true,
+        "sliding": true,
+        "overturning": true,
+        "bearing": true
+      }
+    }
+  },
+  "single_envelope_assembly": [
+    {
+      "H": 3,
+      "depth": 0.6000000000000001,
+      "m_max": 18.933241142037552,
+      "diagram_mmax": 18.933241142037552,
+      "v_max": 18.573749999999947,
+      "diagram_vmax": 17.10543775499064,
+      "assumptions": [
+        {
+          "code": "free_earth_support",
+          "params": {}
+        },
+        {
+          "code": "depth_increase_zero",
+          "params": {}
+        },
+        {
+          "code": "anchor_load_from_envelope",
+          "params": {
+            "free_earth": 18.19,
+            "envelope": 25.59
+          }
+        },
+        {
+          "code": "anchor_design_not_requested",
+          "params": {}
+        },
+        {
+          "code": "no_section_design",
+          "params": {}
+        }
+      ]
+    },
+    {
+      "H": 3,
+      "depth": 1.2000000000000002,
+      "m_max": 12.529081700152572,
+      "diagram_mmax": 12.529081700152572,
+      "v_max": 17.151593985188182,
+      "diagram_vmax": 17.151593985188182,
+      "assumptions": [
+        {
+          "code": "free_earth_support",
+          "params": {}
+        },
+        {
+          "code": "depth_increase_zero",
+          "params": {}
+        },
+        {
+          "code": "anchor_load_from_envelope",
+          "params": {
+            "free_earth": 21.49,
+            "envelope": 30.87
+          }
+        },
+        {
+          "code": "anchor_design_not_requested",
+          "params": {}
+        },
+        {
+          "code": "no_section_design",
+          "params": {}
+        }
+      ]
+    },
+    {
+      "H": 3,
+      "depth": 1.6500000000000001,
+      "m_max": 11.502550799999941,
+      "diagram_mmax": 6.922585888449275,
+      "v_max": 19.269899999999968,
+      "diagram_vmax": 16.86081536436584,
+      "assumptions": [
+        {
+          "code": "free_earth_support",
+          "params": {}
+        },
+        {
+          "code": "depth_increase_zero",
+          "params": {}
+        },
+        {
+          "code": "anchor_load_from_envelope",
+          "params": {
+            "free_earth": 25.03,
+            "envelope": 37.92
+          }
+        },
+        {
+          "code": "moment_from_envelope",
+          "params": {
+            "free_earth": 6.92,
+            "envelope": 11.5
+          }
+        },
+        {
+          "code": "anchor_design_not_requested",
+          "params": {}
+        },
+        {
+          "code": "no_section_design",
+          "params": {}
+        }
+      ]
+    },
+    {
+      "H": 6,
+      "depth": 1.2000000000000002,
+      "m_max": 151.53863927305008,
+      "diagram_mmax": 151.53863927305008,
+      "v_max": 74.2949999999998,
+      "diagram_vmax": 68.43616085934221,
+      "assumptions": [
+        {
+          "code": "free_earth_support",
+          "params": {}
+        },
+        {
+          "code": "depth_increase_zero",
+          "params": {}
+        },
+        {
+          "code": "anchor_load_from_envelope",
+          "params": {
+            "free_earth": 72.77,
+            "envelope": 102.37
+          }
+        },
+        {
+          "code": "anchor_design_not_requested",
+          "params": {}
+        },
+        {
+          "code": "no_section_design",
+          "params": {}
+        }
+      ]
+    },
+    {
+      "H": 6,
+      "depth": 2.4000000000000004,
+      "m_max": 100.31853712207482,
+      "diagram_mmax": 100.31853712207482,
+      "v_max": 68.63518055644697,
+      "diagram_vmax": 68.63518055644697,
+      "assumptions": [
+        {
+          "code": "free_earth_support",
+          "params": {}
+        },
+        {
+          "code": "depth_increase_zero",
+          "params": {}
+        },
+        {
+          "code": "anchor_load_from_envelope",
+          "params": {
+            "free_earth": 85.94,
+            "envelope": 123.5
+          }
+        },
+        {
+          "code": "anchor_design_not_requested",
+          "params": {}
+        },
+        {
+          "code": "no_section_design",
+          "params": {}
+        }
+      ]
+    },
+    {
+      "H": 6,
+      "depth": 3.3000000000000003,
+      "m_max": 92.02047659999948,
+      "diagram_mmax": 55.2805311667695,
+      "v_max": 77.14979999999986,
+      "diagram_vmax": 67.4432302360798,
+      "assumptions": [
+        {
+          "code": "free_earth_support",
+          "params": {}
+        },
+        {
+          "code": "depth_increase_zero",
+          "params": {}
+        },
+        {
+          "code": "anchor_load_from_envelope",
+          "params": {
+            "free_earth": 100.11,
+            "envelope": 151.67
+          }
+        },
+        {
+          "code": "moment_from_envelope",
+          "params": {
+            "free_earth": 55.28,
+            "envelope": 92.02
+          }
+        },
+        {
+          "code": "anchor_design_not_requested",
+          "params": {}
+        },
+        {
+          "code": "no_section_design",
+          "params": {}
+        }
+      ]
+    },
+    {
+      "H": 10,
+      "depth": 2.0,
+      "m_max": 702.1067953868145,
+      "diagram_mmax": 702.1067953868145,
+      "v_max": 206.37500000203892,
+      "diagram_vmax": 190.14046492427332,
+      "assumptions": [
+        {
+          "code": "free_earth_support",
+          "params": {}
+        },
+        {
+          "code": "depth_increase_zero",
+          "params": {}
+        },
+        {
+          "code": "anchor_load_from_envelope",
+          "params": {
+            "free_earth": 202.14,
+            "envelope": 284.38
+          }
+        },
+        {
+          "code": "anchor_design_not_requested",
+          "params": {}
+        },
+        {
+          "code": "no_section_design",
+          "params": {}
+        }
+      ]
+    },
+    {
+      "H": 10,
+      "depth": 4.0,
+      "m_max": 465.07429617263494,
+      "diagram_mmax": 465.07429617263494,
+      "v_max": 190.73330664755838,
+      "diagram_vmax": 190.73330664755838,
+      "assumptions": [
+        {
+          "code": "free_earth_support",
+          "params": {}
+        },
+        {
+          "code": "depth_increase_zero",
+          "params": {}
+        },
+        {
+          "code": "anchor_load_from_envelope",
+          "params": {
+            "free_earth": 238.73,
+            "envelope": 343.06
+          }
+        },
+        {
+          "code": "anchor_design_not_requested",
+          "params": {}
+        },
+        {
+          "code": "no_section_design",
+          "params": {}
+        }
+      ]
+    },
+    {
+      "H": 10,
+      "depth": 5.5,
+      "m_max": 426.0207943396571,
+      "diagram_mmax": 255.74304298544322,
+      "v_max": 214.3830000000039,
+      "diagram_vmax": 187.34229919918693,
+      "assumptions": [
+        {
+          "code": "free_earth_support",
+          "params": {}
+        },
+        {
+          "code": "depth_increase_zero",
+          "params": {}
+        },
+        {
+          "code": "anchor_load_from_envelope",
+          "params": {
+            "free_earth": 278.09,
+            "envelope": 421.3
+          }
+        },
+        {
+          "code": "moment_from_envelope",
+          "params": {
+            "free_earth": 255.74,
+            "envelope": 426.02
+          }
+        },
+        {
+          "code": "anchor_design_not_requested",
+          "params": {}
+        },
+        {
+          "code": "no_section_design",
+          "params": {}
+        }
+      ]
+    }
+  ],
+  "stops": {
+    "water_in_cut": {
+      "accepted": false,
+      "error": "AnchoredWallStop",
+      "message": "Groundwater above the excavation base is not covered by the apparent pressure envelope"
+    },
+    "slope_multi": {
+      "accepted": false,
+      "error": "AnchoredWallStop",
+      "message": "The apparent pressure envelope is empirical for level ground; sloping ground with several anchor levels is not supported"
+    },
+    "undrained_without_basal": {
+      "accepted": false,
+      "error": "AnchoredWallStop",
+      "message": "Missing analysis inputs: service, excavation_width"
+    },
+    "missing_passive": {
+      "accepted": false,
+      "error": "AnchoredWallStop",
+      "message": "Missing analysis inputs: passive_factor"
+    },
+    "anchor_depth_-1": {
+      "accepted": false,
+      "error": "GeoTekError",
+      "message": "Anchor must lie between the top of the wall and the dredge line"
+    },
+    "anchor_depth_5": {
+      "accepted": false,
+      "error": "GeoTekError",
+      "message": "Anchor must lie between the top of the wall and the dredge line"
+    },
+    "anchor_depth_4.9": {
+      "accepted": false,
+      "error": "GeoTekError",
+      "message": "The anchor is too low for free earth support: the net pressure above the dredge line gives no overturning moment about the anchor; raise the anchor"
+    }
+  }
+}

@@ -1,0 +1,64 @@
+Palplanş / iksa
+
+Proje: QA İŞLEV GeoTek
+
+KAYDEDİLMEMİŞ DEĞİŞİKLİKLER
+Kaydet
+TR
+EN
+Ana menüye dön
+Perdeler
+Listeye dön
+QA C ASD static-envelope regression
+HESAPLANMADI
+Girdiler
+Ad
+
+Mesnet
+
+Konsol
+Tek ankrajlı
+Tutulan yükseklik H (m)
+Arka zemin eğimi β (°)
+
+Boş bırakılırsa 0 (yatay). 45° altında olmalı; β > φ′ ise hesap durdurulur. Ön taraf yatay kalır.
+
+Sürşarj (kPa)
+
+Boş bırakılırsa 0 alınır.
+
+Sürşarj tabanı
+
+Yalnız eğimli zeminde fark eder.
+
+S_DS (isteğe bağlı)
+
+Boşsa depremli durum hesaplanmaz.
+
+İzin verilen gerilme (MPa)
+
+Boşsa kesit modülü hesaplanmaz.
+
+Gelişmiş girdiler
+Tasarım kodu
+Yaklaşım
+
+İsteğe bağlıdır; servis varsayılanı için boş bırakın.
+
+Analiz düzeyi
+Gömülme artışı
+
+Servis varsayılanı: 0.2. Kullanmak için değiştirmeden bırakın.
+
+Ön su derinliği (m)
+
+Boş bırakılırsa zemin profilindeki ön su seviyesi kullanılır.
+
+Zemin
+
+Zemin bu perde için elle girildi.
+
+Üst (m)	Alt (m)	γ (kN/m³)	φ' (°)	c' (kPa)
+0	40	18	30	0
+Kaydet
+Tasarımı çalıştır

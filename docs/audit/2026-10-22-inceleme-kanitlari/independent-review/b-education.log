@@ -1,0 +1,50 @@
+{
+  "B008": {
+    "independent_endpoints": [
+      -9.999971762014145,
+      22.653312065840854
+    ],
+    "production_endpoints": [
+      -9.999869977869418,
+      22.65296326642286
+    ],
+    "published_endpoints": [
+      0,
+      11.6
+    ],
+    "FS4": 0.5533599730804831,
+    "FS40": 0.6325030474402017
+  },
+  "B009": {
+    "Vesic_H": 30,
+    "Asu": 20,
+    "returned_q_ult": 21.4,
+    "returned_Q_ult": 42.8,
+    "reverse": {
+      "error": "GeoTekError",
+      "message": "No admissible slip circle found: the ground surface descends toward +x, but the solver assumes the slope face falls toward -x (toe on the left); mirror the x coordinates"
+    }
+  },
+  "B010": {
+    "base_screen_vector": [
+      90,
+      -20
+    ],
+    "shear_screen_vector": [
+      -38,
+      9
+    ],
+    "dot_product": -3600,
+    "expected_resistance": "toward right/up for a slice moving left/down"
+  },
+  "B007": {
+    "bearing_factors_unknown_phi0": [
+      5.14,
+      1.0,
+      0.0
+    ],
+    "bearing_negative_gamma": -403.244752879882,
+    "wedge_unknown_state": 2.9999999999999996,
+    "rankine_nan": "nan"
+  }
+}

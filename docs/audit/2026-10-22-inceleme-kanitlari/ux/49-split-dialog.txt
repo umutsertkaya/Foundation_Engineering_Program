@@ -1,0 +1,149 @@
+Zemin etüdü ve parametreler
+
+Proje: UX Araştırma 2026
+
+KAYDEDİLMEMİŞ DEĞİŞİKLİKLER
+Kaydet
+TR
+EN
+Ana menüye dön
+Arazi verileri
+Zemin profilleri
+Mühendislik parametreleri
+Sınıflandırma
+Zemin Modelleri
+
+Katmanlı tasarım profilleri, köken bilgileri ve yeraltı su seviyeleri.
+
+Yeni profil
+
+PROFİLLER (4)
+
+UX Elle Kum Profili
+
+ELLE GİRİLEN
+1 KATMAN
+
+UX CPT Profili
+
+CPT KÖKENLİ
+3 KATMAN
+
+UX SPT Profili
+
+SPT KÖKENLİ
+2 KATMAN
+
+UX CPT Profili (kopya)
+
+CPT KÖKENLİ
+3 KATMAN
+CPT KÖKENLİ
+
+Kaynak deneyler: CPT-UX-MPa
+
+Aktif yap
+Çoğalt
+Vazgeç
+Kaydet
+
+Yeraltı suyu seviyeleri
+
+YASS (arazi)
+YASS (tasarım)
+YASS (deprem)
+
+Zemin yüzeyinden derinlik (m); boş = arazi değeri
+
+Kum
+
+Kil (düşük plastisite)
+
+YASS (arazi)
+
+YASS (tasarım)
+
+YASS (deprem)
+
+Zemin kolonu (ölçekli)
+
+z (m)
+0
+2
+4
+6
+8
+10
+12
+14
+0.00–5.97 m · Kum
+φ' 40°
+5.97–9.07 m · Kil (düş…
+sᵤ —
+9.07–15.00 m · Kum
+φ' —
+
+Tabakalar
+
+Tabakalar yüzeyden (0 m) başlamalı ve aralıksız devam etmelidir. γ birimi kN/m³.
+
+En alta katman ekle
+GEÇERLİ
+Kimlik	Üst (m)	Alt (m)	Tanım	USCS	Davranış	γ (kN/m³)	γ_sat (kN/m³)	φ' (°)	c' (kPa)	s_u (kPa)	E (kPa)	δ_b (°)	Parametreler / İşlemler
+
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+ONAYLI
+
+
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+ÖNERİ
+
+
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+ÖNERİ
+Böl
+
+0.00–5.97 m katmanını böl
+
+Bölme derinliği z (m)
+
+0.00 m < z < 5.97 m
+
+İptal
+Böl

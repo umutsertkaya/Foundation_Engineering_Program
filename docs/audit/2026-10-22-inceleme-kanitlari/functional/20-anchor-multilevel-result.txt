@@ -1,0 +1,130 @@
+Ankrajlı iksa
+
+Proje: QA İŞLEV GeoTek
+
+KAYDEDİLMEMİŞ DEĞİŞİKLİKLER
+Kaydet
+TR
+EN
+Ana menüye dön
+Ankrajlı duvar
+Tek ankraj
+Ankrajlı iksa analizi
+GÜNCEL
+
+Ankraj yükleri FHWA GEC-4 görünür basınç zarflarıyla (tek seviyede ayrıca serbest zemin desteği, büyüğü alınır); gömülme, kesit tesirleri, kilde taban kabarması ve istenirse her seviyenin ankraj tasarımı hesaplanır. Dış stabilite ayrıca kontrol edilmelidir.
+
+Duvar ve yükler
+Duvar türü
+Kazı yüksekliği H (m)
+Zemin davranışı
+Tutulan zemin eğimi β (°)
+
+Eğimli zemin yalnız tek ankraj seviyesinde desteklenir; çok seviyede 0 girin.
+
+Sürşarj q (kPa)
+Sürşarj tabanı
+Pasif direnç emniyet katsayısı
+
+Pasif direncin bölüneceği sayı, ≥ 1. GEC-4 5.5.3 önerisi 1,5; varsayılan yok.
+
+Gömülme artışı
+
+Boşsa: tek seviyede 0, çok seviyede 0,2
+
+Ankraj yükü yöntemi
+Mukavemet momenti W (cm³/m)
+İzin verilen gerilme (MPa)
+Eğilme rijitliği EI (kNm²)
+
+Yalnız saklanır; yer değiştirme hesaplanmaz
+
+Ankraj seviyeleri
+#	Derinlik (m)	Aralık (m)	Eğim (°)	
+1	
+	
+	
+	
+
+2	
+	
+	
+	
+
+3	
+	
+	
+	
+Ankraj seviyesi ekle
+Zemin
+Zemin profili
+Zemini yükle
+Üst [m]	Alt [m]	γ [kN/m³]	φ' [°]	c' [kPa]	su [kPa]
+0,00	40,00	18,0	30,0	0,0	—
+
+Analiz profilin kendi kopyasını kullanır; proje profili değiştirilmez.
+
+Her seviyenin ankrajını tasarla
+
+Aşağıdaki mühendislik girdilerini ister; hiçbir şey varsayılmaz.
+
+Analizi çalıştır
+Sonuç
+GÖRÜNÜR BASINÇ, MAFSAL YÖNTEMİ
+
+Kuramsal gömülme D0 (m)
+
+6,80 m
+
+Tasarım gömülmesi D (m)
+
+8,16 m
+
+Duvar boyu (m)
+
+18,16 m
+
+Taban tepkisi R_B (kN/m)
+
+27,1 kN/m
+
+En büyük moment (kNm/m)
+
+274,0 kNm/m
+
+En büyük kesme (kN/m)
+
+87,1 kN/m
+
+Gerekli mukavemet momenti (cm³)
+
+—
+
+Görünür basınç zarfı (kum): p_max = 45,0 kPa, toplam itki 390,0 kN/m.
+
+Ankraj seviyeleri
+Derinlik (m)	Eğim (°)	Aralık (m)	Yatay yük (kN/m)	Tasarım yükü T (kN)
+1,50	0,0	2,50	120,6	301,6
+4,50	0,0	2,50	126,9	317,2
+7,50	0,0	2,50	115,4	288,5
+Kazı tabanı 10,0 m
+Uç 18,2 m
+1,5 m · 121 kN/m
+4,5 m · 127 kN/m
+7,5 m · 115 kN/m
+Moment [kNm/m]
+±274,0
+Kesme [kN/m]
+±257,9
+Uyarılar
+Dış (genel) stabilite ve derin kayma (Kranz) kontrol edilmedi. Ankrajların arkasından ve içinden geçen kayma yüzeyleri için limit denge analizi ayrıca yapılmalı; GEC-4 5.8.3'e göre en az FS = 1,3 (kritik kalıcı yapıda 1,5).
+Gömülme, uç noktasına göre moment dengesinden bulundu (GEC-4 5.5.3 kuvvet ölçütünden daha derin, güvenli taraf). Uçta 257.9 kN/m kuvvet artığı dengelenmedi; bu kuvvet kesme maksimumuna katılmadı, gömülü kısmın kesiti için ayrıca değerlendirilmeli.
+Varsayımlar
+Görünür basınç zarfı (kum), yatay zemin: FHWA GEC-4 5.2.4–5.2.6 (kum ve sert kil trapez, Şekil 24 ve 27; yumuşak kil Şekil 23c). Ampirik bir yöntemdir.
+Ankraj yükleri menteşe yöntemiyle: ilk ankraj dışında her ankrajda menteşe; momentler aynı modelden.
+Gömülme: taban reaksiyonu R_B ve taban altı net basınç (pasif, girilen güvenlik sayısına bölünmüş; tanφ′ ve c′ de bu sayıya bölünerek bulunan pasif basınç daha küçükse o alınır, USACE EM 1110-2-2504 5-2d) altında uç noktaya göre moment dengesi. GEC-4 5.5.3 kuvvet ölçütünden daha derin sonuç verir.
+Gömülme artışı verilmedi: D = D0 (1 + 0.2).
+Ankraj tasarım girdileri verilmedi: yalnız ankraj yükleri, serbest veya kök boyu yok.
+Çelik veya betonarme kesit tasarımı yok: kesme ve moment talepleri verilir, M/W yalnız verilen gerilmeyle karşılaştırılır.
+
+Kaynaklar: FHWA GEC-4 (FHWA-IF-99-015) 5.2.4-5.2.6, figures 23, 24, 27-29, eq. 9-12 (apparent earth pressure envelopes); FHWA GEC-4 (FHWA-IF-99-015) 5.3.3, figures 33-34 (hinge and tributary methods), 5.4.1 (wall moments); FHWA GEC-4 (FHWA-IF-99-015) 5.5.3 (embedment; passive factor of safety); FHWA GEC-4 (FHWA-IF-99-015) 5.8.3 (external stability: not analysed, check separately)

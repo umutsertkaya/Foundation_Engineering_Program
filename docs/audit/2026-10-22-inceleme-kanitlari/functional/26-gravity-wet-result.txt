@@ -1,0 +1,60 @@
+İstinat duvarı
+
+Proje: QA İŞLEV GeoTek
+
+KAYDEDİLMEMİŞ DEĞİŞİKLİKLER
+Kaydet
+TR
+EN
+Ana menüye dön
+Duvarlar
+Yeni duvar
+Listeye dön
+QA Ağırlık sulu 5m
+İSTİNAT DUVARI
+TASLAK
+İLERİ
+ASD
+Tip/geometri
+Zemin
+Yükler/deprem
+4
+Öner/Kontrol
+5
+Sonuç
+
+Kesit boyutları (Taslak)
+
+'Boyut öner' bu alanları doldurur. Değerleri değiştirip 'Kontrol et' ile kendi kesitinizi tahkik edebilirsiniz.
+
+Boyut öner
+Kontrol et
+Hesabı iptal et
+Taban genişliği B
+Üst genişlik
+Arka yüz çekilmesi
+
+Hesap durumu: Toptan göçme tahkiki yapılıyor…
+
+66%
+
+Duvar Kesiti (Ölçekli)
+
+▽ YASS 2.00 m · profilden
+▽ 2.00 m
+Ön zemin
+Tutulan zemin (arka)
+Duvar gövdesi
+Taban B = 3.00 m
+H = 5.00 m
+D = 0.60 m
+44df0dc3320b473ba2d0b22fe937d43c
+0.00–5.00 m
+44df0dc3320b473ba2d0b22fe937d43c
+5.00–6.00 m
+f9c08c5ac3f54f92af1b199c81f71324
+6.00–40.00 m
+44df0dc3320b473ba2d0b22fe937d43c
+Önceki adım
+Sonraki adım
+Duvar oluşturuldu.

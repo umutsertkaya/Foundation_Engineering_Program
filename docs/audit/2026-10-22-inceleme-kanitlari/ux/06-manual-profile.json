@@ -1,0 +1,317 @@
+{
+  "url": "http://127.0.0.1:8771/m/soil/profiles",
+  "viewport": {
+    "w": 1440,
+    "h": 900
+  },
+  "scroll": {
+    "w": 1440,
+    "h": 1014
+  },
+  "inputs": [
+    {
+      "tag": "INPUT",
+      "type": "radio",
+      "id": "mantine-59n0h4b3j-tr",
+      "aria": null,
+      "ph": "",
+      "value": "tr",
+      "labels": [
+        "TR"
+      ],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "radio",
+      "id": "mantine-59n0h4b3j-en",
+      "aria": null,
+      "ph": "",
+      "value": "en",
+      "labels": [
+        "EN"
+      ],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": "mantine-7iztrcvg0",
+      "aria": "Profil adı",
+      "ph": "Profil adı",
+      "value": "Yeni zemin profili",
+      "labels": [],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": "mantine-2u1izavqr",
+      "aria": "YASS — deney anı",
+      "ph": "",
+      "value": "",
+      "labels": [],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": "mantine-n48gv5b2d",
+      "aria": "YASS — tasarım",
+      "ph": "",
+      "value": "",
+      "labels": [],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": "mantine-o52g6dfqx",
+      "aria": "YASS — deprem anı",
+      "ph": "",
+      "value": "",
+      "labels": [],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": "mantine-4x5lc63qw",
+      "aria": "Kimlik 1",
+      "ph": "",
+      "value": "L1",
+      "labels": [],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": "mantine-rvc61ns6v",
+      "aria": "Üst (m) L1",
+      "ph": "",
+      "value": "0",
+      "labels": [],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": "mantine-aytcqcwue",
+      "aria": "Alt (m) L1",
+      "ph": "",
+      "value": "10",
+      "labels": [],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": "mantine-go47xmrgu",
+      "aria": "Tanım L1",
+      "ph": "",
+      "value": "",
+      "labels": [],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": "mantine-ky9643bgi",
+      "aria": "USCS L1",
+      "ph": "—",
+      "value": "",
+      "labels": [],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "hidden",
+      "id": "",
+      "aria": null,
+      "ph": "",
+      "value": "",
+      "labels": [],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": "mantine-6zv66vqe4",
+      "aria": "Davranış L1",
+      "ph": "",
+      "value": "Drenajlı",
+      "labels": [],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "hidden",
+      "id": "",
+      "aria": null,
+      "ph": "",
+      "value": "drained",
+      "labels": [],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": "mantine-1ya51gu9o",
+      "aria": "γ (kN/m³) L1",
+      "ph": "",
+      "value": "",
+      "labels": [],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": "mantine-rid1a38q3",
+      "aria": "γ_doygun (kN/m³) L1",
+      "ph": "",
+      "value": "",
+      "labels": [],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": "mantine-79lkcu88g",
+      "aria": "φ' (°) L1",
+      "ph": "",
+      "value": "",
+      "labels": [],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": "mantine-e7ixz69hq",
+      "aria": "c' (kPa) L1",
+      "ph": "",
+      "value": "",
+      "labels": [],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": "mantine-lnyzl4cud",
+      "aria": "s_u (kPa) L1",
+      "ph": "",
+      "value": "",
+      "labels": [],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": "mantine-rvp8uz2ya",
+      "aria": "E (kPa) L1",
+      "ph": "",
+      "value": "",
+      "labels": [],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": "mantine-bke3llrer",
+      "aria": "δ_b (°) L1",
+      "ph": "",
+      "value": "",
+      "labels": [],
+      "testid": null
+    }
+  ],
+  "buttons": [
+    {
+      "text": "",
+      "aria": "Gezinme menüsünü aç veya kapat",
+      "disabled": false
+    },
+    {
+      "text": "Kaydet",
+      "aria": null,
+      "disabled": false
+    },
+    {
+      "text": "",
+      "aria": "Tema değiştir",
+      "disabled": false
+    },
+    {
+      "text": "Ana menüye dön",
+      "aria": null,
+      "disabled": false
+    },
+    {
+      "text": "Yeni profil",
+      "aria": null,
+      "disabled": false
+    },
+    {
+      "text": "Vazgeç",
+      "aria": null,
+      "disabled": false
+    },
+    {
+      "text": "Kaydet",
+      "aria": null,
+      "disabled": true
+    },
+    {
+      "text": "",
+      "aria": "Geri al",
+      "disabled": false
+    },
+    {
+      "text": "",
+      "aria": "Yinele",
+      "disabled": true
+    },
+    {
+      "text": "En alta katman ekle",
+      "aria": null,
+      "disabled": false
+    },
+    {
+      "text": "",
+      "aria": "Altına katman ekle L1",
+      "disabled": false
+    },
+    {
+      "text": "",
+      "aria": "Böl L1",
+      "disabled": false
+    },
+    {
+      "text": "",
+      "aria": "Alttaki katmanla birleştir L1",
+      "disabled": true
+    },
+    {
+      "text": "",
+      "aria": "Katmanı sil L1",
+      "disabled": true
+    }
+  ],
+  "links": [
+    {
+      "text": "Arazi verileri",
+      "href": "/m/soil"
+    },
+    {
+      "text": "Zemin profilleri",
+      "href": "/m/soil/profiles"
+    },
+    {
+      "text": "Mühendislik parametreleri",
+      "href": "/m/soil/parameters"
+    },
+    {
+      "text": "Sınıflandırma",
+      "href": "/m/soil/classification"
+    }
+  ]
+}

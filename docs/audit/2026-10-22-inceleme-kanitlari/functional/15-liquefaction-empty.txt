@@ -1,0 +1,37 @@
+Sıvılaşma
+
+Proje: QA İŞLEV GeoTek
+
+Kaydet
+TR
+EN
+Ana menüye dön
+Analiz
+Sonuçlar
+Sıvılaşma analizi
+
+Zemin profilini seçin ve analiz ayarlarını girin. a_max ve Mw yalnızca projenin saha verisinde varsa oradan alınır; diğer tüm değerleri siz girmelisiniz.
+
+Zemin profili
+Yöntem
+En büyük yer ivmesi a_max (g)
+Moment büyüklüğü Mw
+Hedef GS
+İnce dane katsayısı (c_FC)
+Ic sınır değeri
+Varsayılan FC (%) (isteğe bağlı)
+
+Laboratuvar numunesi olmayan SPT kayıtları için kullanılan ince dane oranı.
+
+Deprem anı YASS derinliği (m) (isteğe bağlı)
+
+Profildeki deprem anı yeraltı suyu derinliğini değiştirir.
+
+Çalıştırmadan önce düzeltin
+Bir yöntem seçin.
+En büyük yer ivmesi a_max (g): bir sayı girin.
+Moment büyüklüğü Mw: bir sayı girin.
+Hedef GS: bir sayı girin.
+İnce dane katsayısı (c_FC): bir sayı girin.
+Ic sınır değeri: bir sayı girin.
+Analizi çalıştır

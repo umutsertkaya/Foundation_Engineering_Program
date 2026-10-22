@@ -1,0 +1,263 @@
+İstinat duvarı
+
+Proje: QA İŞLEV GeoTek
+
+KAYDEDİLMEMİŞ DEĞİŞİKLİKLER
+Kaydet
+TR
+EN
+Ana menüye dön
+Duvarlar
+Yeni duvar
+Listeye dön
+QA Konsol 5m
+İSTİNAT DUVARI
+KULLANICI
+İLERİ
+ASD
+Tip/geometri
+Zemin
+Yükler/deprem
+4
+Öner/Kontrol
+5
+Sonuç
+
+Kesit boyutları (Kullanıcı)
+
+'Boyut öner' bu alanları doldurur. Değerleri değiştirip 'Kontrol et' ile kendi kesitinizi tahkik edebilirsiniz.
+
+Boyut öner
+Kontrol et
+Ön ayak
+Topuk
+Taban kalınlığı
+Gövde üst genişliği
+Gövde alt genişliği
+
+Hesap durumu: Hesap tamamlandı.
+
+100%
+
+Duvar Kesiti (Ölçekli)
+
+Ön zemin
+Tutulan zemin (arka)
+Gövde
+Taban plağı
+Ön ayak
+Topuk
+Taban B = 4.60 m
+H = 5.00 m
+D = 0.60 m
+bec4ae2b3c0d490e9c8b20d2e5350403
+0.00–5.00 m
+bec4ae2b3c0d490e9c8b20d2e5350403
+5.00–40.00 m
+bec4ae2b3c0d490e9c8b20d2e5350403
+
+Sağlanamayan tahkik: Deprem · Kayma; Deprem · Taşıma gücü
+
+kv işareti (TBDY 16.12.2.3): zarf seçiliyse her tahkik için +|kv| (yukarı) ve −|kv| (aşağı) hesaplanır, elverişsiz olan alınır; kartlardaki rozet o tahkikte yöneten kv işaretini gösterir.
+
+Devrilme
+
+STATİK
+UYGUN
+
+HESAPLANAN
+
+4.42
+
+GEREKLİ EN AZ
+
+≥ 2.00
+
+KULLANIM ORANI
+
+45%
+
+M_R = 1140.8, M_O = 257.8 kNm/m
+
+Kayma
+
+STATİK
+UYGUN
+
+HESAPLANAN
+
+1.82
+
+GEREKLİ EN AZ
+
+≥ 1.50
+
+KULLANIM ORANI
+
+82%
+
+V tan(30) + c_a B' + key passive; governing surface: deep (base 1.95, key tip 1.82)
+
+Eksantrisite (e/B)
+
+STATİK
+UYGUN
+
+HESAPLANAN
+
+0.022
+
+İZİN VERİLEN EN ÇOK
+
+≤ 0.167
+
+KULLANIM ORANI
+
+13%
+
+e = 0.103 m (e/B limit 0.167)
+
+Taşıma gücü
+
+STATİK
+UYGUN
+
+HESAPLANAN
+
+4.25
+
+GEREKLİ EN AZ
+
+≥ 3.00
+
+KULLANIM ORANI
+
+71%
+
+q_ult = 389 kPa on B' = 4.39 m; q_eff = 91 kPa
+
+Devrilme
+
+DEPREM
+KV ↑ YUKARI
+UYGUN
+
+HESAPLANAN
+
+2.29
+
+GEREKLİ EN AZ
+
+≥ 1.50
+
+KULLANIM ORANI
+
+66%
+
+M_R = 1101.0, M_O = 481.5 kNm/m
+
+Kayma
+
+DEPREM
+KV ↑ YUKARI
+UYGUN DEĞİL
+
+HESAPLANAN
+
+1.03
+
+GEREKLİ EN AZ
+
+≥ 1.10
+
+KULLANIM ORANI
+
+107%
+
+V tan(30) + c_a B' + key passive; governing surface: deep (base 1.09, key tip 1.03)
+
+SAĞLANAMAYAN
+
+Eksantrisite (e/B)
+
+DEPREM
+KV ↑ YUKARI
+UYGUN
+
+HESAPLANAN
+
+0.148
+
+İZİN VERİLEN EN ÇOK
+
+≤ 0.250
+
+KULLANIM ORANI
+
+59%
+
+e = 0.682 m (e/B limit 0.250)
+
+Taşıma gücü
+
+DEPREM
+KV ↑ YUKARI
+UYGUN DEĞİL
+
+HESAPLANAN
+
+0.842
+
+GEREKLİ EN AZ
+
+≥ 2.00
+
+KULLANIM ORANI
+
+237%
+
+q_ult = 100 kPa on B' = 3.24 m; q_eff = 118 kPa
+
+SAĞLANAMAYAN
+
+Toptan göçme
+
+STATİK
+UYGUN
+
+HESAPLANAN
+
+1.54
+
+GEREKLİ EN AZ
+
+≥ 1.50
+
+KULLANIM ORANI
+
+97%
+
+Bishop circle centre (0.30, 9.32), R = 10.25 m
+
+Toptan göçme
+
+DEPREM
+KV ↑ YUKARI
+UYGUN
+
+HESAPLANAN
+
+1.17
+
+GEREKLİ EN AZ
+
+≥ 1.10
+
+KULLANIM ORANI
+
+94%
+
+Bishop circle centre (0.30, 9.32), R = 10.25 m
+
+Önceki adım
+Sonraki adım

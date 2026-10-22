@@ -1,0 +1,37 @@
+Zemin etüdü ve parametreler
+
+Proje: UX Araştırma 2026
+
+Kaydet
+TR
+EN
+Ana menüye dön
+Arazi verileri
+Zemin profilleri
+Mühendislik parametreleri
+Sınıflandırma
+Arazi Verileri
+
+CPT deneyleri, SPT sondajları ve saha sondaj logları.
+
+CPT verisi içe aktar (CSV)
+SPT verisi içe aktar (CSV)
+Yeni sondaj (elle)
+Arazi verisi bulunmuyor
+
+Projeye henüz CPT veya SPT sondajı eklenmemiş.
+
+Kaydedildi
+CPT verisi içe aktar (CSV)
+
+Derinlik, qc ve fs sütunlarını (isteğe bağlı u2) içeren CSV dosyası seçin. Birimi başlıkta belirtebilirsiniz, örn. qc [MPa].
+
+Örnek CSV şablonunu indir
+CSV dosyası
+Dosya seçmek için tıklayın
+CPT kimliği (örn. CPT-1)
+qc birimi
+Ayraç
+Ondalık işareti
+İptal
+İçe aktar

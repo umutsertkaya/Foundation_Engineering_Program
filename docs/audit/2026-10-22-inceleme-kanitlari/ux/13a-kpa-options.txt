@@ -1,0 +1,48 @@
+Zemin etüdü ve parametreler
+
+Proje: UX Araştırma 2026
+
+KAYDEDİLMEMİŞ DEĞİŞİKLİKLER
+Kaydet
+TR
+EN
+Ana menüye dön
+Arazi verileri
+Zemin profilleri
+Mühendislik parametreleri
+Sınıflandırma
+Arazi Verileri
+
+CPT deneyleri, SPT sondajları ve saha sondaj logları.
+
+CPT verisi içe aktar (CSV)
+SPT verisi içe aktar (CSV)
+Yeni sondaj (elle)
+CPT Deneyleri
+
+CPT-UX-MPa
+
+299 ÖLÇÜM NOKTASI
+
+Maks. derinlik: 15.0 m
+
+Yeraltı su seviyesi (YASS): 2.5 m
+
+Koni alan oranı a: 0.8
+
+Sondajlar (SPT ve Log)
+CPT verisi içe aktar (CSV)
+
+Derinlik, qc ve fs sütunlarını (isteğe bağlı u2) içeren CSV dosyası seçin. Birimi başlıkta belirtebilirsiniz, örn. qc [MPa].
+
+Örnek CSV şablonunu indir
+CSV dosyası
+cpt-kpa-dot.csv
+CPT kimliği (örn. CPT-1)
+qc birimi
+Ayraç
+Ondalık işareti
+İptal
+İçe aktar
+MPa
+kPa

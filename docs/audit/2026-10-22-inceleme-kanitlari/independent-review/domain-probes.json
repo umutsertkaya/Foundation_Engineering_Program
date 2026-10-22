@@ -1,0 +1,70 @@
+{
+  "sbtn_infinity": {
+    "actual": 2,
+    "warnings": []
+  },
+  "Youd_FC_nan": {
+    "actual": 17.0,
+    "warnings": []
+  },
+  "BI_Csigma_nan": {
+    "actual": 0.3,
+    "warnings": []
+  },
+  "KM_phi_infinite_sigma": {
+    "actual": {
+      "value": 0.0,
+      "unit": "deg",
+      "method_id": "KM1990_phi_SPT",
+      "reference": "Kulhawy & Mayne (1990), EPRI EL-6800 (after Schmertmann 1975)",
+      "source": "SPT",
+      "inputs_used": {
+        "N60": 20.0,
+        "sigma_v_eff": "inf"
+      },
+      "validity_ok": true,
+      "warnings": [],
+      "reliability": "B",
+      "stats": null,
+      "user_override": false
+    },
+    "warnings": []
+  },
+  "LPI_unsorted": {
+    "actual": -24.75,
+    "warnings": []
+  },
+  "invalid_pipeline_summary": {
+    "status": [
+      "invalid",
+      "invalid"
+    ],
+    "summary": {
+      "method": "bi2014",
+      "test_type": "CPT",
+      "source_id": "I",
+      "status_counts": {
+        "invalid": 2
+      },
+      "liquefiable_depths": null,
+      "min_fs": null,
+      "LPI": 0.0,
+      "LPI_category": "very_low"
+    }
+  },
+  "C_low_level_pile_domain": {
+    "D0": 4.629270463767943,
+    "D": -4.629270463767943,
+    "section_modulus_cm3": "nan"
+  },
+  "C_gravity_geometry_nonfinite": {
+    "height_accepted": "inf",
+    "embedment_above_height_accepted": 7.0
+  },
+  "C_education_soft_clay_area": {
+    "p": 29.92,
+    "H": 8,
+    "independent_area": 209.44,
+    "drawn_area": 179.52
+  }
+}

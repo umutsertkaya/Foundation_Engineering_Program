@@ -1,0 +1,704 @@
+{
+  "url": "http://127.0.0.1:8771/m/soil",
+  "viewport": {
+    "w": 1440,
+    "h": 900
+  },
+  "scroll": {
+    "w": 1440,
+    "h": 900
+  },
+  "inputs": [
+    {
+      "tag": "INPUT",
+      "type": "radio",
+      "id": "mantine-59n0h4b3j-tr",
+      "aria": null,
+      "ph": "",
+      "value": "tr",
+      "labels": [
+        "TR"
+      ],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "radio",
+      "id": "mantine-59n0h4b3j-en",
+      "aria": null,
+      "ph": "",
+      "value": "en",
+      "labels": [
+        "EN"
+      ],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": "mantine-90n38tygl",
+      "aria": null,
+      "ph": "",
+      "value": "BH-UX-dot",
+      "labels": [
+        "Kimlik"
+      ],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": "mantine-e401xysuu",
+      "aria": null,
+      "ph": "",
+      "value": "",
+      "labels": [
+        "YASS derinliği [m]"
+      ],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": "mantine-kkops8ylm",
+      "aria": null,
+      "ph": "",
+      "value": "",
+      "labels": [
+        "Zemin kotu [m]"
+      ],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": "mantine-mh78f08un",
+      "aria": null,
+      "ph": "",
+      "value": "60",
+      "labels": [
+        "Çekiç enerji oranı ER [%]"
+      ],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": "mantine-jq43hd7fe",
+      "aria": null,
+      "ph": "",
+      "value": "100",
+      "labels": [
+        "Sondaj çapı [mm]"
+      ],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": "mantine-ka656fubz",
+      "aria": null,
+      "ph": "",
+      "value": "Standart (gömlekli)",
+      "labels": [
+        "Örnekleyici"
+      ],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "hidden",
+      "id": "",
+      "aria": null,
+      "ph": "",
+      "value": "standard",
+      "labels": [],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": "mantine-3sauswb6j",
+      "aria": "Derinlik [m] 1",
+      "ph": "",
+      "value": "1.5",
+      "labels": [],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": "mantine-0gy7u1y7n",
+      "aria": "N 1",
+      "ph": "",
+      "value": "6",
+      "labels": [],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "checkbox",
+      "id": "mantine-39scnsmm9",
+      "aria": "Refü 1",
+      "ph": "",
+      "value": "on",
+      "labels": [],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": "mantine-syigidawn",
+      "aria": "Not 1",
+      "ph": "",
+      "value": "",
+      "labels": [],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": "mantine-wfayp64bh",
+      "aria": "Derinlik [m] 2",
+      "ph": "",
+      "value": "3",
+      "labels": [],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": "mantine-ubapuapws",
+      "aria": "N 2",
+      "ph": "",
+      "value": "5",
+      "labels": [],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "checkbox",
+      "id": "mantine-jhxwtz4jd",
+      "aria": "Refü 2",
+      "ph": "",
+      "value": "on",
+      "labels": [],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": "mantine-048jg4jd6",
+      "aria": "Not 2",
+      "ph": "",
+      "value": "",
+      "labels": [],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": "mantine-jdjz1z7ig",
+      "aria": "Derinlik [m] 3",
+      "ph": "",
+      "value": "4.5",
+      "labels": [],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": "mantine-6o0119t71",
+      "aria": "N 3",
+      "ph": "",
+      "value": "7",
+      "labels": [],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "checkbox",
+      "id": "mantine-200ji9o4m",
+      "aria": "Refü 3",
+      "ph": "",
+      "value": "on",
+      "labels": [],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": "mantine-is84830j6",
+      "aria": "Not 3",
+      "ph": "",
+      "value": "",
+      "labels": [],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": "mantine-65zjzjl7w",
+      "aria": "Derinlik [m] 4",
+      "ph": "",
+      "value": "6",
+      "labels": [],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": "mantine-kgsqug1bq",
+      "aria": "N 4",
+      "ph": "",
+      "value": "4",
+      "labels": [],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "checkbox",
+      "id": "mantine-vz0l9jwf9",
+      "aria": "Refü 4",
+      "ph": "",
+      "value": "on",
+      "labels": [],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": "mantine-l05ccvmof",
+      "aria": "Not 4",
+      "ph": "",
+      "value": "",
+      "labels": [],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": "mantine-spwtzgwia",
+      "aria": "Derinlik [m] 5",
+      "ph": "",
+      "value": "7.5",
+      "labels": [],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": "mantine-uawecl0dn",
+      "aria": "N 5",
+      "ph": "",
+      "value": "3",
+      "labels": [],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "checkbox",
+      "id": "mantine-qh5qd2mcr",
+      "aria": "Refü 5",
+      "ph": "",
+      "value": "on",
+      "labels": [],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": "mantine-585cdf4v7",
+      "aria": "Not 5",
+      "ph": "",
+      "value": "",
+      "labels": [],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": "mantine-x9c0awkr8",
+      "aria": "Derinlik [m] 6",
+      "ph": "",
+      "value": "9",
+      "labels": [],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": "mantine-1zzeb85zz",
+      "aria": "N 6",
+      "ph": "",
+      "value": "22",
+      "labels": [],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "checkbox",
+      "id": "mantine-rjv964ep4",
+      "aria": "Refü 6",
+      "ph": "",
+      "value": "on",
+      "labels": [],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": "mantine-qw2khcv2c",
+      "aria": "Not 6",
+      "ph": "",
+      "value": "",
+      "labels": [],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": "mantine-cc6afjnus",
+      "aria": "Derinlik [m] 7",
+      "ph": "",
+      "value": "10.5",
+      "labels": [],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": "mantine-px4sm2lsp",
+      "aria": "N 7",
+      "ph": "",
+      "value": "31",
+      "labels": [],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "checkbox",
+      "id": "mantine-yoxn66s0l",
+      "aria": "Refü 7",
+      "ph": "",
+      "value": "on",
+      "labels": [],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": "mantine-4f976fcqt",
+      "aria": "Not 7",
+      "ph": "",
+      "value": "",
+      "labels": [],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": "mantine-td6ww5p1j",
+      "aria": "Derinlik [m] 8",
+      "ph": "",
+      "value": "12",
+      "labels": [],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": "mantine-kwbofbhbm",
+      "aria": "N 8",
+      "ph": "",
+      "value": "38",
+      "labels": [],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "checkbox",
+      "id": "mantine-hz1hjvxt0",
+      "aria": "Refü 8",
+      "ph": "",
+      "value": "on",
+      "labels": [],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": "mantine-9envxygfh",
+      "aria": "Not 8",
+      "ph": "",
+      "value": "",
+      "labels": [],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": "mantine-gv2gjgd2a",
+      "aria": "Derinlik [m] 9",
+      "ph": "",
+      "value": "13.5",
+      "labels": [],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": "mantine-nq4pe3xts",
+      "aria": "N 9",
+      "ph": "",
+      "value": "50",
+      "labels": [],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "checkbox",
+      "id": "mantine-slerw0gvi",
+      "aria": "Refü 9",
+      "ph": "",
+      "value": "on",
+      "labels": [],
+      "testid": null
+    },
+    {
+      "tag": "INPUT",
+      "type": "text",
+      "id": "mantine-k551yiwi8",
+      "aria": "Not 9",
+      "ph": "",
+      "value": "",
+      "labels": [],
+      "testid": null
+    }
+  ],
+  "buttons": [
+    {
+      "text": "",
+      "aria": "Gezinme menüsünü aç veya kapat",
+      "disabled": false
+    },
+    {
+      "text": "Kaydet",
+      "aria": null,
+      "disabled": false
+    },
+    {
+      "text": "",
+      "aria": "Tema değiştir",
+      "disabled": false
+    },
+    {
+      "text": "Ana menüye dön",
+      "aria": null,
+      "disabled": false
+    },
+    {
+      "text": "CPT verisi içe aktar (CSV)",
+      "aria": null,
+      "disabled": false
+    },
+    {
+      "text": "SPT verisi içe aktar (CSV)",
+      "aria": null,
+      "disabled": false
+    },
+    {
+      "text": "Yeni sondaj (elle)",
+      "aria": null,
+      "disabled": false
+    },
+    {
+      "text": "",
+      "aria": "CPT-UX-MPa kaydını düzenle",
+      "disabled": false
+    },
+    {
+      "text": "",
+      "aria": "CPT-UX-MPa kaydını sil",
+      "disabled": false
+    },
+    {
+      "text": "",
+      "aria": "CPT-UX-kPa kaydını düzenle",
+      "disabled": false
+    },
+    {
+      "text": "",
+      "aria": "CPT-UX-kPa kaydını sil",
+      "disabled": false
+    },
+    {
+      "text": "",
+      "aria": "BH-UX-dot kaydını düzenle",
+      "disabled": false
+    },
+    {
+      "text": "",
+      "aria": "BH-UX-dot kaydını sil",
+      "disabled": false
+    },
+    {
+      "text": "",
+      "aria": null,
+      "disabled": false
+    },
+    {
+      "text": "",
+      "aria": null,
+      "disabled": false
+    },
+    {
+      "text": "Genel",
+      "aria": null,
+      "disabled": false
+    },
+    {
+      "text": "SPT",
+      "aria": null,
+      "disabled": false
+    },
+    {
+      "text": "Sondaj logu",
+      "aria": null,
+      "disabled": false
+    },
+    {
+      "text": "Laboratuvar",
+      "aria": null,
+      "disabled": false
+    },
+    {
+      "text": "",
+      "aria": null,
+      "disabled": false
+    },
+    {
+      "text": "",
+      "aria": null,
+      "disabled": false
+    },
+    {
+      "text": "",
+      "aria": null,
+      "disabled": false
+    },
+    {
+      "text": "",
+      "aria": null,
+      "disabled": false
+    },
+    {
+      "text": "",
+      "aria": null,
+      "disabled": false
+    },
+    {
+      "text": "",
+      "aria": null,
+      "disabled": false
+    },
+    {
+      "text": "",
+      "aria": null,
+      "disabled": false
+    },
+    {
+      "text": "",
+      "aria": null,
+      "disabled": false
+    },
+    {
+      "text": "",
+      "aria": "1. satırı sil",
+      "disabled": false
+    },
+    {
+      "text": "",
+      "aria": "2. satırı sil",
+      "disabled": false
+    },
+    {
+      "text": "",
+      "aria": "3. satırı sil",
+      "disabled": false
+    },
+    {
+      "text": "",
+      "aria": "4. satırı sil",
+      "disabled": false
+    },
+    {
+      "text": "",
+      "aria": "5. satırı sil",
+      "disabled": false
+    },
+    {
+      "text": "",
+      "aria": "6. satırı sil",
+      "disabled": false
+    },
+    {
+      "text": "",
+      "aria": "7. satırı sil",
+      "disabled": false
+    },
+    {
+      "text": "",
+      "aria": "8. satırı sil",
+      "disabled": false
+    },
+    {
+      "text": "",
+      "aria": "9. satırı sil",
+      "disabled": false
+    },
+    {
+      "text": "Satır ekle",
+      "aria": null,
+      "disabled": false
+    },
+    {
+      "text": "Satır ekle",
+      "aria": null,
+      "disabled": false
+    },
+    {
+      "text": "Satır ekle",
+      "aria": null,
+      "disabled": false
+    },
+    {
+      "text": "İptal",
+      "aria": null,
+      "disabled": false
+    },
+    {
+      "text": "Kaydet",
+      "aria": null,
+      "disabled": false
+    }
+  ],
+  "links": [
+    {
+      "text": "Arazi verileri",
+      "href": "/m/soil"
+    },
+    {
+      "text": "Zemin profilleri",
+      "href": "/m/soil/profiles"
+    },
+    {
+      "text": "Mühendislik parametreleri",
+      "href": "/m/soil/parameters"
+    },
+    {
+      "text": "Sınıflandırma",
+      "href": "/m/soil/classification"
+    }
+  ]
+}

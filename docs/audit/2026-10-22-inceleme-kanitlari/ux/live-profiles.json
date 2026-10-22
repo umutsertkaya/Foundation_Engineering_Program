@@ -1,0 +1,42 @@
+[
+  {
+    "id": "cd07a3fcd63044e99b86a3909d503006",
+    "name": "UX Elle Kum Profili",
+    "origin": "manual",
+    "source_ids": [],
+    "gwt": {
+      "depth_insitu": 2.5,
+      "depth_design": 2.5,
+      "depth_seismic": 2.5
+    },
+    "layer_count": 1
+  },
+  {
+    "id": "a2a0ff79cab6471c9d3701e6ea6e12da",
+    "name": "UX CPT Profili",
+    "origin": "cpt",
+    "source_ids": [
+      "CPT-UX-MPa"
+    ],
+    "gwt": {
+      "depth_insitu": 2.5,
+      "depth_design": 2.5,
+      "depth_seismic": 2.5
+    },
+    "layer_count": 3
+  },
+  {
+    "id": "5a127d778295457d9519d4434a82d04d",
+    "name": "UX SPT Profili",
+    "origin": "spt",
+    "source_ids": [
+      "BH-UX-dot"
+    ],
+    "gwt": {
+      "depth_insitu": 2.5,
+      "depth_design": 2.5,
+      "depth_seismic": 2.5
+    },
+    "layer_count": 2
+  }
+]

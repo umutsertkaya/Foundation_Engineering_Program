@@ -1,0 +1,16 @@
+{
+  "job_id": "ec6c6b0c-7be5-465a-88ba-3dbbc655651b",
+  "kind": "wall_size",
+  "status": "failed",
+  "progress": 1.0,
+  "message_key": null,
+  "result": null,
+  "error": {
+    "code": "stale_structure",
+    "message": "Project or calculation inputs changed; result discarded.",
+    "details": {
+      "discarded": true
+    },
+    "missing_factors": []
+  }
+}

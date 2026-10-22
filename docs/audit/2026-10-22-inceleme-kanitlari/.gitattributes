@@ -1,0 +1,2 @@
+# Keep archived evidence byte-for-byte, including captured CSV line endings.
+* -text

@@ -1,0 +1,79 @@
+İstinat duvarı
+
+Proje: QA İŞLEV GeoTek
+
+KAYDEDİLMEMİŞ DEĞİŞİKLİKLER
+Kaydet
+TR
+EN
+Ana menüye dön
+Duvarlar
+Yeni duvar
+Listeye dön
+QA Ağırlık sulu 5m
+İSTİNAT DUVARI
+TASLAK
+TEMEL
+ASD
+1
+Tip/geometri
+2
+Zemin
+3
+Yükler/deprem
+4
+Öner/Kontrol
+5
+Sonuç
+
+Duvar & Kesit boyutları
+
+Konsol
+Ağırlık
+Yükseklik H
+Gömülme D
+Eğim β
+Taban genişliği B
+Üst genişlik
+Arka yüz çekilmesi
+Kayma dişi
+
+Taban plağı altında tüm boy boyunca devam eden beton diş; öndeki pasif direnç kaymaya katılır.
+
+Duvar Kesiti (Ölçekli)
+
+B = 3.00 m · D = 0.60 m
+
+Ön zemin
+Tutulan zemin (arka)
+6.00
+Arka dolgu bölgesi
+Ön bölge
+Temel bölgesi
+2.00 m · profilden
+2.00 m · profilden
+profil z = 40.00 m'ye kadar devam ediyor ↓
+z (m)
+0
+1
+2
+3
+4
+6
+7
+8
+4.40
+5.00
+0.00–6.00 m · Kum
+φ' 30° · γ 18.0
+0.00–6.00 m · Kum
+φ' 30° · γ 18.0
+6.00–40.00 m · Kum
+φ' 32° · γ 19.0
+0.00–6.00 m · …
+φ' 30°
+Taban B = 3.00 m
+H = 5.00 m
+Önceki adım
+Sonraki adım
+Duvar oluşturuldu.

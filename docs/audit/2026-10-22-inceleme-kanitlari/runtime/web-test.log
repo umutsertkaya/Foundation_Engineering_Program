@@ -1,0 +1,110 @@
+
+> geotek-web@0.2.0 test
+> vitest run
+
+
+ RUN  v2.1.2 /workspace/Foundation_Engineering_Program/web
+
+ ✓ src/modules/soil/__tests__/soil.test.tsx  (23 tests) 2705ms
+ ✓ src/modules/soil/__tests__/soil_layering_params_ui.test.tsx  (10 tests) 5514ms
+ ✓ src/test/shell_mock.test.ts  (19 tests) 67ms
+ ✓ src/modules/liquefaction/__tests__/liquefaction.test.tsx  (24 tests) 3062ms
+ ✓ src/modules/sheet_pile/__tests__/sheet_pile.test.tsx  (24 tests) 15547ms
+ ✓ src/test/shell.test.tsx  (14 tests) 1761ms
+ ✓ src/modules/liquefaction/__tests__/results.test.tsx  (17 tests) 752ms
+ ✓ src/modules/walls/__tests__/check_cards.test.tsx  (13 tests) 423ms
+ ✓ src/modules/walls/__tests__/wall_wizard_flow.test.tsx  (12 tests) 16218ms
+ ✓ src/modules/soil/__tests__/classification.test.tsx  (12 tests) 667ms
+ ✓ src/modules/soil/__tests__/soil_layering_params_mock.test.ts  (12 tests) 18ms
+ ✓ src/modules/walls/__tests__/wall_wizard_inputs.test.tsx  (9 tests) 11831ms
+ ✓ src/modules/walls/__tests__/wall_section.test.tsx  (16 tests) 93ms
+ ✓ src/modules/walls/__tests__/wall_picker.test.tsx  (9 tests) 1278ms
+ ✓ src/test/start_page.test.tsx  (9 tests) 3525ms
+ ✓ src/modules/anchored_wall/__tests__/anchored_wall.test.tsx  (6 tests) 1529ms
+ ✓ src/test/boundaries.test.ts  (8 tests) 48ms
+ ✓ src/test/app.test.tsx  (7 tests) 38ms
+ ✓ src/modules/walls/__tests__/analysis_options.test.tsx  (8 tests) 639ms
+ ✓ src/modules/soil/__tests__/parameterState.test.ts  (9 tests) 6ms
+ ✓ src/modules/walls/__tests__/labels.test.ts  (13 tests) 7ms
+ ✓ src/test/skeleton.test.tsx  (4 tests) 29ms
+ ✓ src/modules/soil/__tests__/parameters_consistency.test.tsx  (3 tests) 1588ms
+ ✓ src/test/module_paths.test.ts  (6 tests) 11ms
+ ✓ src/modules/walls/__tests__/permeability_editor.test.tsx  (4 tests) 199ms
+ ✓ src/modules/soil/__tests__/warnings.test.ts  (10 tests) 8ms
+ ✓ src/test/use_job.test.tsx  (3 tests) 25ms
+ ✓ src/modules/soil/__tests__/site_import.test.tsx  (2 tests) 713ms
+ ✓ src/modules/sheet_pile/__tests__/inputs.test.ts  (5 tests) 6ms
+ ✓ src/modules/sheet_pile/__tests__/result-contract.test.tsx  (5 tests) 179ms
+ ✓ src/modules/walls/__tests__/settings.test.ts  (8 tests) 6ms
+ ✓ src/modules/report/__tests__/report.test.tsx  (4 tests) 246ms
+ ✓ src/modules/soil/__tests__/soil_mock.test.ts  (5 tests) 8ms
+stderr | src/test/app_chrome.test.tsx > app chrome > warns when the server cannot be reached
+Warning: An update to AppChrome inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at AppChrome (/workspace/Foundation_Engineering_Program/web/src/app/AppChrome.tsx:16:39)
+    at MantineThemeProvider (file:///workspace/Foundation_Engineering_Program/web/node_modules/@mantine/core/esm/core/MantineProvider/MantineThemeProvider/MantineThemeProvider.mjs:19:3)
+    at MantineProvider (file:///workspace/Foundation_Engineering_Program/web/node_modules/@mantine/core/esm/core/MantineProvider/MantineProvider.mjs:16:3)
+Warning: An update to @mantine/core/Alert inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at file:///workspace/Foundation_Engineering_Program/web/node_modules/@mantine/core/esm/components/Alert/Alert.mjs:42:17
+    at AppChrome (/workspace/Foundation_Engineering_Program/web/src/app/AppChrome.tsx:16:39)
+    at MantineThemeProvider (file:///workspace/Foundation_Engineering_Program/web/node_modules/@mantine/core/esm/core/MantineProvider/MantineThemeProvider/MantineThemeProvider.mjs:19:3)
+    at MantineProvider (file:///workspace/Foundation_Engineering_Program/web/node_modules/@mantine/core/esm/core/MantineProvider/MantineProvider.mjs:16:3)
+Warning: An update to @mantine/core/Transition inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at Transition (file:///workspace/Foundation_Engineering_Program/web/node_modules/@mantine/core/esm/components/Transition/Transition.mjs:7:3)
+    at button
+    at file:///workspace/Foundation_Engineering_Program/web/node_modules/@mantine/core/esm/core/Box/Box.mjs:23:5
+    at file:///workspace/Foundation_Engineering_Program/web/node_modules/@mantine/core/esm/components/UnstyledButton/UnstyledButton.mjs:23:19
+    at file:///workspace/Foundation_Engineering_Program/web/node_modules/@mantine/core/esm/components/Button/Button.mjs:59:17
+    at div
+    at div
+    at div
+    at div
+    at file:///workspace/Foundation_Engineering_Program/web/node_modules/@mantine/core/esm/core/Box/Box.mjs:23:5
+    at file:///workspace/Foundation_Engineering_Program/web/node_modules/@mantine/core/esm/components/Alert/Alert.mjs:42:17
+    at AppChrome (/workspace/Foundation_Engineering_Program/web/src/app/AppChrome.tsx:16:39)
+    at MantineThemeProvider (file:///workspace/Foundation_Engineering_Program/web/node_modules/@mantine/core/esm/core/MantineProvider/MantineThemeProvider/MantineThemeProvider.mjs:19:3)
+    at MantineProvider (file:///workspace/Foundation_Engineering_Program/web/node_modules/@mantine/core/esm/core/MantineProvider/MantineProvider.mjs:16:3)
+
+ ✓ src/test/app_chrome.test.tsx  (3 tests) 176ms
+ ✓ src/modules/walls/__tests__/shear_key.test.tsx  (3 tests) 202ms
+ ✓ src/modules/walls/__tests__/wall_wizard.test.tsx  (2 tests) 716ms
+ ✓ src/test/error_alert.test.tsx  (2 tests) 76ms
+ ✓ src/test/missing_factors_form.test.tsx  (2 tests) 280ms
+ ✓ src/modules/walls/__tests__/step_bar.test.tsx  (3 tests) 168ms
+ ✓ src/modules/education/__tests__/math.test.tsx  (3 tests) 143ms
+ ✓ src/modules/education/__tests__/education.test.tsx  (14 tests) 5256ms
+ ✓ src/shared/api/errorMessage.test.ts  (3 tests) 3ms
+ ✓ src/modules/soil/__tests__/parameters_no_data.test.tsx  (1 test) 88ms
+ ✓ src/modules/sheet_pile/__tests__/series.test.ts  (2 tests) 8ms
+
+ Test Files  44 passed (44)
+      Tests  371 passed (371)
+   Start at  14:48:00
+   Duration  67.58s (transform 4.29s, setup 3.02s, collect 29.33s, tests 75.86s, environment 15.78s, prepare 2.84s)
+

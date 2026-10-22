@@ -1,13 +1,13 @@
 # GeoTek — güncel durum ve tek iş sırası
 
-Son güncelleme: 2026-10-21 (G8 kabul: duvar/palplanş eğim+sürşarj, ankrajlı duvar). Bu sayfa **tek güncel durum kaynağıdır**;
+Son güncelleme: 2026-10-22 (uygulamalı inceleme ve kullanıcı deneyimi raporları). Bu sayfa **tek güncel durum kaynağıdır**;
 ayrıntılı geçmiş Git günlüğünde ve birleşmiş PR'lardadır. Son kontrol raporu: [sistem kontrolü](qa/sistem-kontrolu.md).
 
 ## Aktif iş
 
 Compact veya devir öncesi yalnız bu üç satır güncellenir (kural: [WORKFLOW](WORKFLOW.md#bağlam-ve-compact-kuralı)).
 
-- Biten: 2026-10-20 sistem kontrolü ve temizlik (hedef adım 1): ~50 bulgu, motor/API/rapor/web düzeltmeleri, PySide6 `geotek/ui` + `geotek/plotting` kaldırıldı, eski arşiv/kartlar silindi. Kanıt: [qa/sistem-kontrolu.md](qa/sistem-kontrolu.md).
+- Biten: 2026-10-22 gerçek API/tarayıcı ile [arayüz, işlev ve mühendislik incelemesi](audit/2026-10-22-arayuz-islev-muhendislik-incelemesi.md) ve ayrı [kullanılabilirlik önerileri](audit/2026-10-22-kullanilabilirlik-iyilestirme-onerileri.md) tamamlandı. Sol xhigh alt ajanları, bağımsız sayısal kontroller ve tek Astra son denetimi; 29 ENG, 13 UX, 10 FUN kaydı (ortak bulgular çapraz bağlı), kalıcı kanıtlar. Mevcut testler: pytest 2025 geçti / 2 atlandı; web 371 geçti; typecheck, build ve kod haritası kontrolü başarılı. Üretim kodu değiştirilmedi; özgün kaynak doğrulaması ile bilgiye dayalı değerlendirme raporda ayrıldı.
 - Sıradaki: hedef adım 2 (modüler yapı ve yeni modül eklenebilirliği), ardından adım 3 [K1](tasks/K1.md) exe üretimi.
 - Açık karar: yok. CPT γ alt sınırı (R&C 2010, 12 kN/m³) ve `predrill_depth` dışlama Umut onayıyla, profilsiz CPT q_t ≤ 0 için en yakın γ koordinatör kararıyla uygulandı (2026-10-20).
 

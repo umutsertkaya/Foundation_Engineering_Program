@@ -1,0 +1,32 @@
+{
+  "bearing_education_warning": {
+    "input": {
+      "method": "vesic",
+      "B": 2,
+      "D": 0,
+      "phi": 0,
+      "c": 10,
+      "gamma": 18,
+      "q": 0,
+      "V": 100,
+      "H": 30
+    },
+    "H_kN_per_m": 30,
+    "area_times_su_kN_per_m": 20,
+    "actual_q_ult_kPa": 21.4,
+    "actual_Q_ult_kN_per_m": 42.8,
+    "education_claim": "bearing.ts:142 both Hansen and Vesic reject H>A su"
+  },
+  "bishop_figure_shear": {
+    "base_screen_vector": [
+      90,
+      -20
+    ],
+    "drawn_shear_screen_vector": [
+      -38,
+      9
+    ],
+    "dot_product": -3600,
+    "expected_resistance_direction": "toward upper right, opposing leftward/downward sliding"
+  }
+}

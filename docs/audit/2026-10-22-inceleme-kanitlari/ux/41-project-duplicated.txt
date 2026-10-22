@@ -1,0 +1,28 @@
+GeoTek
+
+Geoteknik tasarım ve analiz
+
+TR
+EN
+Yeni proje
+İçe aktar (.gtk)
+Son projeler
+UX Araştırma 2026 (kopya)
+UX Araştırma 2026
+Proje kütüphanesi
+Proje adı	Proje no	Mühendis	Son değişiklik	
+
+
+UX Araştırma 2026 (kopya)
+
+	UX-001	Denetim Mühendisi	22.10.2026 15:00:37	
+
+
+
+UX Araştırma 2026
+
+	UX-001	Denetim Mühendisi	22.10.2026 14:59:08	
+
+Kütüphane: /tmp/geotek-audit/ux/library
+
+Proje çoğaltıldı: UX Araştırma 2026 (kopya)
