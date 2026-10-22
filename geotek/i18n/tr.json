@@ -554,6 +554,13 @@
   "soil.error.gwt_missing_title": "Yeraltı su seviyesi (YASS) girilmemiş",
   "soil.error.gwt_missing": "Bu deney için YASS derinliği bilinmeden hesap yapılamaz. Arazi verileri sayfasında kaydın kalem simgesine basıp YASS derinliğini girin.",
   "soil.error.gwt_missing_link": "Arazi verilerine git",
+  "soil.error.spt_profile_title": "SPT için önce bir zemin profili gerekir",
+  "soil.error.spt_profile": "SPT düzeltmeleri (N60, N1,60) birim ağırlık gerektirir ve program birim ağırlık varsaymaz. Zemin profilleri sayfasında elle bir profil oluşturup birim ağırlıkları girin, bu sondajı kaynak olarak seçin ve profili etkin yapın; sonra SPT'den tabakalamayı yeniden deneyin.",
+  "soil.error.spt_profile_link": "Zemin profillerine git",
+  "web.soil.sources_pick": "Kaynak deneyler",
+  "web.soil.sources_hint": "Mühendislik parametreleri yalnız burada seçilen sondaj ve CPT verisinden üretilir.",
+  "web.soil.sources_none_available": "Henüz sondaj veya CPT yok (Arazi verileri sayfasından ekleyin).",
+  "web.soil.sources_placeholder": "Sondaj / CPT seçin",
   "ui.geo.stem_height": "Gövde yüksekliği",
   "ui.geo.embedment": "Gömülme D",
   "ui.geo.height": "Yükseklik H"

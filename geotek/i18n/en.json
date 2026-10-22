@@ -554,6 +554,13 @@
   "soil.error.gwt_missing_title": "Groundwater depth not entered",
   "soil.error.gwt_missing": "This calculation needs the groundwater depth of the sounding. On the Site data page, click the pencil icon of the record and enter it.",
   "soil.error.gwt_missing_link": "Go to site data",
+  "soil.error.spt_profile_title": "A soil profile is needed first for SPT",
+  "soil.error.spt_profile": "SPT corrections (N60, N1,60) need unit weights and the program never assumes them. On the Soil profiles page create a manual profile, enter the unit weights, select this borehole as a source and make the profile active; then try layering from SPT again.",
+  "soil.error.spt_profile_link": "Go to soil profiles",
+  "web.soil.sources_pick": "Source tests",
+  "web.soil.sources_hint": "Engineering parameters are produced only from the boreholes and CPTs selected here.",
+  "web.soil.sources_none_available": "No boreholes or CPTs yet (add them on the Site data page).",
+  "web.soil.sources_placeholder": "Select boreholes / CPTs",
   "ui.geo.stem_height": "Stem height",
   "ui.geo.embedment": "Embedment D",
   "ui.geo.height": "Height H"

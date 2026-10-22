@@ -111,6 +111,8 @@
   "soil.params.unapplied": "Unapplied changes: apply the selection before approving.",
   "soil.params.pick_needed": "Choose how to select a value.",
   "soil.params.no_data_banner": "This layer has no usable SPT, CPT or laboratory data, so the Suggested, Method and Statistic options are disabled. Add data to the profile's source boreholes (Site data) or enter the values manually.",
+  "soil.params.no_sources_banner": "No borehole or CPT is linked to this profile, so no parameter can be produced. On the Soil profiles page pick the SPT/CPT records in the profile's 'Source tests' field, or enter the values manually.",
+  "soil.params.no_sources_link": "Go to soil profiles",
   "soil.params.manual_only_hint": "No data for this value; only manual entry is available.",
   "soil.error.unexpected": "Unexpected error",
   "soil.params.layer_range": "{top}–{bottom} m",
