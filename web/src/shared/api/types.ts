@@ -317,6 +317,9 @@ export interface SoundingLiquefactionDTO {
     | "invalid"
   )[];
   warnings: string[];
+  LPI?: number | null;
+  LPI_category?: "very_low" | "low" | "high" | "very_high" | null;
+  LPI_incomplete?: boolean;
 }
 
 export interface LiquefactionResultDTO {

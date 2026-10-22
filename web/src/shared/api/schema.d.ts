@@ -3836,6 +3836,19 @@ export interface components {
             status: ("liquefiable" | "marginal" | "safe" | "above_gwt" | "clay_like" | "non_liquefiable_dense" | "excluded_by_user" | "beyond_method_depth" | "invalid")[];
             /** Warnings */
             warnings: string[];
+            /**
+             * Lpi
+             * @description Liquefaction Potential Index (Iwasaki); null if every point is invalid
+             */
+            LPI?: number | null;
+            /** Lpi Category */
+            LPI_category?: ("very_low" | "low" | "high" | "very_high") | null;
+            /**
+             * Lpi Incomplete
+             * @description True when some points are invalid, so the LPI may be understated
+             * @default false
+             */
+            LPI_incomplete: boolean;
         };
         /**
          * StateResponse

@@ -16244,6 +16244,41 @@
             },
             "type": "array",
             "title": "Warnings"
+          },
+          "LPI": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lpi",
+            "description": "Liquefaction Potential Index (Iwasaki); null if every point is invalid"
+          },
+          "LPI_category": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "very_low",
+                  "low",
+                  "high",
+                  "very_high"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lpi Category"
+          },
+          "LPI_incomplete": {
+            "type": "boolean",
+            "title": "Lpi Incomplete",
+            "description": "True when some points are invalid, so the LPI may be understated",
+            "default": false
           }
         },
         "additionalProperties": false,

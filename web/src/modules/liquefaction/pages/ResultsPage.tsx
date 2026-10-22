@@ -173,6 +173,8 @@ function ResultBody({ result, stale, back }: { result: LiquefactionResultDTO | n
               <Table.Th>{t("liquefaction.results.sounding")}</Table.Th>
               <Table.Th>{t("liquefaction.results.min_fs")}</Table.Th>
               <Table.Th>{t("liquefaction.results.liquefiable_count")}</Table.Th>
+              <Table.Th>{t("liquefaction.results.lpi")}</Table.Th>
+              <Table.Th>{t("liquefaction.results.lpi_category")}</Table.Th>
             </Table.Tr>
           </Table.Thead>
           <Table.Tbody>
@@ -184,11 +186,19 @@ function ResultBody({ result, stale, back }: { result: LiquefactionResultDTO | n
                   <Table.Td>{id}</Table.Td>
                   <Table.Td>{fs === null ? "—" : fs.toFixed(2)}</Table.Td>
                   <Table.Td>{s.status.filter((x) => x === "liquefiable").length}</Table.Td>
+                  <Table.Td data-testid={`liq-lpi-${id}`}>
+                    {s.LPI == null ? "—" : s.LPI.toFixed(2)}
+                    {s.LPI_incomplete ? " *" : ""}
+                  </Table.Td>
+                  <Table.Td>{s.LPI_category ? t(`liquefaction.results.lpi_category.${s.LPI_category}`) : "—"}</Table.Td>
                 </Table.Tr>
               );
             })}
           </Table.Tbody>
         </Table>
+      )}
+      {ids.some((id) => result.per_sounding[id].LPI_incomplete) && (
+        <Alert color="yellow" variant="light" data-testid="liq-lpi-incomplete">{t("liquefaction.results.lpi_incomplete")}</Alert>
       )}
       {ids.length > 1 && (
         <Select label={t("liquefaction.results.select_sounding")} data={ids}
