@@ -21,9 +21,12 @@ _UNITS: dict[str, dict[str, float]] = {
     },
     "stress": {  # base: kPa
         "kPa": 1.0,
+        "kN/m2": 1.0,
+        "kN/m²": 1.0,
         "Pa": 0.001,
         "MPa": 1000.0,
         "kgf/cm2": 98.0665,
+        "tf/m2": 9.80665,
         "bar": 100.0,
         "tsf": 95.7605,
         "psf": 0.0478803,
@@ -32,6 +35,7 @@ _UNITS: dict[str, dict[str, float]] = {
     },
     "unit_weight": {  # base: kN/m3
         "kN/m3": 1.0,
+        "kN/m³": 1.0,
         "pcf": 0.157087,
         "tf/m3": 9.80665,
     },

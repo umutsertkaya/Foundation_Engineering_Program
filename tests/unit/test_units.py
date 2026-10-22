@@ -21,3 +21,10 @@ def test_incompatible_and_unknown_units():
         convert(1.0, "m", "kPa")
     with pytest.raises(UnitError):
         convert(1.0, "furlong", "m")
+
+
+def test_area_spelled_stress_aliases():
+    from geotek.core.units import convert
+    assert convert(5000.0, "kN/m2", "kPa") == 5000.0
+    assert convert(1.0, "kN/m²", "MPa") == 0.001
+    assert abs(convert(1.0, "tf/m2", "kPa") - 9.80665) < 1e-12
