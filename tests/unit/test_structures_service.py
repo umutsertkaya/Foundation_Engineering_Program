@@ -893,3 +893,59 @@ def test_sizing_treats_a_bearing_failure_as_a_failed_trial_width(monkeypatch):
     monkeypatch.setattr(service, "_evaluate_wall", always_fails)
     with pytest.raises(BearingFailureError, match="effective width"):
         size_structure(project, "wall")
+
+
+def _asd_envelope_project(sds):
+    layer = SoilLayer(id="sand", top=0, bottom=40, gamma=18, gamma_sat=20, design=DesignParameters(phi_eff=30))
+    soil = StructureSoilModel(
+        profile=SoilProfile(id="s", layers=[layer], gwt=GroundwaterCondition(
+            depth_insitu=0, depth_design=0, depth_seismic=100)),
+        gwt_front=GroundwaterCondition(depth_insitu=5, depth_design=5, depth_seismic=100))
+    sheet = SheetPileStructure(id="S", retained_height=5, soil=soil, sds=sds)
+    return Project(meta=ProjectMeta(name="asd-envelope"), structures=[sheet])
+
+
+def test_asd_sheet_pile_keeps_static_case_when_sds_is_set():
+    """ENG-C-001: the dry-water seismic case must not replace the wet static design case.
+
+    Hand calculation (static case): Ka=1/3, Kp=3, gamma'=20-9.81=10.19, passive/1.5.
+    z<=5: p = (Ka*gamma' + gw) z = 13.1... ; z>5 the net water head is constant (49.05 kPa):
+    p = Ka*gamma'*z + 5*gw - Kp*gamma'*(z-5)/1.5.  Free-earth toe from sum of moments about the toe.
+    """
+    import numpy as np
+    from numpy.polynomial import polynomial as P
+    gw, gam = GAMMA_W, 20 - GAMMA_W
+    ka, kp = 1 / 3, 3.0
+    p1 = np.array([0.0, ka * gam + gw])
+    p2 = np.array([5 * gw + kp * gam * 5 / 1.5, ka * gam - kp * gam / 1.5])
+
+    def integral(t, power=0):
+        total = 0.0
+        for coef, lo, hi in ((p1, 0.0, min(t, 5.0)), (p2, 5.0, t)):
+            if hi > lo:
+                antider = P.polyint(P.polymul(coef, [0.0] * power + [1.0]))
+                total += P.polyval(hi, antider) - P.polyval(lo, antider)
+        return total
+
+    lo, hi = 5.5, 39.0
+    for _ in range(200):
+        mid = (lo + hi) / 2
+        if (mid * integral(mid) - integral(mid, 1)) * (lo * integral(lo) - integral(lo, 1)) > 0:
+            lo = mid
+        else:
+            hi = mid
+    toe = (lo + hi) / 2
+    expected_d = 1.2 * (toe - 5)
+    zs = np.linspace(0, toe, 40001)
+    expected_m = max(abs(z * integral(z) - integral(z, 1)) for z in zs[::20])
+    assert expected_d == pytest.approx(18.9086, abs=2e-3)
+
+    static = design_sheet_pile_structure(_asd_envelope_project(None), "S")
+    with_sds = design_sheet_pile_structure(_asd_envelope_project(0.1), "S")
+    assert static.result.D == pytest.approx(expected_d, rel=2e-3)
+    assert static.result.M_max == pytest.approx(expected_m, rel=2e-3)
+    assert with_sds.result.D == pytest.approx(static.result.D, rel=1e-9)
+    assert with_sds.result.M_max == pytest.approx(static.result.M_max, rel=1e-9)
+    assert with_sds.kh is not None
+    assert any(a.code == "sheet_pile.governing_cases" and a.params["embedment"] == "static"
+               for a in with_sds.assumptions)
