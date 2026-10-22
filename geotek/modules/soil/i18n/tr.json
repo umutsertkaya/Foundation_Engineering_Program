@@ -173,5 +173,9 @@
   "soil.cls.uscs.in_fines": "İnce dane FC (%)",
   "soil.cls.uscs.in_gravel": "Çakıl (%)",
   "soil.cls.uscs.classify": "Sınıflandır",
-  "soil.cls.uscs.symbols_title": "USCS grup simgeleri"
+  "soil.cls.uscs.symbols_title": "USCS grup simgeleri",
+  "soil.error.depth_outside_title": "Kaynak etkin profilden daha derin",
+  "soil.error.depth_outside": "Etkin zemin profili {profile_depth} m derinliğe iniyor, bu kaynak ise {source_depth} m'ye kadar uzanıyor. Tabakalama gerilmeleri etkin profilden alınır. Zemin profilleri sayfasında etkin profili derinleştirin (veya daha derin bir profili etkin yapın) ve yeniden deneyin.",
+  "soil.error.depth_outside_nosrc": "Etkin zemin profili yalnızca {profile_depth} m derinliğe iniyor; bu kaynaktan sığ. Tabakalama gerilmeleri etkin profilden alınır. Zemin profilleri sayfasında etkin profili derinleştirin (veya daha derin bir profili etkin yapın) ve yeniden deneyin.",
+  "soil.layering.stress_profile_note": "Gerilmeler etkin profilden hesaplanır; etkin profil kaynak kadar derin olmalıdır."
 }

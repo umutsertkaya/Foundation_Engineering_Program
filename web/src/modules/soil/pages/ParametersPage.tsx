@@ -18,6 +18,7 @@ import { ErrorAlert } from "../components/ErrorAlert";
 import { ParameterKeyCard } from "../components/ParameterKeyCard";
 import { displayUnit } from "../units";
 import { LatestGuard } from "../latest";
+import { useBeforeUnloadWarning } from "../../../shared/hooks/useBeforeUnloadWarning";
 import { approvalState, formatValue, readiness } from "../parameterState";
 
 /** One consistent snapshot: the profile, the layer shown, and the parameters of every layer as last read. */
@@ -111,11 +112,20 @@ export function ParametersPage() {
     });
   }, []);
 
+  useBeforeUnloadWarning(dirtyKeys.size > 0);
+
   if (loading) return <Text size="sm">{t("web.common.loading")}</Text>;
 
   const profileId = loaded?.profileId ?? "";
   const layerId = loaded?.layerId ?? null;
   const selections = (loaded && layerId ? loaded.byLayer[layerId] : undefined) ?? [];
+  const activeLayer = loaded?.profile.layers.find((l) => l.id === layerId);
+  /** Depth range and description instead of the bare layer UUID. */
+  const layerLabel = activeLayer
+    ? [t("soil.params.layer_range", { top: activeLayer.top, bottom: activeLayer.bottom }), activeLayer.uscs, activeLayer.description]
+        .filter((part) => part !== undefined && part !== null && `${part}`.trim() !== "")
+        .join(" · ")
+    : (layerId ?? "");
 
   const selectProfile = (pid: string) => {
     if (pid !== profileId) void run(() => load(pid, null));
@@ -255,7 +265,7 @@ export function ParametersPage() {
               <Card withBorder padding="xs" radius="sm">
                 <Group justify="space-between" wrap="wrap" gap="xs">
                   <Text size="sm" fw={600}>
-                    {layerId}
+                    {layerLabel}
                   </Text>
                   <Tooltip label={bulkHint} withArrow multiline w={260}>
                     <Button size="xs" disabled={bulkDisabled} onClick={() => setConfirmKeys(readyKeys)} data-testid="params-approve-ready">
@@ -301,7 +311,7 @@ export function ParametersPage() {
         size="sm"
       >
         <Stack gap="sm" data-testid="params-confirm">
-          <Text size="sm">{t("soil.params.approve_confirm_body", { layer: layerId ?? "" })}</Text>
+          <Text size="sm">{t("soil.params.approve_confirm_body", { layer: layerLabel })}</Text>
           <Stack gap={2}>
             {(confirmKeys ?? []).map((key) => {
               const sel = selections.find((s) => s.parameter === key);

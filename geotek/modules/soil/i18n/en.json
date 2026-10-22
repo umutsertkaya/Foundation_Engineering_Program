@@ -173,5 +173,9 @@
   "soil.cls.uscs.in_fines": "Fines FC (%)",
   "soil.cls.uscs.in_gravel": "Gravel (%)",
   "soil.cls.uscs.classify": "Classify",
-  "soil.cls.uscs.symbols_title": "USCS group symbols"
+  "soil.cls.uscs.symbols_title": "USCS group symbols",
+  "soil.error.depth_outside_title": "Source is deeper than the active profile",
+  "soil.error.depth_outside": "The active soil profile reaches {profile_depth} m, but this source goes down to {source_depth} m. Stresses for layering come from the active profile. Extend the active profile (or make a deeper one active) on the Soil profiles page, then try again.",
+  "soil.error.depth_outside_nosrc": "The active soil profile reaches only {profile_depth} m, shallower than this source. Stresses for layering come from the active profile. Extend the active profile (or make a deeper one active) on the Soil profiles page, then try again.",
+  "soil.layering.stress_profile_note": "Stresses use the active profile; it must be at least as deep as the source."
 }

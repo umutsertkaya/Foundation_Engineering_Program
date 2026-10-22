@@ -1,3 +1,4 @@
+import { useBeforeUnloadWarning } from "../../../shared/hooks/useBeforeUnloadWarning";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   Alert,
@@ -33,7 +34,7 @@ import {
   get_project,
   set_active_profile,
 } from "../../../shared/api/client";
-import { create_profile, get_profile, list_investigations, list_profiles, update_profile } from "../api";
+import { create_profile, get_profile_with_live_approvals, list_investigations, list_profiles, update_profile } from "../api";
 import type { ProfileOrigin, ProfileSummary, SoilLayer, SoilProfile } from "../../../shared/api/types";
 import { EmptyState } from "../../../shared/components/EmptyState";
 import { useUndoable } from "../../../shared/hooks/useUndoable";
@@ -80,6 +81,7 @@ export function ProfilesPage() {
 
   const draft = useUndoable<SoilProfile | null>(null);
   const profile = draft.value;
+  useBeforeUnloadWarning(draft.dirty);
   const isNew = profile?.id === NEW_ID;
 
   const loadList = useCallback(async () => {
@@ -95,7 +97,7 @@ export function ProfilesPage() {
       setBusy(true);
       setError(null);
       try {
-        const p = await get_profile(id);
+        const p = await get_profile_with_live_approvals(id);
         setSelectedId(id);
         draft.reset(p);
         setSelectedLayerId(p.layers[0]?.id ?? null);

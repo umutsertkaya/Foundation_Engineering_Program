@@ -154,8 +154,43 @@ def _representative(results: list[DerivedParameter]) -> DerivedParameter:
     return result
 
 
+def _check_scope(correlation_id: str) -> str | None:
+    """Return 'sand' / 'clay' when the registered check is restricted by soil behaviour.
+
+    Probes the existing check with an extreme I_c; the formulae and checks are untouched.
+    """
+    try:
+        check = registry.get(correlation_id).check
+    except KeyError:
+        return None
+    if check is None:
+        return None
+    for ic, token, scope in ((3.5, "sand-like", "sand"), (1.5, "clay-like", "clay")):
+        try:
+            if any(token in w for w in check({"Ic": ic}, {})):
+                return scope
+        except (ArithmeticError, KeyError, ValueError, TypeError):
+            continue
+    return None
+
+
+def _apply_layer_context(candidates: list[DerivedParameter], context: str) -> None:
+    """Invalidate sand-only (clay-only) correlations on a known clay (sand) layer."""
+    for candidate in candidates:
+        if _is_lab_measurement(candidate):
+            continue
+        scope = _check_scope(candidate.method_id)
+        if scope is None or scope == context:
+            continue
+        candidate.validity_ok = False
+        candidate.warnings = [*candidate.warnings, format_warning(
+            "parameters.warning.layer_behaviour_mismatch",
+            method_id=candidate.method_id, scope=scope, layer=context)]
+
+
 def evaluate_candidates(
     points: list[dict[str, float]], key: DesignKey, lab: list[LabRecord],
+    layer_context: str | None = None,
 ) -> list[DerivedParameter]:
     """One mean and depth spread per registry method, plus measured lab values.
 
@@ -199,6 +234,8 @@ def evaluate_candidates(
             value=statistics.mean(measured), unit=unit, source="lab", method_id=f"lab_{key}",
             reference="Laboratory measurement", stats=_spread(measured),
         ))
+    if layer_context in ("clay", "sand"):
+        _apply_layer_context(candidates, layer_context)
     return candidates
 
 
@@ -416,9 +453,14 @@ def refresh_profile(project: Project, profile_id: str) -> SoilProfile:
             if symbols and all(symbol.startswith(("G", "S")) for symbol in symbols):
                 # Temporary classification only: refreshing must not alter uscs/hash.
                 context.uscs = symbols[0]
+        layer_context: str | None = None
+        if layer.behaviour == "undrained" or fine_grained:
+            layer_context = "clay"
+        elif context.uscs and context.uscs.strip().upper().startswith(("G", "S")):
+            layer_context = "sand"
         for key in get_args(DesignKey):
             selection = layer.selections.get(key, ParameterSelection(parameter=key))
-            selection.candidates = evaluate_candidates(points, key, lab)
+            selection.candidates = evaluate_candidates(points, key, lab, layer_context)
             selection.suggested = suggest(selection.candidates, key, context)
             if (fine_grained and key == "c_eff" and selection.suggested is not None
                     and selection.suggested.method_id == "FHWA_GEC5_c_eff"):
