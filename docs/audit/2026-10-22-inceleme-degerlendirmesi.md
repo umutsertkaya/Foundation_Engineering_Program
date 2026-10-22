@@ -32,7 +32,7 @@ gösterilebilir şekilde güvenli taraftaysa ve görünür varsayım olarak kal�
 | ENG-B-009 | **G (eğitim)** | "Ters şevde program hata vermez" ifadesi PR #37 sonrası yanlış. Vesic H sınırı metni koddaki `mH ≥ A′suNc` ile uyuşmuyor. | Metin koda uyarlanır; Vesic sınırının kaynağı değiştirilmez. |
 | ENG-B-010 | **G (eğitim)** | Bishop dilim şeklinde mobilize direnç oku kayma yönünde. | Ok yönü ters çevrilir. |
 | ENG-A-001 | **G (doğrudan içe alma)** | `_header_unit` tanınmayan birimde `None` döndürüyor; varsayılan birime sessizce düşüyor. UI zorunlu birim seçtiği için arayüzde tekrar yok. | Başlıkta tanınmayan birim varsa açık hata. |
-| ENG-A-002 | **G, E** | SPT noktalarına tabakanın USCS/davranış bilgisi geçmiyor; kil tabakasına kum φ/E bağıntıları geçerli öneriliyor. Onaysız tasarıma geçmiyor. | Ertelendi: aynı dosyalarda SPT/CPT parametre üretilmemesi sorunu üzerinde çalışılıyor. O iş birleşince yapılacak. |
+| ENG-A-002 | **G** | SPT noktalarına tabakanın USCS/davranış bilgisi geçmiyor; kil tabakasına kum φ/E bağıntıları geçerli öneriliyor. Onaysız tasarıma geçmiyor. | Bilinen kil/drenajsız tabakada yalnız-kum bağıntıları geçerli havuzdan çıkarılır (tersi de); formül değişmez. |
 | ENG-A-003 | **G** | `liquefaction_potential_index` yalnız ilk hücrenin üstünü GWT ile sınırlıyor; ilk nokta GWT altındayken hücre GWT üstüne taşabiliyor. Tek noktada [0, z] tamamı sayılıyor. Iwasaki'de su üstü F = 0. Önceki LPI düzeltmesiyle (kaynak-karsilastirmasi §3.1) çelişmez, onu tamamlar. | Bütün hücreler [GWT, 20 m] aralığına kırpılır. |
 | ENG-A-004 | **G (eğitim)** | MSF şekli metindeki Youd (10^2,24/M^2,56) ve Andrus–Stokoe ((M/7,5)^−3,3) yerine başka denklemler çiziyor. | Şekil metin/motor denklemleriyle çizilir. |
 | ENG-A-005 | **G** | Kayıt (`registry.evaluate`) negatif su/E/σp ve Dr > %100'ü geçerli işaretleyebiliyor. | Fiziksel alan denetimi: negatifse geçersiz, Dr > 100 uyarı. Bağıntılar değişmez. |
@@ -65,15 +65,15 @@ gösterilebilir şekilde güvenli taraftaysa ve görünür varsayım olarak kal�
 | ID | Hüküm | Karar |
 |---|---|---|
 | UX-001 | KG: gerçek, ama uygulama masaüstü exe; 390 px hedef değil | **E** |
-| UX-002 | G: profil satırı stale onayı "ONAYLI" gösteriyor | **E**: parametre/profil ekranı Exe arayüz işinde. Önce o iş birleşir. |
-| UX-003 | G: γsat elle girişte birim `[-]` | **E**: aynı ekran |
+| UX-002 | G: profil satırı stale onayı "ONAYLI" gösteriyor | Düzeltilir: iki ekran aynı onay/güncellik durumunu okur |
+| UX-003 | G: γsat elle girişte birim `[-]` | Birim parametre tanımından |
 | UX-004 | KG: zorunlu γ alanı yatay kaydırmada | **E** |
-| UX-005 | G: SPT tabakalamada aktif profil bağımlılığı görünmüyor, ham 422 | **E**: SPT/CPT parametre işiyle aynı akış |
+| UX-005 | G: SPT tabakalamada aktif profil bağımlılığı görünmüyor, ham 422 | PR #44 kısmen kapattı; derinlik hatası çevrilmiş, eyleme dönük mesaj |
 | UX-006 | KG: iki Kaydet'in kapsamı açıklanmıyor | FUN-001 ile birlikte düğme adları |
-| UX-007 | G: yenilemede taslak kaybı | **E** |
-| UX-008 | G: aşırı ondalık hassasiyet | **E**: LayeringModal aynı iş |
+| UX-007 | G: yenilemede taslak kaybı | Kirli taslakta sayfadan çıkış uyarısı |
+| UX-008 | G: aşırı ondalık hassasiyet | Ondalık biçimlendirme |
 | UX-009 | G: TR ekranda İngilizce uyarılar | FUN-004 kapsamında kısmen |
-| UX-010 | KG: tasarım tercihi | **E** |
+| UX-010 | KG: kısmen tasarım tercihi | Başlıkta UUID yerine tabaka derinliği/adı; büyük yeniden tasarım ertelendi |
 | UX-011 | KG: tasarım tercihi | **E** |
 | UX-012 | G: aynı adlı projeler ayırt edilemiyor | **E**: küçük, sonraki tur |
 | UX-013 | G, düşük | **E** |
@@ -83,6 +83,7 @@ gösterilebilir şekilde güvenli taraftaysa ve görünür varsayım olarak kal�
 1. **Hesap motoru:** ENG-B-001/002/003/004/005/006/007, ENG-C-006.
 2. **Yapılar, ankraj, veri ve LPI:** ENG-C-001/002/003/004, ENG-A-001/003/005/006/007/008/009/010/013, FUN-008.
 3. **Arayüz, rapor ve eğitim:** FUN-001/003/004/005/006/007/009, ENG-A-004/011/012, ENG-B-008/009/010, ENG-C-005.
+4. **Zemin parametre/profil ekranı** (PR #44 birleştikten sonra): ENG-A-002, UX-002/003/005/007/008/010.
 
 Hesap değişiklikleri el hesabı/regresyon testi ve bağımsız salt okuma incelemesiyle doğrulanır. Sonuçlar aşağıdaki
 bölüme eklenir.
