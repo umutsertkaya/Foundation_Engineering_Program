@@ -169,6 +169,20 @@ def limit_state_cases(code_id: str | DesignCode, *, seismic: bool = False,
 # --- helpers -----------------------------------------------------------------------------
 
 
+TBDY_TAN_DELTA_BASE_MAX = 0.6
+"""TBDY 2018 Table 16.3: cast-in-place concrete on compacted ground, tan(delta_b) <= 0.6."""
+SRC_TBDY_BASE_CAP = "TBDY 2018 Tablo 16.3 (tan δ ≤ 0.6, yerinde dökme beton)"
+
+
+def _base_friction_angle(design_code: str, fd) -> tuple[float, bool]:
+    """Design base-friction angle [deg]; TBDY 2018 caps tan(delta_b) at 0.6 (other codes: no cap)."""
+    db = fd.delta_base if fd.delta_base is not None else fd.phi
+    if design_code == "tbdy2018" and math.tan(math.radians(db)) > TBDY_TAN_DELTA_BASE_MAX:
+        return math.degrees(math.atan(TBDY_TAN_DELTA_BASE_MAX)), True
+    return db, False
+
+
+
 def _design_angle(phi: float, factor: float) -> float:
     return math.degrees(math.atan(math.tan(math.radians(phi)) / factor))
 
@@ -254,9 +268,9 @@ def verify_wall(
         if fd_d.drainage == "undrained":
             r_base, detail = fd_d.su * b_eff, "s_u,d B'"
         else:
-            db = fd_d.delta_base if fd_d.delta_base is not None else fd_d.phi
+            db, capped = _base_friction_angle(code.id, fd_d)
             r_base = v * math.tan(math.radians(db)) + fd_d.adhesion * b_eff
-            detail = f"V_d tan({db:.1f})"
+            detail = f"V_d tan({db:.1f})" + (f"; tan δ_b ≤ {TBDY_TAN_DELTA_BASE_MAX} ({SRC_TBDY_BASE_CAP})" if capped else "")
         rd = r_base / case.r_sliding
         phi_front = 0.0 if fd_d.drainage == "undrained" else fd_d.phi
         pp = passive_force(fd_d, wf.embedment, settings, bf_d.gamma, reduction=1.0,
@@ -516,9 +530,10 @@ def verify_wall_layered(geometry, soil, loads, settings, *, seismic: bool,
         if fd.drainage == "undrained":
             resistance, detail = fd.su * be, "s_u,d B'"
         else:
-            db = fd.delta_base if fd.delta_base is not None else fd.phi
+            db, capped = _base_friction_angle(settings.design_code, fd)
             resistance = v * math.tan(math.radians(db)) + fd.adhesion * be
-            detail = f"V_d tan({db:.3f}) + c_a B'"
+            detail = f"V_d tan({db:.3f}) + c_a B'" + (
+                f"; tan δ_b ≤ {TBDY_TAN_DELTA_BASE_MAX} ({SRC_TBDY_BASE_CAP})" if capped else "")
         rd = resistance / case.r_sliding
         toe_term = 0.0
         if passive is not None:
