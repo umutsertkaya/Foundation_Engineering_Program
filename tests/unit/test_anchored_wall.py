@@ -355,10 +355,16 @@ def test_mixed_behaviour_profile_stops_in_both_paths():
         assert exc.value.code == "layer_behaviour_mismatch"
 
 
-def test_shear_maximum_excludes_unbalanced_toe_force():
+def test_shear_maximum_covers_whole_returned_diagram_including_unbalanced_toe_force():
+    """ENG-C-004. The unbalanced toe force is the shear still carried at the toe, so the largest |V|
+    of the returned diagram is that residual (195.7 kN/m here, read from the warning), not the
+    ~120 kN/m the older code reported by dropping the part below the sign change."""
+    import numpy as np
     r = run_analysis(_inputs(depths=(2.0, 5.0), H=8.0, passive_factor=1.5))
-    assert r.v_max < 120.0
-    assert any(n.code == "toe_force_not_balanced" for n in r.warnings)
+    warning = next(n for n in r.warnings if n.code == "toe_force_not_balanced")
+    assert r.v_max == pytest.approx(float(np.max(np.abs(r.shear))))
+    assert r.v_max >= warning.params["value"] - 0.1
+    assert r.v_max == pytest.approx(195.7, abs=0.1)
 
 
 def test_every_engine_code_has_tr_and_en_text():
