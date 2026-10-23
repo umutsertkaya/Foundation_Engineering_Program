@@ -5,7 +5,7 @@ on:
   push:
     tags: ["v*"]
     branches: [main]
-    paths: ["geotek/**", "web/**", "tools/build_exe.ps1", "tools/geotek_exe.py", ".github/workflows/build-exe.yml"]
+    paths: ["geotek/**", "web/**", "tools/build_exe.ps1", "tools/geotek_exe.py", "tools/package_readme.txt", "tools/kaynaktan_calistir.bat", ".github/workflows/build-exe.yml"]
 
 jobs:
   windows-exe:
@@ -29,8 +29,15 @@ jobs:
           name: GeoTek-windows-exe
           path: dist/GeoTek.exe
           if-no-files-found: error
+      - uses: actions/upload-artifact@v4
+        with:
+          name: GeoTek-kaynakli-paket
+          path: dist/GeoTek-kaynakli.zip
+          if-no-files-found: error
       - name: Release on tag
         if: startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v2
         with:
-          files: dist/GeoTek.exe
+          files: |
+            dist/GeoTek.exe
+            dist/GeoTek-kaynakli.zip
