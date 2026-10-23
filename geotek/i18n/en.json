@@ -573,5 +573,19 @@
   "wall.warning.kv_envelope": "The vertical seismic coefficient ±kv envelope was applied (TBDY 16.12.2.3); the governing sign is stated per check in the detail.",
   "wall.warning.pore_pressure_r": "coefficients.py note: TBDY 2018 16.12.2.2 — r ≤ 1 may be required where pore pressure build-up is possible; check the r value.",
   "wall.warning.submerged_fill_r": "Submerged backfill: TBDY Eq. 16.20 dynamic water and 16.26 assume r=1 (water_kh=0.4·S_DS); reducing the soil thrust with r>1 must be justified by the engineer.",
-  "wall.warning.source_profile_stale": "The soil profile copied into the structure is out of date relative to its source profile; the calculation used the structure copy."
+  "wall.warning.source_profile_stale": "The soil profile copied into the structure is out of date relative to its source profile; the calculation used the structure copy.",
+  "lab.warning.sieve_no_pan_assumed_no_loss": "The pan mass was not given: the remainder of the total dry mass is taken as passing the finest sieve (no mass loss), so the mass-loss check could not be made.",
+  "lab.warning.sieve_total_unknown": "Neither the total dry mass nor the pan mass was given: the sum of retained masses is used as the total, so the fines content is unreliable.",
+  "lab.warning.sieve_mass_loss": "Sieve mass loss is {loss_percent} % (check level {tolerance_percent} %).",
+  "lab.warning.ll_few_points": "Only {count} flow-curve point(s): ASTM D4318 Method A needs at least three.",
+  "lab.warning.ll_blows_outside_range": "Flow-curve blow counts outside {minimum}-{maximum}: the liquid limit is an extrapolation of the recommended range.",
+  "lab.warning.ll_slope_not_negative": "The flow curve does not fall with increasing blows; check the test data.",
+  "lab.warning.ll_one_point_range": "One-point liquid limit at {blows} blows is outside {minimum}-{maximum}.",
+  "lab.warning.non_plastic": "Plastic limit missing or not below the liquid limit: reported as non-plastic (NP).",
+  "lab.warning.saturation_over_100": "Computed degree of saturation is {saturation_percent} % (> 100 %): unit weight, water content and Gs are inconsistent.",
+  "lab.warning.cu_few_tests": "Only {count} CU tests: at least three are recommended for a strength envelope.",
+  "lab.warning.cu_b_low": "Test {test_id}: B = {b} is below {minimum}; the specimen may not be saturated.",
+  "lab.warning.cu_no_peak": "Test {test_id}: the failure criterion is met only at the end of the record (no peak).",
+  "lab.warning.cu_reconstituted": "Reconstituted specimens do not represent in-situ structure: c' and undrained strength are not in-situ values; undrained strength is not proposed.",
+  "lab.warning.cu_negative_cohesion": "The fitted effective cohesion is negative: the line was refitted through the origin (c' = 0)."
 }

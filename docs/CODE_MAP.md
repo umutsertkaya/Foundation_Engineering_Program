@@ -55,6 +55,7 @@ graph LR
   geotek_engine_correlations["geotek.engine.correlations"]
   geotek_engine_earth_pressure["geotek.engine.earth_pressure"]
   geotek_engine_insitu["geotek.engine.insitu"]
+  geotek_engine_lab["geotek.engine.lab"]
   geotek_engine_layering["geotek.engine.layering"]
   geotek_engine_limit_state["geotek.engine.limit_state"]
   geotek_engine_liquefaction["geotek.engine.liquefaction"]
@@ -110,6 +111,7 @@ graph LR
   geotek_engine_insitu -->|4| geotek_core_models
   geotek_engine_insitu -->|1| geotek_engine_classification
   geotek_engine_insitu -->|1| geotek_engine_correlations
+  geotek_engine_lab -->|5| geotek_core
   geotek_engine_layering -->|3| geotek_core
   geotek_engine_layering -->|5| geotek_core_models
   geotek_engine_layering -->|1| geotek_engine_classification
@@ -211,6 +213,7 @@ graph LR
 | `geotek.engine.correlations` | 6 | `geotek.core`, `geotek.core.models` |
 | `geotek.engine.earth_pressure` | 5 | `geotek.core`, `geotek.core.models` |
 | `geotek.engine.insitu` | 3 | `geotek.core`, `geotek.core.models`, `geotek.engine.classification`, `geotek.engine.correlations` |
+| `geotek.engine.lab` | 5 | `geotek.core` |
 | `geotek.engine.layering` | 4 | `geotek.core`, `geotek.core.models`, `geotek.engine.classification`, `geotek.engine.correlations`, `geotek.engine.insitu` |
 | `geotek.engine.limit_state` | 1 | `geotek.config`, `geotek.core`, `geotek.core.models`, `geotek.engine.bearing`, `geotek.engine.sheet_pile`, `geotek.engine.stability`, `geotek.engine.walls`, `geotek.services` |
 | `geotek.engine.liquefaction` | 5 | `geotek.core`, `geotek.core.models`, `geotek.engine.classification`, `geotek.engine.correlations`, `geotek.engine.insitu`, `geotek.engine.stresses` |
@@ -360,12 +363,12 @@ Test sütunu: o dosyayı doğrudan import eden `tests/` dosyaları (yoksa `—`)
 | Dosya | Satır | Bağımlı olduğu | Kullanan | Test |
 |---|---:|---|---|---|
 | `core/__init__.py` | 1 | — | — | — |
-| `core/constants.py` | 13 | — | `core.models.investigations`, `core.models.profile`, `core.models.structures`, `engine.correlations.physical`, `engine.correlations.stiffness`, `engine.correlations.strength` +14 | `unit/test_earth_pressure.py`, `unit/test_layering_spt.py`, `unit/test_shear_key.py` +6 |
+| `core/constants.py` | 13 | — | `core.models.investigations`, `core.models.profile`, `core.models.structures`, `engine.correlations.physical`, `engine.correlations.stiffness`, `engine.correlations.strength` +15 | `unit/test_earth_pressure.py`, `unit/test_layering_spt.py`, `unit/test_shear_key.py` +6 |
 | `core/errors.py` | 89 | `services.walls_advanced` | `api.app`, `api.calculation_jobs`, `api.jobs`, `api.library_routes`, `api.registry`, `config.codes` +28 | `api/test_jobs_api.py`, `unit/test_anchored_wall.py`, `unit/test_anchors.py` +26 |
 | `core/module_state.py` | 54 | `core.errors`, `core.models.project` | `modules.anchored_wall.api`, `modules.anchored_wall.report` | `api/test_anchored_wall_api.py`, `unit/test_module_report_hook.py`, `unit/test_project_io_13.py` |
 | `core/modules.py` | 76 | `core.errors` | `api.registry`, `modules.anchored_wall`, `modules.anchored_wall.report`, `modules.education`, `modules.liquefaction`, `modules.report` +3 | `unit/test_module_registry.py`, `unit/test_module_report_hook.py`, `unit/test_new_module.py` |
 | `core/units.py` | 83 | `core.errors` | `io.tabular` | `unit/test_units.py` |
-| `core/warning_codes.py` | 48 | — | `api.calculation_results`, `engine.correlations.physical`, `engine.insitu.cpt`, `engine.insitu.spt`, `engine.layering.common`, `engine.liquefaction.analysis` +5 | `unit/test_cpt.py`, `unit/test_shear_key.py`, `unit/test_spt.py` +1 |
+| `core/warning_codes.py` | 48 | — | `api.calculation_results`, `engine.correlations.physical`, `engine.insitu.cpt`, `engine.insitu.spt`, `engine.lab.atterberg`, `engine.lab.phase` +9 | `unit/test_cpt.py`, `unit/test_lab_engine.py`, `unit/test_shear_key.py` +2 |
 
 #### `geotek.core.models`
 
@@ -447,6 +450,16 @@ Test sütunu: o dosyayı doğrudan import eden `tests/` dosyaları (yoksa `—`)
 | `engine/insitu/__init__.py` | 1 | — | — | — |
 | `engine/insitu/cpt.py` | 216 | `core.constants`, `core.errors`, `core.models.investigations`, `core.models.profile`, `core.warning_codes`, `engine.classification.robertson`, `engine.correlations.physical` | `engine.layering.cpt`, `engine.liquefaction.analysis`, `engine.liquefaction.common`, `services.module1`, `services.parameters` | `api/test_soil_api.py`, `unit/test_cpt.py`, `unit/test_io.py` +3 |
 | `engine/insitu/spt.py` | 141 | `core.constants`, `core.models.investigations`, `core.models.profile`, `core.warning_codes` | `engine.layering.spt`, `engine.liquefaction.analysis`, `services.module1`, `services.parameters` | `api/test_soil_api.py`, `unit/test_io.py`, `unit/test_layering_spt.py` +2 |
+
+#### `geotek.engine.lab`
+
+| Dosya | Satır | Bağımlı olduğu | Kullanan | Test |
+|---|---:|---|---|---|
+| `engine/lab/__init__.py` | 1 | — | — | — |
+| `engine/lab/atterberg.py` | 103 | `core.warning_codes` | — | `unit/test_lab_engine.py` |
+| `engine/lab/phase.py` | 53 | `core.constants`, `core.warning_codes` | — | `unit/test_lab_engine.py` |
+| `engine/lab/sieve.py` | 131 | `core.warning_codes` | — | `unit/test_lab_engine.py` |
+| `engine/lab/triaxial.py` | 157 | `core.warning_codes` | — | `unit/test_lab_engine.py` |
 
 #### `geotek.engine.layering`
 
