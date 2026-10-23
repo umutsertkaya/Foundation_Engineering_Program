@@ -44,7 +44,7 @@ from geotek.engine.layering.common import format_warning
 __all__ = (
     "layer_points", "evaluate_candidates", "suggest", "resolve", "approve", "reapprove",
     "basis_hash", "selection_basis", "refresh_profile", "STRESS_FIELDS", "POINT_FILTERS",
-    "ReapproveMismatch", "spt_class", "classify_layer", "layer_lab", "k0_candidates",
+    "ReapproveMismatch", "spt_class", "classify_layer", "evaluation_uscs", "layer_lab", "k0_candidates",
     "methods_for", "mean_lab_pi",
 )
 
@@ -757,8 +757,26 @@ def _evaluation_context(
     layer: SoilLayer, points: list[dict[str, float]], lab: list[LabRecord],
 ) -> tuple[str | None, float | None]:
     """Layer USCS symbol (stored, else the temporary lab one) and mean lab PI for evaluation."""
-    context, _, _ = _classify_layer(layer, points, lab)
-    return context.uscs, mean_lab_pi(lab)
+    return evaluation_uscs(layer, lab), mean_lab_pi(lab)
+
+
+def evaluation_uscs(layer: SoilLayer, lab: list[LabRecord]) -> str | None:
+    """USCS symbol used to select soil-class-restricted correlations.
+
+    The stored layer symbol wins; otherwise the most common lab symbol of the layer (a tie goes
+    to the symbol met first in depth order). It is an evaluation input only: it is never written
+    back to the layer and does not feed the c' = 0 rule of granular layers.
+    """
+    if layer.uscs and layer.uscs.strip():
+        return layer.uscs
+    ordered = sorted(lab, key=lambda record: record.depth)
+    symbols = [classification.symbol for record in ordered
+               if (classification := classify_lab_record(record)).symbol is not None]
+    if not symbols:
+        return None
+    counts = {symbol: symbols.count(symbol) for symbol in symbols}
+    best = max(counts.values())
+    return next(symbol for symbol in symbols if counts[symbol] == best)
 
 
 def _classify_layer(
@@ -989,10 +1007,11 @@ def refresh_profile(project: Project, profile_id: str) -> SoilProfile:
         lab = _layer_lab(project, profile, layer)
         context, layer_context, fine_grained = _classify_layer(layer, points, lab)
         layer_pi = mean_lab_pi(lab)
+        eval_uscs = evaluation_uscs(layer, lab)
         for key in get_args(DesignKey):
             selection = layer.selections.get(key, ParameterSelection(parameter=key))
             selection.candidates = evaluate_candidates(
-                points, key, lab, layer_context, context.uscs, layer_pi)
+                points, key, lab, layer_context, eval_uscs, layer_pi)
             if key == "K0":
                 selection.candidates.extend(k0_candidates(context))
             selection.suggested = suggest(selection.candidates, key, context)

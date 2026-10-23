@@ -39,7 +39,7 @@ def layer_inventory(project: Project, profile: SoilProfile, layer: SoilLayer) ->
     points = layer_points(project, profile, layer)
     lab = parameters.layer_lab(project, profile, layer)
     context, layer_context, _ = parameters.classify_layer(layer, points, lab)
-    uscs = context.uscs
+    uscs = parameters.evaluation_uscs(layer, lab)
     layer_pi = parameters.mean_lab_pi(lab)
     symbol = registry.normalise_uscs(uscs)
     names = sorted({name for point in points for name in point})

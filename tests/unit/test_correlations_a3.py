@@ -48,10 +48,10 @@ def test_stroud_f1_follows_pi(pi, f1):
     assert _value("Stroud1974_su_SPT", N60=10.0, PI=pi).value == pytest.approx(10 * f1)
 
 
-def test_stroud_without_pi_uses_the_lower_envelope_and_warns_but_stays_valid():
+def test_stroud_without_pi_uses_f1_4_0_and_warns_but_stays_valid():
     result = _value("Stroud1974_su_SPT_noPI", N60=10.0)
-    assert result.value == pytest.approx(42.0) and result.validity_ok
-    assert result.warnings == ["correlation.warning.stroud_f1_pi_unknown: f1=4.2"]
+    assert result.value == pytest.approx(40.0) and result.validity_ok
+    assert result.warnings == ["correlation.warning.stroud_f1_pi_unknown: f1=4.0"]
 
 
 def test_stroud_takes_the_layer_mean_lab_pi_as_context_only():

@@ -18,7 +18,7 @@ HAND_CALCS = [
     ("Stroud1974_su_SPT", {"N60": 10, "PI": 10}, 60.0),
     ("Stroud1974_su_SPT", {"N60": 10, "PI": 25}, 40.0),
     ("Stroud1974_su_SPT", {"N60": 10, "PI": 40}, 42.0),
-    ("Stroud1974_su_SPT_noPI", {"N60": 10}, 42.0),
+    ("Stroud1974_su_SPT_noPI", {"N60": 10}, 40.0),
     # Sowers: su = 12.5 / 7.5 / 3.75 * N60 with N60 = 8.
     ("Sowers1979_su_high_SPT", {"N60": 8}, 100.0),
     ("Sowers1979_su_medium_SPT", {"N60": 8}, 60.0),

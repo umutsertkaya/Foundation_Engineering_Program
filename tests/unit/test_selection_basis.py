@@ -333,3 +333,44 @@ def test_merge_writes_thickness_weighted_unit_weights_and_unset_gamma_sat_stays_
     same, quiet = service.merge(SoilProfile(id="P", gwt=GroundwaterCondition(depth_insitu=1), layers=[
         _layer(id="a", top=0, bottom=2), _layer(id="b", top=2, bottom=6)]), ["a", "b"])
     assert quiet == [] and same.layers[0].gamma == 20
+
+
+# --- evaluation USCS from the layer's lab data ---------------------------------------------
+
+def _lab(depth, LL, PL):
+    return LabRecord(depth=depth, LL=LL, PL=PL, FC=90.0)
+
+
+def _sowers_ids(project, layer):
+    points = [{"depth": 2.0, "N60": 8.0}]
+    lab = svc.layer_lab(project, project.profile("P"), layer)
+    symbol = svc.evaluation_uscs(layer, lab)
+    ids = [c.method_id for c in svc.evaluate_candidates(points, "su", lab, "clay", symbol)
+           if c.method_id.startswith("Sowers")]
+    return symbol, ids
+
+
+def _lab_project(layer, records):
+    borehole = Borehole(id="BH", lab=records)
+    return _project(layers=[layer], boreholes=[borehole])
+
+
+def test_cl_lab_layer_without_stored_uscs_gets_the_sowers_medium_candidate():
+    layer = _layer()
+    project = _lab_project(layer, [_lab(1.0, 40, 20), _lab(2.0, 42, 21)])
+    symbol, ids = _sowers_ids(project, layer)
+    assert symbol == "CL" and ids == ["Sowers1979_su_medium_SPT"]
+    assert layer.uscs is None  # never written back
+
+
+def test_stored_uscs_wins_over_the_lab_majority():
+    layer = _layer(uscs="CH")
+    project = _lab_project(layer, [_lab(1.0, 40, 20), _lab(2.0, 42, 21)])
+    symbol, ids = _sowers_ids(project, layer)
+    assert symbol == "CH" and ids == ["Sowers1979_su_high_SPT"]
+
+
+def test_lab_symbol_tie_picks_the_shallowest_sample():
+    layer = _layer()
+    project = _lab_project(layer, [_lab(3.0, 70, 25), _lab(1.0, 40, 20)])  # CH deeper, CL shallower
+    assert _sowers_ids(project, layer)[0] == "CL"

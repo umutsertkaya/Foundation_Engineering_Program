@@ -157,8 +157,8 @@ def su_ndu(u2, u0, Ndu):
     return (u2 - u0) / Ndu
 
 
-STROUD_F1_UNKNOWN_PI = 4.2
-"""f1 [kPa per blow] used without a PI: the lower envelope of the Stroud (1974) f1-PI curve."""
+STROUD_F1_UNKNOWN_PI = 4.0
+"""f1 [kPa per blow] used without a PI: the lowest lower bound of the Stroud (1974) PI bands (20-30 band: 4-5)."""
 _STROUD_REFERENCE = "Stroud (1974), European Symp. on Penetration Testing (f1 after Erol & Çekinmez 2014, App. 1.19)"
 
 
@@ -189,11 +189,11 @@ def su_stroud(N60, PI):
     inputs=("N60",),
     reference=_STROUD_REFERENCE + "; PI unknown",
     reliability="C",
-    validity="Insensitive overconsolidated clays; PI unknown, f1 = 4.2 (lower envelope of the curve)",
+    validity="Insensitive overconsolidated clays; PI unknown, f1 = 4.0 (lowest lower bound of the PI bands)",
     check=all_of(clay_like, _stroud_pi_unknown),
 )
 def su_stroud_no_pi(N60):
-    """s_u = 4.2 N60 (f1 at the lower envelope of the Stroud curve)."""
+    """s_u = 4.0 N60 (f1 at the lowest lower bound of the Stroud PI bands)."""
     return STROUD_F1_UNKNOWN_PI * N60
 
 
