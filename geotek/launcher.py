@@ -54,12 +54,51 @@ def mount_web(app: FastAPI, dist: Path) -> None:
         return FileResponse(index)
 
 
+def choose_path(kind: str, initial: str = "") -> str | None:
+    """Native dialog (tkinter): ``folder``, ``open`` (.gtk) or ``save`` (.gtk).
+
+    Returns None when cancelled or when no display/tkinter is available.
+    """
+    try:
+        import tkinter
+        from tkinter import filedialog
+
+        root = tkinter.Tk()
+    except Exception:  # no tkinter or no display
+        return None
+    try:
+        root.withdraw()
+        root.attributes("-topmost", True)
+        start = Path(initial) if initial else None
+        directory = str(start if start and start.is_dir() else start.parent if start else "")
+        types = [("GeoTek", "*.gtk"), ("*", "*.*")]
+        if kind == "folder":
+            chosen = filedialog.askdirectory(
+                parent=root, initialdir=initial or None, mustexist=False)
+        elif kind == "save":
+            chosen = filedialog.asksaveasfilename(
+                parent=root, initialdir=directory or None, defaultextension=".gtk",
+                filetypes=types, initialfile=start.name if start and not start.is_dir() else "")
+        else:
+            chosen = filedialog.askopenfilename(
+                parent=root, initialdir=directory or None, filetypes=types)
+    finally:
+        root.destroy()
+    return chosen or None
+
+
 def add_launcher_routes(app: FastAPI, shutdown: Callable[[], None]) -> None:
     """Routes that exist only when GeoTek runs as the local program (not in the plain API)."""
 
     @app.get("/api/launcher", include_in_schema=False)
     def launcher_info() -> dict[str, bool]:
         return {"shutdown": True}
+
+    @app.post("/api/launcher/pick/{kind}", include_in_schema=False)
+    def launcher_pick(kind: str, payload: dict[str, str] | None = None) -> dict[str, str | None]:
+        if kind not in ("folder", "open", "save"):
+            raise HTTPException(404, "Not found")
+        return {"path": choose_path(kind, (payload or {}).get("initial", ""))}
 
     @app.post("/api/launcher/shutdown", include_in_schema=False)
     def launcher_shutdown() -> dict[str, bool]:

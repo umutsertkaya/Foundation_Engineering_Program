@@ -238,3 +238,16 @@ def test_upload_rejects_empty_and_invalid_body(shell):
     assert bad.status_code == 422 and error_code(bad) == "invalid_project_file"
     assert shell.get("/api/library").json() == []
     assert shell.get("/api/library/yok.gtk/download").status_code == 404
+
+
+def test_project_in_any_folder_roundtrip(shell, tmp_path):
+    elsewhere = tmp_path / "baska yer" / "alt"
+    entry = create(shell, name="Dışarıda", directory=str(elsewhere))
+    assert (elsewhere / entry["file"]).is_file()
+    assert shell.get("/api/library").json() == []  # not in the library folder
+    assert shell.post("/api/project/save").status_code == 200
+    moved = tmp_path / "ucuncu" / "kopya.gtk"
+    assert shell.post("/api/project/save", json={"path": str(moved)}).status_code == 200
+    shell.post("/api/project/close")
+    assert shell.post("/api/project/open", json={"path": str(moved)}).status_code == 200
+    assert shell.get("/api/project").json()["meta"]["name"] == "Dışarıda"

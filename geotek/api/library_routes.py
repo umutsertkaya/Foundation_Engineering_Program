@@ -158,6 +158,13 @@ def create_library_project(
             api_error(422, "validation", "Invalid project metadata.", errors=[
                 {"loc": [str(part) for part in item["loc"]], "msg": item["msg"]}
                 for item in exc.errors()])
+        if payload.directory and payload.directory.strip():
+            # Project stored outside the library: opened by path, like "open from location".
+            where = ProjectLibrary(Path(payload.directory.strip()))
+            file, project = _guard(lambda: where.create(meta))
+            session.open_project(project, path=where.path_of(file, scan=False))
+            _remember(where.path_of(file))
+            return _entry(_guard(lambda: where.entry(file)))
         file, project = _guard(lambda: session.library.create(meta))
         session.open_project(project, file=file)
         _remember(session.library.path_of(file))

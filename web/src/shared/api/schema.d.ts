@@ -3060,6 +3060,11 @@ export interface components {
             language?: ("tr" | "en") | null;
             /** Design Code */
             design_code?: string | null;
+            /**
+             * Directory
+             * @description Folder for the new project file; omitted -> the library folder.
+             */
+            directory?: string | null;
         };
         /**
          * Notice

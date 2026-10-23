@@ -819,4 +819,6 @@ export interface NewProjectRequest {
   engineer?: string;
   language?: "tr" | "en";
   design_code?: string;
+  /** Folder for the new project file; omitted -> the library folder. */
+  directory?: string;
 }
