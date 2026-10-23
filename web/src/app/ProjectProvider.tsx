@@ -7,7 +7,9 @@ import {
   create_library_project,
   get_session,
   open_library_project,
+  open_project_at,
   save_current_project,
+  save_project_as,
 } from "../shared/api/core";
 import type { LibraryEntry, NewProjectRequest, ProjectSummary, SessionInfo } from "../shared/api/types";
 
@@ -31,6 +33,8 @@ interface ProjectSessionContextValue {
   close(): Promise<void>;
   openFromLibrary(file: string): Promise<void>;
   createInLibrary(req: NewProjectRequest): Promise<LibraryEntry>;
+  openAtPath(path: string): Promise<void>;
+  saveAs(path: string): Promise<void>;
 }
 
 const ProjectSessionContext = createContext<ProjectSessionContextValue | null>(null);
@@ -106,9 +110,18 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
     return entry;
   }, [refresh]);
 
+  const openAtPath = useCallback(async (path: string) => {
+    await open_project_at(path);
+    await refresh();
+  }, [refresh]);
+  const saveAs = useCallback(async (path: string) => {
+    await save_project_as(path);
+    await refresh();
+  }, [refresh]);
+
   const value = useMemo(() => ({
-    session, project, loading, error, refresh, refreshSession, markDirty, save, close, openFromLibrary, createInLibrary,
-  }), [session, project, loading, error, refresh, refreshSession, markDirty, save, close, openFromLibrary, createInLibrary]);
+    session, project, loading, error, refresh, refreshSession, markDirty, save, close, openFromLibrary, createInLibrary, openAtPath, saveAs,
+  }), [session, project, loading, error, refresh, refreshSession, markDirty, save, close, openFromLibrary, createInLibrary, openAtPath, saveAs]);
 
   return <ProjectSessionContext.Provider value={value}>{children}</ProjectSessionContext.Provider>;
 }

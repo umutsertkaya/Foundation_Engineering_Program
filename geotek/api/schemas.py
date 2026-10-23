@@ -593,6 +593,8 @@ class NewProjectRequest(DTO):
     engineer: str = ""
     language: Language | None = None
     design_code: str | None = None
+    directory: str | None = None
+    """Folder for the new project file; omitted -> the library folder."""
 
 
 class RenameRequest(DTO):

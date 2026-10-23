@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   ActionIcon,
+  Anchor,
   Alert,
   Badge,
   Button,
@@ -54,6 +55,7 @@ import type {
   LibraryEntry,
 } from "../../shared/api/types";
 import { EmptyState } from "../../shared/components/EmptyState";
+import { launcherAvailable, pickPath } from "../../shared/api/launcher";
 import { ErrorAlert } from "../../shared/components/ErrorAlert";
 import { loadLanguageCatalog } from "../i18n";
 import { useProjectSession } from "../ProjectProvider";
@@ -69,7 +71,7 @@ function formatModified(iso: string, lang: string): string {
 export function StartPage() {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
-  const { session, openFromLibrary, createInLibrary, refresh: refreshProject, refreshSession } = useProjectSession();
+  const { session, openFromLibrary, createInLibrary, openAtPath, refresh: refreshProject, refreshSession } = useProjectSession();
 
   const currentLang: Language = i18n.language === "en" ? "en" : "tr";
 
@@ -202,7 +204,42 @@ export function StartPage() {
     await performOpen(file);
   };
 
+  const [launcherActive, setLauncherActive] = useState(false);
+  const [newDirectory, setNewDirectory] = useState("");
+  const [locOpen, setLocOpen] = useState(false);
+  const [locPath, setLocPath] = useState("");
+  const [locApiError, setLocApiError] = useState<unknown>(null);
+
+  useEffect(() => {
+    void launcherAvailable().then(setLauncherActive);
+  }, []);
+
+  const performOpenAtPath = async (path: string) => {
+    setBusy(true);
+    setLocApiError(null);
+    try {
+      await openAtPath(path);
+      setLocOpen(false);
+      navigate("/launcher");
+    } catch (err) {
+      setLocApiError(err);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const handleOpenAtPath = async () => {
+    const path = locPath.trim();
+    if (!path) return;
+    if (await hasUnsavedProject()) {
+      setPendingReplace(() => () => performOpenAtPath(path));
+      return;
+    }
+    await performOpenAtPath(path);
+  };
+
   const openNewModal = () => {
+    setNewDirectory("");
     setNewName("");
     setNewNameError(false);
     setNewNumber("");
@@ -223,6 +260,7 @@ export function StartPage() {
         engineer: newEngineer.trim() || undefined,
         language: newLang,
         design_code: newCode || undefined,
+        directory: newDirectory.trim() || undefined,
       });
       setNewOpen(false);
       navigate("/launcher");
@@ -397,6 +435,13 @@ export function StartPage() {
             {t("start.new_project")}
           </Button>
           <Button
+            variant="default"
+            leftSection={<IconFolderOpen size={16} />}
+            onClick={() => { setLocApiError(null); setLocPath(""); setLocOpen(true); }}
+          >
+            {t("start.open_location")}
+          </Button>
+          <Button
             variant="light"
             leftSection={<IconFileImport size={16} />}
             onClick={() => {
@@ -549,7 +594,10 @@ export function StartPage() {
         {/* Footer */}
         {settings && (
           <Text size="xs" c="dimmed">
-            {t("start.library_path", { path: settings.library_dir })}
+            {t("start.library_path", { path: settings.library_dir })}{" "}
+            <Anchor size="xs" onClick={() => navigate("/settings")}>
+              {t("start.change_folder")}
+            </Anchor>
           </Text>
         )}
       </Stack>
@@ -611,12 +659,69 @@ export function StartPage() {
             allowDeselect={false}
             disabled={codeOptions.length === 0}
           />
+          <Group align="flex-end" gap="xs" wrap="nowrap">
+            <TextInput
+              style={{ flex: 1 }}
+              label={t("start.new.directory")}
+              description={t("start.new.directory_help")}
+              value={newDirectory}
+              onChange={(e) => setNewDirectory(e.currentTarget.value)}
+            />
+            {launcherActive && (
+              <Button
+                variant="light"
+                onClick={() => void pickPath("folder", newDirectory).then((p) => { if (p) setNewDirectory(p); })}
+              >
+                {t("settings.browse")}
+              </Button>
+            )}
+          </Group>
           <Group justify="flex-end" gap="xs" mt="xs">
             <Button variant="default" onClick={() => setNewOpen(false)}>
               {t("start.new.cancel")}
             </Button>
             <Button loading={busy} onClick={() => void handleCreateProject()}>
               {t("start.new.create")}
+            </Button>
+          </Group>
+        </Stack>
+      </Modal>
+
+      {/* Open from location */}
+      <Modal
+        opened={locOpen}
+        onClose={() => setLocOpen(false)}
+        title={t("start.open_location_title")}
+        size="md"
+      >
+        <Stack gap="sm">
+          {locApiError != null && <ErrorAlert error={locApiError} />}
+          <Group align="flex-end" gap="xs" wrap="nowrap">
+            <TextInput
+              style={{ flex: 1 }}
+              label={t("start.open_location_path")}
+              description={t("start.open_location_help")}
+              value={locPath}
+              onChange={(e) => setLocPath(e.currentTarget.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !e.nativeEvent.isComposing) void handleOpenAtPath();
+              }}
+            />
+            {launcherActive && (
+              <Button
+                variant="light"
+                onClick={() => void pickPath("open", locPath).then((p) => { if (p) setLocPath(p); })}
+              >
+                {t("settings.browse")}
+              </Button>
+            )}
+          </Group>
+          <Group justify="flex-end" gap="xs">
+            <Button variant="default" onClick={() => setLocOpen(false)}>
+              {t("start.new.cancel")}
+            </Button>
+            <Button loading={busy} disabled={!locPath.trim()} onClick={() => void handleOpenAtPath()}>
+              {t("start.action.open")}
             </Button>
           </Group>
         </Stack>

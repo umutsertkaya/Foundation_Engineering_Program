@@ -74,6 +74,14 @@ export function save_current_project(): Promise<SessionInfo> {
   return request<SessionInfo>("POST", "/project/save");
 }
 
+export function open_project_at(path: string): Promise<unknown> {
+  return request<unknown>("POST", "/project/open", { path });
+}
+
+export function save_project_as(path: string): Promise<SessionInfo> {
+  return request<SessionInfo>("POST", "/project/save", { path });
+}
+
 export function close_project(): Promise<SessionInfo> {
   return request<SessionInfo>("POST", "/project/close");
 }

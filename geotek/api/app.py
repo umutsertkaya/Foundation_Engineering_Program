@@ -109,7 +109,9 @@ def save_project_route(
         current = session.require_project()
         try:
             if payload is not None and payload.path:
-                target = save_project(current, Path(payload.path).expanduser())
+                destination = Path(payload.path).expanduser()
+                destination.parent.mkdir(parents=True, exist_ok=True)
+                target = save_project(current, destination)
                 session.file, session.path = None, target.resolve()
             elif session.file is not None:
                 session.library.save(session.file, current)

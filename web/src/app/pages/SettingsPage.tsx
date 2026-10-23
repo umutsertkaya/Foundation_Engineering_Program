@@ -11,11 +11,12 @@ import {
   Title,
 } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
-import { IconArrowLeft, IconDeviceFloppy, IconRotate } from "@tabler/icons-react";
+import { IconArrowLeft, IconDeviceFloppy, IconFolderSearch, IconRotate } from "@tabler/icons-react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { get_settings, put_settings } from "../../shared/api/core";
 import type { Language } from "../../shared/api/types";
+import { launcherAvailable, pickPath } from "../../shared/api/launcher";
 import { ErrorAlert } from "../../shared/components/ErrorAlert";
 import { loadLanguageCatalog } from "../i18n";
 
@@ -52,6 +53,17 @@ export function SettingsPage() {
   useEffect(() => {
     void loadSettings();
   }, [loadSettings]);
+
+  const [launcherActive, setLauncherActive] = useState(false);
+
+  useEffect(() => {
+    void launcherAvailable().then(setLauncherActive);
+  }, []);
+
+  const handleBrowse = async () => {
+    const path = await pickPath("folder", libraryDir);
+    if (path) setLibraryDir(path);
+  };
 
   const handleSave = async () => {
     setSaving(true);
@@ -110,6 +122,15 @@ export function SettingsPage() {
                   value={libraryDir}
                   onChange={(e) => setLibraryDir(e.currentTarget.value)}
                 />
+                {launcherActive && (
+                  <Button
+                    variant="light"
+                    leftSection={<IconFolderSearch size={16} />}
+                    onClick={() => void handleBrowse()}
+                  >
+                    {t("settings.browse")}
+                  </Button>
+                )}
                 <Button
                   variant="light"
                   leftSection={<IconRotate size={16} />}

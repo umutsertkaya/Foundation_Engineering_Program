@@ -37,6 +37,7 @@ import { EmptyState } from "../../shared/components/EmptyState";
 import { ErrorAlert } from "../../shared/components/ErrorAlert";
 import { loadLanguageCatalog } from "../i18n";
 import { useModules } from "../moduleRegistry";
+import { launcherAvailable, pickPath } from "../../shared/api/launcher";
 import { useProjectSession } from "../ProjectProvider";
 import { ThemeToggle } from "../ThemeToggle";
 
@@ -78,7 +79,7 @@ export function LauncherPage() {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const modules = useModules();
-  const { session, project, save, close, refresh, refreshSession } = useProjectSession();
+  const { session, project, save, saveAs, close, refresh, refreshSession } = useProjectSession();
 
   const currentLang: Language = i18n.language === "en" ? "en" : "tr";
 
@@ -165,12 +166,32 @@ export function LauncherPage() {
     void loadLanguageCatalog(nextLang);
   };
 
+  const [launcherActive, setLauncherActive] = useState(false);
+  useEffect(() => {
+    void launcherAvailable().then(setLauncherActive);
+  }, []);
+
   const handleSaveProject = async () => {
     setSaving(true);
     setError(null);
     try {
       await save();
       notifications.show({ message: t("shell.saved"), color: "green" });
+    } catch (err) {
+      setError(err);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleSaveAs = async () => {
+    const target = await pickPath("save");
+    if (!target) return;
+    setSaving(true);
+    setError(null);
+    try {
+      await saveAs(target);
+      notifications.show({ message: t("shell.saved_as", { path: target }), color: "green" });
     } catch (err) {
       setError(err);
     } finally {
@@ -295,6 +316,11 @@ export function LauncherPage() {
               >
                 {t("shell.save")}
               </Button>
+              {launcherActive && (
+                <Button size="xs" variant="default" disabled={saving} onClick={() => void handleSaveAs()}>
+                  {t("shell.save_as")}
+                </Button>
+              )}
               <SegmentedControl
                 size="xs"
                 aria-label={t("web.header.lang_switch")}

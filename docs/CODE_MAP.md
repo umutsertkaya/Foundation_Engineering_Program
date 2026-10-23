@@ -245,24 +245,24 @@ Yer sütunu işleyicinin `def` satırıdır; çok satırlı dekoratörler AST il
 
 | Metot | Yol | Yer | İşleyici | Web |
 |---|---|---|---|---|
-| GET | `/api/codes` | `geotek/api/app.py:366` | `list_codes` | `web/src/shared/api/client.ts` |
-| GET | `/api/codes/{code_id}/factors` | `geotek/api/app.py:390` | `list_code_factors` | `web/src/shared/api/client.ts` |
-| GET | `/api/codes/{code_id}/required` | `geotek/api/app.py:405` | `get_code_required_factors` | `web/src/shared/api/client.ts` |
-| GET | `/api/data/profiles` | `geotek/api/app.py:192` | `list_project_profiles` | `web/src/shared/api/core.ts` |
+| GET | `/api/codes` | `geotek/api/app.py:368` | `list_codes` | `web/src/shared/api/client.ts` |
+| GET | `/api/codes/{code_id}/factors` | `geotek/api/app.py:392` | `list_code_factors` | `web/src/shared/api/client.ts` |
+| GET | `/api/codes/{code_id}/required` | `geotek/api/app.py:407` | `get_code_required_factors` | `web/src/shared/api/client.ts` |
+| GET | `/api/data/profiles` | `geotek/api/app.py:194` | `list_project_profiles` | `web/src/shared/api/core.ts` |
 | GET | `/api/health` | `geotek/api/app.py:50` | `get_health` | `web/src/shared/api/client.ts` |
 | GET | `/api/i18n/{lang}` | `geotek/api/app.py:56` | `get_i18n` | `web/src/shared/api/client.ts` |
-| DELETE | `/api/jobs/{job_id}` | `geotek/api/app.py:361` | `cancel_job` | `web/src/shared/api/client.ts` |
-| GET | `/api/jobs/{job_id}` | `geotek/api/app.py:355` | `get_job` | `web/src/shared/api/client.ts` |
+| DELETE | `/api/jobs/{job_id}` | `geotek/api/app.py:363` | `cancel_job` | `web/src/shared/api/client.ts` |
+| GET | `/api/jobs/{job_id}` | `geotek/api/app.py:357` | `get_job` | `web/src/shared/api/client.ts` |
 | GET | `/api/library` | `geotek/api/library_routes.py:137` | `list_library` | `web/src/shared/api/core.ts` |
 | POST | `/api/library` | `geotek/api/library_routes.py:145` | `create_library_project` | `web/src/shared/api/core.ts` |
-| POST | `/api/library/import` | `geotek/api/library_routes.py:169` | `import_library_project` | `web/src/shared/api/core.ts` |
-| POST | `/api/library/upload` | `geotek/api/library_routes.py:186` | `upload_library_project` | — |
-| DELETE | `/api/library/{file}` | `geotek/api/library_routes.py:269` | `delete_library_project` | `web/src/shared/api/core.ts` |
-| GET | `/api/library/{file}/download` | `geotek/api/library_routes.py:210` | `download_library_project` | — |
-| POST | `/api/library/{file}/duplicate` | `geotek/api/library_routes.py:231` | `duplicate_library_project` | `web/src/shared/api/core.ts` |
-| POST | `/api/library/{file}/export` | `geotek/api/library_routes.py:256` | `export_library_project` | `web/src/shared/api/core.ts` |
-| POST | `/api/library/{file}/open` | `geotek/api/library_routes.py:219` | `open_library_project` | `web/src/shared/api/core.ts` |
-| POST | `/api/library/{file}/rename` | `geotek/api/library_routes.py:241` | `rename_library_project` | `web/src/shared/api/core.ts` |
+| POST | `/api/library/import` | `geotek/api/library_routes.py:176` | `import_library_project` | `web/src/shared/api/core.ts` |
+| POST | `/api/library/upload` | `geotek/api/library_routes.py:193` | `upload_library_project` | — |
+| DELETE | `/api/library/{file}` | `geotek/api/library_routes.py:276` | `delete_library_project` | `web/src/shared/api/core.ts` |
+| GET | `/api/library/{file}/download` | `geotek/api/library_routes.py:217` | `download_library_project` | — |
+| POST | `/api/library/{file}/duplicate` | `geotek/api/library_routes.py:238` | `duplicate_library_project` | `web/src/shared/api/core.ts` |
+| POST | `/api/library/{file}/export` | `geotek/api/library_routes.py:263` | `export_library_project` | `web/src/shared/api/core.ts` |
+| POST | `/api/library/{file}/open` | `geotek/api/library_routes.py:226` | `open_library_project` | `web/src/shared/api/core.ts` |
+| POST | `/api/library/{file}/rename` | `geotek/api/library_routes.py:248` | `rename_library_project` | `web/src/shared/api/core.ts` |
 | POST | `/api/m/anchored_wall/analysis/run` | `geotek/modules/anchored_wall/api.py:128` | `run_wall_analysis` | — |
 | POST | `/api/m/anchored_wall/anchor/design` | `geotek/modules/anchored_wall/api.py:109` | `design_ground_anchor` | — |
 | GET | `/api/m/anchored_wall/anchor/reference` | `geotek/modules/anchored_wall/api.py:169` | `anchor_reference` | — |
@@ -312,25 +312,25 @@ Yer sütunu işleyicinin `def` satırıdır; çok satırlı dekoratörler AST il
 | POST | `/api/m/walls/structures/{id}/size` | `geotek/modules/walls/api.py:44` | `size_wall` | `web/src/modules/walls/api.ts` |
 | GET | `/api/m/walls/wall-types` | `geotek/modules/walls/api.py:20` | `list_wall_types` | `web/src/modules/walls/api.ts` |
 | GET | `/api/modules` | `geotek/api/library_routes.py:95` | `list_modules` | `web/src/shared/api/core.ts` |
-| GET | `/api/project` | `geotek/api/app.py:135` | `get_project` | `web/src/shared/api/client.ts` |
-| PUT | `/api/project/active-profile` | `geotek/api/app.py:176` | `set_active_profile` | `web/src/shared/api/client.ts` |
-| POST | `/api/project/close` | `geotek/api/app.py:128` | `close_project` | `web/src/shared/api/core.ts` |
-| PUT | `/api/project/design-overrides/{code_id}` | `geotek/api/app.py:424` | `set_design_overrides` | `web/src/shared/api/client.ts` |
-| PATCH | `/api/project/meta` | `geotek/api/app.py:142` | `update_project_meta` | `web/src/shared/api/client.ts` |
+| GET | `/api/project` | `geotek/api/app.py:137` | `get_project` | `web/src/shared/api/client.ts` |
+| PUT | `/api/project/active-profile` | `geotek/api/app.py:178` | `set_active_profile` | `web/src/shared/api/client.ts` |
+| POST | `/api/project/close` | `geotek/api/app.py:130` | `close_project` | `web/src/shared/api/core.ts` |
+| PUT | `/api/project/design-overrides/{code_id}` | `geotek/api/app.py:426` | `set_design_overrides` | `web/src/shared/api/client.ts` |
+| PATCH | `/api/project/meta` | `geotek/api/app.py:144` | `update_project_meta` | `web/src/shared/api/client.ts` |
 | POST | `/api/project/new` | `geotek/api/app.py:86` | `new_project` | `web/src/shared/api/client.ts` |
-| POST | `/api/project/open` | `geotek/api/app.py:94` | `open_project` | `web/src/shared/api/client.ts` |
+| POST | `/api/project/open` | `geotek/api/app.py:94` | `open_project` | `web/src/shared/api/client.ts`, `web/src/shared/api/core.ts` |
 | POST | `/api/project/save` | `geotek/api/app.py:104` | `save_project_route` | `web/src/shared/api/client.ts`, `web/src/shared/api/core.ts` |
-| PUT | `/api/project/site` | `geotek/api/app.py:161` | `set_project_site` | `web/src/shared/api/client.ts` |
-| GET | `/api/session` | `geotek/api/library_routes.py:280` | `get_session_info` | `web/src/shared/api/core.ts` |
+| PUT | `/api/project/site` | `geotek/api/app.py:163` | `set_project_site` | `web/src/shared/api/client.ts` |
+| GET | `/api/session` | `geotek/api/library_routes.py:287` | `get_session_info` | `web/src/shared/api/core.ts` |
 | GET | `/api/settings` | `geotek/api/library_routes.py:107` | `get_settings` | `web/src/shared/api/core.ts` |
 | PUT | `/api/settings` | `geotek/api/library_routes.py:113` | `put_settings` | `web/src/shared/api/core.ts` |
-| GET | `/api/structures` | `geotek/api/app.py:207` | `list_structures` | `web/src/shared/api/client.ts` |
-| POST | `/api/structures` | `geotek/api/app.py:253` | `create_structure` | `web/src/shared/api/client.ts` |
-| DELETE | `/api/structures/{id}` | `geotek/api/app.py:310` | `delete_structure` | `web/src/shared/api/client.ts` |
-| GET | `/api/structures/{id}` | `geotek/api/app.py:284` | `get_structure` | `web/src/shared/api/client.ts` |
-| PUT | `/api/structures/{id}` | `geotek/api/app.py:291` | `update_structure` | `web/src/shared/api/client.ts` |
-| PUT | `/api/structures/{id}/soil` | `geotek/api/app.py:322` | `set_structure_soil` | `web/src/shared/api/client.ts` |
-| POST | `/api/structures/{id}/soil/resync` | `geotek/api/app.py:336` | `resync_structure_soil` | `web/src/shared/api/client.ts` |
+| GET | `/api/structures` | `geotek/api/app.py:209` | `list_structures` | `web/src/shared/api/client.ts` |
+| POST | `/api/structures` | `geotek/api/app.py:255` | `create_structure` | `web/src/shared/api/client.ts` |
+| DELETE | `/api/structures/{id}` | `geotek/api/app.py:312` | `delete_structure` | `web/src/shared/api/client.ts` |
+| GET | `/api/structures/{id}` | `geotek/api/app.py:286` | `get_structure` | `web/src/shared/api/client.ts` |
+| PUT | `/api/structures/{id}` | `geotek/api/app.py:293` | `update_structure` | `web/src/shared/api/client.ts` |
+| PUT | `/api/structures/{id}/soil` | `geotek/api/app.py:324` | `set_structure_soil` | `web/src/shared/api/client.ts` |
+| POST | `/api/structures/{id}/soil/resync` | `geotek/api/app.py:338` | `resync_structure_soil` | `web/src/shared/api/client.ts` |
 
 ### Backend dosya tablosu
 
@@ -340,21 +340,21 @@ Test sütunu: o dosyayı doğrudan import eden `tests/` dosyaları (yoksa `—`)
 
 | Dosya | Satır | Bağımlı olduğu | Kullanan | Test |
 |---|---:|---|---|---|
-| `__init__.py` | 3 | — | — | `unit/test_config_i18n.py`, `unit/test_module1_service.py` |
+| `__init__.py` | 3 | — | — | `api/test_launcher.py`, `unit/test_config_i18n.py`, `unit/test_module1_service.py` |
 
 #### `geotek.api`
 
 | Dosya | Satır | Bağımlı olduğu | Kullanan | Test |
 |---|---:|---|---|---|
 | `api/__init__.py` | 1 | — | `api.app`, `api.calculation_jobs`, `api.calculation_results`, `api.common`, `api.jobs`, `api.library_routes` +5 | `api/test_anchored_wall_api.py`, `api/test_codes_api.py`, `api/test_contract.py` +7 |
-| `api/app.py` | 504 | `api`, `api.common`, `api.jobs`, `api.library_routes`, `api.registry`, `api.schemas`, `api.session`, `config.codes`, `core.errors`, `core.models.project`, `core.models.structures`, `i18n`, `io.project_io`, `library`, `services.structures`, `services.walls_advanced` | `launcher` | `api/conftest.py`, `api/test_contract.py`, `api/test_jobs_api.py` +3 |
+| `api/app.py` | 506 | `api`, `api.common`, `api.jobs`, `api.library_routes`, `api.registry`, `api.schemas`, `api.session`, `config.codes`, `core.errors`, `core.models.project`, `core.models.structures`, `i18n`, `io.project_io`, `library`, `services.structures`, `services.walls_advanced` | `launcher` | `api/conftest.py`, `api/test_contract.py`, `api/test_jobs_api.py` +3 |
 | `api/calculation_jobs.py` | 96 | `api`, `api.calculation_results`, `api.jobs`, `api.schemas`, `api.session`, `core.errors`, `services`, `services.structures` | `modules.anchored_wall.api`, `modules.liquefaction.api`, `modules.report.api`, `modules.sheet_pile.api`, `modules.walls.api` | — |
 | `api/calculation_results.py` | 168 | `api`, `api.schemas`, `core.warning_codes`, `engine.limit_state`, `services.structures` | `api.calculation_jobs`, `modules.liquefaction.api` | `api/test_sheet_pile_api.py`, `unit/test_liquefaction_analysis.py`, `unit/test_shear_key.py` +1 |
 | `api/common.py` | 63 | `api`, `api.schemas` | `api.app`, `api.library_routes`, `modules.anchored_wall.api`, `modules.liquefaction.api`, `modules.report.api`, `modules.sheet_pile.api` +2 | — |
 | `api/jobs.py` | 226 | `api`, `api.schemas`, `api.session`, `core.errors` | `api.app`, `api.calculation_jobs`, `modules.anchored_wall.api`, `modules.liquefaction.api`, `modules.sheet_pile.api`, `modules.walls.api` | `api/test_jobs_api.py`, `unit/test_sheet_pile_slope.py`, `unit/test_t10c_messages.py` |
-| `api/library_routes.py` | 282 | `api`, `api.common`, `api.registry`, `api.schemas`, `api.session`, `core.errors`, `core.models.project`, `library` | `api.app` | `api/test_library_hardening_api.py` |
+| `api/library_routes.py` | 289 | `api`, `api.common`, `api.registry`, `api.schemas`, `api.session`, `core.errors`, `core.models.project`, `library` | `api.app` | `api/test_library_hardening_api.py` |
 | `api/registry.py` | 74 | `core.errors`, `core.modules`, `modules`, `modules._index` | `api.app`, `api.library_routes`, `services.report` | `api/test_anchored_wall_api.py`, `api/test_codes_api.py`, `unit/test_module_manifests.py` +2 |
-| `api/schemas.py` | 626 | `config.codes`, `core.models.profile`, `core.models.project`, `core.models.structures`, `core.models.walls` | `api.app`, `api.calculation_jobs`, `api.calculation_results`, `api.common`, `api.jobs`, `api.library_routes` +10 | `api/test_contract.py`, `api/test_jobs_api.py`, `api/test_sheet_pile_api.py` +4 |
+| `api/schemas.py` | 628 | `config.codes`, `core.models.profile`, `core.models.project`, `core.models.structures`, `core.models.walls` | `api.app`, `api.calculation_jobs`, `api.calculation_results`, `api.common`, `api.jobs`, `api.library_routes` +10 | `api/test_contract.py`, `api/test_jobs_api.py`, `api/test_sheet_pile_api.py` +4 |
 | `api/session.py` | 97 | `api`, `api.schemas`, `core.models.project`, `io.project_io`, `library` | `api.app`, `api.calculation_jobs`, `api.jobs`, `api.library_routes`, `modules.anchored_wall.api`, `modules.liquefaction.api` +3 | — |
 
 #### `geotek.config`
@@ -543,7 +543,7 @@ Test sütunu: o dosyayı doğrudan import eden `tests/` dosyaları (yoksa `—`)
 
 | Dosya | Satır | Bağımlı olduğu | Kullanan | Test |
 |---|---:|---|---|---|
-| `launcher.py` | 136 | `api.app` | — | `unit/test_launcher.py` |
+| `launcher.py` | 175 | `api.app` | — | `api/test_launcher.py`, `unit/test_launcher.py` |
 
 #### `geotek.library`
 
@@ -551,7 +551,7 @@ Test sütunu: o dosyayı doğrudan import eden `tests/` dosyaları (yoksa `—`)
 |---|---:|---|---|---|
 | `library/__init__.py` | 24 | `library.service`, `library.settings` | `api.app`, `api.library_routes`, `api.session` | `api/conftest.py`, `api/test_codes_api.py`, `api/test_library_api.py` +3 |
 | `library/service.py` | 308 | `core.errors`, `core.models.project`, `io.project_io` | `library` | `unit/test_library.py`, `unit/test_library_hardening.py` |
-| `library/settings.py` | 76 | — | `library` | `unit/test_library.py` |
+| `library/settings.py` | 121 | — | `library` | `unit/test_library.py` |
 
 #### `geotek.modules`
 
@@ -645,7 +645,7 @@ graph LR
   modules_soil["modules/soil"]
   modules_walls["modules/walls"]
   shared["shared"]
-  app -->|26| shared
+  app -->|29| shared
   modules_anchored_wall -->|1| app
   modules_anchored_wall -->|13| shared
   modules_education -->|1| shared
@@ -668,7 +668,7 @@ graph LR
 | `modules/sheet_pile` | 15 | `app`, `shared` |
 | `modules/soil` | 25 | `shared` |
 | `modules/walls` | 19 | `shared` |
-| `shared` | 42 | — |
+| `shared` | 43 | — |
 
 ### Web → backend çağrıları
 
@@ -683,7 +683,7 @@ graph LR
 | `modules/soil/api.ts` | GET `/m/soil/investigations`<br>GET `/m/soil/cpts/{}/processed`<br>GET `/m/soil/boreholes/{}/processed`<br>POST `/m/soil/layering/cpt/{}`<br>POST `/m/soil/layering/spt/{}`<br>GET `/m/soil/profiles`<br>POST `/m/soil/profiles`<br>GET `/m/soil/profiles/{}`<br>PUT `/m/soil/profiles/{}`<br>DELETE `/m/soil/profiles/{}`<br>GET `/m/soil/profiles/{}/layers/{}/parameters`<br>PUT `/m/soil/profiles/{}/layers/{}/parameters/{}`<br>POST `/m/soil/profiles/{}/layers/{}/parameters/approve`<br>POST `/m/soil/profiles/{}/parameters/suggest-all`<br>GET `/m/soil/classification/sbtn/reference`<br>GET `/m/soil/cpts/{}/sbtn`<br>GET `/m/soil/boreholes/{}/uscs`<br>POST `/m/soil/classification/uscs`<br>GET `/m/soil/classification/uscs/reference`<br>GET `/m/soil/profiles/{}/layers/{}/inventory`<br>DELETE `/m/soil/cpts/{}`<br>DELETE `/m/soil/boreholes/{}`<br>POST `/m/soil/boreholes`<br>PUT `/m/soil/boreholes/{}`<br>PUT `/m/soil/cpts/{}` |
 | `modules/walls/api.ts` | GET `/m/walls/wall-types`<br>POST `/m/walls/structures/{}/required-factors`<br>POST `/m/walls/structures/{}/size`<br>POST `/m/walls/structures/{}/check` |
 | `shared/api/client.ts` | GET `/health`<br>GET `/i18n/{}`<br>POST `/project/new`<br>POST `/project/open`<br>POST `/project/save`<br>GET `/project`<br>PATCH `/project/meta`<br>PUT `/project/site`<br>PUT `/project/active-profile`<br>GET `/structures`<br>POST `/structures`<br>GET `/structures/{}`<br>PUT `/structures/{}`<br>DELETE `/structures/{}`<br>PUT `/structures/{}/soil`<br>POST `/structures/{}/soil/resync`<br>GET `/jobs/{}`<br>DELETE `/jobs/{}`<br>GET `/codes`<br>GET `/codes/{}/factors`<br>GET `/codes/{}/required`<br>PUT `/project/design-overrides/{}` |
-| `shared/api/core.ts` | GET `/modules`<br>GET `/settings`<br>PUT `/settings`<br>GET `/library`<br>POST `/library`<br>POST `/library/{}/open`<br>POST `/library/{}/duplicate`<br>POST `/library/{}/rename`<br>POST `/library/{}/export`<br>DELETE `/library/{}`<br>POST `/library/import`<br>GET `/session`<br>POST `/project/save`<br>POST `/project/close`<br>GET `/data/profiles` |
+| `shared/api/core.ts` | GET `/modules`<br>GET `/settings`<br>PUT `/settings`<br>GET `/library`<br>POST `/library`<br>POST `/library/{}/open`<br>POST `/library/{}/duplicate`<br>POST `/library/{}/rename`<br>POST `/library/{}/export`<br>DELETE `/library/{}`<br>POST `/library/import`<br>GET `/session`<br>POST `/project/save`<br>POST `/project/open`<br>POST `/project/save`<br>POST `/project/close`<br>GET `/data/profiles` |
 
 ### Web dosya tablosu
 
@@ -702,15 +702,15 @@ Testler yalnız **Kullanan** sütununda görünür; “Test” sütunu o dosyay�
 | `app/App.tsx` | 30 | `app/AppChrome.tsx`, `app/ModuleShell.tsx`, `app/ProjectProvider.tsx`, `app/RequireProject.tsx`, `app/moduleRegistry.ts`, `app/pages/LauncherPage.tsx`, `app/pages/SettingsPage.tsx`, `app/pages/StartPage.tsx` | `app/main.tsx` | `test/shell.test.tsx`, `test/start_page.test.tsx` |
 | `app/AppChrome.tsx` | 83 | `shared/api/core.ts`, `shared/api/http.ts` | `app/App.tsx` | `test/app_chrome.test.tsx` |
 | `app/ModuleShell.tsx` | 113 | `app/ProjectProvider.tsx`, `app/ThemeToggle.tsx`, `app/i18n.ts`, `app/moduleRegistry.ts`, `shared/api/types.ts`, `shared/components/EmptyState.tsx`, `shared/components/ErrorAlert.tsx`, `shared/hooks/usePreSaveHook.ts` | `app/App.tsx` | — |
-| `app/ProjectProvider.tsx` | 120 | `shared/api/client.ts`, `shared/api/core.ts`, `shared/api/http.ts`, `shared/api/types.ts` | `app/App.tsx`, `app/ModuleShell.tsx`, `app/RequireProject.tsx`, `app/pages/LauncherPage.tsx`, `app/pages/StartPage.tsx` | `test/shell.test.tsx` |
+| `app/ProjectProvider.tsx` | 133 | `shared/api/client.ts`, `shared/api/core.ts`, `shared/api/http.ts`, `shared/api/types.ts` | `app/App.tsx`, `app/ModuleShell.tsx`, `app/RequireProject.tsx`, `app/pages/LauncherPage.tsx`, `app/pages/StartPage.tsx` | `test/shell.test.tsx` |
 | `app/RequireProject.tsx` | 13 | `app/ProjectProvider.tsx`, `shared/components/ErrorAlert.tsx` | `app/App.tsx` | — |
 | `app/ThemeToggle.tsx` | 19 | — | `app/ModuleShell.tsx`, `app/pages/LauncherPage.tsx`, `app/pages/StartPage.tsx` | — |
 | `app/i18n.ts` | 60 | `shared/api/client.ts`, `shared/api/types.ts` | `app/ModuleShell.tsx`, `app/main.tsx`, `app/pages/LauncherPage.tsx`, `app/pages/SettingsPage.tsx`, `app/pages/StartPage.tsx` +2 | `modules/anchored_wall/__tests__/anchored_wall.test.tsx`, `modules/education/__tests__/education.test.tsx`, `modules/liquefaction/__tests__/liquefaction.test.tsx` +27 |
 | `app/main.tsx` | 42 | `app/App.tsx`, `app/i18n.ts`, `app/theme.ts` | — | — |
 | `app/moduleRegistry.ts` | 29 | `shared/moduleTypes.ts` | `app/App.tsx`, `app/ModuleShell.tsx`, `app/pages/LauncherPage.tsx` | `test/module_paths.test.ts`, `test/shell.test.tsx` |
-| `app/pages/LauncherPage.tsx` | 622 | `app/ProjectProvider.tsx`, `app/ThemeToggle.tsx`, `app/i18n.ts`, `app/moduleRegistry.ts`, `shared/api/client.ts`, `shared/api/types.ts`, `shared/components/EmptyState.tsx`, `shared/components/ErrorAlert.tsx` | `app/App.tsx` | — |
-| `app/pages/SettingsPage.tsx` | 152 | `app/i18n.ts`, `shared/api/core.ts`, `shared/api/types.ts`, `shared/components/ErrorAlert.tsx` | `app/App.tsx` | — |
-| `app/pages/StartPage.tsx` | 793 | `app/ProjectProvider.tsx`, `app/ThemeToggle.tsx`, `app/i18n.ts`, `shared/api/client.ts`, `shared/api/core.ts`, `shared/api/types.ts`, `shared/components/EmptyState.tsx`, `shared/components/ErrorAlert.tsx` | `app/App.tsx` | — |
+| `app/pages/LauncherPage.tsx` | 648 | `app/ProjectProvider.tsx`, `app/ThemeToggle.tsx`, `app/i18n.ts`, `app/moduleRegistry.ts`, `shared/api/client.ts`, `shared/api/launcher.ts`, `shared/api/types.ts`, `shared/components/EmptyState.tsx`, `shared/components/ErrorAlert.tsx` | `app/App.tsx` | — |
+| `app/pages/SettingsPage.tsx` | 173 | `app/i18n.ts`, `shared/api/core.ts`, `shared/api/launcher.ts`, `shared/api/types.ts`, `shared/components/ErrorAlert.tsx` | `app/App.tsx` | — |
+| `app/pages/StartPage.tsx` | 898 | `app/ProjectProvider.tsx`, `app/ThemeToggle.tsx`, `app/i18n.ts`, `shared/api/client.ts`, `shared/api/core.ts`, `shared/api/launcher.ts`, `shared/api/types.ts`, `shared/components/EmptyState.tsx`, `shared/components/ErrorAlert.tsx` | `app/App.tsx` | — |
 | `app/theme.ts` | 31 | — | `app/main.tsx` | `modules/liquefaction/__tests__/liquefaction.test.tsx`, `modules/liquefaction/__tests__/results.test.tsx`, `modules/sheet_pile/__tests__/sheet_pile.test.tsx` +19 |
 
 #### `modules/anchored_wall`
@@ -881,9 +881,10 @@ Testler yalnız **Kullanan** sütununda görünür; “Test” sütunu o dosyay�
 | Dosya | Satır | Bağımlı olduğu | Kullanan | Test |
 |---|---:|---|---|---|
 | `shared/api/client.ts` | 136 | `shared/api/http.ts`, `shared/api/types.ts` | `app/ProjectProvider.tsx`, `app/i18n.ts`, `app/pages/LauncherPage.tsx`, `app/pages/StartPage.tsx`, `modules/anchored_wall/components/Notices.tsx` +19 | `modules/anchored_wall/__tests__/anchored_wall.test.tsx`, `modules/liquefaction/__tests__/liquefaction.test.tsx`, `modules/liquefaction/__tests__/results.test.tsx` +22 |
-| `shared/api/core.ts` | 84 | `shared/api/http.ts`, `shared/api/types.ts` | `app/AppChrome.tsx`, `app/ProjectProvider.tsx`, `app/pages/SettingsPage.tsx`, `app/pages/StartPage.tsx`, `modules/anchored_wall/components/AnalysisForm.tsx` +4 | `modules/liquefaction/__tests__/liquefaction.test.tsx`, `test/shell.test.tsx`, `test/shell_mock.test.ts` +1 |
+| `shared/api/core.ts` | 92 | `shared/api/http.ts`, `shared/api/types.ts` | `app/AppChrome.tsx`, `app/ProjectProvider.tsx`, `app/pages/SettingsPage.tsx`, `app/pages/StartPage.tsx`, `modules/anchored_wall/components/AnalysisForm.tsx` +4 | `modules/liquefaction/__tests__/liquefaction.test.tsx`, `test/shell.test.tsx`, `test/shell_mock.test.ts` +1 |
 | `shared/api/errorMessage.ts` | 32 | `shared/api/client.ts` | `modules/soil/components/ErrorAlert.tsx`, `shared/components/ErrorAlert.tsx` | `shared/api/errorMessage.test.ts`, `test/error_alert.test.tsx` |
 | `shared/api/http.ts` | 243 | `shared/api/mock/index.ts`, `shared/api/types.ts` | `app/AppChrome.tsx`, `app/ProjectProvider.tsx`, `modules/anchored_wall/api.ts`, `modules/liquefaction/api.ts`, `modules/report/api.ts` +5 | `modules/walls/__tests__/wall_wizard_inputs.test.tsx`, `test/app_chrome.test.tsx`, `test/shell_mock.test.ts` |
+| `shared/api/launcher.ts` | 25 | — | `app/pages/LauncherPage.tsx`, `app/pages/SettingsPage.tsx`, `app/pages/StartPage.tsx` | — |
 | `shared/api/mock/core.ts` | 244 | `shared/api/mock/data.ts`, `shared/api/mock/dispatcher.ts`, `shared/api/mock/store.ts`, `shared/api/types.ts` | `modules/anchored_wall/mock.ts`, `modules/liquefaction/mock.ts`, `modules/sheet_pile/mock.ts`, `shared/api/mock/index.ts` | `modules/anchored_wall/__tests__/anchored_wall.test.tsx`, `modules/liquefaction/__tests__/liquefaction.test.tsx`, `modules/sheet_pile/__tests__/sheet_pile.test.tsx` |
 | `shared/api/mock/coreRoutes.ts` | 515 | `shared/api/mock/data.ts`, `shared/api/mock/dispatcher.ts`, `shared/api/mock/hash.ts`, `shared/api/mock/store.ts`, `shared/api/types.ts`, `shared/soil/layerOps.ts` | `shared/api/mock/index.ts` | — |
 | `shared/api/mock/data.ts` | 595 | `shared/api/types.ts` | `modules/soil/mock.ts`, `modules/walls/mock.ts`, `shared/api/mock/core.ts`, `shared/api/mock/coreRoutes.ts`, `shared/api/mock/store.ts` | — |
@@ -891,8 +892,8 @@ Testler yalnız **Kullanan** sütununda görünür; “Test” sütunu o dosyay�
 | `shared/api/mock/hash.ts` | 36 | `shared/api/types.ts` | `modules/anchored_wall/mock.ts`, `shared/api/mock/coreRoutes.ts`, `shared/api/mock/store.ts` | `modules/sheet_pile/__tests__/sheet_pile.test.tsx` |
 | `shared/api/mock/index.ts` | 26 | `shared/api/mock/core.ts`, `shared/api/mock/coreRoutes.ts`, `shared/api/mock/dispatcher.ts`, `shared/api/mock/store.ts` | `shared/api/http.ts` | `modules/anchored_wall/__tests__/anchored_wall.test.tsx`, `modules/liquefaction/__tests__/liquefaction.test.tsx`, `modules/sheet_pile/__tests__/sheet_pile.test.tsx` +16 |
 | `shared/api/mock/store.ts` | 149 | `shared/api/mock/data.ts`, `shared/api/mock/hash.ts`, `shared/api/types.ts` | `modules/anchored_wall/mock.ts`, `modules/liquefaction/mock.ts`, `modules/sheet_pile/mock.ts`, `modules/soil/mock.ts`, `modules/walls/mock.ts` +3 | `modules/liquefaction/__tests__/liquefaction.test.tsx`, `modules/sheet_pile/__tests__/sheet_pile.test.tsx`, `modules/soil/__tests__/soil_mock.test.ts` +3 |
-| `shared/api/schema.d.ts` | 12836 | — | — | — |
-| `shared/api/types.ts` | 822 | — | `app/ModuleShell.tsx`, `app/ProjectProvider.tsx`, `app/i18n.ts`, `app/pages/LauncherPage.tsx`, `app/pages/SettingsPage.tsx` +65 | `modules/liquefaction/__tests__/liquefaction.test.tsx`, `modules/liquefaction/__tests__/results.test.tsx`, `modules/sheet_pile/__tests__/result-contract.test.tsx` +16 |
+| `shared/api/schema.d.ts` | 12841 | — | — | — |
+| `shared/api/types.ts` | 824 | — | `app/ModuleShell.tsx`, `app/ProjectProvider.tsx`, `app/i18n.ts`, `app/pages/LauncherPage.tsx`, `app/pages/SettingsPage.tsx` +65 | `modules/liquefaction/__tests__/liquefaction.test.tsx`, `modules/liquefaction/__tests__/results.test.tsx`, `modules/sheet_pile/__tests__/result-contract.test.tsx` +16 |
 | `shared/components/EmptyState.tsx` | 26 | — | `app/ModuleShell.tsx`, `app/pages/LauncherPage.tsx`, `app/pages/StartPage.tsx`, `modules/liquefaction/pages/ResultsPage.tsx`, `modules/report/pages/HomePage.tsx` +9 | — |
 | `shared/components/ErrorAlert.tsx` | 36 | `shared/api/errorMessage.ts` | `app/ModuleShell.tsx`, `app/RequireProject.tsx`, `app/pages/LauncherPage.tsx`, `app/pages/SettingsPage.tsx`, `app/pages/StartPage.tsx` +16 | `test/error_alert.test.tsx` |
 | `shared/components/MissingFactorsForm.tsx` | 116 | `shared/api/types.ts` | `modules/walls/pages/WallWizardPage.tsx` | `test/missing_factors_form.test.tsx` |

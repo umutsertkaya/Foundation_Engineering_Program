@@ -14172,6 +14172,17 @@
               }
             ],
             "title": "Design Code"
+          },
+          "directory": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Directory"
           }
         },
         "additionalProperties": false,
