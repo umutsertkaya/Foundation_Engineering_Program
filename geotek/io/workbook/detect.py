@@ -330,9 +330,10 @@ def _implausible_qc(unit: str, qc: np.ndarray) -> bool:
 
 
 def _assign_units(role: str, table: pd.DataFrame, columns: dict[str, ColumnMap],
-                  unit_row: dict[str, str], issues: list[ImportIssue], sheet: str) -> None:
+                  unit_row: dict[str, str], issues: list[ImportIssue], sheet: str,
+                  only: set[str] | None = None) -> None:
     for field, col in columns.items():
-        if field not in UNIT_FIELDS:
+        if field not in UNIT_FIELDS or (only is not None and field not in only):
             continue
         unit = header_unit(col.header) or unit_row.get(col.header)
         if unit is not None:
@@ -356,7 +357,8 @@ def _assign_units(role: str, table: pd.DataFrame, columns: dict[str, ColumnMap],
             if field == "depth":
                 issues.append(ImportIssue(code="import.issue.unit_assumed", severity="info", sheet=sheet,
                                           field=field, params={"unit": default}))
-    if role == "cpt" and "fs" in columns and "qc" in columns and columns["fs"].unit is None:
+    if role == "cpt" and "fs" in columns and "qc" in columns and columns["fs"].unit is None \
+            and (only is None or "fs" in only):
         _infer_fs_unit(table, columns, issues, sheet)
 
 
@@ -395,7 +397,7 @@ def analyze_workbook(data: bytes, filename: str) -> ImportPlan:
         found = match_columns(list(table.columns))
         role, confidence, kept = classify_sheet(name, found)
         sheet = SheetPlan(name=name, role=role, confidence=confidence, header_row=header_row,
-                          row_count=len(table))
+                          row_count=len(table), headers=[str(c) for c in table.columns])
         plan.sheets.append(sheet)
         if role is None:
             plan.issues.append(ImportIssue(code="import.issue.sheet_unrecognised", severity="info", sheet=name))
@@ -465,8 +467,13 @@ def blocking_questions(plan: ImportPlan, tables: dict[str, pd.DataFrame]) -> lis
         if table is None:
             continue
         cols = sheet.columns
+        have = {f for f, c in cols.items() if c.header in table.columns}
+        missing_fields = _missing_required(sheet.role, have)
+        if missing_fields:
+            block("import.issue.required_missing", sheet, None, fields=", ".join(missing_fields))
         for field, col in cols.items():
             if col.header not in table.columns:
+                block("import.issue.column_not_found", sheet, field, header=col.header)
                 continue
             if field in UNIT_FIELDS:
                 if col.unit is None:
@@ -507,6 +514,43 @@ def blocking_questions(plan: ImportPlan, tables: dict[str, pd.DataFrame]) -> lis
                         block("import.issue.sieve_opening_unresolved", sheet, "opening", text=label)
                         break
     return out
+
+
+def _missing_required(role: str, fields: set[str]) -> list[str]:
+    missing = []
+    for req in ROLES[role][0]:
+        if req == "depth_or_drive":
+            ok = "depth" in fields or {"drive_start", "drive_end"} <= fields
+        elif req == "n_or_blows":
+            ok = "n" in fields or {"blow1", "blow2", "blow3"} <= fields
+        else:
+            ok = req in fields
+        if not ok:
+            missing.append(req)
+    return missing
+
+
+def refresh_plan(data: bytes, filename: str, plan: ImportPlan) -> ImportPlan:
+    """Re-evaluate a plan the engineer edited: units of re-mapped columns, then open questions.
+    Information and confirmation items are kept; blockers are recomputed from the data."""
+    check_zip_size(data, filename)
+    frames = read_sheets(data, filename)
+    tables: dict[str, pd.DataFrame] = {}
+    scratch: list[ImportIssue] = []
+    for sheet in plan.sheets:
+        if sheet.role is None:
+            continue
+        frame = frames.get(sheet.name)
+        if frame is None or sheet.header_row >= len(frame):
+            raise ImportDataError(f"Sheet {sheet.name!r} not found in the file")
+        table, unit_row = prepare_sheet(frame, sheet.header_row)
+        tables[sheet.name] = table
+        auto = {f for f, c in sheet.columns.items() if c.unit_source != "user"}
+        for f in auto:
+            sheet.columns[f].unit = None
+        _assign_units(sheet.role, table, sheet.columns, unit_row, scratch, sheet.name, only=auto)
+    plan.issues = [i for i in plan.issues if i.severity != "blocker"] + blocking_questions(plan, tables)
+    return plan
 
 
 def _spt_blockers(plan: ImportPlan, sheet: SheetPlan, table: pd.DataFrame, block) -> None:

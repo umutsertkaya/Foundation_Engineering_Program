@@ -19,7 +19,7 @@ from geotek.core.models.profile import LayeringSettings, SoilLayer, SoilProfile
 from geotek.engine.classification import robertson, uscs
 from geotek.engine.classification.uscs_names import USCS_NAMES
 from geotek.core.errors import GeoTekError
-from geotek.io.workbook import ImportPlan, analyze_workbook, build_import
+from geotek.io.workbook import ImportPlan, analyze_workbook, build_import, refresh_plan
 from geotek.modules.soil import service
 from geotek.modules.soil.schemas import (
     AxisRangeDTO,
@@ -220,6 +220,22 @@ def router() -> APIRouter:
             return await run_in_threadpool(analyze_workbook, parts["file"], parts["filename"])
         except (GeoTekError, ValueError) as exc:
             api_error(422, "validation", f"Cannot analyse the file: {exc}")
+
+    @api.post(
+        "/import/workbook/check", response_model=ImportPlan, operation_id="check_workbook",
+        openapi_extra=workbook_body(with_plan=True),
+    )
+    async def check_workbook(request: Request, session: SessionDep) -> ImportPlan:
+        """Re-evaluate an edited plan against the file: units of re-mapped columns and open questions."""
+        with session.lock:
+            session.require_project()
+        body = await service.read_upload(request)
+        parts = service.workbook_parts(body, request.headers.get("content-type", ""), with_plan=True)
+        try:
+            plan = ImportPlan.model_validate_json(parts["plan"])
+            return await run_in_threadpool(refresh_plan, parts["file"], parts["filename"], plan)
+        except (GeoTekError, ValueError) as exc:
+            api_error(422, "validation", f"Cannot check the import plan: {exc}")
 
     @api.post(
         "/import/workbook/commit", response_model=WorkbookImportResult,

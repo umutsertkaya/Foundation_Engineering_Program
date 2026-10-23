@@ -617,5 +617,7 @@
   "import.issue.water_content_scale": "Water content values do not match the chosen scale: percent or fraction?",
   "import.issue.column_confirm": "Column '{header}' was matched by a very short header: confirm the mapping.",
   "import.warning.spt_short_drive": "{count} SPT drive(s) in {sheet} are shorter than 450 mm: the depth was limited to the drive end.",
-  "insitu.warning.cpt_no_fs": "This CPT has no sleeve friction (fs): Rf, I_c, SBTn zones and fines content are undefined; only q_c-based correlations apply."
+  "insitu.warning.cpt_no_fs": "This CPT has no sleeve friction (fs): Rf, I_c, SBTn zones and fines content are undefined; only q_c-based correlations apply.",
+  "import.issue.required_missing": "Required columns are not mapped: {fields}.",
+  "import.issue.column_not_found": "Column '{header}' is not in the sheet."
 }

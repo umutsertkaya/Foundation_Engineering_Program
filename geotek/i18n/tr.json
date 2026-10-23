@@ -617,5 +617,7 @@
   "import.issue.water_content_scale": "Su muhtevası değerleri seçilen ölçeğe uymuyor: yüzde mi, kesir mi?",
   "import.issue.column_confirm": "'{header}' sütunu çok kısa bir başlıkla eşlendi: eşlemeyi onaylayın.",
   "import.warning.spt_short_drive": "{sheet} sayfasındaki {count} SPT sürüşü 450 mm'den kısa: derinlik sürüş sonuyla sınırlandı.",
-  "insitu.warning.cpt_no_fs": "Bu CPT'de çevre sürtünmesi (fs) yok: Rf, I_c, SBTn bölgeleri ve ince dane oranı tanımsız; yalnız q_c tabanlı bağıntılar uygulanır."
+  "insitu.warning.cpt_no_fs": "Bu CPT'de çevre sürtünmesi (fs) yok: Rf, I_c, SBTn bölgeleri ve ince dane oranı tanımsız; yalnız q_c tabanlı bağıntılar uygulanır.",
+  "import.issue.required_missing": "Zorunlu sütunlar eşlenmemiş: {fields}.",
+  "import.issue.column_not_found": "'{header}' sütunu sayfada yok."
 }
