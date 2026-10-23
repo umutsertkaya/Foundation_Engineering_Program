@@ -312,3 +312,25 @@ def test_symlink_escape_rejected(library: ProjectLibrary, tmp_path: Path) -> Non
         pytest.skip("Symlinks unavailable")
     with pytest.raises(GeoTekError):
         library.path_of(link.name)
+
+
+def test_default_library_dir_falls_back_when_documents_unwritable(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    home = tmp_path / "home"
+    home.mkdir()
+    blocked = home / "Documents"
+    blocked.write_text("a file, so the folder cannot be created")
+    monkeypatch.setattr(Path, "home", classmethod(lambda cls: home))
+    monkeypatch.setenv("LOCALAPPDATA", str(tmp_path / "local"))
+    assert settings.default_library_dir() == home / "GeoTek Projeleri"
+
+
+def test_unwritable_saved_library_dir_is_replaced(
+    settings_file: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    blocker = tmp_path / "blocker"
+    blocker.write_text("x")
+    save_settings(AppSettings(library_dir=blocker / "sub"))
+    monkeypatch.setattr(Path, "home", classmethod(lambda cls: tmp_path / "h"))
+    assert load_settings().library_dir == tmp_path / "h" / "Documents" / "GeoTek Projeleri"
