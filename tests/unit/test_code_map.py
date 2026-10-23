@@ -36,7 +36,7 @@ def test_real_routes_equal_the_committed_openapi_and_point_to_handlers() -> None
     expected = {(method.upper(), path) for path, operations in contract["paths"].items()
                 for method in operations if method in g.HTTP_VERBS}
     routes = g.scan_routes()
-    assert len(expected) == 85
+    assert len(expected) == 86
     assert {(method, path) for method, path, _, _ in routes} == expected
     assert len(routes) == len(expected)
     for _, _, where, handler in routes:

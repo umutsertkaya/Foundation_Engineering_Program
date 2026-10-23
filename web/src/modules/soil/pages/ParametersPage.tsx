@@ -15,6 +15,7 @@ import {
   update_parameter_selection,
 } from "../api";
 import { ErrorAlert } from "../components/ErrorAlert";
+import { LayerInventoryPanel } from "../components/LayerInventoryPanel";
 import { ParameterKeyCard } from "../components/ParameterKeyCard";
 import { displayUnit } from "../units";
 import { LatestGuard } from "../latest";
@@ -274,6 +275,7 @@ export function ParametersPage() {
                   </Tooltip>
                 </Group>
               </Card>
+              {layerId && <LayerInventoryPanel profileId={profileId} layerId={layerId} />}
               {(loaded.profile.source_ids ?? []).length === 0 && !(loaded.profile.layers.find((l) => l.id === layerId)?.source_ids ?? []).length && (
                 <Alert color="orange" variant="light" data-testid="params-no-sources">
                   {t("soil.params.no_sources_banner")}{" "}

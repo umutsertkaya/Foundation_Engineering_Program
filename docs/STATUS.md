@@ -67,6 +67,13 @@ Kaynak: Umut'un cihazındaki tam metin md dönüşümü (`docs/research/Youd.et.
 - MSF: makale tek üs önermez, aralık verir (md 498-500): M<7.5 için alt sınır Idriss (Tablo 3 sütun 3, Eq. 23), üst sınır Andrus-Stokoe (sütun 7, Eq. 26); M>7.5 için Idriss kullanılmalı (Eq. 25). Üslerin sayısal değerleri (−2.56 / −3.3) md'de okunamadı, PDF'ten doğrulanabilir. Kod: varsayılan `idriss`, `andrus_stokoe` (M/7.5)^-3.3; NCEER'in bilinen formülleriyle uyumlu.
 - Koordinatör kararı: M>7.5'te `andrus_stokoe` engellenmez (Idriss'ten düşük, tutucu); seçilirse `liquefaction.warning.msf_andrus_stokoe_high_magnitude` uyarısı (TR/EN, testli) çıkar. Formül değişmedi.
 
+## Akıllı zemin içe aktarma (2026-10-23)
+
+- Biten: lab motoru (elek, Atterberg, faz, CU üç eksenli), SPT kayıt başına ekipman (ER yoksa %60 görünür varsayım, çubuk boyu yoksa derinlik), `geotek/io/workbook` (analiz/kontrol/aktarma), fs'siz CPT (yalnız qc), web sihirbazı, katman veri envanteri (`GET .../layers/{id}/inventory`).
+- Not: eski proje dosyalarında SPT enerji oranı alanı yoksa uyarı verilir; açıkça 60 yazılıysa sessizdir.
+- Açık: `layer_points` varsayım uyarılarını henüz taşımıyor; `.xls` ve cp1254 CSV desteklenmiyor; yeni korelasyonlar (Dr, OCR, K0, G0/Vs) kaynak doğrulaması ve ayrı onay bekliyor.
+- Test (2026-10-23, Linux bulut): pytest 2120+ geçti; web 383 geçti; typecheck, build, kod haritası temiz.
+
 ## Son doğrulama
 
 - 2026-10-20, sistem kontrolü dalı (Linux bulut): tam pytest 1869 geçti / 2 atlandı; `tsc --noEmit` temiz;

@@ -16,6 +16,7 @@ import type {
   BoreholeUSCSDTO,
   CPTProcessedDTO,
   ImportPlan,
+  LayerInventory,
   WorkbookImportResult,
   CPTSBTNDTO,
   InvestigationsDTO,
@@ -167,6 +168,11 @@ function workbook_form(file: File, plan?: ImportPlan): FormData {
   body.append("file", file, file.name);
   if (plan) body.append("plan", JSON.stringify(plan));
   return body;
+}
+
+export function get_layer_inventory(profile_id: string, layer_id: string): Promise<LayerInventory> {
+  return request<LayerInventory>(
+    "GET", `/m/soil/profiles/${encodeURIComponent(profile_id)}/layers/${encodeURIComponent(layer_id)}/inventory`);
 }
 
 export function analyze_workbook(file: File): Promise<ImportPlan> {

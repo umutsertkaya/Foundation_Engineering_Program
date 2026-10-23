@@ -653,5 +653,8 @@
   "web.import.check": "Kontrol et",
   "web.import.done": "{boreholes} sondaj ve {cpts} CPT içe aktarıldı.",
   "web.import.assumptions": "Varsayımlar ve uyarılar",
-  "web.import.close": "Kapat"
+  "web.import.close": "Kapat",
+  "web.inventory.title": "Katman veri envanteri ({count} nokta)",
+  "web.inventory.blocked": "Çalışamayan yöntemler (hiçbir noktada girdi yok)",
+  "web.inventory.needs": "eksik girdi:"
 }

@@ -7844,6 +7844,128 @@
         }
       }
     },
+    "/api/m/soil/profiles/{id}/layers/{layer_id}/inventory": {
+      "get": {
+        "tags": [
+          "soil"
+        ],
+        "summary": "Get Layer Inventory",
+        "description": "Which inputs the layer's data provides and which correlations they enable.",
+        "operationId": "get_layer_inventory",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Id"
+            }
+          },
+          {
+            "name": "layer_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Layer Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LayerInventory"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid operation or input file",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflicting or stale structure state",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation error or missing_factors",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Engine or server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "501": {
+            "description": "Contract stub; not implemented",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Other client error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "5XX": {
+            "description": "Other server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/m/soil/profiles/{id}/layers/{layer_id}/parameters/{key}": {
       "put": {
         "tags": [
@@ -13095,6 +13217,37 @@
         "title": "JobState",
         "description": "Pollable job state; result and error are null until applicable."
       },
+      "KeyAvailability": {
+        "properties": {
+          "parameter": {
+            "type": "string",
+            "enum": [
+              "phi_eff",
+              "c_eff",
+              "su",
+              "E",
+              "gamma",
+              "gamma_sat",
+              "delta_base"
+            ],
+            "title": "Parameter"
+          },
+          "methods": {
+            "items": {
+              "$ref": "#/components/schemas/MethodAvailability"
+            },
+            "type": "array",
+            "title": "Methods"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "parameter",
+          "methods"
+        ],
+        "title": "KeyAvailability"
+      },
       "LabRecord": {
         "properties": {
           "depth": {
@@ -13334,6 +13487,42 @@
           "depth"
         ],
         "title": "LabRecord"
+      },
+      "LayerInventory": {
+        "properties": {
+          "layer_id": {
+            "type": "string",
+            "title": "Layer Id"
+          },
+          "point_count": {
+            "type": "integer",
+            "title": "Point Count"
+          },
+          "inputs": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "type": "object",
+            "title": "Inputs"
+          },
+          "keys": {
+            "items": {
+              "$ref": "#/components/schemas/KeyAvailability"
+            },
+            "type": "array",
+            "title": "Keys"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "layer_id",
+          "point_count",
+          "inputs",
+          "keys"
+        ],
+        "title": "LayerInventory",
+        "description": "Input availability of a layer and the correlations it enables, nothing assumed."
       },
       "LayerMerge": {
         "properties": {
@@ -13725,6 +13914,52 @@
         ],
         "title": "MessageDTO",
         "description": "Stable message identifier and interpolation parameters."
+      },
+      "MethodAvailability": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "reference": {
+            "type": "string",
+            "title": "Reference"
+          },
+          "source": {
+            "type": "string",
+            "title": "Source"
+          },
+          "inputs": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Inputs"
+          },
+          "ready_points": {
+            "type": "integer",
+            "title": "Ready Points"
+          },
+          "missing_inputs": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Missing Inputs"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "reference",
+          "source",
+          "inputs",
+          "ready_points",
+          "missing_inputs"
+        ],
+        "title": "MethodAvailability",
+        "description": "One registry correlation and how many layer points can feed it."
       },
       "MissingFactorDTO": {
         "properties": {

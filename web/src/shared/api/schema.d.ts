@@ -1180,6 +1180,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/m/soil/profiles/{id}/layers/{layer_id}/inventory": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Layer Inventory
+         * @description Which inputs the layer's data provides and which correlations they enable.
+         */
+        get: operations["get_layer_inventory"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/m/soil/profiles/{id}/layers/{layer_id}/parameters/{key}": {
         parameters: {
             query?: never;
@@ -2648,6 +2668,16 @@ export interface components {
             result: components["schemas"]["WallResultDTO"] | components["schemas"]["SheetPileResultDTO"] | components["schemas"]["LiquefactionResultDTO"] | components["schemas"]["LayeringProposal"] | null;
             error: components["schemas"]["ApiError"] | null;
         };
+        /** KeyAvailability */
+        KeyAvailability: {
+            /**
+             * Parameter
+             * @enum {string}
+             */
+            parameter: "phi_eff" | "c_eff" | "su" | "E" | "gamma" | "gamma_sat" | "delta_base";
+            /** Methods */
+            methods: components["schemas"]["MethodAvailability"][];
+        };
         /** LabRecord */
         LabRecord: {
             /**
@@ -2740,6 +2770,22 @@ export interface components {
              * @description Derivation notes, e.g. which test reduction produced a value
              */
             notes?: string | null;
+        };
+        /**
+         * LayerInventory
+         * @description Input availability of a layer and the correlations it enables, nothing assumed.
+         */
+        LayerInventory: {
+            /** Layer Id */
+            layer_id: string;
+            /** Point Count */
+            point_count: number;
+            /** Inputs */
+            inputs: {
+                [key: string]: number;
+            };
+            /** Keys */
+            keys: components["schemas"]["KeyAvailability"][];
         };
         /**
          * LayerMerge
@@ -2906,6 +2952,24 @@ export interface components {
             params?: {
                 [key: string]: number | string;
             };
+        };
+        /**
+         * MethodAvailability
+         * @description One registry correlation and how many layer points can feed it.
+         */
+        MethodAvailability: {
+            /** Id */
+            id: string;
+            /** Reference */
+            reference: string;
+            /** Source */
+            source: string;
+            /** Inputs */
+            inputs: string[];
+            /** Ready Points */
+            ready_points: number;
+            /** Missing Inputs */
+            missing_inputs: string[];
         };
         /**
          * MissingFactorDTO
@@ -10861,6 +10925,101 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ParameterSelection"][];
+                };
+            };
+            /** @description Invalid operation or input file */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Resource not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Conflicting or stale structure state */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Validation error or missing_factors */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Engine or server error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Contract stub; not implemented */
+            501: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Other client error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Other server error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    get_layer_inventory: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+                layer_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LayerInventory"];
                 };
             };
             /** @description Invalid operation or input file */
