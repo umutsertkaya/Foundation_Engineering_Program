@@ -17,6 +17,14 @@ class InvestigationsDTO(DTO):
     cpts: list[CPTSounding]
 
 
+class WorkbookImportResult(DTO):
+    """Records added by a workbook import, with translatable warning codes."""
+
+    boreholes: list[Borehole]
+    cpts: list[CPTSounding]
+    warnings: list[str]
+
+
 class CPTProcessedDTO(DTO):
     """Depth-aligned CPT chart series; stresses in kPa, friction ratios and fc in percent."""
 

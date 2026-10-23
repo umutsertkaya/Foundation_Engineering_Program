@@ -10,13 +10,15 @@ import numpy as np
 from fastapi import APIRouter, Depends, Request, Response
 
 from geotek.api import schemas as dto
-from geotek.api.common import ERROR_RESPONSES, multipart_body
+from geotek.api.common import ERROR_RESPONSES, multipart_body, workbook_body
 from geotek.api.session import Session, api_error, get_session
 from geotek.core.models.investigations import Borehole, BoreholeLayer, CPTSounding, LabRecord
 from geotek.core.models.parameters import DesignKey, ParameterSelection
 from geotek.core.models.profile import LayeringSettings, SoilLayer, SoilProfile
 from geotek.engine.classification import robertson, uscs
 from geotek.engine.classification.uscs_names import USCS_NAMES
+from geotek.core.errors import GeoTekError
+from geotek.io.workbook import ImportPlan, analyze_workbook, build_import
 from geotek.modules.soil import service
 from geotek.modules.soil.schemas import (
     AxisRangeDTO,
@@ -41,6 +43,7 @@ from geotek.modules.soil.schemas import (
     USCSItemDTO,
     USCSReferenceDTO,
     USCSSymbolDTO,
+    WorkbookImportResult,
 )
 from geotek.services import parameters
 from geotek.services.layering import propose_layers
@@ -201,6 +204,56 @@ def router() -> APIRouter:
             })
             service.commit(session, investigations=investigations)
             return borehole
+
+    @api.post(
+        "/import/workbook/analyze", response_model=ImportPlan, operation_id="analyze_workbook",
+        openapi_extra=workbook_body(with_plan=False),
+    )
+    async def analyze_workbook_route(request: Request, session: SessionDep) -> ImportPlan:
+        """Detect sheet roles, column mapping, units and open questions; nothing is stored."""
+        with session.lock:
+            session.require_project()
+        body = await service.read_upload(request)
+        parts = service.workbook_parts(body, request.headers.get("content-type", ""), with_plan=False)
+        try:
+            return analyze_workbook(parts["file"], parts["filename"])
+        except (GeoTekError, ValueError) as exc:
+            api_error(422, "validation", f"Cannot analyse the file: {exc}")
+
+    @api.post(
+        "/import/workbook/commit", response_model=WorkbookImportResult,
+        operation_id="commit_workbook",
+        openapi_extra=workbook_body(with_plan=True),
+    )
+    async def commit_workbook(request: Request, session: SessionDep) -> WorkbookImportResult:
+        """Build records from the file and the confirmed plan, then add them to the project."""
+        with session.lock:
+            session.require_project()
+            generation = session.generation
+        body = await service.read_upload(request)
+        parts = service.workbook_parts(body, request.headers.get("content-type", ""), with_plan=True)
+        try:
+            plan = ImportPlan.model_validate_json(parts["plan"])
+            built = build_import(parts["file"], parts["filename"], plan)
+            service.finite([m.model_dump() for m in (*built.boreholes, *built.cpts)])
+        except (GeoTekError, ValueError) as exc:
+            api_error(422, "validation", f"Cannot import the workbook: {exc}")
+        with session.lock:
+            project = session.require_project()
+            if session.generation != generation:
+                api_error(409, "project_changed", "The open project changed during the workbook import.")
+            existing = {b.id for b in project.investigations.boreholes} | {
+                c.id for c in project.investigations.cpts}
+            clash = sorted(existing & ({b.id for b in built.boreholes} | {c.id for c in built.cpts}))
+            if clash:
+                api_error(409, "id_conflict", f"Ids already exist in the project: {', '.join(clash)}")
+            investigations = project.investigations.model_copy(update={
+                "boreholes": [*project.investigations.boreholes, *built.boreholes],
+                "cpts": [*project.investigations.cpts, *built.cpts],
+            })
+            service.commit(session, investigations=investigations)
+            return WorkbookImportResult(
+                boreholes=built.boreholes, cpts=built.cpts, warnings=built.warnings)
 
     @api.post("/boreholes", response_model=Borehole, operation_id="create_borehole")
     def create_borehole(payload: Borehole, session: SessionDep) -> Borehole:

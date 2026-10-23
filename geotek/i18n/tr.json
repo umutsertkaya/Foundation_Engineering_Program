@@ -593,5 +593,21 @@
   "lab.warning.cu_total_fit_failed": "Bu deneylerden toplam gerilme zarfı uydurulamadı (yalnız bilgi).",
   "lab.warning.void_ratio_invalid": "Hesaplanan boşluk oranı {e} pozitif değil: birim hacim ağırlığı, su muhtevası ve Gs tutarsız; türetilen faz değerleri hesaplanmadı.",
   "insitu.warning.spt_energy_ratio_assumed": "{count} SPT kaydında enerji oranı belirtilmedi: ER = %{energy_ratio} varsayıldı.",
-  "insitu.warning.spt_rod_length_assumed": "{count} SPT kaydında çubuk boyu belirtilmedi: deney derinliği + {stickup} m alındı."
+  "insitu.warning.spt_rod_length_assumed": "{count} SPT kaydında çubuk boyu belirtilmedi: deney derinliği + {stickup} m alındı.",
+  "import.issue.sheet_unrecognised": "Sayfa tanınmadı; yok sayılacak.",
+  "import.issue.unit_inferred": "{field} birimi sürtünme oranından {unit} olarak çıkarıldı; kontrol edin.",
+  "import.issue.unit_ambiguous": "{field} birimi veriden anlaşılamadı: seçin.",
+  "import.issue.unit_unknown": "{field} sütunundaki '{unit}' birimi tanınmadı: birim seçin.",
+  "import.issue.unit_assumed": "{field} için birim yazılmamış: {unit} varsayıldı.",
+  "import.issue.sampler_unmapped": "'{text}' numune alıcı nedir? Standart veya liner'sız seçin (C_S değişir).",
+  "import.issue.energy_ratio_scale": "Enerji oranı değerlerinin hepsi ≤ 1: yüzde mi, kesir mi?",
+  "import.issue.u2_all_zero": "u2 sütunu tamamen sıfır: ölçülmemiş sayıldı.",
+  "import.issue.cpt_fs_missing": "CPT sayfasında çevre sürtünmesi (fs) sütunu yok; bu henüz desteklenmiyor.",
+  "import.issue.energy_ratio_missing": "SPT sayfasında enerji oranı yok: uyarıyla birlikte %60 varsayılacak.",
+  "import.warning.rows_dropped": "{sheet} sayfasında {count} satır atlandı (eksik veya geçersiz değer).",
+  "import.warning.u2_not_measured": "{sheet} sayfasında u2 sıfır veya boş: ölçülmedi olarak kaydedildi.",
+  "import.warning.spt_depth_from_drive": "{sheet} sayfasındaki {count} SPT derinliği, sayılan sürüşün ortası (150 mm oturma sürüşünden sonra) olarak alındı.",
+  "import.warning.sample_unknown": "{sheet} sayfasındaki {sample_id} numunesi numune sayfasında yok; atlandı.",
+  "import.warning.sieve_no_total": "{sample_id} numunesi: ne toplam kuru kütle ne tava kütlesi var; elek analizi atlandı.",
+  "import.warning.reduction_failed": "{sample_id} numunesi: {test} hesaplanamadı ({reason})."
 }

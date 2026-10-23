@@ -4802,6 +4802,257 @@
         }
       }
     },
+    "/api/m/soil/import/workbook/analyze": {
+      "post": {
+        "tags": [
+          "soil"
+        ],
+        "summary": "Analyze Workbook Route",
+        "description": "Detect sheet roles, column mapping, units and open questions; nothing is stored.",
+        "operationId": "analyze_workbook",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "format": "binary",
+                    "description": "Workbook (xlsx) or CSV"
+                  }
+                },
+                "additionalProperties": false,
+                "type": "object",
+                "required": [
+                  "file"
+                ]
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ImportPlan"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid operation or input file",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflicting or stale structure state",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation error or missing_factors",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Engine or server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "501": {
+            "description": "Contract stub; not implemented",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Other client error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "5XX": {
+            "description": "Other server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/m/soil/import/workbook/commit": {
+      "post": {
+        "tags": [
+          "soil"
+        ],
+        "summary": "Commit Workbook",
+        "description": "Build records from the file and the confirmed plan, then add them to the project.",
+        "operationId": "commit_workbook",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "format": "binary",
+                    "description": "Workbook (xlsx) or CSV"
+                  },
+                  "plan": {
+                    "type": "string",
+                    "description": "Confirmed ImportPlan as JSON"
+                  }
+                },
+                "additionalProperties": false,
+                "type": "object",
+                "required": [
+                  "file",
+                  "plan"
+                ]
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkbookImportResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid operation or input file",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflicting or stale structure state",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation error or missing_factors",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Engine or server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "501": {
+            "description": "Contract stub; not implemented",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Other client error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "5XX": {
+            "description": "Other server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/m/soil/boreholes": {
       "post": {
         "tags": [
@@ -11722,6 +11973,41 @@
         "title": "CheckDTO",
         "description": "CheckResult with case and utilisation supplied by the future API adapter.\n\nUtilisation is required/value for >= and value/required for <=. It is null\nfor non-finite or absent values (and undefined division)."
       },
+      "ColumnMap": {
+        "properties": {
+          "header": {
+            "type": "string",
+            "title": "Header"
+          },
+          "unit": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Unit"
+          },
+          "unit_source": {
+            "type": "string",
+            "enum": [
+              "header",
+              "inferred",
+              "default",
+              "user"
+            ],
+            "title": "Unit Source",
+            "default": "default"
+          }
+        },
+        "type": "object",
+        "required": [
+          "header"
+        ],
+        "title": "ColumnMap"
+      },
       "DeletionResponse": {
         "properties": {
           "id": {
@@ -12325,6 +12611,194 @@
         "title": "HealthResponse",
         "description": "Local API availability and contract version."
       },
+      "ImportIssue": {
+        "properties": {
+          "code": {
+            "type": "string",
+            "title": "Code"
+          },
+          "severity": {
+            "type": "string",
+            "enum": [
+              "blocker",
+              "confirm",
+              "info"
+            ],
+            "title": "Severity"
+          },
+          "sheet": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sheet"
+          },
+          "field": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Field"
+          },
+          "params": {
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "type": "object",
+            "title": "Params"
+          }
+        },
+        "type": "object",
+        "required": [
+          "code",
+          "severity"
+        ],
+        "title": "ImportIssue"
+      },
+      "ImportOptions": {
+        "properties": {
+          "borehole_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Borehole Id"
+          },
+          "cpt_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cpt Id"
+          },
+          "sampler_map": {
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "enum": [
+                    "standard",
+                    "no_liner"
+                  ]
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "type": "object",
+            "title": "Sampler Map"
+          },
+          "sampler_suggestions": {
+            "additionalProperties": {
+              "type": "string",
+              "enum": [
+                "standard",
+                "no_liner"
+              ]
+            },
+            "type": "object",
+            "title": "Sampler Suggestions"
+          },
+          "energy_ratio_scale": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "percent",
+                  "fraction"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Energy Ratio Scale"
+          },
+          "u2_zero_is_missing": {
+            "type": "boolean",
+            "title": "U2 Zero Is Missing",
+            "default": true
+          },
+          "cu_failure": {
+            "type": "string",
+            "enum": [
+              "max_stress_ratio",
+              "max_q",
+              "strain_limit"
+            ],
+            "title": "Cu Failure",
+            "default": "max_stress_ratio"
+          },
+          "cu_strain_limit": {
+            "type": "number",
+            "exclusiveMinimum": 0.0,
+            "title": "Cu Strain Limit",
+            "default": 15.0
+          }
+        },
+        "type": "object",
+        "title": "ImportOptions"
+      },
+      "ImportPlan": {
+        "properties": {
+          "filename": {
+            "type": "string",
+            "title": "Filename"
+          },
+          "sheets": {
+            "items": {
+              "$ref": "#/components/schemas/SheetPlan"
+            },
+            "type": "array",
+            "title": "Sheets"
+          },
+          "options": {
+            "$ref": "#/components/schemas/ImportOptions"
+          },
+          "issues": {
+            "items": {
+              "$ref": "#/components/schemas/ImportIssue"
+            },
+            "type": "array",
+            "title": "Issues"
+          }
+        },
+        "type": "object",
+        "required": [
+          "filename"
+        ],
+        "title": "ImportPlan"
+      },
       "ImportRequest": {
         "properties": {
           "path": {
@@ -12651,6 +13125,53 @@
             ],
             "title": "Su",
             "description": "Undrained shear strength [kPa]"
+          },
+          "sample_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sample Id",
+            "description": "Sample label in the source file"
+          },
+          "Gs": {
+            "anyOf": [
+              {
+                "type": "number",
+                "exclusiveMinimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Gs",
+            "description": "Specific gravity of solids"
+          },
+          "specimen": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "reconstituted",
+                  "undisturbed"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Specimen",
+            "description": "Preparation of the strength-test specimen"
+          },
+          "notes": {
+            "type": "string",
+            "title": "Notes",
+            "description": "Derivation notes, e.g. which test reduction produced a value",
+            "default": ""
           }
         },
         "type": "object",
@@ -15924,6 +16445,61 @@
         ],
         "title": "SheetPileStructure"
       },
+      "SheetPlan": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "role": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "cpt",
+                  "spt",
+                  "samples",
+                  "sieve",
+                  "limits",
+                  "cu_setup",
+                  "cu_curves"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Role"
+          },
+          "confidence": {
+            "type": "number",
+            "title": "Confidence",
+            "default": 0.0
+          },
+          "header_row": {
+            "type": "integer",
+            "title": "Header Row",
+            "default": 0
+          },
+          "row_count": {
+            "type": "integer",
+            "title": "Row Count",
+            "default": 0
+          },
+          "columns": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/ColumnMap"
+            },
+            "type": "object",
+            "title": "Columns"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name"
+        ],
+        "title": "SheetPlan"
+      },
       "SiteSeismic": {
         "properties": {
           "pga_g": {
@@ -17613,6 +18189,40 @@
         ],
         "title": "WallTypeInfo",
         "description": "Selectable retaining wall type and its i18n label key."
+      },
+      "WorkbookImportResult": {
+        "properties": {
+          "boreholes": {
+            "items": {
+              "$ref": "#/components/schemas/Borehole"
+            },
+            "type": "array",
+            "title": "Boreholes"
+          },
+          "cpts": {
+            "items": {
+              "$ref": "#/components/schemas/CPTSounding"
+            },
+            "type": "array",
+            "title": "Cpts"
+          },
+          "warnings": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Warnings"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "boreholes",
+          "cpts",
+          "warnings"
+        ],
+        "title": "WorkbookImportResult",
+        "description": "Records added by a workbook import, with translatable warning codes."
       }
     }
   }
