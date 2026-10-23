@@ -18,8 +18,9 @@ def proposal_to_layers(
     """Convert a proposal without selecting or approving design parameters.
 
     ``gamma`` uses zero-based layer indices and supplies both unit weights when
-    a suggestion is unavailable. Suggested weights take precedence; gamma_sat
-    follows SoilLayer's existing convention when not supplied.
+    a suggestion is unavailable. Suggested weights take precedence; the suggested
+    gamma_sat (CPT, below the groundwater table) is used when present, otherwise
+    gamma_sat stays unset (None).
     """
     supplied = {} if gamma is None else gamma
     missing = [i for i, layer in enumerate(result.layers)
@@ -28,7 +29,8 @@ def proposal_to_layers(
         raise ValueError(f"Missing gamma for layer indices: {missing}")
     layers = []
     for i, layer in enumerate(result.layers):
-        weights = ((layer.gamma_suggested, None) if layer.gamma_suggested is not None
+        weights = ((layer.gamma_suggested, layer.gamma_sat_suggested)
+                   if layer.gamma_suggested is not None
                    else supplied[i])
         layers.append(SoilLayer(
             id=f"{id_prefix}{i + 1}", top=layer.top, bottom=layer.bottom,

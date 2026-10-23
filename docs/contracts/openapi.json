@@ -8254,6 +8254,246 @@
         }
       }
     },
+    "/api/m/soil/profiles/{id}/parameters/reapprove": {
+      "post": {
+        "tags": [
+          "soil"
+        ],
+        "summary": "Reapprove Parameters",
+        "description": "Approve the listed withdrawn selections again with their refreshed values.\n\nEach item must carry the refreshed value the caller saw; a different current value\nanswers 409 ``reapprove_value_changed``. Nothing outside the list is approved.",
+        "operationId": "reapprove_parameters",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReapproveRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SoilProfile"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid operation or input file",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflicting or stale structure state",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation error or missing_factors",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Engine or server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "501": {
+            "description": "Contract stub; not implemented",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Other client error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "5XX": {
+            "description": "Other server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/m/soil/profiles/{id}/readiness": {
+      "get": {
+        "tags": [
+          "soil"
+        ],
+        "summary": "Get Profile Readiness",
+        "description": "Unit-weight approval, missing gamma_sat and stale approvals per layer.",
+        "operationId": "get_profile_readiness",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/LayerReadiness"
+                  },
+                  "title": "Response Get Profile Readiness"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid operation or input file",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflicting or stale structure state",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation error or missing_factors",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Engine or server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "501": {
+            "description": "Contract stub; not implemented",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Other client error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "5XX": {
+            "description": "Other server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/m/soil/profiles/{id}/parameters/suggest-all": {
       "post": {
         "tags": [
@@ -12370,6 +12610,13 @@
             "type": "boolean",
             "title": "User Override",
             "default": false
+          },
+          "based_on": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Based On"
           }
         },
         "type": "object",
@@ -13603,6 +13850,28 @@
             },
             "type": "array",
             "title": "Keys"
+          },
+          "stress_issue": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Stress Issue"
+          },
+          "spt_class": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Spt Class"
           }
         },
         "additionalProperties": false,
@@ -13635,6 +13904,64 @@
         ],
         "title": "LayerMerge",
         "description": "Exactly two adjacent layer ids to merge; order does not imply approval."
+      },
+      "LayerReadiness": {
+        "properties": {
+          "layer_id": {
+            "type": "string",
+            "title": "Layer Id"
+          },
+          "gamma_approved": {
+            "type": "boolean",
+            "title": "Gamma Approved"
+          },
+          "gamma_sat_approved": {
+            "type": "boolean",
+            "title": "Gamma Sat Approved"
+          },
+          "gamma_sat_missing_below_gwt": {
+            "type": "boolean",
+            "title": "Gamma Sat Missing Below Gwt"
+          },
+          "gamma_sat_equals_gamma_unapproved": {
+            "type": "boolean",
+            "title": "Gamma Sat Equals Gamma Unapproved"
+          },
+          "stale_keys": {
+            "items": {
+              "type": "string",
+              "enum": [
+                "phi_eff",
+                "c_eff",
+                "su",
+                "E",
+                "gamma",
+                "gamma_sat",
+                "delta_base",
+                "Dr",
+                "OCR",
+                "K0",
+                "Vs",
+                "Gmax",
+                "M"
+              ]
+            },
+            "type": "array",
+            "title": "Stale Keys"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "layer_id",
+          "gamma_approved",
+          "gamma_sat_approved",
+          "gamma_sat_missing_below_gwt",
+          "gamma_sat_equals_gamma_unapproved",
+          "stale_keys"
+        ],
+        "title": "LayerReadiness",
+        "description": "Unit-weight and approval status of one layer before calculations run."
       },
       "LayerSplit": {
         "properties": {
@@ -14401,6 +14728,33 @@
               }
             ],
             "title": "Basis Hash"
+          },
+          "stale_reason": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "data_changed",
+                  "stress_changed",
+                  "dependency_changed",
+                  "method_upgraded"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Stale Reason"
+          },
+          "refreshed": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/DerivedParameter"
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         },
         "type": "object",
@@ -15070,6 +15424,18 @@
             "title": "Gamma Suggested",
             "description": "Suggested unit weight [kN/m3]"
           },
+          "gamma_sat_suggested": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Gamma Sat Suggested",
+            "description": "Suggested saturated unit weight below the in-situ GWT [kN/m3]"
+          },
           "behaviour": {
             "type": "string",
             "enum": [
@@ -15094,6 +15460,65 @@
         ],
         "title": "ProposedLayer",
         "description": "Interpreted interval; suggested values remain unapproved engineering inputs."
+      },
+      "ReapproveItem": {
+        "properties": {
+          "layer_id": {
+            "type": "string",
+            "title": "Layer Id"
+          },
+          "key": {
+            "type": "string",
+            "enum": [
+              "phi_eff",
+              "c_eff",
+              "su",
+              "E",
+              "gamma",
+              "gamma_sat",
+              "delta_base",
+              "Dr",
+              "OCR",
+              "K0",
+              "Vs",
+              "Gmax",
+              "M"
+            ],
+            "title": "Key"
+          },
+          "expected_value": {
+            "type": "number",
+            "title": "Expected Value"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "layer_id",
+          "key",
+          "expected_value"
+        ],
+        "title": "ReapproveItem",
+        "description": "One withdrawn approval to renew, with the refreshed value the caller saw."
+      },
+      "ReapproveRequest": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/ReapproveItem"
+            },
+            "type": "array",
+            "minItems": 1,
+            "title": "Items"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "items"
+        ],
+        "title": "ReapproveRequest",
+        "description": "Only the listed items are approved again; nothing is approved automatically."
       },
       "RenameRequest": {
         "properties": {
@@ -17231,7 +17656,7 @@
               }
             ],
             "title": "Gamma Sat",
-            "description": "Below GWT [kN/m3]"
+            "description": "Below GWT [kN/m3]; None = not set (no silent default to gamma)"
           },
           "permeability": {
             "anyOf": [

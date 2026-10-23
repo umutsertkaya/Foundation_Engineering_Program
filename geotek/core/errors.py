@@ -38,7 +38,7 @@ class LayerDesignError(GeoTekError):
     """A soil layer lacks the approved design value a calculation needs.
 
     ``issue`` is one of ``su_missing``, ``su_not_positive``, ``phi_missing``,
-    ``seismic_undrained_unsupported``. The layer is named by its depth range, not its internal id.
+    ``seismic_undrained_unsupported``, ``gamma_sat_missing``. The layer is named by its depth range, not its internal id.
     """
 
     _TEXT = {
@@ -46,6 +46,7 @@ class LayerDesignError(GeoTekError):
         "su_not_positive": "foundation needs positive design s_u",
         "phi_missing": "design phi' not set",
         "seismic_undrained_unsupported": "seismic undrained earth pressure is not implemented",
+        "gamma_sat_missing": "saturated unit weight gamma_sat not set (layer lies below the groundwater table)",
     }
 
     def __init__(self, layer, issue: str):

@@ -244,3 +244,32 @@ class LayerInventory(DTO):
     point_count: int
     inputs: dict[str, int]
     keys: list[KeyAvailability]
+    stress_issue: str | None = None
+    """'gamma_sat_missing' when the layer lies below the in-situ water table without gamma_sat."""
+    spt_class: str | None = None
+    """'<sand|clay>.<class>' from the mean SPT value (Clayton 1993); information only."""
+
+
+class LayerReadiness(DTO):
+    """Unit-weight and approval status of one layer before calculations run."""
+
+    layer_id: str
+    gamma_approved: bool
+    gamma_sat_approved: bool
+    gamma_sat_missing_below_gwt: bool
+    gamma_sat_equals_gamma_unapproved: bool
+    stale_keys: list[DesignKey]
+
+
+class ReapproveItem(DTO):
+    """One withdrawn approval to renew, with the refreshed value the caller saw."""
+
+    layer_id: str
+    key: DesignKey
+    expected_value: float
+
+
+class ReapproveRequest(DTO):
+    """Only the listed items are approved again; nothing is approved automatically."""
+
+    items: list[ReapproveItem] = Field(min_length=1)

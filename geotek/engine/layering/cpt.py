@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import numpy as np
 
+from geotek.core.constants import DEPTH_TOL
 from geotek.core.models.profile import LayeringSettings
 from geotek.engine.classification.robertson import is_sand_like, zone_from_ic
 from geotek.engine.correlations.physical import (
@@ -24,7 +25,9 @@ from geotek.engine.layering.common import (
 )
 
 
-def cpt_layers(processed: CPTProcessed, settings: LayeringSettings) -> Proposal:
+def cpt_layers(
+    processed: CPTProcessed, settings: LayeringSettings, gwt_depth: float | None = None,
+) -> Proposal:
     """Propose layers from processed Ic; never mutate the input or approve values.
 
     A centred window of total depth width ``smoothing_window`` includes both
@@ -53,7 +56,12 @@ def cpt_layers(processed: CPTProcessed, settings: LayeringSettings) -> Proposal:
     gamma/gamma_w = 0.27 log10(Rf) + 0.36 log10(qt/Pa) + 1.236.
     Its existing numerical Rf floor is reused unchanged. Non-positive/non-finite
     qt or negative/non-finite fs are excluded, with a warning; gamma uses the
-    remaining valid estimates. No SBT zone i18n key exists in geotek/i18n/tr.json,
+    remaining valid estimates. With the in-situ groundwater depth ``gwt_depth`` the estimates are
+    split by depth: ``gamma_suggested`` is the mean over points at or above the table and
+    ``gamma_sat_suggested`` the mean over points below it (None when there are none). A layer
+    without a point above the table takes the all-point mean for gamma and warns
+    (``gamma_above_gwt_from_below``). Without ``gwt_depth`` every estimate feeds gamma and
+    gamma_sat stays None. No SBT zone i18n key exists in geotek/i18n/tr.json,
     so descriptions are left empty for the engineer/UI.
     """
     if settings.method != "cpt_ic":
@@ -147,13 +155,24 @@ def cpt_layers(processed: CPTProcessed, settings: LayeringSettings) -> Proposal:
             interval_warning(warnings, "gamma_floor", top, end, gamma_min=GAMMA_MIN_RC2010)
         valid_gamma = np.isfinite(estimates) & (estimates > 0)
         gamma = mean(estimates[valid_gamma])
+        gamma_sat = None
+        if gwt_depth is not None:
+            depths = z[s.start:s.stop][good][valid_gamma]
+            usable = estimates[valid_gamma]
+            below = depths > gwt_depth + DEPTH_TOL
+            above_mean = mean(usable[~below])
+            gamma_sat = mean(usable[below])
+            if above_mean is not None:
+                gamma = above_mean
+            elif gamma is not None:
+                interval_warning(warnings, "gamma_above_gwt_from_below", top, end)
         if not good.all() or not valid_gamma.all() or gamma is None:
             warnings.append(format_warning("layering.warning.gamma_unavailable"))
         layers.append(Layer(
             top=float(boundaries[s.start]), bottom=float(boundaries[s.stop]),
             description="", uscs=None, sbtn_zone=zone,
             ic_mean=value, n60_mean=None, gamma_suggested=gamma,
-            behaviour=behaviour,
+            behaviour=behaviour, gamma_sat_suggested=gamma_sat,
         ))
     mismatch = raw_zones != final_zones
     original_indices = np.searchsorted(original_z, z)

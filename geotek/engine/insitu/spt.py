@@ -28,13 +28,18 @@ BOREHOLE_DIAMETER_RANGE_MM = (65.0, 200.0)
 
 
 def rod_length_factor(rod_length):
-    """C_R by rod length [m] (Youd et al. 2001, Table 2): <3 m 0.75, 3-4 m 0.80, 4-6 m 0.85, 6-10 m 0.95, 10-30 m 1.0."""
+    """C_R by rod length [m]: <3 m 0.75, 3-4 m 0.75, 4-6 m 0.85, 6-10 m 0.95, 10-30 m 1.0.
+
+    The 3-4 m class takes 0.75 after Skempton (1986) and TBDY 2018 Table 16B.1; Youd et al. (2001),
+    Table 2 gives 0.80 there. The lower value reduces N60 and (N1)60, which lowers phi', D_r and
+    the CRR, so it is the safe side for those quantities.
+    """
     L = np.asarray(rod_length, dtype=float)
     if not np.all(np.isfinite(L)) or np.any(L < 0):
         raise ValueError("SPT rod length must be finite and non-negative")
     out = np.select(
         [L < 3.0, L < 4.0, L < 6.0, L < 10.0],
-        [0.75, 0.80, 0.85, 0.95],
+        [0.75, 0.75, 0.85, 0.95],
         default=1.0,
     )
     return float(out) if out.ndim == 0 else out
@@ -111,25 +116,20 @@ class SPTProcessed:
         })
 
 
-def process_borehole(
-    borehole: Borehole,
-    profile: SoilProfile,
-    *,
-    gwt_case: str = "insitu",
-    rod_stickup: float = 0.0,
-    no_liner_factor: float = 1.2,
-) -> SPTProcessed:
-    """Apply energy, equipment and overburden corrections to all SPT records.
+def equipment_corrections(
+    borehole: Borehole, rod_stickup: float = 0.0, no_liner_factor: float = 1.2,
+):
+    """Stress-independent part of the SPT processing.
 
-    Rod length is taken as test depth + ``rod_stickup`` (length above ground) [m].
+    Returns ``(depth, n_field, refusal, c_r, c_b, c_s, energy_ratio, n60, warnings)`` for all
+    records. It needs no soil profile, so it still works when the profile cannot supply stresses
+    (e.g. ``gamma_sat`` missing below the groundwater table).
     """
     if not borehole.spt:
         raise ValueError(f"Borehole {borehole.id!r} has no SPT records")
     depth = np.array([r.depth for r in borehole.spt])
     n_field = np.array([r.n_field for r in borehole.spt], dtype=float)
     refusal = np.array([r.refusal for r in borehole.spt])
-
-    sigma_v, u0, sigma_eff = profile.stresses(depth, gwt_case)
     rod_given = np.array([r.rod_length is not None for r in borehole.spt])
     rod = np.array([r.rod_length if r.rod_length is not None else d + rod_stickup
                     for r, d in zip(borehole.spt, depth)])
@@ -144,7 +144,6 @@ def process_borehole(
     c_s = np.array([sampler_factor(r.sampler or borehole.sampler, no_liner_factor)
                     for r in borehole.spt])
     n_60 = n60(n_field, er, c_b, c_s, c_r)
-    c_n = overburden_factor_liao_whitman(sigma_eff)
 
     warnings = []
     if refusal.any():
@@ -152,8 +151,6 @@ def process_borehole(
             "insitu.warning.spt_refusal", count=int(refusal.sum()),
             depths=", ".join(f"{float(z):g}" for z in depth[refusal]),
         ))
-    if np.any(sigma_eff > 200.0):
-        warnings.append(format_warning("insitu.warning.spt_cn_out_of_range"))
     if not er_given.all():
         warnings.append(format_warning(
             "insitu.warning.spt_energy_ratio_assumed", count=int((~er_given).sum()),
@@ -167,6 +164,28 @@ def process_borehole(
         warnings.append(format_warning(
             "insitu.warning.spt_borehole_diameter_out_of_range",
             diameter=value, minimum=lo, maximum=hi))
+    return depth, n_field, refusal, c_r, c_b, c_s, er, n_60, warnings
+
+
+def process_borehole(
+    borehole: Borehole,
+    profile: SoilProfile,
+    *,
+    gwt_case: str = "insitu",
+    rod_stickup: float = 0.0,
+    no_liner_factor: float = 1.2,
+) -> SPTProcessed:
+    """Apply energy, equipment and overburden corrections to all SPT records.
+
+    Rod length is taken as test depth + ``rod_stickup`` (length above ground) [m].
+    """
+    depth, n_field, refusal, c_r, c_b, c_s, er, n_60, warnings = equipment_corrections(
+        borehole, rod_stickup, no_liner_factor)
+    sigma_v, u0, sigma_eff = profile.stresses(depth, gwt_case)
+    c_n = overburden_factor_liao_whitman(sigma_eff)
+    if np.any(sigma_eff > 200.0):
+        # Same position as before the split: right after the refusal warning, if any.
+        warnings.insert(1 if refusal.any() else 0, format_warning("insitu.warning.spt_cn_out_of_range"))
 
     return SPTProcessed(
         borehole_id=borehole.id, depth=depth, n_field=n_field, refusal=refusal,

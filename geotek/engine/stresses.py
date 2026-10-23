@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING
 import numpy as np
 
 from geotek.core.constants import DEPTH_TOL, GAMMA_W
-from geotek.core.errors import ProfileError
+from geotek.core.errors import LayerDesignError, ProfileError
 
 if TYPE_CHECKING:
     from geotek.core.models.profile import SoilProfile
@@ -17,6 +17,9 @@ def vertical_stresses(profile: SoilProfile, z, gwt_depth: float, gamma_w: float 
     """Total stress, pore pressure and effective stress [kPa] at depth(s) z [m].
 
     Soil above ``gwt_depth`` uses ``gamma``; below it uses ``gamma_sat``.
+    A depth that reaches a segment below the table whose layer has no ``gamma_sat`` raises
+    ``LayerDesignError`` (``gamma_sat_missing``); nothing is assumed. Layers above the table, and
+    depths above such a segment, need no ``gamma_sat``.
     Pore pressure is hydrostatic from the groundwater table.
     Returns floats for scalar z, otherwise numpy arrays.
     """
@@ -34,9 +37,19 @@ def vertical_stresses(profile: SoilProfile, z, gwt_depth: float, gamma_w: float 
     tops, bots = breaks[:-1], breaks[1:]
 
     seg_gamma = np.empty(len(tops))
+    first_missing = None  # (top, layer) of the shallowest segment below the water table without gamma_sat
     for i, (a, b) in enumerate(zip(tops, bots)):
         layer = profile.layer_at(0.5 * (a + b))
-        seg_gamma[i] = layer.gamma if b <= gwt_depth + DEPTH_TOL else layer.gamma_sat
+        if b <= gwt_depth + DEPTH_TOL:
+            seg_gamma[i] = layer.gamma
+        elif layer.gamma_sat is None:
+            seg_gamma[i] = 0.0  # never used: any depth inside this segment raises below
+            first_missing = first_missing or (float(a), layer)
+        else:
+            seg_gamma[i] = layer.gamma_sat
+    if first_missing is not None and np.any(z_arr > first_missing[0] + DEPTH_TOL):
+        # Only depths that reach the segment need its gamma_sat; shallower ones stay computable.
+        raise LayerDesignError(first_missing[1], "gamma_sat_missing")
 
     sigma_top = np.concatenate([[0.0], np.cumsum(seg_gamma * (bots - tops))[:-1]])
     idx = np.clip(np.searchsorted(breaks, z_arr, side="right") - 1, 0, len(tops) - 1)

@@ -16,7 +16,8 @@ from geotek.core.models.profile import (
 from geotek.core.models.project import Project, ProjectMeta
 from geotek.engine.layering.common import format_warning
 from geotek.services.parameters import (
-    approve, basis_hash, evaluate_candidates, layer_points, refresh_profile, resolve, suggest,
+    approve, basis_hash, evaluate_candidates, layer_lab, layer_points, refresh_profile, resolve,
+    selection_basis, suggest,
 )
 
 
@@ -59,6 +60,11 @@ def test_layer_points_spt_interval_sources_lab_and_no_mutation():
     assert points[0]["N1_60"] == pytest.approx(25.5)
     assert points[0]["sigma_v"] == points[0]["sigma_v_eff"] == 20
     assert points[0]["u0"] == 0
+    # gwt = 10 m: no point lies below it, gamma_point is the layer's gamma (20) and (N1)70 =
+    # (N1)60 * 60/70 = 25.5 * 60/70 = 21.857.
+    assert [p.get("below_gwt") for p in points] == [0.0, 0.0, 0.0]
+    assert points[0]["gamma_point"] == 20 and points[0]["N1_70"] == pytest.approx(25.5 * 60 / 70)
+    assert "gamma_point" not in points[1] and "N1_70" not in points[1]
     # PI = LL-PL = 30-20 = 10, at its own sample depth (not repeated at SPT depths).
     assert points[1]["PI"] == 10
     assert "PI" not in points[0] and "PI" not in points[2]
@@ -85,7 +91,8 @@ def test_layer_points_profile_fallback_manual_and_unknown_source():
     project = _project(boreholes=[Borehole(id="BH", lab=[LabRecord(depth=1, gamma=18)])])
     profile = project.profile("P")
     # An empty layer source list inherits the profile: one measured point at z=1.
-    assert layer_points(project, profile, profile.layers[0]) == [{"depth": 1.0, "gamma": 18.0}]
+    assert layer_points(project, profile, profile.layers[0]) == [
+        {"depth": 1.0, "gamma": 18.0, "below_gwt": 0.0}]
     manual = profile.model_copy(update={"source_ids": []})
     assert layer_points(project, manual, manual.layers[0]) == []
     with pytest.raises(KeyError, match="Unknown layer sources"):
@@ -103,7 +110,17 @@ def test_evaluate_candidates_one_mean_and_depth_spread_per_method():
     # PHT: 27.1+.3*5-.00054*25=28.5865; at 20 ->32.884;
     # their arithmetic mean is 30.73525 (evaluate at each depth before averaging).
     assert candidates["PHT1974_phi_SPT"].value == pytest.approx(30.73525)
-    assert set(candidates) == {"HU1996_phi_SPT", "PHT1974_phi_SPT"}
+    # Shioi & Fukui (roads): N'70 = 5 * 60/70 = 4.285714 -> sqrt(18 * 4.285714) + 15 = 23.78312;
+    # (N1)60 = 20 -> 32.56622; mean 28.17467.
+    roads = candidates["SF1982_phi_roads_SPT"]
+    assert roads.value == pytest.approx((math.sqrt(18 * 5 * 60 / 70) + 15
+                                         + math.sqrt(18 * 20 * 60 / 70) + 15) / 2)
+    assert roads.value == pytest.approx(28.17467, abs=1e-4)
+    # Shioi & Fukui (buildings): N'70 = 4.285714 -> 0.36 * 4.285714 + 27 = 28.54286; 17.142857 -> 33.17143.
+    buildings = candidates["SF1982_phi_buildings_SPT"]
+    assert buildings.value == pytest.approx((28.542857 + 33.171429) / 2, abs=1e-4)
+    assert set(candidates) == {"HU1996_phi_SPT", "PHT1974_phi_SPT", "SF1982_phi_roads_SPT",
+                               "SF1982_phi_buildings_SPT"}
     assert points == before
 
 
@@ -162,8 +179,9 @@ def test_suggest_prefers_measured_lab_then_valid_registry_mean():
     assert [c.model_dump() for c in candidates] == before
     candidates = evaluate_candidates([{"N1_60": 20}], "phi_eff", [])
     suggestion = suggest(candidates, "phi_eff", _layer())
-    # registry.combine uses (40+32.884)/2=36.442; no reliability weighting.
-    assert suggestion.value == pytest.approx(36.442)
+    # registry.combine uses (40+32.884+32.56622+33.17143)/4=34.65541 (HU, PHT, Shioi & Fukui roads
+    # and buildings); no reliability weighting.
+    assert suggestion.value == pytest.approx(34.65541, abs=1e-4)
     bad = [c.model_copy(update={"validity_ok": False}) for c in candidates]
     assert suggest(bad, "phi_eff", _layer()) is None
     # Source='lab' with a caller-supplied measurement id also has priority: 28 degrees.
@@ -174,8 +192,9 @@ def test_suggest_prefers_measured_lab_then_valid_registry_mean():
 def test_pi_correlation_does_not_override_direct_registry_suggestions_as_a_measurement():
     candidates = evaluate_candidates([{"N1_60": 20}], "phi_eff", [LabRecord(depth=1, PI=20)])
     suggestion = suggest(candidates, "phi_eff", _layer())
-    # PI is a correlation, not a measured angle: average (40+32.884+31.2250658742)/3.
-    assert suggestion.value == pytest.approx(34.7030219581)
+    # PI is a correlation, not a measured angle: average of
+    # (40+32.884+32.56622+31.2250659+33.17143)/5 = 33.96934.
+    assert suggestion.value == pytest.approx(33.96934, abs=1e-4)
     assert suggestion.method_id.startswith("mean(")
 
 
@@ -204,9 +223,16 @@ def test_cohesion_ic_cutoff_and_lab_priority(ic, expected):
     assert suggest(measured, "c_eff", layer).value == 7
 
 
+def _approved_phi_layer(phi, **updates):
+    """Layer whose phi' was approved (manual), as delta_base and K0 now require."""
+    layer = _layer(selections={"phi_eff": ParameterSelection(
+        parameter="phi_eff", mode="manual", manual_value=phi)}, **updates)
+    return approve(layer, ["phi_eff"], [], [], dt.datetime(2026, 10, 19))
+
+
 @pytest.mark.parametrize("phi, expected", [(0, 0), (20, 20), (45, 30.9637565321)])
 def test_delta_base_formula_in_degrees(phi, expected):
-    layer = _layer(design=DesignParameters(phi_eff=phi))
+    layer = _approved_phi_layer(phi)
     # tan20<.6 -> atan(tan20)=20deg; tan45=1>.6 -> atan(.6)=30.9637565321deg.
     result = suggest([], "delta_base", layer)
     assert result.value == pytest.approx(expected)
@@ -221,12 +247,13 @@ def test_delta_provisional_phi_and_no_spt_unit_weight():
     layer = _layer(selections={"phi_eff": ParameterSelection(
         parameter="phi_eff", suggested=_candidate(20),
     )})
-    # Provisional phi=20 gives delta=20 without writing either value to design.
-    assert suggest([], "delta_base", layer).value == pytest.approx(20)
+    # A provisional (unapproved) phi' gives no delta_base proposal and writes nothing to design.
+    assert suggest([], "delta_base", layer) is None
     assert layer.design.phi_eff is None and layer.design.delta_base is None
     assert suggest([], "delta_base", _layer()) is None
-    # Existing confirmed phi'=10 takes precedence over a new provisional phi'=20.
-    layer.design.phi_eff = 10
+    # Only the approved phi'=10 counts, not the provisional 20.
+    layer = _approved_phi_layer(10)
+    layer.selections["phi_eff"].suggested = _candidate(20)
     assert suggest([], "delta_base", layer).value == pytest.approx(10)
     # Registry has no SPT gamma or gamma_sat formula, so N alone yields no suggestion.
     for key in ("gamma", "gamma_sat"):
@@ -309,31 +336,32 @@ def test_approve_only_requested_keys_validate_and_preserve_input():
     before = layer.model_dump()
     now = dt.datetime(2026, 10, 19, 12, tzinfo=dt.timezone.utc)
     # Approve phi'=32 and gamma=18 only: the other five quantities keep their old values.
-    partial = approve(layer, ["phi_eff", "gamma"], "basis", now)
+    partial = approve(layer, ["phi_eff", "gamma"], [], [], now)
     assert partial.design.phi_eff == 32 and partial.gamma == 18
     assert partial.design.c_eff == 0 and partial.design.su is None
     assert partial.design.E is None and partial.design.delta_base is None
-    assert partial.gamma_sat == 20
+    assert partial.gamma_sat is None  # not defaulted to gamma
     assert not partial.selections["su"].approved
     # Approving all seven copies exactly the seven explicit user numbers.
-    result = approve(layer, list(values), "basis", now)
+    result = approve(layer, list(values), [], [], now)
     for key, value in values.items():
         assert (getattr(result, key) if key in ("gamma", "gamma_sat")
                 else getattr(result.design, key)) == value
         selection = result.selections[key]
         assert selection.approved and selection.approved_at == now
-        assert selection.basis_hash == "basis"
+        # A manual value depends on the bounds only (delta_base: also on phi', absent here).
+        assert selection.basis_hash == selection_basis(layer, key, selection.selected, "manual", [], [])
+        data_part, stress_part = selection.basis_hash.split(".")
+        assert len(data_part) == len(stress_part) == 32
     assert layer.model_dump() == before
     invalid = _layer(selections={"gamma": ParameterSelection(
         parameter="gamma", mode="manual", manual_value=31,
     )})
     with pytest.raises(ValidationError):
-        approve(invalid, ["gamma"], "basis", now)
+        approve(invalid, ["gamma"], [], [], now)
     assert invalid.gamma == 20 and not invalid.selections["gamma"].approved
-    with pytest.raises(ValueError, match="basis_hash"):
-        approve(layer, ["phi_eff"], "", now)
     with pytest.raises(KeyError):
-        approve(_layer(), ["phi_eff"], "basis", now)
+        approve(_layer(), ["phi_eff"], [], [], now)
 
 
 @pytest.mark.parametrize("phi, expected_approval", [(20, False), (30, True), (40, False)])
@@ -342,40 +370,48 @@ def test_approve_phi_change_revokes_delta_without_changing_its_design_or_trace(p
         parameter=key, mode="manual", manual_value=30,
     ) for key in ("phi_eff", "delta_base")})
     now = dt.datetime(2026, 10, 19)
-    original_basis = basis_hash(layer, [])
-    layer = approve(layer, ["phi_eff", "delta_base"], original_basis, now)
+    layer = approve(layer, ["phi_eff", "delta_base"], [], [], now)
     delta_trace = layer.selections["delta_base"].model_dump()
+    original_basis = delta_trace["basis_hash"]
     assert delta_trace["selected"]["inputs_used"] == {"phi_eff": 30}
     layer.selections["phi_eff"].manual_value = phi
     before = layer.model_dump()
-    changed = approve(layer, ["phi_eff"], original_basis, now + dt.timedelta(hours=1))
-    expected_trace = {**delta_trace, "approved": expected_approval}
+    changed = approve(layer, ["phi_eff"], [], [], now + dt.timedelta(hours=1))
+    # A new phi' withdraws the dependent delta approval at once; its trace is kept.
+    reason = None if expected_approval else "dependency_changed"
+    expected_trace = {**delta_trace, "approved": expected_approval, "stale_reason": reason}
     assert changed.selections["delta_base"].model_dump() == expected_trace
     assert changed.design.delta_base == 30 and changed.design.phi_eff == phi
     assert layer.model_dump() == before
     project = _project(layers=[changed])
     refreshed = refresh_profile(project, "P").layers[0]
-    assert refreshed.selections["delta_base"].model_dump(exclude={"suggested"}) == {
-        key: value for key, value in expected_trace.items() if key != "suggested"
-    }
-    assert refreshed.selections["delta_base"].suggested.inputs_used == {"phi_eff": phi}
+    delta = refreshed.selections["delta_base"]
+    assert delta.approved is expected_approval and delta.stale_reason == reason
+    assert (delta.selected.model_dump(), delta.approved_at, delta.basis_hash) == (
+        expected_trace["selected"], expected_trace["approved_at"], original_basis)
+    assert delta.suggested.inputs_used == {"phi_eff": phi}
+    # The withdrawn manual delta (30) is re-resolved in the same mode: the user's value stays 30.
+    assert (delta.refreshed is None) is expected_approval
+    if not expected_approval:
+        assert delta.refreshed.value == 30
     assert refreshed.design.delta_base == 30
-    assert basis_hash(refreshed, []) == original_basis
+    assert basis_hash(refreshed, []) == basis_hash(layer, [])
 
 
 def test_refresh_revokes_delta_when_design_phi_changes_with_the_same_input_basis():
-    layer = _layer(design=DesignParameters(phi_eff=30), selections={
-        "delta_base": ParameterSelection(parameter="delta_base", mode="manual", manual_value=30),
-    })
+    layer = _approved_phi_layer(30)
+    layer.selections["delta_base"] = ParameterSelection(
+        parameter="delta_base", mode="manual", manual_value=30)
     now = dt.datetime(2026, 10, 19)
-    original_basis = basis_hash(layer, [])
-    layer = approve(layer, ["delta_base"], original_basis, now)
+    layer = approve(layer, ["delta_base"], [], [], now)
+    original_basis = layer.selections["delta_base"].basis_hash
     layer.design.phi_eff = 20
     project = _project(layers=[layer])
     before = project.model_dump()
     result = refresh_profile(project, "P")
     delta = result.layers[0].selections["delta_base"]
     assert not delta.approved and delta.approved_at == now and delta.basis_hash == original_basis
+    assert delta.stale_reason == "dependency_changed"
     assert delta.selected.value == 30 and delta.selected.inputs_used == {"phi_eff": 30}
     assert delta.suggested.value == pytest.approx(20)
     assert result.layers[0].design.delta_base == 30
@@ -386,7 +422,7 @@ def test_refresh_revokes_delta_when_design_phi_changes_with_the_same_input_basis
 @pytest.mark.parametrize("keys", [["phi_eff", "delta_base"], ["delta_base", "phi_eff"]])
 @pytest.mark.parametrize("mode, expected_delta", [("manual", 30), ("correlation", 20)])
 def test_joint_phi_delta_approval_uses_resulting_phi_in_either_key_order(keys, mode, expected_delta):
-    layer = _layer(design=DesignParameters(phi_eff=30))
+    layer = _approved_phi_layer(30)
     old_suggestion = suggest([], "delta_base", layer)
     layer.selections = {
         "phi_eff": ParameterSelection(parameter="phi_eff", mode="manual", manual_value=20),
@@ -397,8 +433,7 @@ def test_joint_phi_delta_approval_uses_resulting_phi_in_either_key_order(keys, m
     }
     before = layer.model_dump()
     now = dt.datetime(2026, 10, 19)
-    original_basis = basis_hash(layer, [])
-    result = approve(layer, keys, original_basis, now)
+    result = approve(layer, keys, [], [], now)
     assert result.design.phi_eff == 20 and result.design.delta_base == pytest.approx(expected_delta)
     delta = result.selections["delta_base"]
     assert delta.approved and delta.selected.inputs_used == {"phi_eff": 20}
@@ -439,7 +474,8 @@ def test_refresh_candidates_content_hash_and_purity_without_auto_approval():
     # Suggestions are measured phi=32, gamma=18; delta=atan(.6)=30.9637565 degrees.
     assert layer.selections["phi_eff"].suggested.value == 32
     assert layer.selections["gamma"].suggested.value == 18
-    assert layer.selections["delta_base"].suggested.value == pytest.approx(30.9637565321)
+    # delta_base derives only from an approved phi', so the unapproved measured 32 gives no proposal.
+    assert layer.selections["delta_base"].suggested is None
     assert layer.design.phi_eff is None and layer.gamma == 20
     assert all(not s.approved and s.selected is None for s in layer.selections.values())
     assert result.content_hash() == profile.content_hash()
@@ -455,8 +491,9 @@ def test_refresh_preserves_matching_approval_then_revokes_changed_lab_basis():
     layer.selections["phi_eff"].mode = "correlation"
     layer.selections["phi_eff"].method_id = "lab_phi_eff"
     now = dt.datetime(2026, 10, 19, tzinfo=dt.timezone.utc)
-    approved_basis = basis_hash(layer, layer_points(project, refreshed, layer))
-    refreshed.layers[0] = approve(layer, ["phi_eff"], approved_basis, now)
+    refreshed.layers[0] = approve(
+        layer, ["phi_eff"], layer_points(project, refreshed, layer), layer_lab(project, refreshed, layer), now)
+    approved_basis = refreshed.layers[0].selections["phi_eff"].basis_hash
     project.soil_profiles = [refreshed]
     # An unchanged measured angle of 32 retains the exact approval and design value.
     assert refresh_profile(project, "P").layers[0].selections["phi_eff"].approved
@@ -468,15 +505,19 @@ def test_refresh_preserves_matching_approval_then_revokes_changed_lab_basis():
     assert selection.suggested.value == 36 and selection.selected.value == 32
     assert not selection.approved and selection.approved_at == now
     assert selection.basis_hash == approved_basis
+    # The measured value is raw data: only the data part changed, and the same method gives 36.
+    assert selection.stale_reason == "data_changed" and selection.refreshed.value == 36
     new_points = layer_points(project, result, result.layers[0])
-    assert basis_hash(result.layers[0], new_points) != approved_basis
+    new_lab = layer_lab(project, result, result.layers[0])
+    assert selection_basis(result.layers[0], "phi_eff", selection.selected, "correlation",
+                           new_points, new_lab) != approved_basis
     assert result.layers[0].design.phi_eff == 32
     assert result.content_hash() == refreshed.content_hash()
     assert project.model_dump() == before
     # Reapproval is explicit and then changes the engineering content hash (32 -> 36).
-    current = basis_hash(result.layers[0], layer_points(project, result, result.layers[0]))
-    result.layers[0] = approve(result.layers[0], ["phi_eff"], current, now)
+    result.layers[0] = approve(result.layers[0], ["phi_eff"], new_points, new_lab, now)
     assert result.layers[0].design.phi_eff == 36
+    assert result.layers[0].selections["phi_eff"].stale_reason is None
     assert result.content_hash() != refreshed.content_hash()
 
 
@@ -484,14 +525,16 @@ def test_refresh_changed_bounds_revokes_approval_even_without_measurements():
     layer = _layer(selections={"su": ParameterSelection(
         parameter="su", mode="manual", manual_value=50,
     )})
-    original_basis = basis_hash(layer, [])
-    layer = approve(layer, ["su"], original_basis, dt.datetime(2026, 10, 19))
+    layer = approve(layer, ["su"], [], [], dt.datetime(2026, 10, 19))
+    original_basis = layer.selections["su"].basis_hash
     layer.bottom = 5
     project = _project(layers=[layer])
     result = refresh_profile(project, "P")
     # The approved interval [0,4) became [0,5): stale, but su=50 remains in design.
-    assert not result.layers[0].selections["su"].approved
-    assert result.layers[0].selections["su"].basis_hash == original_basis
+    selection = result.layers[0].selections["su"]
+    assert not selection.approved and selection.stale_reason == "data_changed"
+    assert selection.basis_hash == original_basis
+    assert selection.refreshed.value == 50
     assert result.layers[0].design.su == 50
     assert result.content_hash() == project.profile("P").content_hash()
 
@@ -555,9 +598,14 @@ def test_sand_only_correlations_not_proposed_for_undrained_clay_layer():
         assert selection.suggested is None or selection.suggested.method_id.startswith("lab")
 
 
-def test_gamma_layer_is_evaluation_context_not_part_of_hashed_points():
+def test_gmax_takes_the_in_situ_unit_weight_of_the_point():
+    from geotek.core.constants import G
     from geotek.services import parameters
-    candidates = parameters.evaluate_candidates(
-        [{"depth": 1.0, "N60": 15.0}], "Gmax", [], None, 18.0)
-    assert candidates and candidates[0].inputs_used["gamma_layer"] == 18.0
+    point = {"depth": 1.0, "N60": 15.0, "gamma_point": 18.0}
+    candidates = parameters.evaluate_candidates([point], "Gmax", [], None)
+    # Vs = 104.79 * 15^0.26 = 211.88 m/s; Gmax = 18 / g * Vs^2 = 82378 kPa (all-soil fit).
+    gmax = next(c for c in candidates if c.method_id == "HU2007_Gmax_all_SPT")
+    assert gmax.inputs_used["gamma_point"] == 18.0
+    assert gmax.value == pytest.approx(18.0 / G * (104.79 * 15 ** 0.26) ** 2)
+    assert gmax.value == pytest.approx(82378, rel=1e-3)
     assert parameters.evaluate_candidates([{"depth": 1.0, "N60": 15.0}], "Gmax", [], None) == []

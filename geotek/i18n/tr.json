@@ -666,5 +666,21 @@
   "web.import.close": "Kapat",
   "web.inventory.title": "Katman veri envanteri ({count} nokta)",
   "web.inventory.blocked": "Çalışamayan yöntemler (hiçbir noktada girdi yok)",
-  "web.inventory.needs": "eksik girdi:"
+  "web.inventory.needs": "eksik girdi:",
+  "error.detail.layer_gamma_sat_missing": "{top}–{bottom} m katmanı: doygun birim hacim ağırlığı γsat girilmemiş (katman yeraltı suyu seviyesinin altında).",
+  "correlation.warning.stroud_f1_pi_unknown": "PI bilinmiyor: f1 = {f1} kPa (Stroud PI bantlarının en düşük alt sınırı) kullanıldı.",
+  "parameters.warning.gamma_below_gwt_assumed_saturated": "YASS altındaki numunenin ölçülen γ değeri doygun (S = 1) kabul edildi; γsat olarak kullanılıyor.",
+  "parameters.warning.gamma_outside_bowles_range": "γ = {gamma} kN/m³, ortalama N′70 = {n70} için Bowles (1996, Tablo 3-4) aralığının ({low}–{high} kN/m³) dışında. Tablo yaklaşık 6 m derinlik ve normal konsolide kum içindir; yalnızca uyarıdır.",
+  "layering.warning.gamma_above_gwt_from_below": "{top}-{bottom} m tabakası: YASS üstünde CPT verisi yok; γ değeri YASS altındaki noktalardan tahmin edildi. Tasarım YASS'ı daha düşükse mühendis kontrol etmelidir.",
+  "parameters.spt_class.sand.very_loose": "Çok gevşek kum",
+  "parameters.spt_class.sand.loose": "Gevşek kum",
+  "parameters.spt_class.sand.medium_dense": "Orta sıkı kum",
+  "parameters.spt_class.sand.dense": "Sıkı kum",
+  "parameters.spt_class.sand.very_dense": "Çok sıkı kum",
+  "parameters.spt_class.clay.very_soft": "Çok yumuşak kil",
+  "parameters.spt_class.clay.soft": "Yumuşak kil",
+  "parameters.spt_class.clay.firm": "Sıkı kil",
+  "parameters.spt_class.clay.stiff": "Katı kil",
+  "parameters.spt_class.clay.very_stiff": "Çok katı kil",
+  "parameters.spt_class.clay.hard": "Sert kil"
 }

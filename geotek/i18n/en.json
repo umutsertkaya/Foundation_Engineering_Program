@@ -666,5 +666,21 @@
   "web.import.close": "Close",
   "web.inventory.title": "Layer data inventory ({count} points)",
   "web.inventory.blocked": "Methods that cannot run (no point has the input)",
-  "web.inventory.needs": "missing input:"
+  "web.inventory.needs": "missing input:",
+  "error.detail.layer_gamma_sat_missing": "Layer {top}–{bottom} m: saturated unit weight γsat is not set (the layer lies below the groundwater table).",
+  "correlation.warning.stroud_f1_pi_unknown": "PI is unknown: f1 = {f1} kPa (lowest lower bound of the Stroud PI bands) was used.",
+  "parameters.warning.gamma_below_gwt_assumed_saturated": "The measured γ of a sample below the groundwater table is taken as saturated (S = 1) and used as γsat.",
+  "parameters.warning.gamma_outside_bowles_range": "γ = {gamma} kN/m³ lies outside the Bowles (1996, Table 3-4) range ({low}–{high} kN/m³) for the mean N′70 = {n70}. The table applies to about 6 m depth and normally consolidated sand; this is a warning only.",
+  "layering.warning.gamma_above_gwt_from_below": "Layer {top}-{bottom} m: no CPT data above the groundwater table; γ was estimated from the points below it. The engineer must check it if the design groundwater table is lower.",
+  "parameters.spt_class.sand.very_loose": "Very loose sand",
+  "parameters.spt_class.sand.loose": "Loose sand",
+  "parameters.spt_class.sand.medium_dense": "Medium dense sand",
+  "parameters.spt_class.sand.dense": "Dense sand",
+  "parameters.spt_class.sand.very_dense": "Very dense sand",
+  "parameters.spt_class.clay.very_soft": "Very soft clay",
+  "parameters.spt_class.clay.soft": "Soft clay",
+  "parameters.spt_class.clay.firm": "Firm clay",
+  "parameters.spt_class.clay.stiff": "Stiff clay",
+  "parameters.spt_class.clay.very_stiff": "Very stiff clay",
+  "parameters.spt_class.clay.hard": "Hard clay"
 }

@@ -398,3 +398,41 @@ def test_unit_weight_floor_warning_names_the_bound():
     floors = [parse_warning(w)[1] for w in proposal.warnings if w.startswith("layering.warning.gamma_floor")]
     assert floors and floors[0]["gamma_min"] == 12.0
     assert proposal.layers[0].gamma_suggested == pytest.approx(12.0)
+
+
+def _split_processed():
+    """One layer (Ic 1.6 everywhere); qt = 10132.5 kPa at z = 1, 2 and 1013.25 kPa at z = 3, 4, Rf = 1 %."""
+    result = processed([1, 2, 3, 4], [1.6, 1.6, 1.6, 1.6])
+    result.qt = np.array([10132.5, 10132.5, 1013.25, 1013.25])
+    result.fs = result.qt / 100.0
+    return result
+
+
+def test_gamma_and_gamma_sat_are_split_at_the_insitu_water_table():
+    # Rf = 1 %: gamma = 9.81 * (0.36 log10(qt / 101.325) + 1.236) = 19.18836 (qt = 10132.5)
+    # and 15.65676 (qt = 1013.25). Water table at 2.5 m: z = 1, 2 above, z = 3, 4 below.
+    result = cpt_layers(_split_processed(), settings(), gwt_depth=2.5)
+    assert len(result.layers) == 1
+    layer = result.layers[0]
+    assert layer.gamma_suggested == pytest.approx(19.18836)
+    assert layer.gamma_sat_suggested == pytest.approx(15.65676)
+    assert not any(w.startswith("layering.warning.gamma_above_gwt_from_below") for w in result.warnings)
+    # Without a groundwater depth the old behaviour stays: one mean, no gamma_sat.
+    plain = cpt_layers(_split_processed(), settings()).layers[0]
+    assert plain.gamma_suggested == pytest.approx((19.18836 + 15.65676) / 2)
+    assert plain.gamma_sat_suggested is None
+
+
+def test_layer_without_points_above_the_water_table_warns_and_takes_the_below_estimate():
+    # Water table at 0.5 m: every point is below it; (19.18836 * 2 + 15.65676 * 2) / 4 = 17.42256.
+    result = cpt_layers(_split_processed(), settings(), gwt_depth=0.5)
+    layer = result.layers[0]
+    assert layer.gamma_suggested == pytest.approx(17.42256)
+    assert layer.gamma_sat_suggested == pytest.approx(17.42256)
+    code, params = parse_warning(next(
+        w for w in result.warnings if w.startswith("layering.warning.gamma_above_gwt_from_below")))
+    assert code == "layering.warning.gamma_above_gwt_from_below"
+    assert (params["top"], params["bottom"]) == (0, 4)
+    # A water table below the sounding leaves no point below it: gamma_sat is not suggested.
+    dry = cpt_layers(_split_processed(), settings(), gwt_depth=10).layers[0]
+    assert dry.gamma_suggested == pytest.approx(17.42256) and dry.gamma_sat_suggested is None

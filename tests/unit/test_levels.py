@@ -2,6 +2,8 @@
 
 import json
 import math
+
+from geotek.core.errors import LayerDesignError
 from pathlib import Path
 
 import pytest
@@ -192,3 +194,22 @@ def test_profile_link():
     clay = foundation_from_profile(profile, 7.0)
     assert clay.drainage == "undrained" and clay.su == 40.0
     assert math.isclose(bands[1].c, 40.0)
+
+
+def _dry_band_profile(gwt):
+    from geotek.core.models.profile import DesignParameters, GroundwaterCondition, SoilLayer, SoilProfile
+
+    design = DesignParameters(phi_eff=30.0)
+    layers = [SoilLayer(id="A", top=0, bottom=6, gamma=18, design=design),
+              SoilLayer(id="B", top=6, bottom=12, gamma=19, design=design)]
+    return SoilProfile(id="P", gwt=GroundwaterCondition(depth_insitu=gwt), layers=layers)
+
+
+def test_bands_need_gamma_sat_only_below_the_water_table():
+    # Dry site (water table 20 m, below every layer): no gamma_sat needed, bands use gamma.
+    bands = bands_from_profile(_dry_band_profile(20.0), 2.0)
+    assert [b.gamma for b in bands] == [18.0, 19.0]
+    # Water table inside layer A (3 m) and gamma_sat unset: the band cannot be built.
+    with pytest.raises(LayerDesignError) as caught:
+        bands_from_profile(_dry_band_profile(3.0), 2.0)
+    assert caught.value.message_code == "layer_gamma_sat_missing"

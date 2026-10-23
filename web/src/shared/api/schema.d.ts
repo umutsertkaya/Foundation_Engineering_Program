@@ -1240,6 +1240,49 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/m/soil/profiles/{id}/parameters/reapprove": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Reapprove Parameters
+         * @description Approve the listed withdrawn selections again with their refreshed values.
+         *
+         *     Each item must carry the refreshed value the caller saw; a different current value
+         *     answers 409 ``reapprove_value_changed``. Nothing outside the list is approved.
+         */
+        post: operations["reapprove_parameters"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/m/soil/profiles/{id}/readiness": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Profile Readiness
+         * @description Unit-weight approval, missing gamma_sat and stale approvals per layer.
+         */
+        get: operations["get_profile_readiness"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/m/soil/profiles/{id}/parameters/suggest-all": {
         parameters: {
             query?: never;
@@ -2357,6 +2400,8 @@ export interface components {
              * @default false
              */
             user_override: boolean;
+            /** Based On */
+            based_on?: string[];
         };
         /**
          * DesignCodeSummary
@@ -2816,6 +2861,10 @@ export interface components {
             };
             /** Keys */
             keys: components["schemas"]["KeyAvailability"][];
+            /** Stress Issue */
+            stress_issue?: string | null;
+            /** Spt Class */
+            spt_class?: string | null;
         };
         /**
          * LayerMerge
@@ -2824,6 +2873,24 @@ export interface components {
         LayerMerge: {
             /** Layer Ids */
             layer_ids: string[];
+        };
+        /**
+         * LayerReadiness
+         * @description Unit-weight and approval status of one layer before calculations run.
+         */
+        LayerReadiness: {
+            /** Layer Id */
+            layer_id: string;
+            /** Gamma Approved */
+            gamma_approved: boolean;
+            /** Gamma Sat Approved */
+            gamma_sat_approved: boolean;
+            /** Gamma Sat Missing Below Gwt */
+            gamma_sat_missing_below_gwt: boolean;
+            /** Gamma Sat Equals Gamma Unapproved */
+            gamma_sat_equals_gamma_unapproved: boolean;
+            /** Stale Keys */
+            stale_keys: ("phi_eff" | "c_eff" | "su" | "E" | "gamma" | "gamma_sat" | "delta_base" | "Dr" | "OCR" | "K0" | "Vs" | "Gmax" | "M")[];
         };
         /**
          * LayerSplit
@@ -3060,10 +3127,7 @@ export interface components {
             language?: ("tr" | "en") | null;
             /** Design Code */
             design_code?: string | null;
-            /**
-             * Directory
-             * @description Folder for the new project file; omitted -> the library folder.
-             */
+            /** Directory */
             directory?: string | null;
         };
         /**
@@ -3125,6 +3189,9 @@ export interface components {
             approved_at?: string | null;
             /** Basis Hash */
             basis_hash?: string | null;
+            /** Stale Reason */
+            stale_reason?: ("data_changed" | "stress_changed" | "dependency_changed" | "method_upgraded") | null;
+            refreshed?: components["schemas"]["DerivedParameter"] | null;
         };
         /**
          * ParameterStats
@@ -3395,10 +3462,38 @@ export interface components {
              */
             gamma_suggested: number | null;
             /**
+             * Gamma Sat Suggested
+             * @description Suggested saturated unit weight below the in-situ GWT [kN/m3]
+             */
+            gamma_sat_suggested?: number | null;
+            /**
              * Behaviour
              * @enum {string}
              */
             behaviour: "drained" | "undrained";
+        };
+        /**
+         * ReapproveItem
+         * @description One withdrawn approval to renew, with the refreshed value the caller saw.
+         */
+        ReapproveItem: {
+            /** Layer Id */
+            layer_id: string;
+            /**
+             * Key
+             * @enum {string}
+             */
+            key: "phi_eff" | "c_eff" | "su" | "E" | "gamma" | "gamma_sat" | "delta_base" | "Dr" | "OCR" | "K0" | "Vs" | "Gmax" | "M";
+            /** Expected Value */
+            expected_value: number;
+        };
+        /**
+         * ReapproveRequest
+         * @description Only the listed items are approved again; nothing is approved automatically.
+         */
+        ReapproveRequest: {
+            /** Items */
+            items: components["schemas"]["ReapproveItem"][];
         };
         /**
          * RenameRequest
@@ -4087,7 +4182,7 @@ export interface components {
             gamma: number;
             /**
              * Gamma Sat
-             * @description Below GWT [kN/m3]
+             * @description Below GWT [kN/m3]; None = not set (no silent default to gamma)
              */
             gamma_sat?: number | null;
             /**
@@ -11254,6 +11349,198 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SoilLayer"];
+                };
+            };
+            /** @description Invalid operation or input file */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Resource not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Conflicting or stale structure state */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Validation error or missing_factors */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Engine or server error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Contract stub; not implemented */
+            501: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Other client error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Other server error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    reapprove_parameters: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReapproveRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SoilProfile"];
+                };
+            };
+            /** @description Invalid operation or input file */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Resource not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Conflicting or stale structure state */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Validation error or missing_factors */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Engine or server error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Contract stub; not implemented */
+            501: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Other client error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Other server error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    get_profile_readiness: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LayerReadiness"][];
                 };
             };
             /** @description Invalid operation or input file */

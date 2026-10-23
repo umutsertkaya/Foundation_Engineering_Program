@@ -9,7 +9,7 @@ import numpy as np
 from pydantic import BaseModel, Field, field_validator, model_validator
 
 from geotek.core.constants import DEPTH_TOL
-from geotek.core.errors import ProfileError
+from geotek.core.errors import LayerDesignError, ProfileError
 from geotek.core.models.parameters import DerivedParameter, ParameterSelection
 
 ProfileOrigin = Literal["cpt", "spt", "manual", "mixed"]
@@ -61,7 +61,9 @@ class SoilLayer(BaseModel):
     sbtn_zone: int | None = Field(None, ge=1, le=9)
     behaviour: Literal["drained", "undrained"] = "drained"
     gamma: float = Field(gt=5, lt=30, description="Unit weight above GWT [kN/m3]")
-    gamma_sat: float | None = Field(None, gt=5, lt=30, description="Below GWT [kN/m3]")
+    gamma_sat: float | None = Field(
+        None, gt=5, lt=30,
+        description="Below GWT [kN/m3]; None = not set (no silent default to gamma)")
     permeability: float | None = Field(None, gt=0, description="Hydraulic conductivity k [m/s]")
     params: dict[str, DerivedParameter] = Field(default_factory=dict)
     design: DesignParameters = Field(default_factory=DesignParameters)
@@ -76,8 +78,6 @@ class SoilLayer(BaseModel):
     def _check(self) -> SoilLayer:
         if self.bottom <= self.top:
             raise ValueError(f"Layer {self.id!r}: bottom ({self.bottom}) must exceed top ({self.top})")
-        if self.gamma_sat is None:
-            self.gamma_sat = self.gamma
         for key, sel in self.selections.items():
             if sel.parameter != key:
                 raise ValueError(f"Layer {self.id!r}: selection key {key!r} != parameter {sel.parameter!r}")
@@ -86,6 +86,12 @@ class SoilLayer(BaseModel):
     @property
     def thickness(self) -> float:
         return self.bottom - self.top
+
+    def require_gamma_sat(self) -> float:
+        """Saturated unit weight for a calculation below the water table; never defaults to gamma."""
+        if self.gamma_sat is None:
+            raise LayerDesignError(self, "gamma_sat_missing")
+        return self.gamma_sat
 
 
 class LayeringSettings(BaseModel):

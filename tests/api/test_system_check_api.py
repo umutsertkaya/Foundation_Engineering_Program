@@ -40,8 +40,10 @@ def test_opening_a_file_with_non_finite_numbers_keeps_the_session(shell, tmp_pat
 
 def _profile(shell, name="Main"):
     body = {"name": name, "origin": "manual", "source_ids": [], "gwt": {"depth_insitu": 3},
-            "layers": [{"id": "a", "top": 0, "bottom": 4, "gamma": 18, "design": {"phi_eff": 30}},
-                       {"id": "b", "top": 4, "bottom": 20, "gamma": 19, "design": {"phi_eff": 32}}]}
+            "layers": [{"id": "a", "top": 0, "bottom": 4, "gamma": 18, "gamma_sat": 18,
+                        "design": {"phi_eff": 30}},
+                       {"id": "b", "top": 4, "bottom": 20, "gamma": 19, "gamma_sat": 19,
+                        "design": {"phi_eff": 32}}]}
     response = shell.post(f"{SOIL}/profiles", json=body)
     assert response.status_code == 200, response.text
     return response.json()

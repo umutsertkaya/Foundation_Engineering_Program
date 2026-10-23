@@ -25,6 +25,8 @@ class Layer:
     n60_mean: float | None
     gamma_suggested: float | None
     behaviour: Literal["drained", "undrained"]
+    gamma_sat_suggested: float | None = None
+    """Saturated unit weight from the points below the in-situ groundwater table (CPT only)."""
 
 
 @dataclass

@@ -41,6 +41,8 @@ class Correlation:
     check: CheckFn | None = None
     verified: bool = False
     """True once checked against the original source in Phase 0."""
+    uscs: frozenset[str] | None = None
+    """USCS group symbols the correlation is limited to; None = no soil-class restriction."""
 
 
 REGISTRY: dict[str, Correlation] = {}
@@ -49,6 +51,17 @@ NON_NEGATIVE_PARAMETERS = ("su", "E", "sigma_p", "Dr", "OCR", "K0", "Vs", "Gmax"
 UPPER_BOUNDS = {"Dr": 100.0, "K0": 5.0}
 """Largest value the design model accepts; a correlation result above it is marked invalid."""
 """Parameters whose correlation results must not be negative (negative -> validity_ok False)."""
+
+ADVISORY_WARNING_CODES = ("correlation.warning.stroud_f1_pi_unknown",)
+"""Check warnings that stay visible on the result but do not mark it invalid."""
+
+
+def normalise_uscs(symbol: str | None) -> str | None:
+    """Upper-case USCS symbol without whitespace; None when absent or empty."""
+    if symbol is None:
+        return None
+    cleaned = "".join(symbol.split()).upper()
+    return cleaned or None
 
 
 def register(
@@ -63,6 +76,7 @@ def register(
     validity: str,
     options: dict[str, float] | None = None,
     check: CheckFn | None = None,
+    uscs: frozenset[str] | set[str] | None = None,
 ):
     def decorator(func):
         if id in REGISTRY:
@@ -71,6 +85,7 @@ def register(
             id=id, parameter=parameter, unit=unit, source=source, inputs=inputs,
             reference=reference, reliability=reliability, validity=validity, func=func,
             options=dict(options or {}), check=check,
+            uscs=None if uscs is None else frozenset(uscs),
         )
         return func
 
@@ -85,13 +100,20 @@ def get(correlation_id: str) -> Correlation:
 
 
 def applicable(
-    parameter: str, inputs: Mapping[str, float], source: Source | None = None
+    parameter: str, inputs: Mapping[str, float], source: Source | None = None,
+    uscs: str | None = None,
 ) -> list[Correlation]:
-    """Correlations for ``parameter`` whose required inputs are all available."""
+    """Correlations for ``parameter`` whose required inputs are all available.
+
+    A correlation restricted to USCS groups applies only when ``uscs`` (the layer's symbol) is
+    given and belongs to its set; without a layer symbol it never applies.
+    """
+    symbol = normalise_uscs(uscs)
     return [
         c for c in REGISTRY.values()
         if c.parameter == parameter
         and (source is None or c.source == source)
+        and (c.uscs is None or (symbol is not None and symbol in c.uscs))
         and all(_available(inputs, name) for name in c.inputs)
     ]
 
@@ -124,9 +146,10 @@ def evaluate(correlation_id: str, inputs: Mapping[str, float], **options: float)
     elif c.parameter in UPPER_BOUNDS and value > UPPER_BOUNDS[c.parameter]:
         warnings.append(
             f"{c.parameter} = {value:.4g} exceeds {UPPER_BOUNDS[c.parameter]:g}; result marked invalid")
+    blocking = [w for w in warnings if not w.startswith(ADVISORY_WARNING_CODES)]
     return DerivedParameter(
         value=value, unit=c.unit, method_id=c.id, reference=c.reference, source=c.source,
-        inputs_used={**args, **opts}, validity_ok=not warnings, warnings=warnings,
+        inputs_used={**args, **opts}, validity_ok=not blocking, warnings=warnings,
         reliability=c.reliability,
     )
 
@@ -158,6 +181,7 @@ def combine(results: list[DerivedParameter], *, only_valid: bool = True) -> Deri
     sources = {r.source for r in pool}
     warnings = ["No result within its validity range; all results averaged"] if fallback else []
     return DerivedParameter(
+        based_on=[r.method_id for r in pool],
         value=float(np.mean(values)),
         unit=pool[0].unit,
         method_id="mean(" + ",".join(r.method_id for r in pool) + ")",

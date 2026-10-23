@@ -185,6 +185,8 @@ class ProposedLayer(DTO):
     ic_mean: ResultNumber
     n60_mean: ResultNumber
     gamma_suggested: ResultNumber = Field(description="Suggested unit weight [kN/m3]")
+    gamma_sat_suggested: ResultNumber = Field(
+        None, description="Suggested saturated unit weight below the in-situ GWT [kN/m3]")
     behaviour: Literal["drained", "undrained"]
 
 

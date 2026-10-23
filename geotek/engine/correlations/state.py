@@ -74,7 +74,7 @@ def _vs(coefficient: float, exponent: float):
 
 
 def _gmax(coefficient: float, exponent: float):
-    return lambda N60, gamma_layer: gamma_layer / G * (coefficient * N60**exponent) ** 2
+    return lambda N60, gamma_point: gamma_point / G * (coefficient * N60**exponent) ** 2
 
 
 _R = {"all": 0.71, "clay": 0.56, "sand": 0.75}
@@ -94,6 +94,7 @@ for _name, (_c, _e, _scope) in _HASANCEBI.items():
     )(_vs(_c, _e))
     register(
         id=f"HU2007_Gmax_{_name}_SPT", parameter="Gmax", unit="kPa", source="SPT",
-        inputs=("N60", "gamma_layer"), reference=_ref + "; G_max = rho Vs^2", reliability="C",
-        validity=_valid + "; rho from the layer unit weight gamma (above-GWT value)", check=_check,
+        inputs=("N60", "gamma_point"), reference=_ref + "; G_max = rho Vs^2", reliability="C",
+        validity=_valid + "; rho from the in-situ unit weight at the point (gamma above, "
+                          "gamma_sat below the groundwater table)", check=_check,
     )(_gmax(_c, _e))

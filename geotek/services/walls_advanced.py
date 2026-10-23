@@ -145,7 +145,7 @@ def foundation_from_profile(profile: SoilProfile, base_depth: float, *,
     d = layer.design
     drainage = drainage or layer.behaviour
     gwt = profile.gwt.depth_for(gwt_case)
-    gamma = (layer.gamma_sat - GAMMA_W) if gwt <= base_depth else layer.gamma
+    gamma = (layer.require_gamma_sat() - GAMMA_W) if gwt <= base_depth else layer.gamma
     overburden = float(profile.stresses(base_depth, gwt_case)[2]) if base_depth > 0 else 0.0
     if drainage == "undrained":
         if d.su is None:
@@ -159,22 +159,28 @@ def foundation_from_profile(profile: SoilProfile, base_depth: float, *,
 
 def bands_from_profile(profile: SoilProfile, base_depth: float,
                        drainage: Literal["drained", "undrained"] | None = None) -> list[SoilBand]:
-    """Soil bands below the base for global stability; elevation 0 = base level."""
+    """Soil bands below the base for global stability; elevation 0 = base level.
+
+    The saturated unit weight is required only for layers that lie (partly) below the shallowest
+    groundwater level of the cases; a layer fully above it is dry and uses ``gamma``.
+    """
     bands = []
+    shallowest_gwt = min(profile.gwt.depth_for(case) for case in ("insitu", "design", "seismic"))
     for layer in profile.layers:
         if layer.bottom <= base_depth:
             continue
+        gamma = layer.require_gamma_sat() if layer.bottom > shallowest_gwt else layer.gamma
         top = base_depth - max(layer.top, base_depth)
         mode = drainage or layer.behaviour
         d = layer.design
         if mode == "undrained":
             if d.su is None:
                 raise LayerDesignError(layer, "su_missing")
-            bands.append(SoilBand(top=top, gamma=layer.gamma_sat, c=d.su, phi=0.0))
+            bands.append(SoilBand(top=top, gamma=gamma, c=d.su, phi=0.0))
         else:
             if d.phi_eff is None:
                 raise LayerDesignError(layer, "phi_missing")
-            bands.append(SoilBand(top=top, gamma=layer.gamma_sat, c=d.c_eff, phi=d.phi_eff))
+            bands.append(SoilBand(top=top, gamma=gamma, c=d.c_eff, phi=d.phi_eff))
     return bands
 
 

@@ -48,7 +48,8 @@ def test_gwt_defaults_to_insitu():
 
 def test_layer_defaults_and_bounds():
     layer = SoilLayer(id="L", top=0, bottom=2, gamma=18)
-    assert layer.gamma_sat == 18 and layer.thickness == 2
+    # gamma_sat is never defaulted to gamma: an unset value stays None.
+    assert layer.gamma_sat is None and layer.thickness == 2
     with pytest.raises(ValidationError):
         SoilLayer(id="L", top=2, bottom=2, gamma=18)
 
