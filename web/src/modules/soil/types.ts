@@ -1,3 +1,4 @@
+import type { components } from "../../shared/api/schema";
 import type {
   Borehole,
   CPTSounding,
@@ -145,3 +146,10 @@ export interface USCSReferenceDTO {
   u_line: PlasticityPointDTO[];
   symbols: USCSSymbolDTO[];
 }
+
+export type ImportPlan = components["schemas"]["ImportPlan"];
+export type ImportOptions = components["schemas"]["ImportOptions"];
+export type SheetPlan = components["schemas"]["SheetPlan"];
+export type ImportIssue = components["schemas"]["ImportIssue"];
+export type SheetRole = NonNullable<SheetPlan["role"]>;
+export type WorkbookImportResult = components["schemas"]["WorkbookImportResult"];
