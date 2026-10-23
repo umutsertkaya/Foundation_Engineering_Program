@@ -106,8 +106,10 @@ def materialise(payload: ProfileCreate) -> SoilProfile:
             if interval.gamma_suggested is None:
                 api_error(422, "validation", "Proposal needs a supplied unit weight for every layer.")
             layers.append({
-                **interval.model_dump(exclude={"ic_mean", "n60_mean", "gamma_suggested"}),
-                "gamma": interval.gamma_suggested, "source_ids": [proposal.source_id],
+                **interval.model_dump(exclude={
+                    "ic_mean", "n60_mean", "gamma_suggested", "gamma_sat_suggested"}),
+                "gamma": interval.gamma_suggested, "gamma_sat": interval.gamma_sat_suggested,
+                "source_ids": [proposal.source_id],
             })
         data["layering"] = proposal.settings.model_dump()
     for layer in layers:
@@ -190,6 +192,19 @@ def merge(profile: SoilProfile, layer_ids: list[str]) -> tuple[SoilProfile, list
         warnings.append(
             f"Conflicting design value {key} cleared; explicit selection and reapproval required."
         )
+    for key in ("gamma", "gamma_sat"):
+        before, after = getattr(first, key), getattr(second, key)
+        if before == after:
+            continue
+        # Thickness weighting keeps the total vertical stress at the merged layer's base.
+        value = (None if before is None or after is None else
+                 (before * first.thickness + after * second.thickness)
+                 / (first.thickness + second.thickness))
+        layers[upper][key] = value
+        shown = "None" if value is None else f"{value:.4f}"
+        warnings.append(
+            f"Unit weight {key} differs between merged layers; "
+            f"thickness-weighted value {shown} written, approval required.")
     layers[upper]["bottom"] = layers[lower]["bottom"]
     del layers[lower]
     return validate(SoilProfile, {**profile.model_dump(), "layers": layers}), warnings

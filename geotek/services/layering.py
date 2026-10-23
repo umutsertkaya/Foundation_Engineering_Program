@@ -42,7 +42,13 @@ def propose_layers(
     if investigation_id in results.errors:
         raise ValueError(results.errors[investigation_id])
     if is_cpt:
-        return cpt_layers(results.cpt[investigation_id], settings)
+        # In-situ groundwater depth splits the unit-weight estimate into gamma / gamma_sat:
+        # the sounding's own measurement first, else the active profile's; None = no split.
+        profile = project.active_profile()
+        gwt = sources[investigation_id].gwt_depth
+        if gwt is None and profile is not None:
+            gwt = profile.gwt.depth_insitu
+        return cpt_layers(results.cpt[investigation_id], settings, gwt)
     borehole = boreholes[investigation_id]
     processed = results.spt.get(investigation_id)
     if settings.method == "spt_log" and borehole.log:

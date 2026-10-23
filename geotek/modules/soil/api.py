@@ -29,11 +29,13 @@ from geotek.modules.soil.schemas import (
     InvestigationsDTO,
     LayerInventory,
     LayerMerge,
+    LayerReadiness,
     LayerSplit,
     ParameterApproval,
     PlasticityPointDTO,
     ProfileCreate,
     ProfileSummary,
+    ReapproveRequest,
     SelectionUpdate,
     SBTNContourDTO,
     SBTNCoordinateDTO,
@@ -489,12 +491,23 @@ def router() -> APIRouter:
             return service.find(session.require_project().soil_profiles, id)
 
     def _keep_approvals_honest(layer, previous) -> dict:
-        """Approval only comes from the approve route: an edited value (or a forged flag) revokes it."""
-        data = layer.model_dump()
+        """Approval only comes from the approve route: an edited value (or a forged flag) revokes it.
 
+        A unit weight edited in the layer table is recorded as the manual choice for that key
+        (unapproved), so the table and the parameter panel show the same value.
+        """
         def value(item, key):
             return getattr(item, key) if key in ("gamma", "gamma_sat") else getattr(item.design, key)
 
+        layer = layer.model_copy(deep=True)
+        for key in ("gamma", "gamma_sat"):
+            edited = value(layer, key)
+            if edited is not None and edited != value(previous, key):
+                chosen = layer.selections.get(key) or ParameterSelection(parameter=key)
+                layer.selections[key] = parameters.resolve(chosen.model_copy(update={
+                    "mode": "manual", "method_id": None, "statistic": None, "k_sd": None,
+                    "manual_value": edited}))
+        data = layer.model_dump()
         for key, selection in data["selections"].items():
             if not selection.get("approved"):
                 continue
@@ -642,14 +655,54 @@ def router() -> APIRouter:
             layer = service.find(refreshed.layers, layer_id)
             try:
                 points = parameters.layer_points(project, profile, stored)
+                lab = parameters.layer_lab(project, profile, stored)
                 approved = parameters.approve(
-                    layer, payload.keys, parameters.basis_hash(stored, points),
-                    datetime.now(timezone.utc),
+                    layer, payload.keys, points, lab, datetime.now(timezone.utc),
                 )
             except (KeyError, ValueError) as exc:
                 api_error(422, "validation", str(exc))
             _profile(session, _with_layer(profile, approved))
             return approved
+
+    @api.post(
+        "/profiles/{id}/parameters/reapprove", response_model=SoilProfile,
+        operation_id="reapprove_parameters",
+    )
+    def reapprove_parameters(
+        id: str, payload: ReapproveRequest, session: SessionDep,
+    ) -> SoilProfile:
+        """Approve the listed withdrawn selections again with their refreshed values.
+
+        Each item must carry the refreshed value the caller saw; a different current value
+        answers 409 ``reapprove_value_changed``. Nothing outside the list is approved.
+        """
+        with session.lock:
+            project = session.require_project()
+            service.find(project.soil_profiles, id)
+            items = [(item.layer_id, item.key, item.expected_value) for item in payload.items]
+            try:
+                profile = parameters.reapprove(project, id, items, datetime.now(timezone.utc))
+            except parameters.ReapproveMismatch as exc:
+                api_error(409, "reapprove_value_changed",
+                          "The refreshed value differs from the expected value; review it first.",
+                          layer_id=exc.layer_id, key=exc.key)
+            except (KeyError, ValueError) as exc:
+                api_error(422, "validation", str(exc))
+            return _profile(session, profile)
+
+    @api.get(
+        "/profiles/{id}/readiness", response_model=list[LayerReadiness],
+        operation_id="get_profile_readiness",
+    )
+    def get_profile_readiness(id: str, session: SessionDep) -> list[LayerReadiness]:
+        """Unit-weight approval, missing gamma_sat and stale approvals per layer."""
+        with session.lock:
+            project = session.require_project()
+            profile = service.find(project.soil_profiles, id)
+            try:
+                return [LayerReadiness(**item) for item in parameter_plan.profile_readiness(project, profile)]
+            except (KeyError, ValueError) as exc:
+                api_error(422, "validation", str(exc))
 
     @api.post(
         "/profiles/{id}/parameters/suggest-all", response_model=SoilProfile,

@@ -145,7 +145,7 @@ def foundation_from_profile(profile: SoilProfile, base_depth: float, *,
     d = layer.design
     drainage = drainage or layer.behaviour
     gwt = profile.gwt.depth_for(gwt_case)
-    gamma = (layer.gamma_sat - GAMMA_W) if gwt <= base_depth else layer.gamma
+    gamma = (layer.require_gamma_sat() - GAMMA_W) if gwt <= base_depth else layer.gamma
     overburden = float(profile.stresses(base_depth, gwt_case)[2]) if base_depth > 0 else 0.0
     if drainage == "undrained":
         if d.su is None:
@@ -170,11 +170,11 @@ def bands_from_profile(profile: SoilProfile, base_depth: float,
         if mode == "undrained":
             if d.su is None:
                 raise LayerDesignError(layer, "su_missing")
-            bands.append(SoilBand(top=top, gamma=layer.gamma_sat, c=d.su, phi=0.0))
+            bands.append(SoilBand(top=top, gamma=layer.require_gamma_sat(), c=d.su, phi=0.0))
         else:
             if d.phi_eff is None:
                 raise LayerDesignError(layer, "phi_missing")
-            bands.append(SoilBand(top=top, gamma=layer.gamma_sat, c=d.c_eff, phi=d.phi_eff))
+            bands.append(SoilBand(top=top, gamma=layer.require_gamma_sat(), c=d.c_eff, phi=d.phi_eff))
     return bands
 
 
