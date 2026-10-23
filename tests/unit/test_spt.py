@@ -62,3 +62,47 @@ def test_spt_warnings_are_translatable_codes(two_layer_profile, lang):
     assert (code, params) == ("insitu.warning.spt_refusal", {"count": 2, "depths": "2.5, 4"})
     text = t(code, lang, **params)
     assert text != code and "2.5, 4" in text and "{" not in text
+
+
+def test_rod_length_factor_matches_youd_2001_table_2():
+    # Youd et al. (2001) Table 2: <3 m 0.75; 3-4 m 0.80; 4-6 m 0.85; 6-10 m 0.95; 10-30 m 1.0
+    assert rod_length_factor([2.99, 3.0, 3.99, 4.0, 6.0, 10.0]).tolist() == [
+        0.75, 0.80, 0.80, 0.85, 0.95, 1.0]
+
+
+def test_n_from_blows_and_refusal():
+    from geotek.engine.insitu.spt import is_refusal, n_from_blows
+
+    assert n_from_blows([8, 11, 11]) == 22
+    assert not is_refusal([8, 11, 11])
+    assert is_refusal([10, 30, 50])
+
+
+def test_blows_must_match_n():
+    with pytest.raises(ValueError):
+        SPTRecord(depth=1.3, n_field=20, blows=[8, 11, 11])
+    SPTRecord(depth=1.3, n_field=22, blows=[8, 11, 11])
+    SPTRecord(depth=1.3, n_field=50, blows=[10, 50, 0], refusal=True)
+    with pytest.raises(ValueError):  # 50 blows in a 150 mm increment must be flagged as refusal
+        SPTRecord(depth=1.3, n_field=60, blows=[50, 30, 30])
+
+
+def test_record_equipment_overrides_borehole_and_assumptions_are_visible(two_layer_profile):
+    from geotek.core.warning_codes import parse_warning
+
+    bh = Borehole(id="SK4", spt=[
+        SPTRecord(depth=5.0, n_field=20, energy_ratio=55, rod_length=6.0, borehole_diameter_mm=100,
+                  sampler="standard"),
+        SPTRecord(depth=7.0, n_field=20),
+    ])
+    r = process_borehole(bh, two_layer_profile)
+    # record 1: ER 55, rod 6 m -> C_R 0.95: N60 = 20 * 55/60 * 0.95
+    assert r.n60[0] == pytest.approx(20 * 55 / 60 * 0.95)
+    # record 2: ER not stated -> 60 %, rod = depth (7 m) -> 0.95
+    assert r.n60[1] == pytest.approx(20 * 0.95)
+    assert r.energy_ratio.tolist() == [55.0, 60.0]
+    codes = {parse_warning(w)[0]: parse_warning(w)[1] for w in r.warnings}
+    assert codes["insitu.warning.spt_energy_ratio_assumed"]["count"] == 1
+    assert codes["insitu.warning.spt_rod_length_assumed"]["count"] == 1
+    explicit = Borehole(id="SK5", energy_ratio=60, spt=[SPTRecord(depth=5.0, n_field=20, rod_length=6.0)])
+    assert not process_borehole(explicit, two_layer_profile).warnings

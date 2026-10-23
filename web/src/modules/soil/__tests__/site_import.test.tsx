@@ -84,6 +84,7 @@ describe("site data import", () => {
     const post = calls.find((c) => c.method === "POST")!;
     expect(post.url).toBe("/api/m/soil/boreholes");
     const body = JSON.parse(post.body as string);
-    expect(body).toMatchObject({ id: "BH-7", gwt_depth: 2.5, energy_ratio: 60, spt: [{ depth: 0, n_field: 12 }] });
+    expect(body.energy_ratio ?? null).toBeNull();
+    expect(body).toMatchObject({ id: "BH-7", gwt_depth: 2.5, spt: [{ depth: 0, n_field: 12 }] });
   });
 });

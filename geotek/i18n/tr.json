@@ -515,7 +515,7 @@
   "web.site.elevation": "Zemin kotu [m]",
   "web.site.predrill": "Ön delme derinliği [m]",
   "web.site.energy_ratio": "Çekiç enerji oranı ER [%]",
-  "web.site.energy_ratio_hint": "SPT N60 düzeltmesi için; çekiç tipine göre girin (örn. emniyetli çekiç ≈ 60).",
+  "web.site.energy_ratio_hint": "SPT N60 düzeltmesi için; çekiç tipine göre girin (örn. emniyetli çekiç ≈ 60). Boş bırakılırsa %60 varsayılır ve uyarı gösterilir.",
   "web.site.diameter": "Sondaj çapı [mm]",
   "web.site.sampler": "Örnekleyici",
   "web.site.sampler_standard": "Standart (gömlekli)",
@@ -591,5 +591,7 @@
   "lab.warning.cu_consolidation_inconsistent": "{test_id} deneyi: hücre basıncı eksi geri basınç ({cell_minus_back} kPa), belirtilen konsolidasyon gerilmesinden ({consolidation} kPa) farklı.",
   "lab.warning.cu_total_negative_cohesion": "Toplam gerilme kohezyonu negatif çıktı, orijinden geçecek şekilde yeniden uydurulup (yalnız bilgi).",
   "lab.warning.cu_total_fit_failed": "Bu deneylerden toplam gerilme zarfı uydurulamadı (yalnız bilgi).",
-  "lab.warning.void_ratio_invalid": "Hesaplanan boşluk oranı {e} pozitif değil: birim hacim ağırlığı, su muhtevası ve Gs tutarsız; türetilen faz değerleri hesaplanmadı."
+  "lab.warning.void_ratio_invalid": "Hesaplanan boşluk oranı {e} pozitif değil: birim hacim ağırlığı, su muhtevası ve Gs tutarsız; türetilen faz değerleri hesaplanmadı.",
+  "insitu.warning.spt_energy_ratio_assumed": "{count} SPT kaydında enerji oranı belirtilmedi: ER = %{energy_ratio} varsayıldı.",
+  "insitu.warning.spt_rod_length_assumed": "{count} SPT kaydında çubuk boyu belirtilmedi: deney derinliği + {stickup} m alındı."
 }

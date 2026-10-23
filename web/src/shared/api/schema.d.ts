@@ -2019,10 +2019,9 @@ export interface components {
             gwt_depth?: number | null;
             /**
              * Energy Ratio
-             * @description Hammer energy ratio ER [%]
-             * @default 60
+             * @description Hammer energy ratio ER [%]; None is processed as 60 % with a warning
              */
-            energy_ratio: number;
+            energy_ratio?: number | null;
             /**
              * Borehole Diameter Mm
              * @default 100
@@ -3378,6 +3377,41 @@ export interface components {
              * @default
              */
             notes: string;
+            /**
+             * Blows
+             * @description Blows per 150 mm increment: seating drive, then the two counted drives
+             */
+            blows?: number[] | null;
+            /**
+             * Drive Start
+             * @description Start of the test drive [m]
+             */
+            drive_start?: number | null;
+            /**
+             * Drive End
+             * @description End of the test drive [m]
+             */
+            drive_end?: number | null;
+            /**
+             * Rod Length
+             * @description Rod length below the hammer [m]
+             */
+            rod_length?: number | null;
+            /**
+             * Energy Ratio
+             * @description ER [%]; borehole value if None
+             */
+            energy_ratio?: number | null;
+            /**
+             * Borehole Diameter Mm
+             * @description Borehole value if None
+             */
+            borehole_diameter_mm?: number | null;
+            /**
+             * Sampler
+             * @description Borehole value if None
+             */
+            sampler?: ("standard" | "no_liner") | null;
         };
         /** SafetyFactorGuidance */
         SafetyFactorGuidance: {

@@ -116,8 +116,9 @@ function EditorBody({ target, onClose, onSaved }: { target: EditTarget } & Pick<
               min={1}
               max={100}
               decimalScale={1}
-              value={(draft as Borehole).energy_ratio ?? 60}
-              onChange={(v) => patch({ energy_ratio: num(v) ?? 60 })}
+              placeholder="60"
+              value={(draft as Borehole).energy_ratio ?? ""}
+              onChange={(v) => patch({ energy_ratio: num(v) })}
             />
             <NumberInput
               label={t("web.site.diameter")}
