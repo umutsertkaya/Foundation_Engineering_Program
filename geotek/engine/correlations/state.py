@@ -16,7 +16,7 @@ from geotek.engine.correlations.registry import register
 @register(
     id="Jamiolkowski1985_Dr_CPT", parameter="Dr", unit="%", source="CPT",
     inputs=("qc", "sigma_v_eff"),
-    reference="Jamiolkowski et al. (1985), as given in the course exercise set",
+    reference="Jamiolkowski et al. (1985), as given in the course exercise set (slide heading says 1990, figure caption 1985)",
     reliability="C",
     validity="Clean, uncemented, normally consolidated sands (I_c < 2.6); compressibility changes the fit",
     check=sand_like,
@@ -32,7 +32,8 @@ def dr_jamiolkowski_cpt(qc, sigma_v_eff):
     reference="Kulhawy & Mayne (1990), as given in the course exercise set",
     reliability="C",
     validity="Intact clays; fissured clays plot above the line. The source slide writes N without stating "
-             "the energy correction: N60 is used here",
+             "the energy correction and its worked example uses a (N1)60 column: N60 is used here; "
+             "Pa = 101.325 kPa",
     check=clay_like,
 )
 def ocr_kulhawy_mayne_spt(N60, sigma_v_eff):
@@ -45,7 +46,8 @@ def ocr_kulhawy_mayne_spt(N60, sigma_v_eff):
     inputs=("qt", "sigma_v", "sigma_v_eff"),
     reference="Kulhawy & Mayne (1990), as given in the course exercise set",
     reliability="C",
-    validity="Clays (I_c >= 2.6), (q_t - sigma_v0)/sigma'_v0 up to about 60 in the source data",
+    validity="Intact clays (I_c >= 2.6); source data reach (q_t - sigma_v0)/sigma'_v0 of about 50; "
+             "fissured clays plot above the line",
     check=clay_like,
 )
 def k0_kulhawy_mayne_cpt(qt, sigma_v, sigma_v_eff):
@@ -58,7 +60,8 @@ def k0_kulhawy_mayne_cpt(qt, sigma_v, sigma_v_eff):
     inputs=("qt", "sigma_v"),
     reference="Kulhawy & Mayne (1990), as given in the course exercise set",
     reliability="C",
-    validity="Clays (I_c >= 2.6); data scatter is large (S.D. about 67 Pa in the source)",
+    validity="Clays (I_c >= 2.6); source data span (q_t - sigma_v0)/Pa of about 1-55, scatter is large "
+             "(S.D. = 67 Pa in the source), sensitive clays plot above the line",
     check=clay_like,
 )
 def m_kulhawy_mayne_cpt(qt, sigma_v):
@@ -74,6 +77,7 @@ def _gmax(coefficient: float, exponent: float):
     return lambda N60, gamma_layer: gamma_layer / G * (coefficient * N60**exponent) ** 2
 
 
+_R = {"all": 0.71, "clay": 0.56, "sand": 0.75}
 _HASANCEBI = {
     "all": (104.79, 0.26, None),
     "clay": (131.0, 0.205, clay_like),
@@ -82,7 +86,8 @@ _HASANCEBI = {
 for _name, (_c, _e, _scope) in _HASANCEBI.items():
     _check = all_of(*(c for c in (_scope, in_range("N60", 1, 50)) if c is not None))
     _ref = "Hasancebi & Ulusay (2007), as given in the course exercise set"
-    _valid = f"{_name} soils, fit on N60 of about 3-45 (turkish data, r < 0.8)"
+    _valid = (f"{_name} soils, fit on N60 of about 3-45 (Turkish data, r = {_R[_name]}); the soil type "
+              "is only checked when I_c or the layer behaviour is known")
     register(
         id=f"HU2007_Vs_{_name}_SPT", parameter="Vs", unit="m/s", source="SPT", inputs=("N60",),
         reference=_ref, reliability="C", validity=_valid, check=_check,
@@ -90,5 +95,5 @@ for _name, (_c, _e, _scope) in _HASANCEBI.items():
     register(
         id=f"HU2007_Gmax_{_name}_SPT", parameter="Gmax", unit="kPa", source="SPT",
         inputs=("N60", "gamma_layer"), reference=_ref + "; G_max = rho Vs^2", reliability="C",
-        validity=_valid + "; rho from the layer unit weight", check=_check,
+        validity=_valid + "; rho from the layer unit weight gamma (above-GWT value)", check=_check,
     )(_gmax(_c, _e))

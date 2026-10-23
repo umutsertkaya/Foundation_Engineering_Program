@@ -102,7 +102,7 @@ def layer_points(
             point = {name: float(values[i]) for name, values in columns.items()
                      if math.isfinite(values[i])}
             point.update(C_B=float(processed.c_b[i]), C_S=float(processed.c_s[i]),
-                         energy_ratio=float(processed.energy_ratio[i]), gamma_layer=float(layer.gamma))
+                         energy_ratio=float(processed.energy_ratio[i]))
             points.append(point)
     for sounding in project.investigations.cpts:
         if sounding.id not in ids:
@@ -125,7 +125,6 @@ def layer_points(
             point = {name: float(values[i]) for name, values in columns.items()
                      if values is not None and math.isfinite(values[i])}
             point["area_ratio"] = float(sounding.area_ratio)
-            point["gamma_layer"] = float(layer.gamma)
             points.append(point)
     points.extend(_lab_point(lab) for lab in _layer_lab(project, profile, layer))
     return sorted(points, key=lambda point: (point["depth"], _point_json(point)))
@@ -192,7 +191,7 @@ def _apply_layer_context(candidates: list[DerivedParameter], context: str) -> No
 
 def evaluate_candidates(
     points: list[dict[str, float]], key: DesignKey, lab: list[LabRecord],
-    layer_context: str | None = None,
+    layer_context: str | None = None, gamma_layer: float | None = None,
 ) -> list[DerivedParameter]:
     """One mean and depth spread per registry method, plus measured lab values.
 
@@ -212,6 +211,10 @@ def evaluate_candidates(
     by_method: dict[str, list[DerivedParameter]] = {}
     for point in evaluation_points:
         inputs = {name: float(value) for name, value in point.items() if math.isfinite(value)}
+        if gamma_layer is not None:
+            # Evaluation context only: kept out of the hashed points so approving gamma
+            # does not revoke its own (and every other) approval of the layer.
+            inputs["gamma_layer"] = float(gamma_layer)
         for correlation in registry.applicable(key, inputs):
             try:
                 result = registry.evaluate(correlation.id, inputs)
@@ -462,7 +465,7 @@ def refresh_profile(project: Project, profile_id: str) -> SoilProfile:
             layer_context = "sand"
         for key in get_args(DesignKey):
             selection = layer.selections.get(key, ParameterSelection(parameter=key))
-            selection.candidates = evaluate_candidates(points, key, lab, layer_context)
+            selection.candidates = evaluate_candidates(points, key, lab, layer_context, layer.gamma)
             selection.suggested = suggest(selection.candidates, key, context)
             if (fine_grained and key == "c_eff" and selection.suggested is not None
                     and selection.suggested.method_id == "FHWA_GEC5_c_eff"):

@@ -47,3 +47,8 @@ def test_new_methods_unverified_and_registered_per_key():
     for cid in ("KM1990_OCR_SPT", "KM1990_K0_CPT", "KM1990_M_CPT", "Jamiolkowski1985_Dr_CPT", "HU2007_Vs_all_SPT"):
         assert registry.get(cid).verified is False
         assert registry.get(cid).reliability == "C"
+
+
+def test_bounds_mark_unphysical_values_invalid():
+    assert not ev("Jamiolkowski1985_Dr_CPT", qc=1000.0, sigma_v_eff=150.0, Ic=2.0).validity_ok  # Dr < 0
+    assert not ev("KM1990_K0_CPT", qt=3000.0, sigma_v=40.0, sigma_v_eff=30.0, Ic=3.0).validity_ok  # K0 > 5

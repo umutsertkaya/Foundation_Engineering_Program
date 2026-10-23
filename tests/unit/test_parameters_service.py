@@ -553,3 +553,11 @@ def test_sand_only_correlations_not_proposed_for_undrained_clay_layer():
         assert all(any("layer_behaviour_mismatch" in w or "known to be" in w or "bilini" in w
                        for w in c.warnings) for c in sand_only), key
         assert selection.suggested is None or selection.suggested.method_id.startswith("lab")
+
+
+def test_gamma_layer_is_evaluation_context_not_part_of_hashed_points():
+    from geotek.services import parameters
+    candidates = parameters.evaluate_candidates(
+        [{"depth": 1.0, "N60": 15.0}], "Gmax", [], None, 18.0)
+    assert candidates and candidates[0].inputs_used["gamma_layer"] == 18.0
+    assert parameters.evaluate_candidates([{"depth": 1.0, "N60": 15.0}], "Gmax", [], None) == []

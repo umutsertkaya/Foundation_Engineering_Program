@@ -72,6 +72,7 @@ Kaynak: Umut'un cihazındaki tam metin md dönüşümü (`docs/research/Youd.et.
 - Biten: lab motoru (elek, Atterberg, faz, CU üç eksenli), SPT kayıt başına ekipman (ER yoksa %60 görünür varsayım, çubuk boyu yoksa derinlik), `geotek/io/workbook` (analiz/kontrol/aktarma), fs'siz CPT (yalnız qc), web sihirbazı, katman veri envanteri (`GET .../layers/{id}/inventory`).
 - Not: eski proje dosyalarında SPT enerji oranı alanı yoksa uyarı verilir; açıkça 60 yazılıysa sessizdir.
 - Açık: `layer_points` varsayım uyarılarını henüz taşımıyor; `.xls` ve cp1254 CSV desteklenmiyor; yeni korelasyonlar (Dr, OCR, K0, G0/Vs) kaynak doğrulaması ve ayrı onay bekliyor.
+- Faz 6 (2026-10-23): tasarım anahtarları Dr, OCR, K0, Vs, Gmax, M eklendi (`geotek/engine/correlations/state.py`); kaynak Field_Tests_2026 slaytları ve atıf yaptığı yazarlar, hepsi `verified=False`, güvenilirlik C. Gmax için ρ = katman γ'sı (GWT üstü değer); γ özet hash'ine girmez. Açık: özgün makalelere karşı doğrulama; OCR için N60 seçimi slaytta belirtilmemiş; Layer editor sütunları yok (yalnız Parametreler ekranı). Eski sürümler yeni anahtarlı proje dosyasını açamaz.
 - Test (2026-10-23, Linux bulut): pytest 2120+ geçti; web 383 geçti; typecheck, build, kod haritası temiz.
 
 ## Son doğrulama
