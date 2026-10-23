@@ -11,7 +11,10 @@ Source = Literal["SPT", "CPT", "lab", "user", "combined"]
 Reliability = Literal["A", "B", "C"]
 SelectionMode = Literal["correlation", "statistic", "manual"]
 Statistic = Literal["mean", "median", "min", "max", "mean_minus_k_sd"]
-DesignKey = Literal["phi_eff", "c_eff", "su", "E", "gamma", "gamma_sat", "delta_base"]
+DesignKey = Literal[
+    "phi_eff", "c_eff", "su", "E", "gamma", "gamma_sat", "delta_base",
+    "Dr", "OCR", "K0", "Vs", "Gmax", "M",
+]
 """Layer quantities the engineer selects and approves (DesignParameters fields plus unit weights)."""
 
 

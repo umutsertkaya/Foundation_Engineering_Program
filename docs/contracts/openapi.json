@@ -8005,7 +8005,13 @@
                 "E",
                 "gamma",
                 "gamma_sat",
-                "delta_base"
+                "delta_base",
+                "Dr",
+                "OCR",
+                "K0",
+                "Vs",
+                "Gmax",
+                "M"
               ],
               "type": "string",
               "title": "Key"
@@ -12475,6 +12481,86 @@
             ],
             "title": "Delta Base",
             "description": "Base friction angle [deg]"
+          },
+          "Dr": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 100.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Dr",
+            "description": "Relative density [%]"
+          },
+          "OCR": {
+            "anyOf": [
+              {
+                "type": "number",
+                "exclusiveMinimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ocr",
+            "description": "Overconsolidation ratio [-]"
+          },
+          "K0": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 5.0,
+                "exclusiveMinimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "K0",
+            "description": "At-rest earth pressure coefficient [-]"
+          },
+          "Vs": {
+            "anyOf": [
+              {
+                "type": "number",
+                "exclusiveMinimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Vs",
+            "description": "Shear wave velocity [m/s]"
+          },
+          "Gmax": {
+            "anyOf": [
+              {
+                "type": "number",
+                "exclusiveMinimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Gmax",
+            "description": "Small-strain shear modulus [kPa]"
+          },
+          "M": {
+            "anyOf": [
+              {
+                "type": "number",
+                "exclusiveMinimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "M",
+            "description": "Constrained (oedometer) modulus [kPa]"
           }
         },
         "type": "object",
@@ -13228,7 +13314,13 @@
               "E",
               "gamma",
               "gamma_sat",
-              "delta_base"
+              "delta_base",
+              "Dr",
+              "OCR",
+              "K0",
+              "Vs",
+              "Gmax",
+              "M"
             ],
             "title": "Parameter"
           },
@@ -14134,7 +14226,13 @@
                 "E",
                 "gamma",
                 "gamma_sat",
-                "delta_base"
+                "delta_base",
+                "Dr",
+                "OCR",
+                "K0",
+                "Vs",
+                "Gmax",
+                "M"
               ]
             },
             "type": "array",
@@ -14160,7 +14258,13 @@
               "E",
               "gamma",
               "gamma_sat",
-              "delta_base"
+              "delta_base",
+              "Dr",
+              "OCR",
+              "K0",
+              "Vs",
+              "Gmax",
+              "M"
             ],
             "title": "Parameter"
           },

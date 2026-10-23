@@ -81,7 +81,8 @@ def test_parameter_list_covers_every_design_key(opened):
     response = opened.get(params_path(profile))
     assert response.status_code == 200, response.text
     keys = [item["parameter"] for item in response.json()]
-    assert keys == ["phi_eff", "c_eff", "su", "E", "gamma", "gamma_sat", "delta_base"]
+    assert keys == ["phi_eff", "c_eff", "su", "E", "gamma", "gamma_sat", "delta_base",
+                    "Dr", "OCR", "K0", "Vs", "Gmax", "M"]
     assert any(item["candidates"] for item in response.json())
     assert not any(item["approved"] for item in response.json())
 

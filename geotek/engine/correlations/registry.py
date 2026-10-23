@@ -45,7 +45,9 @@ class Correlation:
 
 REGISTRY: dict[str, Correlation] = {}
 
-NON_NEGATIVE_PARAMETERS = ("su", "E", "sigma_p")
+NON_NEGATIVE_PARAMETERS = ("su", "E", "sigma_p", "Dr", "OCR", "K0", "Vs", "Gmax", "M")
+UPPER_BOUNDS = {"Dr": 100.0, "K0": 5.0}
+"""Largest value the design model accepts; a correlation result above it is marked invalid."""
 """Parameters whose correlation results must not be negative (negative -> validity_ok False)."""
 
 
@@ -119,8 +121,9 @@ def evaluate(correlation_id: str, inputs: Mapping[str, float], **options: float)
         warnings.append("Value not computable for these inputs")
     elif value < 0 and c.parameter in NON_NEGATIVE_PARAMETERS:
         warnings.append(f"Negative {c.parameter} ({value:.4g}) is not physical; result marked invalid")
-    elif c.parameter == "Dr" and value > 100.0:
-        warnings.append(f"Dr = {value:.1f} % exceeds 100 %; result marked invalid")
+    elif c.parameter in UPPER_BOUNDS and value > UPPER_BOUNDS[c.parameter]:
+        warnings.append(
+            f"{c.parameter} = {value:.4g} exceeds {UPPER_BOUNDS[c.parameter]:g}; result marked invalid")
     return DerivedParameter(
         value=value, unit=c.unit, method_id=c.id, reference=c.reference, source=c.source,
         inputs_used={**args, **opts}, validity_ok=not warnings, warnings=warnings,

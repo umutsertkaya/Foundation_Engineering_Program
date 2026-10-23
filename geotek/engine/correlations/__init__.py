@@ -1,6 +1,6 @@
 """Empirical correlations. Importing this package registers every correlation."""
 
-from geotek.engine.correlations import physical, stiffness, strength  # noqa: F401
+from geotek.engine.correlations import physical, state, stiffness, strength  # noqa: F401
 from geotek.engine.correlations.registry import (
     REGISTRY,
     Correlation,

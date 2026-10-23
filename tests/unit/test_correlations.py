@@ -22,6 +22,16 @@ HAND_CALCS = [
     ("Skempton1986_Dr_SPT", {"N1_60": 15}, 50.0),
     ("Mayne_sigp_CPT", {"qt": 1000, "sigma_v": 100}, 297.0),
     ("BI2014_FC_CPT", {"Ic": 2.0}, 23.0),
+    ("Jamiolkowski1985_Dr_CPT", {"qc": 10000, "sigma_v_eff": 100}, 67.0),
+    ("KM1990_OCR_SPT", {"N60": 9, "sigma_v_eff": 100, "Ic": 3.0}, 5.2893),
+    ("KM1990_K0_CPT", {"qt": 1500, "sigma_v": 200, "sigma_v_eff": 100, "Ic": 3.0}, 1.3),
+    ("KM1990_M_CPT", {"qt": 1500, "sigma_v": 200, "Ic": 3.0}, 10725.0),
+    ("HU2007_Vs_all_SPT", {"N60": 15}, 211.9),
+    ("HU2007_Vs_clay_SPT", {"N60": 9, "Ic": 3.0}, 205.5),
+    ("HU2007_Vs_sand_SPT", {"N60": 15, "Ic": 1.5}, 204.5),
+    ("HU2007_Gmax_all_SPT", {"N60": 15, "gamma_layer": 18}, 82377.9),
+    ("HU2007_Gmax_clay_SPT", {"N60": 9, "gamma_layer": 18, "Ic": 3.0}, 77515.0),
+    ("HU2007_Gmax_sand_SPT", {"N60": 15, "gamma_layer": 18, "Ic": 1.5}, 76725.1),
 ]
 
 

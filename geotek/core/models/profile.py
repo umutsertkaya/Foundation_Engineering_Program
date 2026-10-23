@@ -44,6 +44,12 @@ class DesignParameters(BaseModel):
     su: float | None = Field(None, ge=0, description="[kPa]")
     E: float | None = Field(None, gt=0, description="[kPa]")
     delta_base: float | None = Field(None, ge=0, le=60, description="Base friction angle [deg]")
+    Dr: float | None = Field(None, ge=0, le=100, description="Relative density [%]")
+    OCR: float | None = Field(None, gt=0, description="Overconsolidation ratio [-]")
+    K0: float | None = Field(None, gt=0, le=5, description="At-rest earth pressure coefficient [-]")
+    Vs: float | None = Field(None, gt=0, description="Shear wave velocity [m/s]")
+    Gmax: float | None = Field(None, gt=0, description="Small-strain shear modulus [kPa]")
+    M: float | None = Field(None, gt=0, description="Constrained (oedometer) modulus [kPa]")
 
 
 class SoilLayer(BaseModel):

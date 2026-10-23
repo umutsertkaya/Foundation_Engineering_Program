@@ -2406,6 +2406,36 @@ export interface components {
              * @description Base friction angle [deg]
              */
             delta_base?: number | null;
+            /**
+             * Dr
+             * @description Relative density [%]
+             */
+            Dr?: number | null;
+            /**
+             * Ocr
+             * @description Overconsolidation ratio [-]
+             */
+            OCR?: number | null;
+            /**
+             * K0
+             * @description At-rest earth pressure coefficient [-]
+             */
+            K0?: number | null;
+            /**
+             * Vs
+             * @description Shear wave velocity [m/s]
+             */
+            Vs?: number | null;
+            /**
+             * Gmax
+             * @description Small-strain shear modulus [kPa]
+             */
+            Gmax?: number | null;
+            /**
+             * M
+             * @description Constrained (oedometer) modulus [kPa]
+             */
+            M?: number | null;
         };
         /** EnvelopeResult */
         EnvelopeResult: {
@@ -2674,7 +2704,7 @@ export interface components {
              * Parameter
              * @enum {string}
              */
-            parameter: "phi_eff" | "c_eff" | "su" | "E" | "gamma" | "gamma_sat" | "delta_base";
+            parameter: "phi_eff" | "c_eff" | "su" | "E" | "gamma" | "gamma_sat" | "delta_base" | "Dr" | "OCR" | "K0" | "Vs" | "Gmax" | "M";
             /** Methods */
             methods: components["schemas"]["MethodAvailability"][];
         };
@@ -3049,7 +3079,7 @@ export interface components {
          */
         ParameterApproval: {
             /** Keys */
-            keys: ("phi_eff" | "c_eff" | "su" | "E" | "gamma" | "gamma_sat" | "delta_base")[];
+            keys: ("phi_eff" | "c_eff" | "su" | "E" | "gamma" | "gamma_sat" | "delta_base" | "Dr" | "OCR" | "K0" | "Vs" | "Gmax" | "M")[];
         };
         /**
          * ParameterSelection
@@ -3066,7 +3096,7 @@ export interface components {
              * Parameter
              * @enum {string}
              */
-            parameter: "phi_eff" | "c_eff" | "su" | "E" | "gamma" | "gamma_sat" | "delta_base";
+            parameter: "phi_eff" | "c_eff" | "su" | "E" | "gamma" | "gamma_sat" | "delta_base" | "Dr" | "OCR" | "K0" | "Vs" | "Gmax" | "M";
             /** Candidates */
             candidates?: components["schemas"]["DerivedParameter"][];
             suggested?: components["schemas"]["DerivedParameter"] | null;
@@ -11103,7 +11133,7 @@ export interface operations {
             path: {
                 id: string;
                 layer_id: string;
-                key: "phi_eff" | "c_eff" | "su" | "E" | "gamma" | "gamma_sat" | "delta_base";
+                key: "phi_eff" | "c_eff" | "su" | "E" | "gamma" | "gamma_sat" | "delta_base" | "Dr" | "OCR" | "K0" | "Vs" | "Gmax" | "M";
             };
             cookie?: never;
         };

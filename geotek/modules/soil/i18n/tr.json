@@ -177,5 +177,11 @@
   "soil.error.depth_outside_title": "Kaynak etkin profilden daha derin",
   "soil.error.depth_outside": "Etkin zemin profili {profile_depth} m derinliğe iniyor, bu kaynak ise {source_depth} m'ye kadar uzanıyor. Tabakalama gerilmeleri etkin profilden alınır. Zemin profilleri sayfasında etkin profili derinleştirin (veya daha derin bir profili etkin yapın) ve yeniden deneyin.",
   "soil.error.depth_outside_nosrc": "Etkin zemin profili yalnızca {profile_depth} m derinliğe iniyor; bu kaynaktan sığ. Tabakalama gerilmeleri etkin profilden alınır. Zemin profilleri sayfasında etkin profili derinleştirin (veya daha derin bir profili etkin yapın) ve yeniden deneyin.",
-  "soil.layering.stress_profile_note": "Gerilmeler etkin profilden hesaplanır; etkin profil kaynak kadar derin olmalıdır."
+  "soil.layering.stress_profile_note": "Gerilmeler etkin profilden hesaplanır; etkin profil kaynak kadar derin olmalıdır.",
+  "soil.params.key.Dr": "Rölatif sıklık Dr",
+  "soil.params.key.OCR": "Aşırı konsolidasyon oranı OCR",
+  "soil.params.key.K0": "Sükûnetteki yanal basınç katsayısı K0",
+  "soil.params.key.Vs": "Kayma dalgası hızı Vs",
+  "soil.params.key.Gmax": "Küçük birim şekil değiştirme kayma modülü Gmax",
+  "soil.params.key.M": "Sıkışma (ödometre) modülü M"
 }
