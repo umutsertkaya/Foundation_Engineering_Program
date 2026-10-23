@@ -24,7 +24,8 @@ def test_conversion_maps_valid_fields_without_approving_design_values():
     before = asdict(result)
     layers = proposal_to_layers(result, id_prefix="soil-", gamma={1: (19, 21)})
     assert [layer.id for layer in layers] == ["soil-1", "soil-2"]
-    assert [(layer.gamma, layer.gamma_sat) for layer in layers] == [(18.5, 18.5), (19, 21)]
+    # No gamma_sat suggestion: it stays unset instead of silently equalling gamma.
+    assert [(layer.gamma, layer.gamma_sat) for layer in layers] == [(18.5, None), (19, 21)]
     for layer, proposed in zip(layers, result.layers):
         for field in ("top", "bottom", "description", "uscs", "sbtn_zone", "behaviour"):
             assert getattr(layer, field) == getattr(proposed, field)
@@ -56,16 +57,23 @@ def test_conversion_lists_all_missing_zero_based_indices(gamma, missing):
 
 def test_suggested_weights_take_precedence_over_supplied_weights():
     layers = proposal_to_layers(proposal([18]), id_prefix="CPT-", gamma={0: (20, 22)})
-    assert layers[0].gamma == 18 and layers[0].gamma_sat == 18
+    assert layers[0].gamma == 18 and layers[0].gamma_sat is None
+
+
+def test_suggested_saturated_weight_is_converted_with_the_suggested_weight():
+    result = proposal([18])
+    result.layers[0].gamma_sat_suggested = 19.5
+    layers = proposal_to_layers(result, id_prefix="CPT-", gamma={0: (20, 22)})
+    assert (layers[0].gamma, layers[0].gamma_sat) == (18, 19.5)
 
 
 def test_suggested_weights_need_no_gamma_dictionary():
     assert proposal_to_layers(proposal([18]), id_prefix="L")[0].gamma == 18
 
 
-def test_explicit_none_saturated_weight_uses_existing_model_convention():
+def test_explicit_none_saturated_weight_stays_unset():
     layers = proposal_to_layers(proposal([None]), id_prefix="L", gamma={0: (19, None)})
-    assert layers[0].gamma == 19 and layers[0].gamma_sat == 19
+    assert layers[0].gamma == 19 and layers[0].gamma_sat is None
 
 
 def test_missing_soil_classification_is_preserved():

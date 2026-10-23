@@ -29,8 +29,8 @@ def sourced_profile(client, source="C1"):
     payload = deepcopy(CREATE)
     payload.update(origin="cpt", source_ids=[source])
     payload["layers"] = [
-        {"id": "a", "top": 0, "bottom": 5, "gamma": 18, "source_ids": [source]},
-        {"id": "b", "top": 5, "bottom": 10, "gamma": 19, "source_ids": [source]},
+        {"id": "a", "top": 0, "bottom": 5, "gamma": 18, "gamma_sat": 18, "source_ids": [source]},
+        {"id": "b", "top": 5, "bottom": 10, "gamma": 19, "gamma_sat": 19, "source_ids": [source]},
     ]
     return create_profile(client, payload)
 
@@ -49,6 +49,8 @@ def test_cpt_layering_is_read_only_and_translatable(opened):
     body = response.json()
     assert body["source_id"] == "C1" and body["layers"]
     assert body["layers"][0]["top"] == 0
+    # The in-situ water table (2 m) splits the CPT unit weight estimate into gamma / gamma_sat.
+    assert all("gamma_sat_suggested" in layer for layer in body["layers"])
     catalog = _catalog("en")
     for warning in body["warnings"]:
         code, _ = parse_warning(warning)
@@ -203,3 +205,95 @@ def test_approve_without_selection_after_suggest_all_is_422(opened):
                        ).status_code == 200
     response = opened.post(params_path(profile, suffix="/approve"), json={"keys": ["phi_eff"]})
     assert response.status_code == 422 and error_code(response) == "validation"
+
+
+def _approved_phi(opened):
+    """Upload the CPT, approve the first valid phi' method of layer a; return profile and method."""
+    assert upload(opened, content=CPT_CSV).status_code == 200
+    profile = sourced_profile(opened)
+    listed = opened.get(params_path(profile)).json()
+    method = next(c["method_id"] for c in listed[0]["candidates"] if c["validity_ok"])
+    assert opened.put(params_path(profile, suffix="/phi_eff"),
+                      json={"mode": "correlation", "method_id": method}).status_code == 200
+    approved = opened.post(params_path(profile, suffix="/approve"), json={"keys": ["phi_eff"]})
+    assert approved.status_code == 200, approved.text
+    return profile, method
+
+
+def _change_cpt(opened):
+    depths = [0.5 * i for i in range(1, 21)]
+    changed = {"id": "C1", "depth": depths, "qc": [8000 + 100 * i for i in range(20)],
+               "fs": [30 + i for i in range(20)]}
+    assert opened.put(f"{PREFIX}/cpts/C1", json=changed).status_code == 200
+
+
+def test_readiness_reports_unit_weights_and_stale_approvals(opened):
+    profile, _ = _approved_phi(opened)
+    path = f"{PREFIX}/profiles/{profile['id']}/readiness"
+    first = opened.get(path)
+    assert first.status_code == 200, first.text
+    layers = first.json()
+    assert [row["layer_id"] for row in layers] == [layer["id"] for layer in profile["layers"]]
+    # gamma_sat equals gamma in the stored layer and was never approved: made visible.
+    assert all(row["gamma_sat_equals_gamma_unapproved"] and not row["gamma_approved"]
+               and not row["gamma_sat_missing_below_gwt"] for row in layers)
+    assert layers[0]["stale_keys"] == []
+    _change_cpt(opened)
+    assert opened.get(path).json()[0]["stale_keys"] == ["phi_eff"]
+    assert opened.get(f"{PREFIX}/profiles/nope/readiness").status_code == 404
+
+
+def test_inventory_flags_missing_gamma_sat_below_the_water_table(opened):
+    payload = deepcopy(CREATE)
+    payload["layers"][0].pop("gamma_sat")
+    profile = create_profile(opened, payload)
+    assert profile["layers"][0]["gamma_sat"] is None  # not defaulted to gamma
+    layer_id = profile["layers"][0]["id"]
+    response = opened.get(f"{PREFIX}/profiles/{profile['id']}/layers/{layer_id}/inventory")
+    assert response.status_code == 200, response.text
+    assert response.json()["stress_issue"] == "gamma_sat_missing"
+    readiness = opened.get(f"{PREFIX}/profiles/{profile['id']}/readiness").json()
+    assert readiness[0]["gamma_sat_missing_below_gwt"] is True
+
+
+def test_withdrawn_approval_shows_its_reason_and_is_renewed_by_reapprove(opened):
+    profile, method = _approved_phi(opened)
+    old = opened.get(f"{PREFIX}/profiles/{profile['id']}").json()["layers"][0]
+    old_basis = old["selections"]["phi_eff"]["basis_hash"]
+    assert "." in old_basis
+    _change_cpt(opened)
+    phi = next(s for s in opened.get(params_path(profile)).json() if s["parameter"] == "phi_eff")
+    assert phi["approved"] is False and phi["stale_reason"] in ("data_changed", "stress_changed")
+    assert phi["refreshed"]["method_id"] == method
+    fresh = phi["refreshed"]["value"]
+    assert fresh != phi["selected"]["value"]
+    url = f"{PREFIX}/profiles/{profile['id']}/parameters/reapprove"
+    layer_id = profile["layers"][0]["id"]
+    wrong = opened.post(url, json={"items": [
+        {"layer_id": layer_id, "key": "phi_eff", "expected_value": fresh + 1.0}]})
+    assert wrong.status_code == 409 and error_code(wrong) == "reapprove_value_changed"
+    # Nothing was approved by the failed call.
+    stored = opened.get(f"{PREFIX}/profiles/{profile['id']}").json()["layers"][0]
+    assert stored["design"]["phi_eff"] == old["design"]["phi_eff"]
+    ok = opened.post(url, json={"items": [
+        {"layer_id": layer_id, "key": "phi_eff", "expected_value": fresh}]})
+    assert ok.status_code == 200, ok.text
+    layer = ok.json()["layers"][0]
+    assert layer["design"]["phi_eff"] == pytest.approx(fresh)
+    renewed = layer["selections"]["phi_eff"]
+    assert renewed["approved"] is True and renewed["stale_reason"] is None
+    assert renewed["basis_hash"] != old_basis
+    assert [k for k, v in layer["selections"].items() if v["approved"]] == ["phi_eff"]
+    assert opened.post(url, json={"items": []}).status_code == 422
+
+
+def test_unit_weight_edited_in_the_table_becomes_the_manual_unapproved_choice(opened):
+    profile = create_profile(opened)
+    path = f"{PREFIX}/profiles/{profile['id']}"
+    edited = opened.get(path).json()
+    edited["layers"][0]["gamma"] = 19.5
+    response = opened.put(path, json=edited)
+    assert response.status_code == 200, response.text
+    selection = response.json()["layers"][0]["selections"]["gamma"]
+    assert (selection["mode"], selection["manual_value"]) == ("manual", 19.5)
+    assert selection["selected"]["value"] == 19.5 and selection["approved"] is False

@@ -233,7 +233,7 @@ def test_log_empty_processed_tests():
 
 def project_for(bh, *, with_profile=True):
     profiles = [SoilProfile(id="P", gwt=GroundwaterCondition(depth_insitu=2), layers=[
-        SoilLayer(id="L", top=0, bottom=20, gamma=18),
+        SoilLayer(id="L", top=0, bottom=20, gamma=18, gamma_sat=18),
     ])] if with_profile else []
     return Project(meta=ProjectMeta(name="SPT layering"),
                    investigations=Investigations(boreholes=[bh]), soil_profiles=profiles)
@@ -262,12 +262,12 @@ def test_spt_csv_service_structure_and_processing(method):
         assert (layer.n60_mean is not None or
                 any(w.startswith("layering.warning.refusal_in_layer:") for w in result.warnings))
         assert layer.gamma_suggested is None
-    # ER=60%, CB=CS=1. CR at z=[1.5,3,4.5,6,7.5] is [.75,.80,.85,.95,.95].
-    # The first group's corrected N is [4.5,4,5.95,3.8,2.85]; mean=21.1/5=4.22.
+    # ER=60%, CB=CS=1. CR at z=[1.5,3,4.5,6,7.5] is [.75,.75,.85,.95,.95] (3-4 m class: 0.75).
+    # The first group's corrected N is [4.5,3.75,5.95,3.8,2.85]; mean=20.85/5=4.17.
     # All successive relative deviations stay <= .5, until N60=20.9 at z=9.
     # This proves service processing precedes statistics.
     if method == "spt_uscs_n":
-        assert result.layers[0].n60_mean == pytest.approx(4.22)
+        assert result.layers[0].n60_mean == pytest.approx(4.17)
     assert "layering.warning.processing_warnings" in result.warnings  # refusal
     assert LayeringProposal.model_validate(result).settings == opts
 

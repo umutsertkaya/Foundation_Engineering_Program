@@ -39,7 +39,7 @@ def test_vs_and_gmax_hasancebi():
     assert ev("HU2007_Vs_sand_SPT", N60=15.0, Ic=1.5).value == pytest.approx(107.63 * 15**0.237)
     vs = 104.79 * 15**0.26
     # G = rho Vs^2 with rho = gamma / g [t/m3] gives kPa
-    assert ev("HU2007_Gmax_all_SPT", N60=15.0, gamma_layer=18.0).value == pytest.approx(18.0 / 9.81 * vs**2)
+    assert ev("HU2007_Gmax_all_SPT", N60=15.0, gamma_point=18.0).value == pytest.approx(18.0 / 9.81 * vs**2)
     assert not ev("HU2007_Vs_sand_SPT", N60=15.0, Ic=3.0).validity_ok
 
 

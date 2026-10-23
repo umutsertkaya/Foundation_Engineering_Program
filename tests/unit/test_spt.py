@@ -12,7 +12,7 @@ from geotek.engine.insitu.spt import (
 
 
 def test_equipment_factors():
-    assert rod_length_factor([2.0, 3.5, 5.0, 8.0, 12.0]).tolist() == [0.75, 0.80, 0.85, 0.95, 1.0]
+    assert rod_length_factor([2.0, 3.5, 5.0, 8.0, 12.0]).tolist() == [0.75, 0.75, 0.85, 0.95, 1.0]
     assert borehole_diameter_factor(100) == 1.0
     assert borehole_diameter_factor(150) == 1.05
     assert borehole_diameter_factor(200) == 1.15
@@ -64,10 +64,12 @@ def test_spt_warnings_are_translatable_codes(two_layer_profile, lang):
     assert text != code and "2.5, 4" in text and "{" not in text
 
 
-def test_rod_length_factor_matches_youd_2001_table_2():
-    # Youd et al. (2001) Table 2: <3 m 0.75; 3-4 m 0.80; 4-6 m 0.85; 6-10 m 0.95; 10-30 m 1.0
+def test_rod_length_factor_follows_skempton_and_tbdy_in_the_3_to_4_m_class():
+    # Youd et al. (2001) Table 2 gives 0.80 for 3-4 m; Skempton (1986) and TBDY 2018 Table 16B.1
+    # give 0.75, which is used (lower N60: safe side for phi', Dr and CRR).
+    # <3 m 0.75; 3-4 m 0.75; 4-6 m 0.85; 6-10 m 0.95; 10-30 m 1.0
     assert rod_length_factor([2.99, 3.0, 3.99, 4.0, 6.0, 10.0]).tolist() == [
-        0.75, 0.80, 0.80, 0.85, 0.95, 1.0]
+        0.75, 0.75, 0.75, 0.85, 0.95, 1.0]
 
 
 def test_n_from_blows_and_refusal():

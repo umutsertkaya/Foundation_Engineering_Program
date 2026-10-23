@@ -25,7 +25,7 @@ SPT_CSV = b"depth,N\n1,10\n2,50/12\n"
 CPT = {"id": "C1", "depth": [1, 2], "qc": [2000, 3000], "fs": [20, 25]}
 CREATE = {
     "name": "Manual", "origin": "manual", "source_ids": [], "gwt": {"depth_insitu": 2},
-    "layers": [{"id": "client-id", "top": 0, "bottom": 20, "gamma": 18,
+    "layers": [{"id": "client-id", "top": 0, "bottom": 20, "gamma": 18, "gamma_sat": 18,
                 "design": {"phi_eff": 30}}],
 }
 PROFILE = {"id": "P1", **{k: v for k, v in CREATE.items() if k != "layers"},
@@ -716,8 +716,12 @@ def test_merge_keeps_equal_design_values_stale_from_both_layers(opened, reverse)
     previous = {**profile["layers"][1]["selections"], **profile["layers"][0]["selections"]}
     assert_stale_selections(merged, previous)
     assert {k: merged["design"][k] for k in values} == values
-    assert "Warning" not in response.headers
-    assert merged["gamma"] == 18
+    # gamma 18 and 21 over equal thicknesses: the merged layer keeps the total stress at its base,
+    # (18 * 10 + 21 * 10) / 20 = 19.5, and says so; gamma_sat is unset in both layers (no warning).
+    assert response.headers["Warning"] == (
+        '299 geotek "Unit weight gamma differs between merged layers; '
+        'thickness-weighted value 19.5000 written, approval required."')
+    assert merged["gamma"] == 19.5 and merged["gamma_sat"] is None
     assert untouched == profile["layers"][2]
     assert opened.get(path).json() == response.json()
     assert opened.app.state.session.dirty is True
@@ -753,6 +757,7 @@ def test_merge_clears_conflicting_design_values_and_warns(opened, key, other, re
         "parameter": key, "candidates": [], "suggested": None, "mode": None,
         "method_id": None, "statistic": None, "k_sd": None, "manual_value": None,
         "selected": None, "approved": False, "approved_at": None, "basis_hash": None,
+        "stale_reason": None, "refreshed": None,
     }
     retained = {name: state for name, state in merged["selections"].items() if name != key}
     assert_stale_selections({**merged, "selections": retained}, {
@@ -839,7 +844,8 @@ def test_split_merge_preserve_values_and_structure_copies(opened):
     assert session.project.structures[0].soil.model_dump() == before_copy
     assert opened.get("/api/session").json()["dirty"] is True
     clean(opened)
-    # Reversed request order still keeps the geometrically upper layer's properties.
+    # Reversed request order still keeps the geometrically upper layer's properties, except the
+    # unit weight: differing values merge to the thickness-weighted mean.
     changed = response.json()
     changed["layers"][1]["gamma"] = 21
     assert opened.put(path, json=changed).status_code == 200
@@ -848,7 +854,9 @@ def test_split_merge_preserve_values_and_structure_copies(opened):
     assert response.status_code == 200, response.text
     merged = response.json()["layers"]
     assert len(merged) == 1 and merged[0]["id"] == layer_id
-    assert merged[0]["bottom"] == 20 and merged[0]["gamma"] == 18
+    # gamma 18 over 5 m and 21 over 15 m: (18 * 5 + 21 * 15) / 20 = 20.25
+    assert merged[0]["bottom"] == 20 and merged[0]["gamma"] == 20.25
+    assert "Unit weight gamma differs" in response.headers["Warning"]
     assert opened.get("/api/session").json()["dirty"] is True
     assert session.project.structures[0].soil.model_dump() == before_copy
     changed = response.json()

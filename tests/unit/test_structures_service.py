@@ -103,11 +103,20 @@ def test_missing_partial_global_action_factors_surface_before_calculation(monkey
     assert path in {m.path for m in error.value.missing}
 
 
+def _basic_soil():
+    """Basic-input soil with gamma_sat stated as gamma: the model no longer defaults it, and the
+    wet-ground tests below need a saturated unit weight (same numbers as the former default)."""
+    soil = soil_from_basic(BASIC, 0.6)
+    for layer in [*soil.profile.layers, *soil.retained_fill]:
+        layer.gamma_sat = layer.gamma
+    return soil
+
+
 def _project(*, with_global=False, sds=0.5, advanced=False, code="asd", geometry=True):
     structure = RetainingWallStructure(
         id="wall", wall_type="cantilever", height=5, embedment=0.6,
         geometry=proportion_for("cantilever", 5, 4.6, 0.6) if geometry else None,
-        soil=soil_from_basic(BASIC, 0.6),
+        soil=_basic_soil(),
         inputs=WallDesignInputs(surcharge=10, sds=sds, include_global_stability=with_global),
         settings=WallSettings(design_code=code), analysis_level="advanced" if advanced else "basic",
         approach="TBDY" if code == "tbdy2018" else None,

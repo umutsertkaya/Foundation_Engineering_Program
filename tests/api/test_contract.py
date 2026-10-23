@@ -108,6 +108,9 @@ REQUESTS = [
      {"mode": "manual", "manual_value": 30}),
     ("POST", "/api/m/soil/profiles/{id}/layers/{layer_id}/parameters/approve", {"keys": ["phi_eff"]}),
     ("POST", "/api/m/soil/profiles/{id}/parameters/suggest-all", None),
+    ("POST", "/api/m/soil/profiles/{id}/parameters/reapprove",
+     {"items": [{"layer_id": "L1", "key": "phi_eff", "expected_value": 30}]}),
+    ("GET", "/api/m/soil/profiles/{id}/readiness", None),
     ("GET", "/api/data/profiles", None),
     ("GET", "/api/structures", None),
     ("POST", "/api/structures", {
@@ -178,6 +181,7 @@ IMPLEMENTED = {
         "/api/m/soil/profiles/{id}/layers/{layer_id}/parameters/{key}",
         "/api/m/soil/profiles/{id}/layers/{layer_id}/parameters/approve",
         "/api/m/soil/profiles/{id}/parameters/suggest-all",
+        "/api/m/soil/profiles/{id}/parameters/reapprove", "/api/m/soil/profiles/{id}/readiness",
         "/api/jobs/{job_id}", "/api/m/walls/wall-types",
         "/api/m/walls/structures/{id}/required-factors", "/api/m/walls/structures/{id}/size",
         "/api/m/walls/structures/{id}/check", "/api/m/sheet_pile/structures/{id}/design",
