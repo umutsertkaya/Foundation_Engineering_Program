@@ -78,7 +78,8 @@ Kaynak: Umut'un cihazındaki tam metin md dönüşümü (`docs/research/Youd.et.
 ## Hesap sistemi yeniden kurgusu (2026-10-23)
 
 - Biten: PR #57 (HS-A: parametre başına onay tabanı, γsat adayları ve sessiz γsat = γ'nın kaldırılması, yeni korelasyonlar) ve PR #58 (HS-C: sürşarj sismik artışı 2H/3, sükûnet basıncı onaylı K0 ile) birleşti.
-- Sürüyor: HS-B (zemin web arayüzü: düşen onayın nedeni, eski → yeni değer, toplu yeniden onay).
+- Biten: PR #59 (HS-B: zemin web arayüzü; düşen onayın nedeni, eski → yeni değer, seçimli toplu yeniden onay, önce γ/γsat, yerel katman birleştirme sunucu kuralıyla). Vitest 52 dosya / 401 geçti; gerçek API akışı ekran görüntüleri `/mnt/project-files/ekran/2026-10-23/`.
+- Açık: kaynaklardaki yüzeysel temel taşıma gücü, kazık kapasitesi ve PMT tasarımı programın kapsamı dışında; kullanıcı kararı bekliyor.
 - Bu PR (HS-D): `tests/unit/test_source_examples.py` (Keleşoğlu ders örnekleri D1–D5, 9 test) ve [denetim raporu](qa/hesap-sistemi-denetimi.md) (B1–B3, K1–K5, karşılaştırma tablosu, bilinçli farklar). Kartta elle hesaplanan bütün değerler yeniden üretildi; formül değişmedi.
 - Test (2026-10-23, Linux bulut, HS-D dalı): pytest 2276 geçti / 2 atlandı; `gen_code_map.py --check` 0; web çalıştırılmadı.
 
