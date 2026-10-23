@@ -5,6 +5,7 @@ from __future__ import annotations
 import numpy as np
 
 from geotek.core.constants import PA
+from geotek.core.warning_codes import format_warning
 from geotek.engine.correlations.checks import all_of, clay_like, in_range, sand_like
 from geotek.engine.correlations.registry import register
 
@@ -48,6 +49,36 @@ def phi_hatanaka_uchida(N1_60):
 def phi_peck_wolff(N1_60):
     """phi' = 27.1 + 0.3 (N1)60 - 0.00054 (N1)60^2."""
     return 27.1 + 0.3 * N1_60 - 0.00054 * N1_60**2
+
+
+_SF_REFERENCE = ("Shioi & Fukui (1982), Japanese Railway Standards, as given in Bowles (1996) Eq. 3-5 "
+                 "(Erol & Çekinmez 2014)")
+
+
+@register(
+    id="SF1982_phi_roads_SPT", parameter="phi_eff", unit="deg", source="SPT",
+    inputs=("N1_60",),
+    reference=_SF_REFERENCE + ", roads and bridges",
+    reliability="C",
+    validity="Japanese Railway Standards, roads and bridges; sands. N'70 = (N1)60 * 60/70",
+    check=sand_like,
+)
+def phi_shioi_fukui_roads(N1_60):
+    """phi' = sqrt(18 N'70) + 15, N'70 = (N1)60 * 60 / 70."""
+    return np.sqrt(18.0 * (N1_60 * 60.0 / 70.0)) + 15.0
+
+
+@register(
+    id="SF1982_phi_buildings_SPT", parameter="phi_eff", unit="deg", source="SPT",
+    inputs=("N60",),
+    reference=_SF_REFERENCE + ", buildings",
+    reliability="C",
+    validity="Japanese Railway Standards, buildings; sands. N70 = N60 * 60/70",
+    check=sand_like,
+)
+def phi_shioi_fukui_buildings(N60):
+    """phi' = 0.36 N70 + 27, N70 = N60 * 60 / 70."""
+    return 0.36 * (N60 * 60.0 / 70.0) + 27.0
 
 
 # --- phi' from CPT -----------------------------------------------------------------------
@@ -126,18 +157,67 @@ def su_ndu(u2, u0, Ndu):
     return (u2 - u0) / Ndu
 
 
+STROUD_F1_UNKNOWN_PI = 4.2
+"""f1 [kPa per blow] used without a PI: the lower envelope of the Stroud (1974) f1-PI curve."""
+_STROUD_REFERENCE = "Stroud (1974), European Symp. on Penetration Testing (f1 after Erol & Çekinmez 2014, App. 1.19)"
+
+
+def stroud_f1(PI):
+    """f1 [kPa] from PI [%]: lower bound of each band, PI < 20 -> 6.0, 20-30 -> 4.0, > 30 -> 4.2."""
+    return 6.0 if PI < 20.0 else (4.0 if PI <= 30.0 else 4.2)
+
+
+def _stroud_pi_unknown(inputs, opts) -> list[str]:
+    return [format_warning("correlation.warning.stroud_f1_pi_unknown", f1=STROUD_F1_UNKNOWN_PI)]
+
+
 @register(
     id="Stroud1974_su_SPT", parameter="su", unit="kPa", source="SPT",
-    inputs=("N60",),
-    reference="Stroud (1974), European Symp. on Penetration Testing",
+    inputs=("N60", "PI"),
+    reference=_STROUD_REFERENCE,
     reliability="C",
-    validity="Insensitive overconsolidated clays; f1 = 3.5-6.5 kPa depending on PI",
-    options={"f1": 4.4},
-    check=all_of(clay_like, in_range("f1", 3.5, 6.5)),
+    validity="Insensitive overconsolidated clays; f1 from PI after Stroud (1974): lower bound of each PI band",
+    check=clay_like,
 )
-def su_stroud(N60, f1):
-    """s_u = f1 N60."""
-    return f1 * N60
+def su_stroud(N60, PI):
+    """s_u = f1 N60, f1 = 6.0 (PI < 20), 4.0 (20 <= PI <= 30), 4.2 (PI > 30) kPa."""
+    return stroud_f1(PI) * N60
+
+
+@register(
+    id="Stroud1974_su_SPT_noPI", parameter="su", unit="kPa", source="SPT",
+    inputs=("N60",),
+    reference=_STROUD_REFERENCE + "; PI unknown",
+    reliability="C",
+    validity="Insensitive overconsolidated clays; PI unknown, f1 = 4.2 (lower envelope of the curve)",
+    check=all_of(clay_like, _stroud_pi_unknown),
+)
+def su_stroud_no_pi(N60):
+    """s_u = 4.2 N60 (f1 at the lower envelope of the Stroud curve)."""
+    return STROUD_F1_UNKNOWN_PI * N60
+
+
+_SOWERS_REFERENCE = "Sowers (1979), as given by Erol & Çekinmez (2014) Eq. 1.17"
+
+
+def _sowers(coefficient: float):
+    """s_u = c N60 with c = 12.5 (CH, MH), 7.5 (CL), 3.75 (ML, CL-ML, SC-SM, SM, SC) kPa."""
+    return lambda N60: coefficient * N60
+
+
+for _suffix, _coefficient, _symbols, _label in (
+    ("high", 12.5, {"CH", "MH"}, "high plasticity"),
+    ("medium", 7.5, {"CL"}, "medium plasticity"),
+    ("low", 3.75, {"ML", "CL-ML", "SC-SM", "SM", "SC"},
+     "low plasticity (source label 'SC-ML', mapped to these USCS symbols)"),
+):
+    register(
+        id=f"Sowers1979_su_{_suffix}_SPT", parameter="su", unit="kPa", source="SPT",
+        inputs=("N60",), reference=_SOWERS_REFERENCE, reliability="C",
+        validity=f"Clays of {_label}; applies only when the layer USCS symbol is one of "
+                 f"{', '.join(sorted(_symbols))}",
+        check=clay_like, uscs=_symbols,
+    )(_sowers(_coefficient))
 
 
 @register(

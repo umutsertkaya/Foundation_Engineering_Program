@@ -41,6 +41,8 @@ class DerivedParameter(BaseModel):
     reliability: Reliability | None = None
     stats: ParameterStats | None = None
     user_override: bool = False
+    based_on: list[str] = Field(default_factory=list)
+    """Method ids a combined (``mean(...)``) or statistic value is built from; empty for a single method."""
 
 
 class ParameterSelection(BaseModel):
@@ -68,7 +70,14 @@ class ParameterSelection(BaseModel):
     approved: bool = False
     approved_at: dt.datetime | None = None
     basis_hash: str | None = None
-    """Fingerprint of the layer bounds and inputs at approval; a mismatch marks it stale."""
+    """``<data_hash>.<stress_hash>`` of exactly what the selected value depends on at approval;
+    a mismatch marks the approval stale. A hash without ``.`` is the legacy whole-layer hash."""
+    stale_reason: Literal[
+        "data_changed", "stress_changed", "dependency_changed", "method_upgraded"] | None = None
+    """Why an approval was withdrawn (set on refresh; None while approved or never approved)."""
+    refreshed: DerivedParameter | None = None
+    """For a withdrawn approval: the same mode/method re-resolved from current inputs.
+    Display only; it is not an approval."""
 
     @model_validator(mode="after")
     def _check(self) -> ParameterSelection:

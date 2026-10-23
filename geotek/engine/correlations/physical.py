@@ -41,6 +41,14 @@ def _rc2010_floor_check(inputs, opts) -> list[str]:
 
 
 @register(
+    id="RC2010_gamma_sat_CPT", parameter="gamma_sat", unit="kN/m3", source="CPT",
+    inputs=("qt", "fs"),
+    reference="Robertson & Cabal (2010), 2nd Int. Symp. on Cone Penetration Testing",
+    reliability="B",
+    validity="In-situ total unit weight; points below the in-situ groundwater table only",
+    check=_rc2010_floor_check,
+)
+@register(
     id="RC2010_gamma_CPT", parameter="gamma", unit="kN/m3", source="CPT",
     inputs=("qt", "fs"),
     reference="Robertson & Cabal (2010), 2nd Int. Symp. on Cone Penetration Testing",

@@ -67,9 +67,9 @@ def foundation_from_structure(soil: StructureSoilModel, front_depth: float, base
     d = layer.design
     gwt = profile.gwt.depth_for(gwt_case)
     undrained = layer.behaviour == "undrained"
-    gamma = (layer.gamma_sat if undrained else layer.gamma_sat - GAMMA_W) if gwt <= base_depth else layer.gamma
+    gamma = (layer.require_gamma_sat() if undrained else layer.require_gamma_sat() - GAMMA_W) if gwt <= base_depth else layer.gamma
     if gwt_bearing_correction and not undrained and base_depth < gwt < base_depth + width:
-        gamma_sub = layer.gamma_sat - GAMMA_W
+        gamma_sub = layer.require_gamma_sat() - GAMMA_W
         gamma = gamma_sub + (gwt - base_depth) / width * (layer.gamma - gamma_sub)
     stress_index = 0 if undrained else 2
     q = float(profile.stresses(base_depth, gwt_case)[stress_index]
@@ -132,7 +132,7 @@ def _profile_bands(profile: SoilProfile, a: float, b: float, base: float,
             out.append(SoilBand(top=base, gamma=layer.gamma, c=c, phi=phi))
         nodes = [top] + ([gwt] if top < gwt < bottom else []) + [bottom]
         for za, zb in zip(nodes, nodes[1:]):
-            gamma = layer.gamma if zb <= gwt else layer.gamma_sat
+            gamma = layer.gamma if zb <= gwt else layer.require_gamma_sat()
             out.append(SoilBand(top=base - za, gamma=gamma, c=c, phi=phi))
     return out
 
@@ -202,10 +202,10 @@ def _submerged_dynamic(profile, hv, loads, settings, q, common, static):
     def diagram(choices):
         equivalent = {}
         for layer in wet:
-            buoyant = layer.gamma_sat - GAMMA_W
+            buoyant = layer.require_gamma_sat() - GAMMA_W
             if buoyant <= 0:
                 raise GeoTekError(f"Katman {layer.id}: TBDY Denk. 16.26 için γ_sat > γ_w olmalıdır")
-            numerator = layer.gamma_sat if choices[layer.id] == "impervious" else layer.gamma
+            numerator = layer.require_gamma_sat() if choices[layer.id] == "impervious" else layer.gamma
             # Existing M-O computes psi=atan(kh/(1-kv)); keep face lean separate.
             equivalent[layer.id] = numerator / buoyant * loads.kh
         return lateral_pressure(profile, hv, surcharge=q, kh=loads.kh, kv=loads.kv,
@@ -357,7 +357,7 @@ def _soil_weights(name, polygon, profile, base, loads, seismic):
         for top, bottom in zip(cuts, cuts[1:]):
             poly = clip_polygon_y(polygon, base - bottom, base - top)
             if len(poly) >= 3:
-                gamma = layer.gamma if bottom <= gwt else layer.gamma_sat
+                gamma = layer.gamma if bottom <= gwt else layer.require_gamma_sat()
                 out += weight_forces(f"{name} ({layer.id})", poly, gamma, loads, seismic, "EV")
     return out
 
