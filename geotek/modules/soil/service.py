@@ -273,3 +273,35 @@ def import_csv(parts: dict, *, cpt: bool):
         api_error(422, "validation", f"Cannot import CSV: {exc}")
     except OSError:
         api_error(422, "import_io_error", "Cannot read, write or clean up temporary CSV import files.")
+
+
+def workbook_parts(body: bytes, content_type: str, *, with_plan: bool) -> dict:
+    """Parse the flat multipart form of a workbook import: ``file`` and, for commit, ``plan`` (JSON)."""
+    try:
+        message = BytesParser(policy=policy.default).parsebytes(
+            b"Content-Type: " + content_type.encode("ascii") + b"\r\nMIME-Version: 1.0\r\n\r\n" + body)
+    except (ValueError, UnicodeError):
+        api_error(422, "validation", "Invalid multipart form.")
+    if message.get_content_type() != "multipart/form-data" or not message.is_multipart():
+        api_error(422, "validation", "Expected multipart/form-data with a boundary.")
+    required = {"file", "plan"} if with_plan else {"file"}
+    parts: dict = {}
+    for part in message.iter_parts():
+        name = part.get_param("name", header="content-disposition")
+        if (part.get_content_disposition() != "form-data" or name not in required
+                or name in parts or part.is_multipart() or part.defects):
+            api_error(422, "validation", "Unexpected or duplicate multipart part.")
+        value = part.get_payload(decode=True)
+        if name == "file":
+            if part.get_filename() is None or not value:
+                api_error(422, "validation", "A non-empty file is required.")
+            parts["filename"] = part.get_filename()
+            parts[name] = value
+        else:
+            try:
+                parts[name] = value.decode("utf-8")
+            except UnicodeError:
+                api_error(422, "validation", "The plan must be UTF-8 JSON.")
+    if message.defects or not required <= set(parts):
+        api_error(422, "validation", "Missing or invalid multipart fields.")
+    return parts

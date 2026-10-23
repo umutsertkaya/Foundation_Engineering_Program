@@ -991,3 +991,47 @@ def test_create_borehole_by_hand(opened):
     invalid = opened.post(f"{PREFIX}/boreholes", json={"id": "BH-8", "log": [{"top": 2, "bottom": 1}]})
     assert invalid.status_code == 422
     assert [b["id"] for b in opened.get(f"{PREFIX}/investigations").json()["boreholes"]] == ["BH-9"]
+
+
+EXAMPLE_XLSX = Path(__file__).resolve().parents[2] / "examples" / "Example.xlsx"
+
+
+def test_workbook_import_end_to_end(opened):
+    data = EXAMPLE_XLSX.read_bytes()
+    files = {"file": ("Example.xlsx", data, "application/octet-stream")}
+    analysed = opened.post(f"{PREFIX}/import/workbook/analyze", files=files)
+    assert analysed.status_code == 200, analysed.text
+    plan = analysed.json()
+    assert [s["role"] for s in plan["sheets"]] == [
+        "cpt", "spt", "samples", "sieve", "limits", "cu_setup", "cu_curves"]
+    assert opened.get(f"{PREFIX}/investigations").json() == {"boreholes": [], "cpts": []}
+
+    # Open question: the sampler description must be answered before anything is stored.
+    refused = opened.post(f"{PREFIX}/import/workbook/commit",
+                          data={"plan": json.dumps(plan)}, files=files)
+    assert refused.status_code == 422, refused.text
+    assert opened.get(f"{PREFIX}/investigations").json() == {"boreholes": [], "cpts": []}
+
+    plan["options"]["sampler_map"] = {"Standard split spoon; no liner": "no_liner"}
+    plan["issues"] = [i for i in plan["issues"] if i["severity"] != "blocker"]
+    committed = opened.post(f"{PREFIX}/import/workbook/commit",
+                            data={"plan": json.dumps(plan)}, files=files)
+    assert committed.status_code == 200, committed.text
+    body = committed.json()
+    assert [b["id"] for b in body["boreholes"]] == ["Example-BH"] and [c["id"] for c in body["cpts"]] == ["Example-CPT"]
+    stored = opened.get(f"{PREFIX}/investigations").json()
+    assert len(stored["boreholes"][0]["spt"]) == 10 and len(stored["boreholes"][0]["lab"]) == 2
+    assert stored["boreholes"][0]["spt"][0]["n_field"] == 22
+
+    again = opened.post(f"{PREFIX}/import/workbook/commit",
+                        data={"plan": json.dumps(plan)}, files=files)
+    assert again.status_code == 409 and error_code(again) == "id_conflict"
+
+
+def test_workbook_import_rejects_bad_input(opened):
+    bad = opened.post(f"{PREFIX}/import/workbook/analyze",
+                      files={"file": ("x.xlsx", b"not a workbook", "application/octet-stream")})
+    assert bad.status_code == 422
+    no_plan = opened.post(f"{PREFIX}/import/workbook/commit",
+                          files={"file": ("x.csv", b"Depth,N\n1,2\n", "text/csv")})
+    assert no_plan.status_code == 422

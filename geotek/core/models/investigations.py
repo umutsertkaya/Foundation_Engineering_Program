@@ -61,6 +61,11 @@ class LabRecord(BaseModel):
     c_eff: float | None = Field(None, ge=0, description="Effective cohesion [kPa]")
     phi_eff: float | None = Field(None, ge=0, le=60, description="Effective friction angle [deg]")
     su: float | None = Field(None, ge=0, description="Undrained shear strength [kPa]")
+    sample_id: str | None = Field(None, description="Sample label in the source file")
+    Gs: float | None = Field(None, gt=0, description="Specific gravity of solids")
+    specimen: Literal["reconstituted", "undisturbed"] | None = Field(
+        None, description="Preparation of the strength-test specimen")
+    notes: str | None = Field(None, description="Derivation notes, e.g. which test reduction produced a value")
 
     @model_validator(mode="after")
     def _plasticity_index(self) -> LabRecord:

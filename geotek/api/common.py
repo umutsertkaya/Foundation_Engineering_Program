@@ -45,3 +45,19 @@ def multipart_body(identifier: str, *, cpt: bool = False) -> dict[str, Any]:
             "additionalProperties": False,
         }}},
     }}
+
+
+def workbook_body(*, with_plan: bool) -> dict[str, Any]:
+    """Describe the multipart parts of a workbook import (``file`` and, for commit, ``plan``)."""
+    properties: dict[str, Any] = {
+        "file": {"type": "string", "format": "binary", "description": "Workbook (xlsx) or CSV"},
+    }
+    if with_plan:
+        properties["plan"] = {"type": "string", "description": "Confirmed ImportPlan as JSON"}
+    return {"requestBody": {
+        "required": True,
+        "content": {"multipart/form-data": {"schema": {
+            "type": "object", "properties": properties, "required": list(properties),
+            "additionalProperties": False,
+        }}},
+    }}

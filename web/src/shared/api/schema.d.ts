@@ -736,6 +736,46 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/m/soil/import/workbook/analyze": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Analyze Workbook Route
+         * @description Detect sheet roles, column mapping, units and open questions; nothing is stored.
+         */
+        post: operations["analyze_workbook"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/m/soil/import/workbook/commit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Commit Workbook
+         * @description Build records from the file and the confirmed plan, then add them to the project.
+         */
+        post: operations["commit_workbook"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/m/soil/boreholes": {
         parameters: {
             query?: never;
@@ -2214,6 +2254,19 @@ export interface components {
             /** Kv Sign */
             kv_sign?: ("up" | "down") | null;
         };
+        /** ColumnMap */
+        ColumnMap: {
+            /** Header */
+            header: string;
+            /** Unit */
+            unit?: string | null;
+            /**
+             * Unit Source
+             * @default default
+             * @enum {string}
+             */
+            unit_source: "header" | "inferred" | "default" | "user";
+        };
         /**
          * DeletionResponse
          * @description JSON acknowledgement of a deleted investigation, profile or structure.
@@ -2461,6 +2514,69 @@ export interface components {
             /** Version */
             version: string;
         };
+        /** ImportIssue */
+        ImportIssue: {
+            /** Code */
+            code: string;
+            /**
+             * Severity
+             * @enum {string}
+             */
+            severity: "blocker" | "confirm" | "info";
+            /** Sheet */
+            sheet?: string | null;
+            /** Field */
+            field?: string | null;
+            /** Params */
+            params?: {
+                [key: string]: string | number | null;
+            };
+        };
+        /** ImportOptions */
+        ImportOptions: {
+            /** Borehole Id */
+            borehole_id?: string | null;
+            /** Cpt Id */
+            cpt_id?: string | null;
+            /** Sampler Map */
+            sampler_map?: {
+                [key: string]: ("standard" | "no_liner") | null;
+            };
+            /** Sampler Suggestions */
+            sampler_suggestions?: {
+                [key: string]: "standard" | "no_liner";
+            };
+            /** Energy Ratio Scale */
+            energy_ratio_scale?: ("percent" | "fraction") | null;
+            /** Water Content Scale */
+            water_content_scale?: ("percent" | "fraction") | null;
+            /**
+             * U2 Zero Is Missing
+             * @default true
+             */
+            u2_zero_is_missing: boolean;
+            /**
+             * Cu Failure
+             * @default max_stress_ratio
+             * @enum {string}
+             */
+            cu_failure: "max_stress_ratio" | "max_q" | "strain_limit";
+            /**
+             * Cu Strain Limit
+             * @default 15
+             */
+            cu_strain_limit: number;
+        };
+        /** ImportPlan */
+        ImportPlan: {
+            /** Filename */
+            filename: string;
+            /** Sheets */
+            sheets?: components["schemas"]["SheetPlan"][];
+            options?: components["schemas"]["ImportOptions"];
+            /** Issues */
+            issues?: components["schemas"]["ImportIssue"][];
+        };
         /**
          * ImportRequest
          * @description Existing project file to copy into the library.
@@ -2584,6 +2700,26 @@ export interface components {
              * @description Undrained shear strength [kPa]
              */
             su?: number | null;
+            /**
+             * Sample Id
+             * @description Sample label in the source file
+             */
+            sample_id?: string | null;
+            /**
+             * Gs
+             * @description Specific gravity of solids
+             */
+            Gs?: number | null;
+            /**
+             * Specimen
+             * @description Preparation of the strength-test specimen
+             */
+            specimen?: ("reconstituted" | "undisturbed") | null;
+            /**
+             * Notes
+             * @description Derivation notes, e.g. which test reduction produced a value
+             */
+            notes?: string | null;
         };
         /**
          * LayerMerge
@@ -3724,6 +3860,32 @@ export interface components {
                 [key: string]: unknown;
             } | null;
         };
+        /** SheetPlan */
+        SheetPlan: {
+            /** Name */
+            name: string;
+            /** Role */
+            role?: ("cpt" | "spt" | "samples" | "sieve" | "limits" | "cu_setup" | "cu_curves") | null;
+            /**
+             * Confidence
+             * @default 0
+             */
+            confidence: number;
+            /**
+             * Header Row
+             * @default 0
+             */
+            header_row: number;
+            /**
+             * Row Count
+             * @default 0
+             */
+            row_count: number;
+            /** Columns */
+            columns?: {
+                [key: string]: components["schemas"]["ColumnMap"];
+            };
+        };
         /** SiteSeismic */
         SiteSeismic: {
             /**
@@ -4318,6 +4480,18 @@ export interface components {
             id: "cantilever" | "gravity";
             /** Title Key */
             title_key: string;
+        };
+        /**
+         * WorkbookImportResult
+         * @description Records added by a workbook import, with translatable warning codes.
+         */
+        WorkbookImportResult: {
+            /** Boreholes */
+            boreholes: components["schemas"]["Borehole"][];
+            /** Cpts */
+            cpts: components["schemas"]["CPTSounding"][];
+            /** Warnings */
+            warnings: string[];
         };
     };
     responses: never;
@@ -8159,6 +8333,212 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Borehole"];
+                };
+            };
+            /** @description Invalid operation or input file */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Resource not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Conflicting or stale structure state */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Validation error or missing_factors */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Engine or server error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Contract stub; not implemented */
+            501: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Other client error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Other server error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    analyze_workbook: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": {
+                    /**
+                     * Format: binary
+                     * @description Workbook (xlsx) or CSV
+                     */
+                    file: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ImportPlan"];
+                };
+            };
+            /** @description Invalid operation or input file */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Resource not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Conflicting or stale structure state */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Validation error or missing_factors */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Engine or server error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Contract stub; not implemented */
+            501: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Other client error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Other server error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    commit_workbook: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": {
+                    /**
+                     * Format: binary
+                     * @description Workbook (xlsx) or CSV
+                     */
+                    file: string;
+                    /** @description Confirmed ImportPlan as JSON */
+                    plan: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WorkbookImportResult"];
                 };
             };
             /** @description Invalid operation or input file */
