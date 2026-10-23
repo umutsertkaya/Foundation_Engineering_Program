@@ -27,3 +27,7 @@ export type WallSettingsPayload = SharedWallSettings &
 
 /** Shared layer mirror widened with the hydraulic conductivity k [m/s] (`SoilLayer.permeability`). */
 export type SoilLayerK = SoilLayer & { permeability?: number | null };
+
+/** At-rest (K0) pressure request and result, typed from the generated contract. */
+export type AtRestInputDTO = components["schemas"]["AtRestInput"];
+export type AtRestResultDTO = components["schemas"]["AtRestResultDTO"];

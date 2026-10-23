@@ -1427,6 +1427,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/m/walls/at-rest": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Analyze At Rest
+         * @description At-rest (K0) pressure on a wall of height H through a soil profile (Das).
+         */
+        post: operations["analyze_at_rest"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/m/sheet_pile/structures/{id}/design": {
         parameters: {
             query?: never;
@@ -2085,6 +2105,80 @@ export interface components {
             params?: {
                 [key: string]: unknown;
             };
+        };
+        /**
+         * AtRestComponentDTO
+         * @description One resultant of the at-rest diagram: surcharge rectangle, soil triangle or water.
+         */
+        AtRestComponentDTO: {
+            /**
+             * Name
+             * @enum {string}
+             */
+            name: "soil" | "surcharge" | "water";
+            /** Force */
+            force: number;
+            /** Height */
+            height: number;
+        };
+        /**
+         * AtRestInput
+         * @description At-rest pressure request; the wall top is at the ground surface.
+         */
+        AtRestInput: {
+            /** Profile Id */
+            profile_id: string;
+            /** Height */
+            height: number;
+            /**
+             * Surcharge
+             * @default 0
+             */
+            surcharge: number;
+            /**
+             * Gwt Case
+             * @default design
+             * @enum {string}
+             */
+            gwt_case: "insitu" | "design" | "seismic";
+        };
+        /**
+         * AtRestLayerDTO
+         * @description K0 used for one layer within the wall height.
+         */
+        AtRestLayerDTO: {
+            /** Layer Id */
+            layer_id: string;
+            /** Top */
+            top: number;
+            /** Bottom */
+            bottom: number;
+            /** K0 */
+            K0: number;
+        };
+        /**
+         * AtRestResultDTO
+         * @description At-rest pressure diagram [kPa over depth z in m], layer K0 table and components.
+         */
+        AtRestResultDTO: {
+            /** Z */
+            z: number[];
+            /** Sigma H Eff */
+            sigma_h_eff: number[];
+            /** U */
+            u: number[];
+            /** Sigma H */
+            sigma_h: number[];
+            /** Layers */
+            layers: components["schemas"]["AtRestLayerDTO"][];
+            /** Components */
+            components: components["schemas"]["AtRestComponentDTO"][];
+            /** Total Force */
+            total_force: number;
+            /** Total Height */
+            total_height: number;
+            /** Warnings */
+            warnings: string[];
         };
         /** AxisRangeDTO */
         AxisRangeDTO: {
@@ -12197,6 +12291,102 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["JobRef"];
+                };
+            };
+            /** @description Invalid operation or input file */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Resource not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Conflicting or stale structure state */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Validation error or missing_factors */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Engine or server error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Contract stub; not implemented */
+            501: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Other client error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Other server error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    analyze_at_rest: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AtRestInput"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AtRestResultDTO"];
                 };
             };
             /** @description Invalid operation or input file */

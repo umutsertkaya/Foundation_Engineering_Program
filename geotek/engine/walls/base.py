@@ -222,7 +222,14 @@ def earth_thrust_forces(
     warnings = []
     if seismic and (loads.kh > 0 or loads.kv != 0):
         p_ae = trial_wedge(**common, q=loads.surcharge, kh=loads.kh, kv=loads.kv).force
-        parts.append(("Seismic increment", p_ae - p_total_static, loads.seismic_increment_height * H, "EQ"))
+        # Soil part of the increment acts at seismic_increment_height * H; the surcharge part is an
+        # inverted triangle (2 dKae q at the top, 0 at the base) acting at 2H/3 (TBDY 2018).
+        p_ae0 = trial_wedge(**common, q=0.0, kh=loads.kh, kv=loads.kv).force
+        soil_inc = p_ae0 - p_soil
+        parts.append(("Seismic increment", soil_inc, loads.seismic_increment_height * H, "EQ"))
+        surcharge_inc = (p_ae - p_total_static) - soil_inc
+        if loads.surcharge > 0 and abs(surcharge_inc) > 1e-12:
+            parts.append(("Seismic increment (surcharge)", surcharge_inc, 2.0 / 3.0 * H, "EQ"))
         if p_ae < p_total_static:
             warnings.append("Seismic thrust lower than static (kv effect); check inputs")
 

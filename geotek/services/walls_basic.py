@@ -227,7 +227,9 @@ def _assumptions(inp: BasicWallInput, D: float, r: float | None, key: ShearKey |
     if inp.sds is not None:
         out.append(Assumption(text=f"k_h = 0.4·S_DS/r, k_v = 0.5·k_h, r = {r:g}"
                                    + (" (duvar tipine göre)" if inp.r is None else ""), source=SRC_TBDY_SEISMIC))
-        out.append(Assumption(text="Dinamik itki artımı duvar yüksekliğinin ortasında (H/2)", source=SRC_TBDY_SEISMIC))
+        out.append(Assumption(text="Dinamik itki artımı (zemin) duvar yüksekliğinin ortasında (H/2)", source=SRC_TBDY_SEISMIC))
+        out.append(Assumption(text="Sürşarjın dinamik itki artışı 2H/3'te (TBDY 2018; ters üçgen dağılım)",
+                              source=SRC_TBDY_SEISMIC))
     return out
 
 
@@ -410,6 +412,9 @@ class BasicSheetPileInput(BaseModel):
             raise ValueError("Drained soil needs phi")
         if self.drainage == "undrained" and self.su is None:
             raise ValueError("Undrained soil needs s_u")
+        H = self.retained_height
+        if self.gamma_sat is None and self.gwt_depth < H + max(3 * H, 12.0):
+            raise ValueError("gamma_sat required when the water table lies within the model depth")
         return self
 
 
@@ -425,7 +430,7 @@ def design_sheet_pile_basic(inp: BasicSheetPileInput) -> BasicSheetPileResult:
     """Homogeneous soil; FS 1.5 on passive; Blum +20 % for cantilevers; TBDY seismic (r = 1)."""
     H = inp.retained_height
     depth = H + max(3 * H, 12.0)
-    layer = SoilLayer(id="S", top=0.0, bottom=depth, gamma=inp.gamma, gamma_sat=inp.gamma_sat or inp.gamma,
+    layer = SoilLayer(id="S", top=0.0, bottom=depth, gamma=inp.gamma, gamma_sat=inp.gamma_sat,
                       design=DesignParameters(phi_eff=inp.phi, c_eff=inp.c, su=inp.su))
     profile = SoilProfile(id="basic", gwt=GroundwaterCondition(depth_insitu=inp.gwt_depth), layers=[layer])
     fs_passive = PASSIVE_FS_FINE if inp.drainage == "undrained" else PASSIVE_FS_BASIC

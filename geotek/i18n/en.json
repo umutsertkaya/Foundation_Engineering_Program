@@ -131,6 +131,7 @@
   "error.detail.layer_su_missing": "Layer {top}–{bottom} m: design s_u is not set (required for undrained analysis).",
   "error.detail.layer_su_not_positive": "Layer {top}–{bottom} m: the foundation needs a positive design s_u.",
   "error.detail.layer_phi_missing": "Layer {top}–{bottom} m: design φ′ is not set.",
+  "error.detail.layer_k0_missing": "Layer {top}–{bottom} m: K0 must be approved (Soil › Parameters).",
   "error.detail.layer_seismic_undrained_unsupported": "Layer {top}–{bottom} m: seismic earth pressure on undrained soil is not implemented.",
   "job.step.queued": "Calculation queued…",
   "job.step.earth_pressure": "Computing earth pressures and water pressures…",

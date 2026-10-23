@@ -180,11 +180,15 @@ def _plane_profile(profile, rise):
     return profile.model_copy(update={"layers": layers, "gwt": gwt})
 
 
-def _submerged_dynamic(profile, hv, loads, settings, q, common, static):
+def _submerged_dynamic(profile, hv, loads, settings, q, common, static, forced=None):
     """TBDY 16.26; compare horizontal soil increments plus ONE 16.20 water force.
 
     Mixed permeability uses the full water head if any wetted layer is pervious
     (unverified engineering approach; no layered hydrodynamic model is claimed).
+
+    Returns ``(diagram, dynamic water force, per-layer branch choice)``. ``forced`` pins the
+    impervious/pervious choice of every wet layer (used to evaluate the q = 0 diagram with the
+    branches the q run selected, so the soil and surcharge increments share one branch set).
     """
     gwt = profile.gwt.depth_for(common["gwt_case"])
     wet = [l for l in profile.layers if min(l.bottom, hv) > max(l.top, gwt)]
@@ -215,7 +219,9 @@ def _submerged_dynamic(profile, hv, loads, settings, q, common, static):
         return {**fixed, **dict.fromkeys(unknown, branch)}
 
     candidates = []
-    if mode in ("impervious", "pervious"):
+    if forced is not None:
+        candidates.append((forced, diagram(forced)))
+    elif mode in ("impervious", "pervious"):
         selected = choices(mode)
         candidates.append((selected, diagram(selected)))
     else:
@@ -267,7 +273,7 @@ def _submerged_dynamic(profile, hv, loads, settings, q, common, static):
                                 "katman bazında mühendislik yargısı uygulandı — sonucu kontrol edin.")
     dynamic.warnings.append("Kazı Destek Yapıları Tasarım ve Uygulama Esasları (16.07.2026 değişikliği) "
                             "ek şartları kontrol edilmelidir; bu belge yazılımda incelenmedi.")
-    return dynamic, dynamic_water
+    return dynamic, dynamic_water, selected
 
 
 def _retained_pressures(geometry, soil, loads, settings, seismic, slope, gwt_case):
@@ -290,12 +296,19 @@ def _retained_pressures(geometry, soil, loads, settings, seismic, slope, gwt_cas
     zero = lateral_pressure(profile, hv, **common)
     static = lateral_pressure(profile, hv, surcharge=q, **common) if q else zero
     dynamic_water = 0.0
+    dynamic0 = zero
     if seismic and (loads.kh or loads.kv) and profile.gwt.depth_for(gwt_case) < hv:
-        dynamic, dynamic_water = _submerged_dynamic(profile, hv, loads, settings, q, common, static)
+        dynamic, dynamic_water, branches = _submerged_dynamic(profile, hv, loads, settings, q, common, static)
+        # Soil-only dynamic diagram (q = 0) with the SAME impervious/pervious branch per layer as the
+        # q run: the soil increment acts at seismic_increment_height * H, the surcharge increment
+        # (inverted triangle) at 2H/3. Its water force is not used.
+        dynamic0, _, _ = _submerged_dynamic(profile, hv, loads, settings, 0.0, common, zero, forced=branches)
+    elif seismic and (loads.kh or loads.kv):
+        dynamic = lateral_pressure(profile, hv, surcharge=q, kh=loads.kh, kv=loads.kv, **common)
+        dynamic0 = lateral_pressure(profile, hv, kh=loads.kh, kv=loads.kv, **common)
     else:
-        dynamic = (lateral_pressure(profile, hv, surcharge=q, kh=loads.kh, kv=loads.kv, **common)
-                   if seismic and (loads.kh or loads.kv) else static)
-    return profile, hv, theta, zero, static, dynamic, dynamic_water
+        dynamic = static
+    return profile, hv, theta, zero, static, dynamic, dynamic0, dynamic_water
 
 
 def _integrals(dist, values, profile):
@@ -314,13 +327,16 @@ def _integrals(dist, values, profile):
     return out
 
 
-def _thrusts(geometry, profile, hv, theta, zero, static, dynamic, loads, seismic, slope):
+def _thrusts(geometry, profile, hv, theta, zero, static, dynamic, dynamic0, loads, seismic, slope):
     forces = []
     diagrams = [("Earth pressure", "EH", [(zero, 1.0)])]
     if loads.surcharge:
         diagrams.append(("Surcharge pressure", "LS", [(static, 1.0), (zero, -1.0)]))
     if seismic and (loads.kh or loads.kv):
-        diagrams.append(("Seismic increment", "EQ", [(dynamic, 1.0), (static, -1.0)]))
+        diagrams.append(("Seismic increment", "EQ", [(dynamic0, 1.0), (zero, -1.0)]))
+        if loads.surcharge:
+            diagrams.append(("Seismic increment (surcharge)", "EQ",
+                             [(dynamic, 1.0), (static, -1.0), (dynamic0, -1.0), (zero, 1.0)]))
     layers = [l for l in profile.layers if l.top < hv]
     for name, kind, terms in diagrams:
         integrals = {}
@@ -334,7 +350,12 @@ def _thrusts(geometry, profile, hv, theta, zero, static, dynamic, loads, seismic
                 continue
             delta = (0.0 if layer.behaviour == "undrained" else
                      2 * layer.design.phi_eff / 3 if isinstance(geometry, GravityGeometry) else slope)
-            y = loads.seismic_increment_height * hv if kind == "EQ" else hv - m / f
+            if name == "Seismic increment":
+                y = loads.seismic_increment_height * hv
+            elif name == "Seismic increment (surcharge)":
+                y = 2.0 / 3.0 * hv
+            else:
+                y = hv - m / f
             x = geometry.width - y * math.tan(math.radians(theta))
             label = name if len(layers) == 1 else f"{name} ({layer.id})"
             forces.append(Force(label, -f, -f * math.tan(math.radians(delta + theta)), x, y, kind))
@@ -421,7 +442,7 @@ def wall_pressures_layered(geometry, soil, loads, settings, *, seismic, backfill
                            gwt_case: GwtCase = "design") -> dict[str, PressureDistribution]:
     """Unfactored diagnostic diagrams; retained depths are from the virtual plane top."""
     selected = soil_at_case(soil, gwt_case)
-    _, _, _, zero, static, dynamic, _ = _retained_pressures(
+    _, _, _, zero, static, dynamic, _, _ = _retained_pressures(
         geometry, selected, loads, settings, seismic, backfill_slope, "design")
     front = _front_pressure(geometry, selected, settings)
     return {"retained": dynamic, "retained_static": static, "retained_soil": zero, "front": front,
@@ -504,11 +525,11 @@ def _key_zone_forces(geometry, soil: StructureSoilModel, loads: WallLoads, setti
         static = lateral_pressure(profile, hv + d, surcharge=loads.surcharge, **common) if loads.surcharge else zero
         water_inc = 0.0
         if dyn and profile.gwt.depth_for("design") < hv + d:
-            dynamic, water_ext = _submerged_dynamic(profile, hv + d, loads, settings, loads.surcharge, common, static)
+            dynamic, water_ext, _ = _submerged_dynamic(profile, hv + d, loads, settings, loads.surcharge, common, static)
             water_base = 0.0
             if profile.gwt.depth_for("design") < hv:
                 short = lateral_pressure(profile, hv, surcharge=loads.surcharge, **common)
-                _, water_base = _submerged_dynamic(profile, hv, loads, settings, loads.surcharge, common, short)
+                _, water_base, _ = _submerged_dynamic(profile, hv, loads, settings, loads.surcharge, common, short)
             water_inc = water_ext - water_base
         else:
             dynamic = (lateral_pressure(profile, hv + d, surcharge=loads.surcharge, kh=loads.kh, kv=loads.kv,
@@ -539,7 +560,7 @@ def wall_forces_layered(geometry, soil: StructureSoilModel, loads: WallLoads, se
                         *, seismic: bool, backfill_slope: float = 0.0,
                         gwt_case: GwtCase = "design") -> WallForces:
     selected = soil_at_case(soil, gwt_case)
-    profile, hv, theta, zero, static, dynamic, dynamic_water = _retained_pressures(
+    profile, hv, theta, zero, static, dynamic, dynamic0, dynamic_water = _retained_pressures(
         geometry, selected, loads, settings, seismic, backfill_slope, "design")
     gc, H, B = settings.concrete_unit_weight, geometry.height, geometry.width
     warnings = list(dict.fromkeys(zero.warnings + static.warnings + dynamic.warnings))
@@ -558,7 +579,8 @@ def wall_forces_layered(geometry, soil: StructureSoilModel, loads: WallLoads, se
             forces.append(Force("Surcharge over heel", 0.0, -loads.surcharge * geometry.heel,
                                 geometry.x_stem_back + geometry.heel / 2, hv, "LS"))
     forces += key_weight_forces(geometry, settings, loads, seismic)
-    forces += _thrusts(geometry, profile, hv, theta, zero, static, dynamic, loads, seismic, backfill_slope)
+    forces += _thrusts(geometry, profile, hv, theta, zero, static, dynamic, dynamic0, loads, seismic,
+                       backfill_slope)
     if dynamic_water > 0:
         d_su = hv - profile.gwt.depth_for("design")
         y = 0.4 * d_su

@@ -6,7 +6,8 @@ This is the Module 1 -> Module 2 link: strengths come from each layer's engineer
 Horizontal effective pressure per layer:
     active  : sigma'_h = K_h (sigma'_v + q) - 2 c' sqrt(K)      (>= 0, tension crack)
     passive : sigma'_h = K_h (sigma'_v + q) + 2 c' sqrt(K)
-    at rest : sigma'_h = K0 (sigma'_v + q),  K0 = 1 - sin(phi')  (Jaky, normally consolidated)
+    at rest : sigma'_h = K0 (sigma'_v + q),  K0 = the layer's approved design K0 (no Jaky default);
+              effective stress also for undrained layers, total sigma_h = sigma'_h + u, c' unused
 Undrained (total stress) analysis uses phi = 0, c = s_u on total vertical stress with no
 separate water pressure. Water pressure is hydrostatic below the chosen GWT.
 
@@ -73,6 +74,13 @@ def _layer_coefficients(layer: SoilLayer, state, method, delta, beta, drainage, 
                         *, theta=0.0, kh=0.0, kv=0.0, steep_seismic=False, slope_cohesion="error"):
     """(K_horizontal, K_for_cohesion, c) for a layer segment."""
     dp = layer.design
+    if state == "at_rest":
+        # Before the drainage branch: at-rest pressure always uses effective stress and the approved K0.
+        if beta:
+            raise GeoTekError("At-rest coefficient implemented for horizontal backfill only")
+        if dp.K0 is None:
+            raise LayerDesignError(layer, "k0_missing")
+        return dp.K0, 1.0, 0.0
     if drainage == "undrained":
         if dp.su is None:
             raise LayerDesignError(layer, "su_missing")
@@ -93,10 +101,6 @@ def _layer_coefficients(layer: SoilLayer, state, method, delta, beta, drainage, 
             "slope_exceeds_phi",
             f"Layer {layer.top:g}–{layer.bottom:g} m: backfill slope {beta:g}° exceeds φ′ = {phi:g}°",
             slope=beta, phi=phi)
-    if state == "at_rest":
-        if beta:
-            raise GeoTekError("At-rest coefficient implemented for horizontal backfill only")
-        return 1.0 - math.sin(math.radians(phi)), 1.0, 0.0
     if method == "rankine":
         if c and beta:
             if slope_cohesion != "ignore":
@@ -248,7 +252,9 @@ def lateral_pressure(
             sv = sv - profile.stresses(top, gwt_case)[0]
             u = GAMMA_W * np.maximum(0.0, z - max(gwt, top))
             sve = sv - u
-        if layerwise:
+        if state == "at_rest":
+            vertical = sve + surcharge  # effective stress for every layer; u is kept
+        elif layerwise:
             undrained = np.array([modes[s] == "undrained" for s in seg])
             vertical = np.where(undrained, sv, sve) + surcharge
             u = np.where(undrained, 0.0, u)
@@ -256,7 +262,7 @@ def lateral_pressure(
             vertical, u = sv + surcharge, np.zeros_like(z)
         else:
             vertical = sve + surcharge
-        if total_stress_surcharge:
+        if total_stress_surcharge and state != "at_rest":
             if layerwise:
                 vertical = vertical + np.where(undrained, total_stress_surcharge, 0.0)
             elif drainage == "undrained":

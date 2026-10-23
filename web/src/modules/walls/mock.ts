@@ -12,6 +12,7 @@ import type {
   WallResultDTO,
 } from "../../shared/api/types";
 import { layersWithoutPermeability, optionsFromSettings } from "./settings";
+import type { AtRestInputDTO, AtRestResultDTO } from "./types";
 
 const PREFIX = "/m/walls";
 
@@ -188,12 +189,94 @@ function notFoundStructure(): Reply {
   };
 }
 
-const handle: MockHandler = (method, path) => {
+const GAMMA_W = 9.81;
+
+/** Mock of the at-rest service (same formulas, piecewise-linear nodes at layer boundaries and the water table). */
+function mockAtRest(inp: AtRestInputDTO): Reply {
+  const profile = getMockStore().profiles.find((p) => p.id === inp.profile_id);
+  if (!profile) return notFoundStructure();
+  const H = inp.height;
+  const q = inp.surcharge ?? 0;
+  const gwt = (profile.gwt as unknown as Record<string, number>)[`depth_${inp.gwt_case ?? "design"}`] ?? 1e9;
+  const layers = profile.layers.filter((l) => l.top < H);
+  const missing = layers.find((l) => l.design?.K0 == null);
+  if (missing) {
+    const err: ApiErrorDTO = {
+      code: "engine_error",
+      message: `Layer ${missing.top}-${missing.bottom} m: design K0 not set (Mock)`,
+      details: { message_code: "layer_k0_missing", params: { top: missing.top, bottom: Math.min(missing.bottom, H) } },
+      missing_factors: [],
+    };
+    return { status: 422, data: err };
+  }
+  const nodes: { z: number; k0: number; eff: number; u: number }[] = [];
+  const sv = (z: number) => {
+    let acc = 0;
+    for (const l of profile.layers) {
+      const a = l.top, b = Math.min(l.bottom, z);
+      if (b <= a) continue;
+      const dry = Math.max(0, Math.min(b, gwt) - a);
+      const wet = b - a - dry;
+      acc += dry * l.gamma + (wet > 0 ? wet * (l.gamma_sat as number) : 0); // no gamma_sat default
+    }
+    return acc;
+  };
+  for (const l of layers) {
+    const top = l.top, bottom = Math.min(l.bottom, H);
+    const cuts = [top, ...(gwt > top && gwt < bottom ? [gwt] : []), bottom];
+    for (const z of cuts) {
+      const u = GAMMA_W * Math.max(0, z - gwt);
+      const eff = ((l.design?.K0 as number)) * (sv(z) - u + q);
+      nodes.push({ z, k0: (l.design?.K0 as number), eff, u });
+    }
+  }
+  const area = (f: (n: (typeof nodes)[number]) => number) => {
+    let force = 0, moment = 0;
+    for (let i = 0; i < nodes.length - 1; i += 1) {
+      const a = nodes[i], b = nodes[i + 1];
+      const dz = b.z - a.z;
+      if (dz <= 0) continue;
+      const pa = f(a), pb = f(b);
+      force += ((pa + pb) * dz) / 2;
+      moment += (dz / 6) * (pa * (2 * a.z + b.z) + pb * (a.z + 2 * b.z));
+    }
+    return { force, height: force > 0 ? H - moment / force : 0 };
+  };
+  const total = area((n) => n.eff + n.u);
+  const water = area((n) => n.u);
+  const components: AtRestResultDTO["components"] = [];
+  if (q > 0) {
+    const sur = area((n) => n.k0 * q);
+    components.push({ name: "surcharge", force: sur.force, height: sur.height });
+    const soilOnly = area((n) => n.eff - n.k0 * q);
+    components.push({ name: "soil", force: soilOnly.force, height: soilOnly.height });
+  } else {
+    const soil = area((n) => n.eff);
+    components.push({ name: "soil", force: soil.force, height: soil.height });
+  }
+  if (water.force > 1e-12) components.push({ name: "water", force: water.force, height: water.height });
+  const data: AtRestResultDTO = {
+    z: nodes.map((n) => n.z),
+    sigma_h_eff: nodes.map((n) => n.eff),
+    u: nodes.map((n) => n.u),
+    sigma_h: nodes.map((n) => n.eff + n.u),
+    layers: layers.map((l) => ({ layer_id: l.id, top: l.top, bottom: Math.min(l.bottom, H), K0: (l.design?.K0 as number) })),
+    components,
+    total_force: total.force,
+    total_height: total.height,
+    warnings: [],
+  };
+  return { status: 200, data };
+}
+
+const handle: MockHandler = (method, path, body) => {
   const verb = method.toUpperCase();
   const cleanPath = path.split("?")[0];
   if (verb === "GET" && cleanPath === `${PREFIX}/wall-types`) {
     return { status: 200, data: WALL_TYPES.map((type) => ({ ...type })) };
   }
+
+  if (verb === "POST" && cleanPath === `${PREFIX}/at-rest`) return mockAtRest(body as AtRestInputDTO);
 
   const match = /^\/m\/walls\/structures\/([^/]+)\/(required-factors|size|check)$/.exec(cleanPath);
   if (verb !== "POST" || !match) return NOT_HANDLED;

@@ -144,7 +144,10 @@ class WallLoads(BaseModel):
     """Positive upward: thrust uses (1-kv), vertical wall inertia is +kv*W."""
     water_kh: float | None = Field(None, ge=0, description="0.4 S_DS, r=1 for TBDY Denk. 16.20")
     seismic_increment_height: float = Field(0.6, gt=0, lt=1)
-    """Height of the seismic thrust increment as a fraction of H (Seed & Whitman: 0.6)."""
+    """Height of the soil part of the seismic thrust increment as a fraction of H (Seed & Whitman: 0.6).
+
+    The surcharge part of the increment is an inverted triangle and always acts at 2H/3 above the
+    base (TBDY 2018; Keleşoğlu, Gravity Wall / Anchored Wall), independent of this value."""
 
 
 class WallSettings(BaseModel):

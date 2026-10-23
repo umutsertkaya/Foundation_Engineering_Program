@@ -4,7 +4,7 @@ import numpy as np
 import pytest
 
 from geotek.core.constants import GAMMA_W
-from geotek.core.errors import GeoTekError
+from geotek.core.errors import GeoTekError, LayerDesignError
 from geotek.core.models import DesignParameters, GroundwaterCondition, SoilLayer, SoilProfile
 from geotek.engine.earth_pressure.coefficients import (
     coulomb_ka,
@@ -161,6 +161,9 @@ def test_passive_below_dredge_line():
 
 def test_at_rest_and_methods():
     p = _profile([(0, 10, 30, 0, 18, 18, None)])
+    with pytest.raises(LayerDesignError, match="K0"):  # HS-C: no Jaky default, K0 must be approved
+        lateral_pressure(p, 4, state="at_rest")
+    p.layers[0].design.K0 = 0.5  # approved K0 (equals Jaky for phi = 30 deg)
     assert lateral_pressure(p, 4, state="at_rest").force == pytest.approx(0.5 * 0.5 * 18 * 16, rel=1e-6)
     coul = lateral_pressure(p, 4, method="coulomb", delta=20)
     assert coul.force == pytest.approx(0.5 * 18 * 16 * coulomb_ka(30, 20) * math.cos(math.radians(20)), rel=1e-6)

@@ -131,6 +131,7 @@
   "error.detail.layer_su_missing": "{top}–{bottom} m katmanı: onaylı tasarım s_u değeri girilmemiş (drenajsız analiz için gerekli).",
   "error.detail.layer_su_not_positive": "{top}–{bottom} m katmanı: temel için pozitif tasarım s_u değeri gerekli.",
   "error.detail.layer_phi_missing": "{top}–{bottom} m katmanı: onaylı tasarım φ′ değeri girilmemiş.",
+  "error.detail.layer_k0_missing": "{top}–{bottom} m katmanı için K0 onaylanmalı (Zemin › Parametreler).",
   "error.detail.layer_seismic_undrained_unsupported": "{top}–{bottom} m katmanı: drenajsız zeminde sismik yanal basınç henüz uygulanmadı.",
   "job.step.queued": "Hesap sıraya alındı…",
   "job.step.earth_pressure": "Zemin itkileri ve su basınçları hesaplanıyor…",
