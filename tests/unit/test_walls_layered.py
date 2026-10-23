@@ -365,10 +365,13 @@ def test_steep_eq_vertical_component_keeps_wall_friction(wall_type):
     pa, pae = static.component("effective")[0], dynamic.component("effective")[0]
     theta = math.atan2(geometry.back_offset, geometry.height) if wall_type == "gravity" else 0.
     delta = math.radians(20.)  # 2*phi/3 for gravity, slope for the cantilever.
-    eq = next(f for f in result.forces if f.name.startswith("Seismic increment"))
-    assert eq.fx == pytest.approx(-(pae - pa))
-    assert eq.fy == pytest.approx(eq.fx * math.tan(delta + theta))
-    soil_forces = [f for f in result.forces if f.kind in ("EH", "LS") or f is eq]
+    # HS-C: the increment is split into a soil part (0.6 H) and a surcharge part (2H/3); the sum is
+    # the unchanged total Pae - Pa and both parts keep the same wall friction inclination.
+    eqs = [f for f in result.forces if f.name.startswith("Seismic increment")]
+    assert [f.name for f in eqs] == ["Seismic increment", "Seismic increment (surcharge)"]
+    assert sum(f.fx for f in eqs) == pytest.approx(-(pae - pa))
+    assert sum(f.fy for f in eqs) == pytest.approx(sum(f.fx for f in eqs) * math.tan(delta + theta))
+    soil_forces = [f for f in result.forces if f.kind in ("EH", "LS") or f in eqs]
     assert sum(f.fy for f in soil_forces) == pytest.approx(-pae * math.tan(delta + theta), abs=1e-10)
 
 
@@ -383,8 +386,8 @@ def test_steep_eq_inclination_keeps_delta_in_partially_submerged_layer():
     theta = math.atan2(geometry.back_offset, geometry.height)
     tangent = math.tan(math.radians(20.) + theta)
     result = wall_forces_layered(geometry, soil, loads, settings, seismic=True, backfill_slope=20.)
-    eq = next(f for f in result.forces if f.name.startswith("Seismic increment"))
-    assert eq.fy == pytest.approx(
+    eqs = [f for f in result.forces if f.name.startswith("Seismic increment")]
+    assert sum(f.fy for f in eqs) == pytest.approx(
         (static.component("effective")[0] - dynamic.component("effective")[0]) * tangent)
 
 
@@ -833,8 +836,15 @@ def test_two_layer_dry_seismic_thrust_uses_each_layers_coefficient():
     expected = k1 * (18 * 2**2 / 2 + 10 * 2) + k2 * ((36 + 10) * 4 + 19 * 4**2 / 2)
     thrusts = [f for f in forces if f.kind in ("EH", "LS") or f.name.startswith("Seismic increment")]
     assert -sum(f.fx for f in thrusts) == pytest.approx(expected, rel=1e-10)
-    assert len([f for f in thrusts if f.name.startswith("Seismic increment")]) == 2
-    assert all(f.y == pytest.approx(3) for f in thrusts if f.kind == "EQ")
+    # Two layers, each with a soil part and (HS-C) a surcharge part at 2H/3.
+    assert len([f for f in thrusts if f.name.startswith("Seismic increment")]) == 4
+    # Soil part at 0.5 H = 3 m; surcharge part (inverted triangle) at 2H/3 = 4 m.
+    assert all(f.y == pytest.approx(4 if "(surcharge)" in f.name else 3) for f in thrusts if f.kind == "EQ")
+    # Surcharge part of each layer = q * thickness * ((1 - kv) K_AE - K_a), hand values.
+    from geotek.engine.earth_pressure.coefficients import coulomb_ka
+    surcharge_parts = -sum(f.fx for f in thrusts if "(surcharge)" in f.name)
+    assert surcharge_parts == pytest.approx(
+        10 * 2 * (k1 - coulomb_ka(32)) + 10 * 4 * (k2 - coulomb_ka(25)), rel=1e-10)
     assert not any(f.kind == "WA" for f in forces)
 
 

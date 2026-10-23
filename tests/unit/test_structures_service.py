@@ -179,7 +179,11 @@ def test_downward_kv_sizes_same_wall_to_450():
     before = project.model_dump_json()
     result = size_structure(project, "wall")
     assert project.model_dump_json() == before
-    assert result.passed and result.geometry.width == pytest.approx(4.50)
+    # HS-C: the surcharge part of the seismic increment now acts at 2H/3 instead of H/2. Hand check:
+    # kh = 2/15, kv = -1/15 (down), phi = 32, K_a = 0.30726, K_AE = 0.38476, q = 10 kPa, H = 5 m ->
+    # dP_q = q H ((1 - kv) K_AE - K_a) = 5.16 kN/m, arm 2.5 -> 3.33 m: +4.30 kNm/m overturning moment.
+    # The bearing check (FS 2.08 >= 2.0) now first passes at the next 0.05 m step: B = 4.55 m (was 4.50).
+    assert result.passed and result.geometry.width == pytest.approx(4.55)
     assert result.kv == -abs(result.kh) / 2
     assert not any("kv_envelope" in w for w in result.warnings)
 
@@ -891,7 +895,11 @@ def test_sizing_treats_a_bearing_failure_as_a_failed_trial_width(monkeypatch):
     monkeypatch.setattr(service, "_evaluate_wall", narrow_fails)
     result = size_structure(project, "wall")
     assert min(tried) < 4.0
-    assert result.passed and result.geometry.width == pytest.approx(4.50)
+    # HS-C: the surcharge part of the seismic increment now acts at 2H/3 instead of H/2. Hand check:
+    # kh = 2/15, kv = -1/15 (down), phi = 32, K_a = 0.30726, K_AE = 0.38476, q = 10 kPa, H = 5 m ->
+    # dP_q = q H ((1 - kv) K_AE - K_a) = 5.16 kN/m, arm 2.5 -> 3.33 m: +4.30 kNm/m overturning moment.
+    # The bearing check (FS 2.08 >= 2.0) now first passes at the next 0.05 m step: B = 4.55 m (was 4.50).
+    assert result.passed and result.geometry.width == pytest.approx(4.55)
 
     def always_fails(*args, **kwargs):
         raise BearingFailureError("Eccentricity too large: effective width <= 0")
