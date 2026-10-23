@@ -653,5 +653,8 @@
   "web.import.check": "Check",
   "web.import.done": "Imported {boreholes} boreholes and {cpts} CPT soundings.",
   "web.import.assumptions": "Assumptions and warnings",
-  "web.import.close": "Close"
+  "web.import.close": "Close",
+  "web.inventory.title": "Layer data inventory ({count} points)",
+  "web.inventory.blocked": "Methods that cannot run (no point has the input)",
+  "web.inventory.needs": "missing input:"
 }

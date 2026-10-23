@@ -153,3 +153,4 @@ export type SheetPlan = components["schemas"]["SheetPlan"];
 export type ImportIssue = components["schemas"]["ImportIssue"];
 export type SheetRole = NonNullable<SheetPlan["role"]>;
 export type WorkbookImportResult = components["schemas"]["WorkbookImportResult"];
+export type LayerInventory = components["schemas"]["LayerInventory"];

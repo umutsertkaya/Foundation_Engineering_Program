@@ -81,6 +81,7 @@ IMPLEMENTED_REQUESTS = [
     ("POST", "/layering/cpt/C1", {"method": "cpt_ic"}),
     ("POST", "/layering/spt/B1", {"method": "spt_log"}),
     ("GET", "/profiles/P1/layers/L1/parameters", None),
+    ("GET", "/profiles/P1/layers/L1/inventory", None),
     ("PUT", "/profiles/P1/layers/L1/parameters/phi_eff", {"mode": "manual", "manual_value": 30}),
     ("POST", "/profiles/P1/layers/L1/parameters/approve", {"keys": ["phi_eff"]}),
     ("POST", "/profiles/P1/parameters/suggest-all", None),
@@ -1056,3 +1057,25 @@ def test_qc_only_cpt_import_and_endpoints_fail_cleanly_or_degrade(opened):
     layering = opened.post(f"{PREFIX}/layering/cpt/{cid}", json={"method": "cpt_ic"})
     assert layering.status_code in (409, 422), layering.text
     assert opened.get("/api/session").status_code == 200
+
+
+def test_layer_inventory_lists_inputs_and_missing_methods(opened):
+    csv = b"Depth (m),qc (MPa),fs (kPa)\n1,5,40\n2,6,50\n3,7,60\n"
+    files = {"file": ("cpt.csv", csv, "text/csv")}
+    plan = opened.post(f"{PREFIX}/import/workbook/analyze", files=files).json()
+    done = opened.post(f"{PREFIX}/import/workbook/commit", data={"plan": json.dumps(plan)}, files=files)
+    cid = done.json()["cpts"][0]["id"]
+    profile = create_profile(opened, {**CREATE, "source_ids": [cid]})
+    layer_id = profile["layers"][0]["id"]
+    response = opened.get(f"{PREFIX}/profiles/{profile['id']}/layers/{layer_id}/inventory")
+    assert response.status_code == 200, response.text
+    body = response.json()
+    assert body["point_count"] == 3 and body["inputs"]["qc"] == 3
+    phi = next(k for k in body["keys"] if k["parameter"] == "phi_eff")["methods"]
+    assert phi, "registry lists phi methods"
+    for method in phi:
+        # A method is either runnable somewhere or names inputs that no point supplies.
+        assert (method["ready_points"] > 0) != bool(method["missing_inputs"]) or method["ready_points"] == 0
+    assert any(m["missing_inputs"] for m in phi)  # e.g. SPT-based methods lack N60
+    missing = opened.get(f"{PREFIX}/profiles/{profile['id']}/layers/nope/inventory")
+    assert missing.status_code == 404

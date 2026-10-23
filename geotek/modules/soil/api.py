@@ -27,6 +27,7 @@ from geotek.modules.soil.schemas import (
     CPTProcessedDTO,
     CPTSBTNDTO,
     InvestigationsDTO,
+    LayerInventory,
     LayerMerge,
     LayerSplit,
     ParameterApproval,
@@ -46,7 +47,7 @@ from geotek.modules.soil.schemas import (
     USCSSymbolDTO,
     WorkbookImportResult,
 )
-from geotek.services import parameters
+from geotek.services import parameter_plan, parameters
 from geotek.services.layering import propose_layers
 from geotek.services.module1 import process_investigations
 
@@ -584,6 +585,21 @@ def router() -> APIRouter:
             service.find(profile.layers, layer_id)
             layer = service.find(refreshed.layers, layer_id)
             return [layer.selections[key] for key in get_args(DesignKey)]
+
+    @api.get(
+        "/profiles/{id}/layers/{layer_id}/inventory", response_model=LayerInventory,
+        operation_id="get_layer_inventory",
+    )
+    def get_layer_inventory(id: str, layer_id: str, session: SessionDep) -> LayerInventory:
+        """Which inputs the layer's data provides and which correlations they enable."""
+        with session.lock:
+            project = session.require_project()
+            profile = service.find(project.soil_profiles, id)
+            layer = service.find(profile.layers, layer_id)
+            try:
+                return LayerInventory(**parameter_plan.layer_inventory(project, profile, layer))
+            except KeyError as exc:
+                api_error(422, "validation", str(exc))
 
     @api.put(
         "/profiles/{id}/layers/{layer_id}/parameters/{key}", response_model=ParameterSelection,

@@ -218,3 +218,29 @@ class ParameterApproval(DTO):
     """Design quantities the engineer explicitly approves."""
 
     keys: list[DesignKey]
+
+
+class MethodAvailability(DTO):
+    """One registry correlation and how many layer points can feed it."""
+
+    id: str
+    reference: str
+    source: str
+    inputs: list[str]
+    ready_points: int
+    missing_inputs: list[str]
+    """Inputs no point of the layer supplies; empty when the method can run somewhere."""
+
+
+class KeyAvailability(DTO):
+    parameter: DesignKey
+    methods: list[MethodAvailability]
+
+
+class LayerInventory(DTO):
+    """Input availability of a layer and the correlations it enables, nothing assumed."""
+
+    layer_id: str
+    point_count: int
+    inputs: dict[str, int]
+    keys: list[KeyAvailability]
