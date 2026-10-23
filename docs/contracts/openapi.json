@@ -9270,6 +9270,118 @@
         }
       }
     },
+    "/api/m/walls/at-rest": {
+      "post": {
+        "tags": [
+          "walls"
+        ],
+        "summary": "Analyze At Rest",
+        "description": "At-rest (K0) pressure on a wall of height H through a soil profile (Das).",
+        "operationId": "analyze_at_rest",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AtRestInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AtRestResultDTO"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid operation or input file",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflicting or stale structure state",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation error or missing_factors",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Engine or server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "501": {
+            "description": "Contract stub; not implemented",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Other client error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "5XX": {
+            "description": "Other server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/m/sheet_pile/structures/{id}/design": {
       "post": {
         "tags": [
@@ -11703,6 +11815,179 @@
         ],
         "title": "AssumptionDTO",
         "description": "Mirror of an engine assumption and its source label."
+      },
+      "AtRestComponentDTO": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "enum": [
+              "soil",
+              "surcharge",
+              "water"
+            ],
+            "title": "Name"
+          },
+          "force": {
+            "type": "number",
+            "title": "Force"
+          },
+          "height": {
+            "type": "number",
+            "title": "Height"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "name",
+          "force",
+          "height"
+        ],
+        "title": "AtRestComponentDTO",
+        "description": "One resultant of the at-rest diagram: surcharge rectangle, soil triangle or water."
+      },
+      "AtRestInput": {
+        "properties": {
+          "profile_id": {
+            "type": "string",
+            "title": "Profile Id"
+          },
+          "height": {
+            "type": "number",
+            "exclusiveMinimum": 0.0,
+            "title": "Height"
+          },
+          "surcharge": {
+            "type": "number",
+            "minimum": 0.0,
+            "title": "Surcharge",
+            "default": 0.0
+          },
+          "gwt_case": {
+            "type": "string",
+            "enum": [
+              "insitu",
+              "design",
+              "seismic"
+            ],
+            "title": "Gwt Case",
+            "default": "design"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "profile_id",
+          "height"
+        ],
+        "title": "AtRestInput",
+        "description": "At-rest pressure request; the wall top is at the ground surface."
+      },
+      "AtRestLayerDTO": {
+        "properties": {
+          "layer_id": {
+            "type": "string",
+            "title": "Layer Id"
+          },
+          "top": {
+            "type": "number",
+            "title": "Top"
+          },
+          "bottom": {
+            "type": "number",
+            "title": "Bottom"
+          },
+          "K0": {
+            "type": "number",
+            "title": "K0"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "layer_id",
+          "top",
+          "bottom",
+          "K0"
+        ],
+        "title": "AtRestLayerDTO",
+        "description": "K0 used for one layer within the wall height."
+      },
+      "AtRestResultDTO": {
+        "properties": {
+          "z": {
+            "items": {
+              "type": "number"
+            },
+            "type": "array",
+            "title": "Z"
+          },
+          "sigma_h_eff": {
+            "items": {
+              "type": "number"
+            },
+            "type": "array",
+            "title": "Sigma H Eff"
+          },
+          "u": {
+            "items": {
+              "type": "number"
+            },
+            "type": "array",
+            "title": "U"
+          },
+          "sigma_h": {
+            "items": {
+              "type": "number"
+            },
+            "type": "array",
+            "title": "Sigma H"
+          },
+          "layers": {
+            "items": {
+              "$ref": "#/components/schemas/AtRestLayerDTO"
+            },
+            "type": "array",
+            "title": "Layers"
+          },
+          "components": {
+            "items": {
+              "$ref": "#/components/schemas/AtRestComponentDTO"
+            },
+            "type": "array",
+            "title": "Components"
+          },
+          "total_force": {
+            "type": "number",
+            "title": "Total Force"
+          },
+          "total_height": {
+            "type": "number",
+            "title": "Total Height"
+          },
+          "warnings": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Warnings"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "z",
+          "sigma_h_eff",
+          "u",
+          "sigma_h",
+          "layers",
+          "components",
+          "total_force",
+          "total_height",
+          "warnings"
+        ],
+        "title": "AtRestResultDTO",
+        "description": "At-rest pressure diagram [kPa over depth z in m], layer K0 table and components."
       },
       "AxisRangeDTO": {
         "properties": {

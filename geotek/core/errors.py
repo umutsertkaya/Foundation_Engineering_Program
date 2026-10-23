@@ -37,7 +37,7 @@ class MissingFactorsError(GeoTekError):
 class LayerDesignError(GeoTekError):
     """A soil layer lacks the approved design value a calculation needs.
 
-    ``issue`` is one of ``su_missing``, ``su_not_positive``, ``phi_missing``,
+    ``issue`` is one of ``su_missing``, ``su_not_positive``, ``phi_missing``, ``k0_missing``,
     ``seismic_undrained_unsupported``, ``gamma_sat_missing``. The layer is named by its depth range, not its internal id.
     """
 
@@ -45,6 +45,7 @@ class LayerDesignError(GeoTekError):
         "su_missing": "design s_u not set",
         "su_not_positive": "foundation needs positive design s_u",
         "phi_missing": "design phi' not set",
+        "k0_missing": "design K0 not approved",
         "seismic_undrained_unsupported": "seismic undrained earth pressure is not implemented",
         "gamma_sat_missing": "saturated unit weight gamma_sat not set (layer lies below the groundwater table)",
     }

@@ -1,5 +1,6 @@
 import { request } from "../../shared/api/http";
 import type { JobRef, MissingFactorDTO, WallTypeInfo } from "../../shared/api/types";
+import type { AtRestInputDTO, AtRestResultDTO } from "./types";
 
 export function list_wall_types(): Promise<WallTypeInfo[]> {
   return request<WallTypeInfo[]>("GET", "/m/walls/wall-types");
@@ -15,4 +16,8 @@ export function size_wall(id: string): Promise<JobRef> {
 
 export function check_wall(id: string): Promise<JobRef> {
   return request<JobRef>("POST", `/m/walls/structures/${encodeURIComponent(id)}/check`);
+}
+
+export function analyze_at_rest(body: AtRestInputDTO): Promise<AtRestResultDTO> {
+  return request<AtRestResultDTO>("POST", "/m/walls/at-rest", body);
 }
