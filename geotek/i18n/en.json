@@ -683,5 +683,20 @@
   "parameters.spt_class.clay.firm": "Firm clay",
   "parameters.spt_class.clay.stiff": "Stiff clay",
   "parameters.spt_class.clay.very_stiff": "Very stiff clay",
-  "parameters.spt_class.clay.hard": "Hard clay"
+  "parameters.spt_class.clay.hard": "Hard clay",
+  "web.inventory.uscs_needed": "The layer USCS class is required (this method is chosen by soil class)",
+  "web.inventory.phi_approved_needed": "φ′ must be approved first",
+  "web.inventory.ocr_approved_needed": "OCR must be approved first",
+  "web.inventory.spt_class": "From SPT: {name} (Clayton 1993)",
+  "web.inventory.spt_class.sand.very_loose": "very loose",
+  "web.inventory.spt_class.sand.loose": "loose",
+  "web.inventory.spt_class.sand.medium_dense": "medium dense",
+  "web.inventory.spt_class.sand.dense": "dense",
+  "web.inventory.spt_class.sand.very_dense": "very dense",
+  "web.inventory.spt_class.clay.very_soft": "very soft",
+  "web.inventory.spt_class.clay.soft": "soft",
+  "web.inventory.spt_class.clay.firm": "firm",
+  "web.inventory.spt_class.clay.stiff": "stiff",
+  "web.inventory.spt_class.clay.very_stiff": "very stiff",
+  "web.inventory.spt_class.clay.hard": "hard"
 }

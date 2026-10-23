@@ -299,6 +299,7 @@ function LayeringBody({ kind, onClose, onCreated }: { kind: LayeringKind; onClos
                   {kind === "cpt" && <Table.Th>{t("soil.layering.col.ic")}</Table.Th>}
                   <Table.Th>{t("soil.layering.col.behaviour")}</Table.Th>
                   <Table.Th>{t("soil.layering.col.gamma")}</Table.Th>
+                  <Table.Th>{t("soil.layering.col.gamma_sat")}</Table.Th>
                 </Table.Tr>
               </Table.Thead>
               <Table.Tbody>
@@ -338,6 +339,9 @@ function LayeringBody({ kind, onClose, onCreated }: { kind: LayeringKind; onClos
                           </Button>
                         )}
                       </Group>
+                    </Table.Td>
+                    <Table.Td data-testid={`layering-gamma-sat-${i}`}>
+                      {fmt(layer.gamma_sat_suggested ?? null, 1, t("web.common.none"))}
                     </Table.Td>
                   </Table.Tr>
                 ))}

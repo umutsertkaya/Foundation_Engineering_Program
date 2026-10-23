@@ -76,12 +76,48 @@ describe("layerOps — structural edits", () => {
     expect(splitLayer(THREE, 1, 7)).toBe(THREE);
   });
 
-  it("mergeWithNext keeps the upper layer and takes the lower bottom", () => {
+  it("mergeWithNext keeps the upper id and takes the lower bottom", () => {
     const out = mergeWithNext(THREE, 0);
     expect(out).toHaveLength(2);
     expect(out[0]).toMatchObject({ id: "L1", top: 0, bottom: 5 });
     expect(contiguous(out)).toBe(true);
     expect(mergeWithNext(THREE, 2)).toBe(THREE);
+  });
+
+  it("mergeWithNext weights unit weights by thickness (2 m of 18 + 3 m of 20 = 19.2), like the server", () => {
+    const pair = [layer("A", 0, 2, { gamma: 18, gamma_sat: 19 }), layer("B", 2, 5, { gamma: 20, gamma_sat: 21 })];
+    const [merged] = mergeWithNext(pair, 0);
+    expect(merged.gamma).toBeCloseTo(19.2, 9);
+    expect(merged.gamma_sat).toBeCloseTo(20.2, 9);
+  });
+
+  it("mergeWithNext: gamma_sat is null unless both layers have it, and equal values stay", () => {
+    const one = [layer("A", 0, 2, { gamma_sat: null }), layer("B", 2, 5, { gamma: 20, gamma_sat: 21 })];
+    expect(mergeWithNext(one, 0)[0].gamma_sat).toBeNull();
+    const both = [layer("A", 0, 2, { gamma_sat: null }), layer("B", 2, 5, { gamma_sat: null })];
+    expect(mergeWithNext(both, 0)[0].gamma_sat).toBeNull();
+    const same = [layer("A", 0, 2), layer("B", 2, 5)];
+    expect(mergeWithNext(same, 0)[0]).toMatchObject({ gamma: 18, gamma_sat: 19 });
+  });
+
+  it("mergeWithNext withdraws approvals, clears conflicting design values and refuses a c_eff conflict", () => {
+    const approved = (parameter: "phi_eff" | "su"): NonNullable<SoilLayer["selections"]>[string] => ({
+      parameter,
+      mode: "manual",
+      manual_value: 30,
+      approved: true,
+      approved_at: "2026-10-01T00:00:00Z",
+      basis_hash: "h",
+      candidates: [{ value: 1, unit: "deg", method_id: "m", source: "SPT" }],
+    });
+    const a = layer("A", 0, 2, { design: { phi_eff: 30, c_eff: 0, su: 40 }, selections: { phi_eff: approved("phi_eff"), su: approved("su") } });
+    const b = layer("B", 2, 5, { design: { phi_eff: 30, c_eff: 0, su: 55 } });
+    const [merged] = mergeWithNext([a, b], 0);
+    expect(merged.design).toMatchObject({ phi_eff: 30, c_eff: 0, su: null });
+    expect(merged.selections?.phi_eff).toMatchObject({ approved: false, approved_at: null, basis_hash: null, candidates: [], mode: "manual" });
+    expect(merged.selections?.su).toEqual({ parameter: "su", approved: false });
+    const conflict = [layer("A", 0, 2, { design: { c_eff: 0 } }), layer("B", 2, 5, { design: { c_eff: 5 } })];
+    expect(mergeWithNext(conflict, 0)).toBe(conflict);
   });
 
   it("insertBelow halves an inner layer, appends below the last, creates a first layer", () => {

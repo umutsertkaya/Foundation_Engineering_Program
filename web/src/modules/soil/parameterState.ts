@@ -169,3 +169,58 @@ export function readiness(selection: ParameterSelection): Readiness {
   const tolerance = 1e-9 * Math.max(1, Math.abs(shown), Math.abs(preview));
   return Math.abs(preview - shown) <= tolerance ? "ready" : "outdated";
 }
+
+/** Unit weights come first: every stress-dependent correlation rests on them. Other keys keep their order. */
+const UNIT_WEIGHT_KEYS: readonly string[] = ["gamma", "gamma_sat"];
+
+export function orderSelections(selections: ParameterSelection[]): ParameterSelection[] {
+  const rank = (s: ParameterSelection) => {
+    const i = UNIT_WEIGHT_KEYS.indexOf(s.parameter);
+    return i < 0 ? UNIT_WEIGHT_KEYS.length : i;
+  };
+  return selections
+    .map((selection, index) => ({ selection, index }))
+    .sort((a, b) => rank(a.selection) - rank(b.selection) || a.index - b.index)
+    .map((e) => e.selection);
+}
+
+/** The i18n key explaining a withdrawn approval; null when the approval is not withdrawn. */
+export function staleReasonKey(selection: ParameterSelection): string | null {
+  if (approvalState(selection) !== "stale") return null;
+  return `soil.params.stale_reason.${selection.stale_reason ?? "data_changed"}`;
+}
+
+export interface RefreshedDiff {
+  oldValue: number;
+  newValue: number;
+  unit: string;
+  diff: number;
+  /** Percent of the old value; null when the old value is zero. */
+  percent: number | null;
+}
+
+/** Approved (old) value against the value the current inputs give; null unless the approval is withdrawn and a new value exists. */
+export function refreshedDiff(selection: ParameterSelection): RefreshedDiff | null {
+  if (approvalState(selection) !== "stale") return null;
+  const refreshed = selection.refreshed;
+  const old = selection.selected;
+  if (!refreshed || !old || !Number.isFinite(refreshed.value) || !Number.isFinite(old.value)) return null;
+  const diff = refreshed.value - old.value;
+  return {
+    oldValue: old.value,
+    newValue: refreshed.value,
+    unit: refreshed.unit || old.unit,
+    diff,
+    percent: old.value === 0 ? null : (diff / Math.abs(old.value)) * 100,
+  };
+}
+
+export function formatPercent(percent: number | null): string {
+  if (percent === null || !Number.isFinite(percent)) return "-";
+  const rounded = Math.round(percent * 10) / 10;
+  return `${rounded > 0 ? "+" : ""}${rounded.toFixed(1)} %`;
+}
+
+export function formatDiff(diff: number): string {
+  return `${diff > 0 ? "+" : ""}${formatValue(diff)}`;
+}

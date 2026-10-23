@@ -122,10 +122,10 @@ function energyOf(bh: Borehole): number {
 function mockProposalCpt(cpt: CPTSounding, settings: LayeringSettings): LayeringProposal {
   const bottom = Math.max(...cpt.depth);
   const cuts = [0, round(bottom * 0.3, 1), round(bottom * 0.65, 1), bottom];
-  const demo: Pick<ProposedLayer, "description" | "uscs" | "sbtn_zone" | "ic_mean" | "gamma_suggested" | "behaviour">[] = [
-    { description: `Sentetik siltli kum ${MOCK_TAG}`, uscs: "SM", sbtn_zone: 5, ic_mean: 2.1, gamma_suggested: 18.2, behaviour: "drained" },
-    { description: `Sentetik kil ${MOCK_TAG}`, uscs: "CL", sbtn_zone: 3, ic_mean: 2.9, gamma_suggested: 17.4, behaviour: "undrained" },
-    { description: `Sentetik sıkı kum ${MOCK_TAG}`, uscs: "SP", sbtn_zone: 6, ic_mean: 1.8, gamma_suggested: 19.6, behaviour: "drained" },
+  const demo: Pick<ProposedLayer, "description" | "uscs" | "sbtn_zone" | "ic_mean" | "gamma_suggested" | "gamma_sat_suggested" | "behaviour">[] = [
+    { description: `Sentetik siltli kum ${MOCK_TAG}`, uscs: "SM", sbtn_zone: 5, ic_mean: 2.1, gamma_suggested: 18.2, gamma_sat_suggested: 19.4, behaviour: "drained" },
+    { description: `Sentetik kil ${MOCK_TAG}`, uscs: "CL", sbtn_zone: 3, ic_mean: 2.9, gamma_suggested: 17.4, gamma_sat_suggested: 18.5, behaviour: "undrained" },
+    { description: `Sentetik sıkı kum ${MOCK_TAG}`, uscs: "SP", sbtn_zone: 6, ic_mean: 1.8, gamma_suggested: 19.6, gamma_sat_suggested: 20.3, behaviour: "drained" },
   ];
   return {
     source_id: cpt.id,
@@ -164,6 +164,7 @@ function mockProposalSpt(bh: Borehole, settings: LayeringSettings): LayeringProp
       n60_mean: tests.length ? round((mean(tests) * energyOf(bh)) / 60, 1) : null,
       // Like the real SPT engine: no reliable unit-weight formula, the engineer supplies it.
       gamma_suggested: null,
+      gamma_sat_suggested: null,
       behaviour: granular ? "drained" : "undrained",
     };
   });
@@ -206,10 +207,19 @@ function mockProcessedSpt(bh: Borehole): SPTProcessedDTO {
   };
 }
 
-/** Demo stand-in for the backend basis hash: changes when the layer bounds change. */
+/**
+ * Demo stand-in for the backend basis hash. It changes with the layer bounds; for the keys that use the
+ * vertical effective stress (STRESS_KEYS) it also changes with gamma and gamma_sat, like the real basis.
+ */
 const BASIS_PREFIX = "mock-basis:";
-function basisOf(layer: SoilLayer): string {
+const STRESS_KEYS: DesignKey[] = ["phi_eff", "su", "E", "delta_base"];
+function boundsBasis(layer: SoilLayer): string {
   return `${BASIS_PREFIX}${layer.top}-${layer.bottom}`;
+}
+function basisOf(layer: SoilLayer, key: DesignKey): string {
+  return STRESS_KEYS.includes(key)
+    ? `${boundsBasis(layer)}|g=${layer.gamma}|gs=${layer.gamma_sat ?? "-"}`
+    : boundsBasis(layer);
 }
 
 /** Fake candidates and suggestion for one key of one layer (demo numbers, deterministic per layer). */
@@ -237,7 +247,10 @@ function mockCandidates(
   });
   switch (key) {
     case "phi_eff": {
-      const base = 28 + idx * 2;
+      // Demo stress effect: once gamma is approved through this mock, phi' follows it (so a stress change shows old -> new).
+      const gammaSel = layer.selections?.gamma;
+      const stressShift = gammaSel?.approved && gammaSel.basis_hash?.startsWith(BASIS_PREFIX) ? round((layer.gamma - 19) * 0.4, 2) : 0;
+      const base = 28 + idx * 2 + stressShift;
       const candidates = [
         make("a", base),
         make("b", base + 3, { reliability: "C" }),
@@ -307,7 +320,14 @@ function refreshedSelection(layer: SoilLayer, key: DesignKey): ParameterSelectio
   sel.candidates = candidates;
   sel.suggested = suggested;
   // Seed approvals carry an opaque hash that is not ours; only approvals made through this mock can go stale.
-  if (sel.approved && sel.basis_hash?.startsWith(BASIS_PREFIX) && sel.basis_hash !== basisOf(layer)) sel.approved = false;
+  if (sel.approved && sel.basis_hash?.startsWith(BASIS_PREFIX) && sel.basis_hash !== basisOf(layer, key)) {
+    sel.approved = false;
+    const boundsMoved = sel.basis_hash.split("|")[0] !== boundsBasis(layer);
+    sel.stale_reason = boundsMoved ? "data_changed" : "stress_changed";
+    // The value the current inputs give for the stored choice; absent when the method no longer applies.
+    const again = resolveSelection({ ...sel, mode: sel.mode });
+    sel.refreshed = "selection" in again ? again.selection.selected : null;
+  }
   return sel;
 }
 
@@ -433,7 +453,14 @@ function handleLayeringAndParameters(method: string, cleanPath: string, body: un
       const resolved = resolveSelection(fresh);
       if ("error" in resolved) return bad(resolved.error, { key });
       const sel = resolved.selection;
-      next.selections[key] = { ...sel, approved: true, approved_at: new Date().toISOString(), basis_hash: basisOf(next) };
+      next.selections[key] = {
+        ...sel,
+        approved: true,
+        approved_at: new Date().toISOString(),
+        basis_hash: basisOf(next, key),
+        stale_reason: null,
+        refreshed: null,
+      };
       const value = (sel.selected as DerivedParameter).value;
       if (key === "gamma") next.gamma = value;
       else if (key === "gamma_sat") next.gamma_sat = value;
@@ -461,6 +488,104 @@ function handleLayeringAndParameters(method: string, cleanPath: string, body: un
     if ("error" in resolved) return bad(resolved.error, { key });
     found.layer.selections = { ...(found.layer.selections ?? {}), [key]: resolved.selection };
     return { status: 200, data: structuredClone(resolved.selection) };
+  }
+
+  m = /^\/profiles\/([^/]+)\/parameters\/reapprove$/.exec(cleanPath);
+  if (method === "POST" && m) {
+    const profile = store.profiles.find((p) => p.id === id(m![1]));
+    if (!profile) return notFound("Profile");
+    const items = (body as { items?: { layer_id: string; key: DesignKey; expected_value: number }[] } | undefined)?.items ?? [];
+    if (items.length === 0) return bad("Reapproval needs at least one item");
+    const layers = new Map(profile.layers.map((l) => [l.id, structuredClone(l)] as const));
+    for (const item of items) {
+      const layer = layers.get(item.layer_id);
+      if (!layer || !DESIGN_KEYS.includes(item.key)) return notFound("Layer");
+      const fresh = refreshedSelection(layer, item.key);
+      const refreshed = fresh.refreshed;
+      if (!refreshed) return bad(`No refreshed value to approve for ${item.key}`, { key: item.key });
+      if (Math.abs(refreshed.value - item.expected_value) > 1e-9 * Math.max(1, Math.abs(refreshed.value))) {
+        return {
+          status: 409,
+          data: {
+            code: "reapprove_value_changed",
+            message: "The refreshed value differs from the expected value; review it first. (Mock)",
+            details: { layer_id: item.layer_id, key: item.key },
+            missing_factors: [],
+          },
+        };
+      }
+      layer.selections = { ...(layer.selections ?? {}) };
+      layer.design = { ...(layer.design ?? {}) };
+      if (item.key === "gamma") layer.gamma = refreshed.value;
+      else if (item.key === "gamma_sat") layer.gamma_sat = refreshed.value;
+      else layer.design[item.key] = refreshed.value;
+      layer.selections[item.key] = {
+        ...fresh,
+        selected: refreshed,
+        approved: true,
+        approved_at: new Date().toISOString(),
+        basis_hash: basisOf(layer, item.key),
+        stale_reason: null,
+        refreshed: null,
+      };
+    }
+    profile.layers = profile.layers.map((l) => layers.get(l.id) ?? l);
+    return { status: 200, data: structuredClone(profile) };
+  }
+
+  m = /^\/profiles\/([^/]+)\/readiness$/.exec(cleanPath);
+  if (method === "GET" && m) {
+    const profile = store.profiles.find((p) => p.id === id(m![1]));
+    if (!profile) return notFound("Profile");
+    const gwtDepth = profile.gwt.depth_insitu;
+    return {
+      status: 200,
+      data: profile.layers.map((layer) => {
+        const gamma = layer.selections?.gamma;
+        const gammaSat = layer.selections?.gamma_sat;
+        const gammaSatApproved = Boolean(gammaSat && refreshedSelection(layer, "gamma_sat").approved);
+        return {
+          layer_id: layer.id,
+          gamma_approved: Boolean(gamma && refreshedSelection(layer, "gamma").approved),
+          gamma_sat_approved: gammaSatApproved,
+          gamma_sat_missing_below_gwt: (layer.gamma_sat === null || layer.gamma_sat === undefined) && layer.bottom > gwtDepth,
+          gamma_sat_equals_gamma_unapproved: layer.gamma_sat !== null && layer.gamma_sat !== undefined && layer.gamma_sat === layer.gamma && !gammaSatApproved,
+          stale_keys: DESIGN_KEYS.filter((key) => refreshedSelection(layer, key).stale_reason),
+        };
+      }),
+    };
+  }
+
+  m = /^\/profiles\/([^/]+)\/layers\/([^/]+)\/inventory$/.exec(cleanPath);
+  if (method === "GET" && m) {
+    const found = findLayer(id(m[1]), id(m[2]));
+    if (isReply(found)) return found;
+    const below = found.layer.bottom > found.profile.gwt.depth_insitu;
+    const missingGammaSat = below && (found.layer.gamma_sat === null || found.layer.gamma_sat === undefined);
+    return {
+      status: 200,
+      data: {
+        layer_id: found.layer.id,
+        point_count: 3,
+        inputs: { N60: 3, qc: 0 },
+        keys: [
+          {
+            parameter: "phi_eff",
+            methods: [
+              {
+                id: "mock_phi_eff_a",
+                source: "SPT",
+                inputs: ["N60"],
+                ready_points: found.layer.uscs ? 3 : 0,
+                missing_inputs: found.layer.uscs ? [] : ["uscs"],
+              },
+            ],
+          },
+        ],
+        stress_issue: missingGammaSat ? "gamma_sat_missing" : null,
+        spt_class: found.layer.behaviour === "undrained" ? "clay.stiff" : "sand.medium_dense",
+      },
+    };
   }
 
   m = /^\/profiles\/([^/]+)\/parameters\/suggest-all$/.exec(cleanPath);
@@ -495,6 +620,8 @@ function createFromProposal(payload: ProfileCreate): Reply {
     sbtn_zone: l.sbtn_zone,
     behaviour: l.behaviour,
     gamma: l.gamma_suggested as number,
+    // The server carries the suggested saturated unit weight into the new layer.
+    ...(l.gamma_sat_suggested !== null && l.gamma_sat_suggested !== undefined ? { gamma_sat: l.gamma_sat_suggested } : {}),
     source_ids: [proposal.source_id],
   }));
   const issues = [...validateLayers(layers, { mustStartAtZero: true }), ...validateGwt(payload.gwt)];
