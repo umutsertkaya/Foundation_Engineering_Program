@@ -21,4 +21,10 @@ export const KEY_UNITS: Record<DesignKey, string> = {
   gamma: "kN/m3",
   gamma_sat: "kN/m3",
   delta_base: "deg",
+  Dr: "%",
+  OCR: "-",
+  K0: "-",
+  Vs: "m/s",
+  Gmax: "kPa",
+  M: "kPa",
 };

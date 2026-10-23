@@ -13,7 +13,9 @@ export interface WallTypeInfo {
 export type StructureKind = "retaining_wall" | "sheet_pile";
 export type ProfileOrigin = "cpt" | "spt" | "manual" | "mixed";
 export type FactorStatus = "verified" | "secondary" | "unverified" | "not_in_source" | "user";
-export type DesignKey = "phi_eff" | "c_eff" | "su" | "E" | "gamma" | "gamma_sat" | "delta_base";
+export type DesignKey =
+  | "phi_eff" | "c_eff" | "su" | "E" | "gamma" | "gamma_sat" | "delta_base"
+  | "Dr" | "OCR" | "K0" | "Vs" | "Gmax" | "M";
 export type SelectionMode = "correlation" | "statistic" | "manual";
 export type Statistic = "mean" | "median" | "min" | "max" | "mean_minus_k_sd";
 export type JobStatus = "queued" | "running" | "done" | "failed" | "cancelled";
@@ -222,6 +224,12 @@ export interface DesignParameters {
   su?: number | null;
   E?: number | null;
   delta_base?: number | null;
+  Dr?: number | null;
+  OCR?: number | null;
+  K0?: number | null;
+  Vs?: number | null;
+  Gmax?: number | null;
+  M?: number | null;
 }
 
 export interface FactorOverride {

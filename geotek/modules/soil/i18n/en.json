@@ -177,5 +177,11 @@
   "soil.error.depth_outside_title": "Source is deeper than the active profile",
   "soil.error.depth_outside": "The active soil profile reaches {profile_depth} m, but this source goes down to {source_depth} m. Stresses for layering come from the active profile. Extend the active profile (or make a deeper one active) on the Soil profiles page, then try again.",
   "soil.error.depth_outside_nosrc": "The active soil profile reaches only {profile_depth} m, shallower than this source. Stresses for layering come from the active profile. Extend the active profile (or make a deeper one active) on the Soil profiles page, then try again.",
-  "soil.layering.stress_profile_note": "Stresses use the active profile; it must be at least as deep as the source."
+  "soil.layering.stress_profile_note": "Stresses use the active profile; it must be at least as deep as the source.",
+  "soil.params.key.Dr": "Relative density Dr",
+  "soil.params.key.OCR": "Overconsolidation ratio OCR",
+  "soil.params.key.K0": "At-rest earth pressure coefficient K0",
+  "soil.params.key.Vs": "Shear wave velocity Vs",
+  "soil.params.key.Gmax": "Small-strain shear modulus Gmax",
+  "soil.params.key.M": "Constrained modulus M"
 }

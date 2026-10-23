@@ -45,7 +45,7 @@ class Correlation:
 
 REGISTRY: dict[str, Correlation] = {}
 
-NON_NEGATIVE_PARAMETERS = ("su", "E", "sigma_p")
+NON_NEGATIVE_PARAMETERS = ("su", "E", "sigma_p", "OCR", "K0", "Vs", "Gmax", "M")
 """Parameters whose correlation results must not be negative (negative -> validity_ok False)."""
 
 

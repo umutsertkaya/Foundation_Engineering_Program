@@ -56,6 +56,12 @@ const KEY_UNIT: Record<DesignKey, string> = {
   gamma: "kN/m3",
   gamma_sat: "kN/m3",
   delta_base: "deg",
+  Dr: "%",
+  OCR: "-",
+  K0: "-",
+  Vs: "m/s",
+  Gmax: "kPa",
+  M: "kPa",
 };
 const STATISTICS: Statistic[] = ["mean", "median", "min", "max", "mean_minus_k_sd"];
 
@@ -287,6 +293,9 @@ function mockCandidates(
         },
       };
     }
+    default:
+      // The demo covers the original design keys only; the real engine derives the state parameters.
+      return { candidates: [], suggested: null };
   }
 }
 

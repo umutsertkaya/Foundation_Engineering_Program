@@ -44,6 +44,7 @@ def _unit(key: DesignKey) -> str:
     return {
         "phi_eff": "deg", "c_eff": "kPa", "su": "kPa", "E": "kPa",
         "gamma": "kN/m3", "gamma_sat": "kN/m3", "delta_base": "deg",
+        "Dr": "%", "OCR": "-", "K0": "-", "Vs": "m/s", "Gmax": "kPa", "M": "kPa",
     }[key]
 
 
@@ -101,7 +102,7 @@ def layer_points(
             point = {name: float(values[i]) for name, values in columns.items()
                      if math.isfinite(values[i])}
             point.update(C_B=float(processed.c_b[i]), C_S=float(processed.c_s[i]),
-                         energy_ratio=float(processed.energy_ratio[i]))
+                         energy_ratio=float(processed.energy_ratio[i]), gamma_layer=float(layer.gamma))
             points.append(point)
     for sounding in project.investigations.cpts:
         if sounding.id not in ids:
@@ -124,6 +125,7 @@ def layer_points(
             point = {name: float(values[i]) for name, values in columns.items()
                      if values is not None and math.isfinite(values[i])}
             point["area_ratio"] = float(sounding.area_ratio)
+            point["gamma_layer"] = float(layer.gamma)
             points.append(point)
     points.extend(_lab_point(lab) for lab in _layer_lab(project, profile, layer))
     return sorted(points, key=lambda point: (point["depth"], _point_json(point)))

@@ -681,7 +681,7 @@ def test_split_invalidates_approved_and_unapproved_selections_only_on_children(o
     assert [(layer["top"], layer["bottom"]) for layer in layers] == [(0, 5), (5, 10), (10, 20)]
     for child in layers[:2]:
         assert_stale_selections(child, profile["layers"][0]["selections"])
-        assert child["design"] == values
+        assert {k: child["design"][k] for k in values} == values
         assert child["gamma"] == 18
     assert layers[2] == profile["layers"][1]
     assert opened.get(path).json() == response.json()
@@ -715,7 +715,7 @@ def test_merge_keeps_equal_design_values_stale_from_both_layers(opened, reverse)
     assert (merged["top"], merged["bottom"], merged["id"]) == (0, 20, ids[0])
     previous = {**profile["layers"][1]["selections"], **profile["layers"][0]["selections"]}
     assert_stale_selections(merged, previous)
-    assert merged["design"] == values
+    assert {k: merged["design"][k] for k in values} == values
     assert "Warning" not in response.headers
     assert merged["gamma"] == 18
     assert untouched == profile["layers"][2]
@@ -747,7 +747,7 @@ def test_merge_clears_conflicting_design_values_and_warns(opened, key, other, re
     response = opened.post(f"{path}/layers/merge", json={"layer_ids": ids[::-1] if reverse else ids})
     assert response.status_code == 200, response.text
     merged, untouched = response.json()["layers"]
-    assert merged["design"] == {**values, key: None}
+    assert {k: merged["design"][k] for k in values} == {**values, key: None}
     assert f"Conflicting design value {key} cleared" in response.headers["Warning"]
     assert merged["selections"][key] == {
         "parameter": key, "candidates": [], "suggested": None, "mode": None,
