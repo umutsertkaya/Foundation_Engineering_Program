@@ -62,7 +62,7 @@ def _layer_lab(project: Project, profile: SoilProfile, layer: SoilLayer) -> list
 
 def _lab_point(lab: LabRecord) -> dict[str, float]:
     return {key: float(value) for key, value in lab.model_dump().items()
-            if value is not None and math.isfinite(value)}
+            if isinstance(value, (int, float)) and not isinstance(value, bool) and math.isfinite(value)}
 
 
 def layer_points(

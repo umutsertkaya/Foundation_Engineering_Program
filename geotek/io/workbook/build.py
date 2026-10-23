@@ -10,7 +10,7 @@ import numpy as np
 import pandas as pd
 from pydantic import ValidationError
 
-from geotek.core.errors import ImportDataError
+from geotek.core.errors import GeoTekError, ImportDataError
 from geotek.core.models.investigations import Borehole, CPTSounding, LabRecord, SPTRecord
 from geotek.core.units import convert
 from geotek.core.warning_codes import format_warning, parse_warning
@@ -26,10 +26,14 @@ from geotek.io.tabular import _parse_n
 from geotek.io.workbook.detect import (
     LENGTH_MM,
     TARGET_UNITS,
+    blocking_questions,
+    check_zip_size,
     fold,
     numeric,
+    prepare_sheet,
     read_sheets,
-    sheet_table,
+    sieve_opening_mm,
+    unit_allowed,
 )
 from geotek.io.workbook.schema import ImportPlan, SheetPlan
 
@@ -49,7 +53,7 @@ class _Sheet:
 
     def __init__(self, plan: SheetPlan, table: pd.DataFrame):
         self.plan, self.table = plan, table
-        for field_name, col in plan.columns.items():
+        for col in plan.columns.values():
             if col.header not in table.columns:
                 raise ImportDataError(f"Sheet {plan.name!r}: column {col.header!r} not found")
 
@@ -63,10 +67,15 @@ class _Sheet:
         values = numeric(self.raw(name))
         col = self.plan.columns[name]
         unit, target = col.unit, TARGET_UNITS.get(name)
+        if unit is not None and not unit_allowed(name, unit):
+            raise ImportDataError(f"Sheet {self.plan.name!r}: unit {unit!r} is not valid for {name}")
         if name in ("borehole_diameter", "opening"):
-            return values * LENGTH_MM.get(unit or "mm", 1.0)
+            return values * LENGTH_MM[unit or "mm"]
         if unit and target and unit != target:
-            return np.asarray(convert(values, unit, target), dtype=float)
+            try:
+                return np.asarray(convert(values, unit, target), dtype=float)
+            except GeoTekError as exc:
+                raise ImportDataError(f"Sheet {self.plan.name!r}: {exc}") from exc
         return values
 
     def text(self, name: str) -> list[str | None]:
@@ -76,9 +85,20 @@ class _Sheet:
 
 
 def _ids(sheet: _Sheet, default: str) -> list[str]:
-    if sheet.has("point_id"):
-        return [v or default for v in sheet.text("point_id")]
-    return [default] * len(sheet.table)
+    """Point id per row; an empty cell continues the id above (merged cells), else the default."""
+    if not sheet.has("point_id"):
+        return [default] * len(sheet.table)
+    ids, current = [], default
+    for value in sheet.text("point_id"):
+        current = value or current
+        ids.append(current)
+    return ids
+
+
+def _percent(sheet: _Sheet, name: str, plan: ImportPlan) -> np.ndarray:
+    """Water content in percent (the plan states whether the file holds fractions)."""
+    values = numeric(sheet.raw(name))
+    return values * 100.0 if plan.options.water_content_scale == "fraction" else values
 
 
 def _prefixed(warning: str, **context) -> str:
@@ -88,17 +108,22 @@ def _prefixed(warning: str, **context) -> str:
 
 def build_import(data: bytes, filename: str, plan: ImportPlan) -> ImportResult:
     """Build records from the confirmed plan; raises ``ImportDataError`` while questions are open."""
-    if open_questions := plan.blockers():
-        codes = ", ".join(sorted({i.code for i in open_questions}))
-        raise ImportDataError(f"The import plan still has open questions: {codes}")
+    check_zip_size(data, filename)
     frames = read_sheets(data, filename)
-    sheets: dict[str, _Sheet] = {}
+    tables = {}
     for sp in plan.sheets:
         if sp.role is None:
             continue
         if sp.name not in frames:
             raise ImportDataError(f"Sheet {sp.name!r} not found in the file")
-        sheets[sp.role] = _Sheet(sp, sheet_table(frames[sp.name], sp.header_row))
+        if sp.header_row >= len(frames[sp.name]):
+            raise ImportDataError(f"Sheet {sp.name!r}: header row {sp.header_row} is outside the sheet")
+        tables[sp.name] = prepare_sheet(frames[sp.name], sp.header_row)[0]
+    # Questions are re-derived from the plan and the data: a client cannot skip them by editing issues.
+    if open_questions := blocking_questions(plan, tables):
+        codes = ", ".join(sorted({i.code for i in open_questions}))
+        raise ImportDataError(f"The import plan still has open questions: {codes}")
+    sheets: dict[str, _Sheet] = {sp.role: _Sheet(sp, tables[sp.name]) for sp in plan.sheets if sp.role}
     result = ImportResult()
     boreholes: dict[str, Borehole] = {}
     if "spt" in sheets:
@@ -157,7 +182,12 @@ def _build_spt(sheet: _Sheet, plan: ImportPlan, boreholes: dict[str, Borehole], 
     depth = sheet.num("depth") if sheet.has("depth") else np.full(count, math.nan)
     from_drive = ~np.isfinite(depth) & np.isfinite(start) & np.isfinite(end)
     # Representative depth = middle of the counted drive (after the 150 mm seating drive).
-    depth = np.where(from_drive, np.round((start + DRIVE_SEATING_M + end) / 2.0, 6), depth)
+    counted_start = np.minimum(start + DRIVE_SEATING_M, end)
+    depth = np.where(from_drive, np.round((counted_start + end) / 2.0, 6), depth)
+    short = from_drive & (end - start < 3 * DRIVE_SEATING_M - 1e-9)
+    if short.any():
+        result.warnings.append(format_warning(
+            "import.warning.spt_short_drive", sheet=sheet.plan.name, count=int(short.sum())))
     if from_drive.any():
         result.warnings.append(format_warning(
             "import.warning.spt_depth_from_drive", sheet=sheet.plan.name, count=int(from_drive.sum())))
@@ -178,8 +208,14 @@ def _build_spt(sheet: _Sheet, plan: ImportPlan, boreholes: dict[str, Borehole], 
         triple = [b[i] if b is not None else math.nan for b in blows]
         have_blows = all(math.isfinite(v) for v in triple)
         refusal = False
+        parsed = None
         if n_raw is not None and not pd.isna(n_raw.iloc[i]):
-            n, refusal = _parse_n(n_raw.iloc[i])
+            try:
+                parsed = _parse_n(n_raw.iloc[i])
+            except ImportDataError:
+                parsed = None
+        if parsed is not None:
+            n, refusal = parsed
         elif have_blows:
             n = int(round(triple[1] + triple[2]))
         else:
@@ -240,7 +276,7 @@ def _build_lab(sheets: dict[str, _Sheet], plan: ImportPlan, boreholes: dict[str,
     holes = _ids(samples, default_bh)
     depth = samples.num("depth")
     gamma = samples.num("gamma") if samples.has("gamma") else None
-    w = numeric(samples.raw("w")) if samples.has("w") else None
+    w = _percent(samples, "w", plan) if samples.has("w") else None
     gs = numeric(samples.raw("Gs")) if samples.has("Gs") else None
     mass = numeric(samples.raw("sieve_mass")) if samples.has("sieve_mass") else None
     prep = samples.text("specimen")
@@ -255,7 +291,7 @@ def _build_lab(sheets: dict[str, _Sheet], plan: ImportPlan, boreholes: dict[str,
     if "sieve" in sheets:
         _lab_sieve(sheets["sieve"], info, result)
     if "limits" in sheets:
-        _lab_limits(sheets["limits"], info, result)
+        _lab_limits(sheets["limits"], info, result, plan)
     if "cu_setup" in sheets and "cu_curves" in sheets:
         _lab_cu(sheets["cu_setup"], sheets["cu_curves"], info, plan, result)
     for sid, d in info.items():
@@ -263,7 +299,7 @@ def _build_lab(sheets: dict[str, _Sheet], plan: ImportPlan, boreholes: dict[str,
                                       "PI", "c_eff", "phi_eff") if d.get(k) is not None}
         try:
             record = LabRecord(depth=d["depth"], sample_id=sid, specimen=d["specimen"],
-                               notes="; ".join(d["notes"]), **values)
+                               notes="; ".join(d["notes"]) or None, **values)
         except ValidationError as exc:
             raise ImportDataError(f"Sample {sid!r}: {exc.errors()[0]['msg']}") from exc
         hole = boreholes.setdefault(d["hole"], Borehole(id=d["hole"]))
@@ -296,6 +332,9 @@ def _lab_sieve(sheet: _Sheet, info: dict, result: ImportResult) -> None:
     sizes = sheet.num("opening")
     mass = numeric(sheet.raw("retained"))
     labels = sheet.text("opening")
+    for i, label in enumerate(labels):
+        if label and not math.isfinite(sizes[i]) and (mm := sieve_opening_mm(label)) is not None:
+            sizes[i] = mm
     pans = sheet.text("pan") if sheet.has("pan") else [None] * len(sizes)
     for sid, rows in _sample_rows(sheet, info, result).items():
         pan = None
@@ -328,9 +367,9 @@ _PL = re.compile(r"^(pl|plastic.*|plastik.*)$")
 _NP = re.compile(r"^(np|non ?plastic.*|plastik degil.*)$")
 
 
-def _lab_limits(sheet: _Sheet, info: dict, result: ImportResult) -> None:
+def _lab_limits(sheet: _Sheet, info: dict, result: ImportResult, plan: ImportPlan) -> None:
     tests = [fold(t) if t else "" for t in sheet.text("test")]
-    w = numeric(sheet.raw("w"))
+    w = _percent(sheet, "w", plan)
     blows = numeric(sheet.raw("blows")) if sheet.has("blows") else np.full(len(w), math.nan)
     for sid, rows in _sample_rows(sheet, info, result).items():
         ll_rows = [i for i in rows if _LL.match(tests[i]) and math.isfinite(w[i])]

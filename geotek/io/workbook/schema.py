@@ -23,9 +23,9 @@ class SheetPlan(BaseModel):
     role: Role | None = None
     """None: the sheet is ignored."""
     confidence: float = 0.0
-    header_row: int = 0
+    header_row: int = Field(0, ge=0)
     """0-based row index of the header within the sheet."""
-    row_count: int = 0
+    row_count: int = Field(0, ge=0)
     columns: dict[str, ColumnMap] = Field(default_factory=dict)
     """Canonical field name -> file column."""
 
@@ -47,6 +47,7 @@ class ImportOptions(BaseModel):
     """Sampler description in the file -> sampler type. None is an unanswered question."""
     sampler_suggestions: dict[str, Literal["standard", "no_liner"]] = Field(default_factory=dict)
     energy_ratio_scale: Literal["percent", "fraction"] | None = None
+    water_content_scale: Literal["percent", "fraction"] | None = None
     u2_zero_is_missing: bool = True
     """An all-zero u2 column means 'not measured'."""
     cu_failure: Literal["max_stress_ratio", "max_q", "strain_limit"] = "max_stress_ratio"

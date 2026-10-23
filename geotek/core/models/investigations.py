@@ -65,7 +65,7 @@ class LabRecord(BaseModel):
     Gs: float | None = Field(None, gt=0, description="Specific gravity of solids")
     specimen: Literal["reconstituted", "undisturbed"] | None = Field(
         None, description="Preparation of the strength-test specimen")
-    notes: str = Field("", description="Derivation notes, e.g. which test reduction produced a value")
+    notes: str | None = Field(None, description="Derivation notes, e.g. which test reduction produced a value")
 
     @model_validator(mode="after")
     def _plasticity_index(self) -> LabRecord:

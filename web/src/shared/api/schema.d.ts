@@ -2548,6 +2548,8 @@ export interface components {
             };
             /** Energy Ratio Scale */
             energy_ratio_scale?: ("percent" | "fraction") | null;
+            /** Water Content Scale */
+            water_content_scale?: ("percent" | "fraction") | null;
             /**
              * U2 Zero Is Missing
              * @default true
@@ -2716,9 +2718,8 @@ export interface components {
             /**
              * Notes
              * @description Derivation notes, e.g. which test reduction produced a value
-             * @default
              */
-            notes: string;
+            notes?: string | null;
         };
         /**
          * LayerMerge

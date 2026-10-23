@@ -609,5 +609,12 @@
   "import.warning.spt_depth_from_drive": "{sheet} sayfasındaki {count} SPT derinliği, sayılan sürüşün ortası (150 mm oturma sürüşünden sonra) olarak alındı.",
   "import.warning.sample_unknown": "{sheet} sayfasındaki {sample_id} numunesi numune sayfasında yok; atlandı.",
   "import.warning.sieve_no_total": "{sample_id} numunesi: ne toplam kuru kütle ne tava kütlesi var; elek analizi atlandı.",
-  "import.warning.reduction_failed": "{sample_id} numunesi: {test} hesaplanamadı ({reason})."
+  "import.warning.reduction_failed": "{sample_id} numunesi: {test} hesaplanamadı ({reason}).",
+  "import.issue.role_duplicate": "İki sayfa '{role}' gibi görünüyor ({other} de): birini yok sayın.",
+  "import.issue.unit_implausible": "{field} değerleri {unit} birimine uymuyor: birimi kontrol edin.",
+  "import.issue.number_format_ambiguous": "{field} sütununda 5,000 gibi ondalık mı binlik mi belli olmayan sayılar var: dosyayı düzeltin.",
+  "import.issue.sieve_opening_unresolved": "Elek açıklığı '{text}' mm cinsinden bir boyut veya standart bir numara (#4, No. 200) değil: dosyayı düzeltin.",
+  "import.issue.water_content_scale": "Su muhtevası değerleri seçilen ölçeğe uymuyor: yüzde mi, kesir mi?",
+  "import.issue.column_confirm": "'{header}' sütunu çok kısa bir başlıkla eşlendi: eşlemeyi onaylayın.",
+  "import.warning.spt_short_drive": "{sheet} sayfasındaki {count} SPT sürüşü 450 mm'den kısa: derinlik sürüş sonuyla sınırlandı."
 }

@@ -163,3 +163,135 @@ def test_every_import_code_is_translated():
     for lang in ("en", "tr"):
         catalog = json.loads((root / "i18n" / f"{lang}.json").read_text(encoding="utf-8"))
         assert not used - set(catalog), f"{lang}: {sorted(used - set(catalog))}"
+
+
+# --- hardening: questions are re-derived on the server, no silent unit/scale guesses ----------
+
+def blocker_codes(plan):
+    return {i.code for i in plan.blockers()}
+
+
+def test_client_cannot_skip_open_questions_by_dropping_issues():
+    data = EXAMPLE.read_bytes()
+    plan = analyze_workbook(data, "Example.xlsx")
+    plan.issues = []
+    with pytest.raises(ImportDataError):
+        build_import(data, "Example.xlsx", plan)  # sampler still unanswered
+    plan.options.sampler_map = {"Standard split spoon; no liner": "standard"}
+    assert len(build_import(data, "Example.xlsx", plan).boreholes[0].spt) == 10
+
+
+def test_energy_ratio_fraction_is_never_read_as_percent(tmp_path):
+    data = xlsx_bytes({"SPT": [["Depth (m)", "N", "ER (%)"], [1.5, 10, 0.6], [3.0, 12, 60]]}, tmp_path)
+    plan = analyze_workbook(data, "x.xlsx")
+    assert "import.issue.energy_ratio_scale" in blocker_codes(plan)  # mixed 0.6 and 60
+    plan.issues = []
+    with pytest.raises(ImportDataError):
+        build_import(data, "x.xlsx", plan)
+
+
+def test_qc_unit_is_inferred_or_asked_never_assumed_blindly():
+    kpa = b"Depth (m),qc,fs (kPa)\n1,5000,50\n2,6000,60\n"
+    plan = analyze_workbook(kpa, "k.csv")
+    qc = plan.sheets[0].columns["qc"]
+    assert (qc.unit, qc.unit_source) == ("kPa", "inferred") and not plan.blockers()
+    assert build_import(kpa, "k.csv", plan).cpts[0].qc == pytest.approx([5000.0, 6000.0])
+    unclear = b"Depth (m),qc,fs (kPa)\n1,300,5\n2,320,6\n"
+    assert "import.issue.unit_ambiguous" in blocker_codes(analyze_workbook(unclear, "u.csv"))
+    wrong = b"Depth (m),qc (MPa),fs (kPa)\n1,5000,50\n2,6000,60\n"
+    assert "import.issue.unit_implausible" in blocker_codes(analyze_workbook(wrong, "w.csv"))
+
+
+def test_fs_unit_follows_the_qc_unit_not_a_hidden_default():
+    csv = b"Depth (m),qc (bar),fs\n1,50,60\n2,60,70\n3,70,80\n"  # qc 5000 kPa, fs 60 kPa -> 1.2 %
+    plan = analyze_workbook(csv, "b.csv")
+    assert plan.sheets[0].columns["fs"].unit == "kPa" and not plan.blockers()
+    (cpt,) = build_import(csv, "b.csv", plan).cpts
+    assert cpt.qc[0] == pytest.approx(5000.0) and cpt.fs[0] == pytest.approx(60.0)
+    # An explicit but implausible unit (fs in MPa against qc 5000 kPa) is asked again by the server.
+    plan.sheets[0].columns["fs"].unit, plan.sheets[0].columns["fs"].unit_source = "MPa", "header"
+    with pytest.raises(ImportDataError):
+        build_import(csv, "b.csv", plan)
+
+
+def test_unknown_unit_is_a_question_not_a_default():
+    csv = b"Depth (furlong),N\n1,10\n2,12\n"
+    plan = analyze_workbook(csv, "f.csv")
+    assert "import.issue.unit_unknown" in blocker_codes(plan)
+    with pytest.raises(ImportDataError):
+        build_import(csv, "f.csv", plan)
+
+
+def test_unit_row_under_header_is_read(tmp_path):
+    data = xlsx_bytes({"CPT": [["Depth", "qc", "fs"], ["ft", "bar", "bar"], [3.28, 50, 0.5], [6.56, 60, 0.6]]},
+                      tmp_path)
+    plan = analyze_workbook(data, "u.xlsx")
+    cols = plan.sheets[0].columns
+    assert (cols["depth"].unit, cols["qc"].unit, cols["fs"].unit) == ("ft", "bar", "bar")
+    (cpt,) = build_import(data, "u.xlsx", plan).cpts
+    assert cpt.depth == pytest.approx([1.0, 2.0], abs=0.01) and len(cpt.depth) == 2
+
+
+def test_ambiguous_thousands_separator_is_a_question():
+    csv = 'Depth (m);qc (kPa);fs (kPa)\n1;"5,000";50\n2;6000;60\n'.encode()
+    assert "import.issue.number_format_ambiguous" in blocker_codes(analyze_workbook(csv, "t.csv"))
+
+
+def test_two_sheets_with_the_same_role_are_a_question(tmp_path):
+    data = xlsx_bytes({"CPT1": [["Depth (m)", "qc (MPa)", "fs (kPa)"], [1, 5, 50], [2, 6, 60]],
+                       "CPT2": [["Depth (m)", "qc (MPa)", "fs (kPa)"], [1, 7, 70], [2, 8, 80]]}, tmp_path)
+    plan = analyze_workbook(data, "d.xlsx")
+    assert "import.issue.role_duplicate" in blocker_codes(plan)
+    plan.sheets[1].role = None
+    plan.issues = []
+    assert len(build_import(data, "d.xlsx", plan).cpts) == 1
+
+
+def test_empty_point_id_continues_the_id_above(tmp_path):
+    data = xlsx_bytes({"SPT": [["Borehole", "Depth (m)", "N"], ["BH-1", 1.5, 10], [None, 3, 12],
+                               ["BH-2", 1.5, 8]]}, tmp_path)
+    plan = analyze_workbook(data, "m.xlsx")
+    boreholes = {b.id: len(b.spt) for b in build_import(data, "m.xlsx", plan).boreholes}
+    assert boreholes == {"BH-1": 2, "BH-2": 1}
+
+
+def test_single_letter_diameter_column_is_not_depth():
+    csv = b"D (mm),N\n100,10\n100,12\n"
+    plan = analyze_workbook(csv, "d.csv")
+    assert not plan.sheets[0].role or "depth" not in plan.sheets[0].columns
+
+
+def test_short_drive_depth_never_exceeds_drive_end(tmp_path):
+    data = xlsx_bytes({"SPT": [["Drive start (m)", "Drive end (m)", "Blows 0-150 mm", "Blows 150-300 mm",
+                                "Blows 300-450 mm"], [10.0, 10.05, 50, 0, 0], [12.0, 12.45, 5, 6, 7]]},
+                      tmp_path)
+    plan = analyze_workbook(data, "s.xlsx")
+    result = build_import(data, "s.xlsx", plan)
+    first, second = result.boreholes[0].spt
+    assert first.depth <= 10.05 and first.refusal
+    assert second.depth == pytest.approx(12.3) and second.n_field == 13
+    assert "import.warning.spt_short_drive" in codes(result.warnings)
+
+
+def test_sieve_designations_are_resolved_and_unknown_ones_asked(tmp_path):
+    book = {
+        "Samples": [["Sample ID", "Depth (m)", "Sieve dry mass (g)"], ["S1", 2.0, 100]],
+        "Sieve": [["Sample ID", "Sieve opening", "Dry mass retained (g)"],
+                  ["S1", "No. 4", 10], ["S1", "#200", 50]],
+    }
+    data = xlsx_bytes(book, tmp_path)
+    plan = analyze_workbook(data, "sv.xlsx")
+    assert not plan.blockers()
+    lab = build_import(data, "sv.xlsx", plan).boreholes[0].lab[0]
+    assert (lab.gravel, lab.FC) == pytest.approx((10.0, 40.0))
+    book["Sieve"][1][1] = "coarse"
+    assert "import.issue.sieve_opening_unresolved" in blocker_codes(
+        analyze_workbook(xlsx_bytes(book, tmp_path), "sv.xlsx"))
+
+
+def test_lab_scale_checks(tmp_path):
+    book = {"Samples": [["Sample ID", "Depth (m)", "Bulk unit wt", "Natural water (%)"],
+                        ["S1", 2.0, 1.9, 0.25]]}
+    plan = analyze_workbook(xlsx_bytes(book, tmp_path), "l.xlsx")
+    found = blocker_codes(plan)
+    assert {"import.issue.unit_implausible", "import.issue.water_content_scale"} <= found

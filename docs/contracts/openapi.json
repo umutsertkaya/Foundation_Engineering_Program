@@ -12744,6 +12744,21 @@
             ],
             "title": "Energy Ratio Scale"
           },
+          "water_content_scale": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "percent",
+                  "fraction"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Water Content Scale"
+          },
           "u2_zero_is_missing": {
             "type": "boolean",
             "title": "U2 Zero Is Missing",
@@ -13168,10 +13183,16 @@
             "description": "Preparation of the strength-test specimen"
           },
           "notes": {
-            "type": "string",
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Notes",
-            "description": "Derivation notes, e.g. which test reduction produced a value",
-            "default": ""
+            "description": "Derivation notes, e.g. which test reduction produced a value"
           }
         },
         "type": "object",
@@ -16478,11 +16499,13 @@
           },
           "header_row": {
             "type": "integer",
+            "minimum": 0.0,
             "title": "Header Row",
             "default": 0
           },
           "row_count": {
             "type": "integer",
+            "minimum": 0.0,
             "title": "Row Count",
             "default": 0
           },

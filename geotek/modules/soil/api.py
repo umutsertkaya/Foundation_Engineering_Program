@@ -8,6 +8,7 @@ from typing import Annotated, get_args
 
 import numpy as np
 from fastapi import APIRouter, Depends, Request, Response
+from starlette.concurrency import run_in_threadpool
 
 from geotek.api import schemas as dto
 from geotek.api.common import ERROR_RESPONSES, multipart_body, workbook_body
@@ -216,7 +217,7 @@ def router() -> APIRouter:
         body = await service.read_upload(request)
         parts = service.workbook_parts(body, request.headers.get("content-type", ""), with_plan=False)
         try:
-            return analyze_workbook(parts["file"], parts["filename"])
+            return await run_in_threadpool(analyze_workbook, parts["file"], parts["filename"])
         except (GeoTekError, ValueError) as exc:
             api_error(422, "validation", f"Cannot analyse the file: {exc}")
 
@@ -234,7 +235,7 @@ def router() -> APIRouter:
         parts = service.workbook_parts(body, request.headers.get("content-type", ""), with_plan=True)
         try:
             plan = ImportPlan.model_validate_json(parts["plan"])
-            built = build_import(parts["file"], parts["filename"], plan)
+            built = await run_in_threadpool(build_import, parts["file"], parts["filename"], plan)
             service.finite([m.model_dump() for m in (*built.boreholes, *built.cpts)])
         except (GeoTekError, ValueError) as exc:
             api_error(422, "validation", f"Cannot import the workbook: {exc}")
