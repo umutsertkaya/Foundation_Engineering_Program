@@ -216,7 +216,8 @@ function mockAtRest(inp: AtRestInputDTO): Reply {
       const a = l.top, b = Math.min(l.bottom, z);
       if (b <= a) continue;
       const dry = Math.max(0, Math.min(b, gwt) - a);
-      acc += dry * l.gamma + (b - a - dry) * (l.gamma_sat ?? l.gamma);
+      const wet = b - a - dry;
+      acc += dry * l.gamma + (wet > 0 ? wet * (l.gamma_sat as number) : 0); // no gamma_sat default
     }
     return acc;
   };

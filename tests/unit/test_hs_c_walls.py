@@ -1,5 +1,6 @@
 """HS-C: surcharge seismic increment at 2H/3, at-rest (K0) analysis, quick sheet pile gamma_sat."""
 
+import datetime as dt
 import math
 
 import pytest
@@ -95,12 +96,29 @@ def test_layered_single_layer_matches_base_path():
 
 # --- C2: at-rest analysis -------------------------------------------------------------------------
 
+def approve_k0(project, profile_id="p", *, approved=True, stale=False):
+    """Attach an approved (or unapproved / stale) K0 selection to every layer, as the Soil module would."""
+    from geotek.core.models.parameters import DerivedParameter, ParameterSelection
+    from geotek.services.parameters import basis_hash, layer_points
+
+    profile = project.profile(profile_id)
+    for layer in profile.layers:
+        basis = basis_hash(layer, layer_points(project, profile, layer))
+        layer.selections["K0"] = ParameterSelection(
+            parameter="K0", mode="manual", manual_value=layer.design.K0,
+            selected=DerivedParameter(value=layer.design.K0 or 0.5, unit="-", method_id="user", source="user",
+                                      user_override=True),
+            approved=approved, approved_at=dt.datetime(2026, 10, 23) if approved else None,
+            basis_hash="stale-basis" if stale else basis)
+    return project
+
+
 def _project(gwt=None, k0=0.5, gamma_sat=20.0):
     layer = SoilLayer(id="L1", top=0, bottom=10, gamma=18, gamma_sat=gamma_sat,
                       design=DesignParameters(phi_eff=30, K0=k0))
     depth = 99.0 if gwt is None else gwt
     profile = SoilProfile(id="p", layers=[layer], gwt=GroundwaterCondition(depth_insitu=depth))
-    return Project(meta=ProjectMeta(name="at rest"), soil_profiles=[profile])
+    return approve_k0(Project(meta=ProjectMeta(name="at rest"), soil_profiles=[profile]))
 
 
 def test_at_rest_dry_source_pattern():
@@ -145,6 +163,22 @@ def test_at_rest_requires_approved_k0():
         lateral_pressure(_project(k0=None).soil_profiles[0], 4, state="at_rest")
 
 
+@pytest.mark.parametrize("kwargs", [dict(approved=False), dict(stale=True)])
+def test_at_rest_rejects_unapproved_or_stale_k0_even_if_design_has_a_value(kwargs):
+    project = approve_k0(_project(), **kwargs)  # design.K0 = 0.5 is present in both cases
+    assert project.soil_profiles[0].layers[0].design.K0 == 0.5
+    with pytest.raises(LayerDesignError) as caught:
+        at_rest_analysis(project, AtRestInput(profile_id="p", height=6))
+    assert caught.value.message_code == "layer_k0_missing"
+
+
+def test_at_rest_rejects_missing_selection():
+    project = _project()
+    project.soil_profiles[0].layers[0].selections.clear()
+    with pytest.raises(LayerDesignError):
+        at_rest_analysis(project, AtRestInput(profile_id="p", height=6))
+
+
 def test_at_rest_undrained_layer_uses_effective_stress_plus_water():
     layer = SoilLayer(id="C", top=0, bottom=10, gamma=18, gamma_sat=20, behaviour="undrained",
                       design=DesignParameters(su=30, K0=0.6))
@@ -172,3 +206,27 @@ def test_quick_sheet_pile_runs_with_gamma_sat_and_uses_it():
     wet = design_sheet_pile_basic(BasicSheetPileInput(**_SHEET, gwt_depth=3.0, gamma_sat=20.0))
     dry = design_sheet_pile_basic(BasicSheetPileInput(**_SHEET))
     assert wet.result.D > dry.result.D  # water adds pressure; no silent gamma_sat = gamma
+
+
+def test_surcharge_increment_uses_the_same_submerged_branches_as_the_soil_increment():
+    """Envelope mode, q = 400 kPa: the q run picks the impervious branch (surcharge raises its soil
+    increment above the pervious soil + water total), while the q = 0 run alone would pick pervious.
+    Both increments must use impervious: soil increment 22.3118779366562 (closed form, see
+    test_submerged_tbdy_closed_form), surcharge increment >= 0, and their sum = dynamic - static."""
+    from geotek.engine.walls.layered import wall_pressures_layered
+
+    layer = SoilLayer(id="fill", top=0, bottom=30, gamma=18, gamma_sat=20, design=DesignParameters(phi_eff=30))
+    soil = StructureSoilModel(profile=SoilProfile(id="p", layers=[layer], gwt=GroundwaterCondition(depth_insitu=100)),
+                              gwt_retained=GroundwaterCondition(depth_insitu=0.0),
+                              gwt_front=GroundwaterCondition(depth_insitu=100))
+    geometry = CantileverGeometry(stem_height=5.4, stem_top=0.3, stem_bottom=0.4, toe=1.0, heel=2.6,
+                                  base_thickness=0.6, embedment=1.0)
+    loads = WallLoads(surcharge=400.0, kh=0.1, kv=0.05, water_kh=0.2, seismic_increment_height=0.5)
+    settings = WallSettings(submerged_seismic="envelope")
+    forces = {f.name: -f.fx for f in wall_forces_layered(geometry, soil, loads, settings, seismic=True).forces}
+    assert "Dinamik su itkisi (TBDY Denk. 16.20)" not in forces  # impervious branch governs
+    assert forces["Seismic increment"] == pytest.approx(22.3118779366562, abs=1e-9)
+    assert forces["Seismic increment (surcharge)"] >= 0
+    pressures = wall_pressures_layered(geometry, soil, loads, settings, seismic=True)
+    total = pressures["retained"].component("effective")[0] - pressures["retained_static"].component("effective")[0]
+    assert forces["Seismic increment"] + forces["Seismic increment (surcharge)"] == pytest.approx(total, abs=1e-9)
