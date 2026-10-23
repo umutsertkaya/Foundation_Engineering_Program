@@ -156,7 +156,8 @@ class CPTSounding(BaseModel):
     predrill_depth: float = Field(0.0, ge=0)
     depth: list[float]
     qc: list[float]
-    fs: list[float]
+    fs: list[float] | None = None
+    """Sleeve friction [kPa]; None when the sounding has no fs record (qc-only data)."""
     u2: list[float | None] | None = None
     """Pore pressure u2 [kPa]; ``None`` entries are cells missing in the source (not measured zeros)."""
 
@@ -165,10 +166,11 @@ class CPTSounding(BaseModel):
         n = len(self.depth)
         if n == 0:
             raise ValueError("CPT sounding has no data")
-        for name in ("qc", "fs") + (("u2",) if self.u2 is not None else ()):
+        for name in ("qc",) + (("fs",) if self.fs is not None else ()) + (("u2",) if self.u2 is not None else ()):
             if len(getattr(self, name)) != n:
                 raise ValueError(f"CPT column {name!r} length differs from depth")
-        if not all(np.isfinite(getattr(self, name)).all() for name in ("depth", "qc", "fs")):
+        if not all(np.isfinite(getattr(self, name)).all()
+                   for name in ("depth", "qc") + (("fs",) if self.fs is not None else ())):
             raise ValueError("CPT columns must contain only finite numbers")
         if self.u2 is not None and not all(v is None or math.isfinite(v) for v in self.u2):
             raise ValueError("CPT u2 must contain finite numbers or null for missing cells")
@@ -176,12 +178,13 @@ class CPTSounding(BaseModel):
             raise ValueError("CPT depths must be strictly increasing")
         if self.depth[0] < 0:
             raise ValueError("CPT depths must be non-negative")
-        if min(self.qc) < 0 or min(self.fs) < 0:
+        if min(self.qc) < 0 or (self.fs is not None and min(self.fs) < 0):
             raise ValueError("qc and fs must be non-negative")
         return self
 
     def arrays(self) -> dict[str, np.ndarray]:
-        out = {k: np.asarray(getattr(self, k), dtype=float) for k in ("depth", "qc", "fs")}
+        out = {k: np.asarray(getattr(self, k), dtype=float)
+               for k in ("depth", "qc") + (("fs",) if self.fs is not None else ())}
         if self.u2 is not None:
             out["u2"] = np.array([np.nan if v is None else v for v in self.u2], dtype=float)
         return out

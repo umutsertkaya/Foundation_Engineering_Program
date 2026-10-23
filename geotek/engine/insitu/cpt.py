@@ -151,7 +151,15 @@ def process_cpt(
         a = {name: values[kept] for name, values in a.items()}
         warnings.append(format_warning("insitu.warning.cpt_predrill_excluded", count=int((~kept).sum()),
                                        predrill=float(sounding.predrill_depth)))
-    depth, qc, fs = a["depth"], a["qc"], a["fs"]
+    depth, qc = a["depth"], a["qc"]
+    fs = a.get("fs")
+    if fs is None:
+        # qc-only sounding: sleeve friction is unknown, so Rf, Fr, I_c, SBTn and FC stay undefined
+        # and the unit weight cannot be estimated from the CPT (a soil profile must supply stresses).
+        if profile is None:
+            raise ValueError(f"CPT {sounding.id!r} has no sleeve friction: a soil profile is required for its stresses")
+        fs = np.full(depth.shape, np.nan)
+        warnings.append(format_warning("insitu.warning.cpt_no_fs"))
     u2 = a.get("u2")
     qt = corrected_tip_resistance(qc, u2, sounding.area_ratio)
     if u2 is None:

@@ -2186,7 +2186,7 @@ export interface components {
             /** Qc */
             qc: number[];
             /** Fs */
-            fs: number[];
+            fs?: number[] | null;
             /** U2 */
             u2?: (number | null)[] | null;
         };

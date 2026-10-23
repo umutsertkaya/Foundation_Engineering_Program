@@ -122,7 +122,7 @@ export interface CPTSounding {
   predrill_depth?: number;
   depth: number[];
   qc: number[];
-  fs: number[];
+  fs?: number[] | null;
   u2?: (number | null)[] | null;
 }
 

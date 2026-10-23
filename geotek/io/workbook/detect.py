@@ -421,6 +421,9 @@ def _role_infos(role: str, table: pd.DataFrame, sheet: SheetPlan, plan: ImportPl
         if "energy_ratio" not in cols:
             plan.issues.append(ImportIssue(code="import.issue.energy_ratio_missing", severity="info",
                                            sheet=sheet.name, field="energy_ratio"))
+    if role == "cpt" and "fs" not in cols:
+        plan.issues.append(ImportIssue(code="import.issue.cpt_fs_missing", severity="confirm",
+                                       sheet=sheet.name, field="fs"))
     if role == "cpt" and "u2" in cols:
         values = numeric(table[cols["u2"].header])
         finite = values[np.isfinite(values)]
@@ -503,8 +506,6 @@ def blocking_questions(plan: ImportPlan, tables: dict[str, pd.DataFrame]) -> lis
                     if sieve_opening_mm(label) is None:
                         block("import.issue.sieve_opening_unresolved", sheet, "opening", text=label)
                         break
-        if sheet.role == "cpt" and "fs" not in cols:
-            block("import.issue.cpt_fs_missing", sheet, "fs")
     return out
 
 

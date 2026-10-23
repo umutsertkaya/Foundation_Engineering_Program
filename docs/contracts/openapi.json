@@ -11787,10 +11787,17 @@
             "title": "Qc"
           },
           "fs": {
-            "items": {
-              "type": "number"
-            },
-            "type": "array",
+            "anyOf": [
+              {
+                "items": {
+                  "type": "number"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Fs"
           },
           "u2": {
@@ -11819,8 +11826,7 @@
         "required": [
           "id",
           "depth",
-          "qc",
-          "fs"
+          "qc"
         ],
         "title": "CPTSounding",
         "description": "CPT(u) record. Stresses stored in kPa (convert MPa at import)."

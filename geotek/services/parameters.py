@@ -111,7 +111,7 @@ def layer_points(
         if not indices:
             continue
         cropped = {name: [getattr(sounding, name)[i] for i in indices]
-                   for name in ("depth", "qc", "fs")}
+                   for name in ("depth", "qc", "fs") if getattr(sounding, name) is not None}
         if sounding.u2 is not None:
             cropped["u2"] = [sounding.u2[i] for i in indices]
         processed = process_cpt(sounding.model_copy(update=cropped), profile)

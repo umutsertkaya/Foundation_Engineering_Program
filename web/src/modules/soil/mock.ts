@@ -165,7 +165,7 @@ function mockProposalSpt(bh: Borehole, settings: LayeringSettings): LayeringProp
 }
 
 function mockProcessedCpt(cpt: CPTSounding): CPTProcessedDTO {
-  const rf = cpt.depth.map((_, i) => (cpt.qc[i] > 0 ? (cpt.fs[i] / cpt.qc[i]) * 100 : null));
+  const rf = cpt.depth.map((_, i) => (cpt.fs && cpt.qc[i] > 0 ? (cpt.fs[i] / cpt.qc[i]) * 100 : null));
   const sigma = cpt.depth.map((z) => round(18 * z, 1));
   const u0 = cpt.depth.map((z) => round(9.81 * Math.max(0, z - (cpt.gwt_depth ?? Infinity)), 1));
   // Demo Ic: a monotone stand-in of Rf, NOT Robertson's Ic.
@@ -173,7 +173,7 @@ function mockProcessedCpt(cpt: CPTSounding): CPTProcessedDTO {
   return {
     depth: [...cpt.depth],
     qc: [...cpt.qc],
-    fs: [...cpt.fs],
+    fs: cpt.depth.map((_, i) => cpt.fs?.[i] ?? null),
     qt: [...cpt.qc],
     Rf: rf.map((r) => (r === null ? null : round(r, 2))),
     Fr: rf.map((r) => (r === null ? null : round(r, 2))),
@@ -554,7 +554,7 @@ function mockSbtnReference(): SBTNReferenceDTO {
 
 function mockCptSbtn(cpt: CPTSounding): CPTSBTNDTO {
   const points = cpt.depth.map((depth, i) => {
-    const Fr = round((cpt.fs[i] / cpt.qc[i]) * 100, 2);
+    const Fr = round(((cpt.fs?.[i] ?? 0) / cpt.qc[i]) * 100, 2);
     const Qtn = round(cpt.qc[i] / 60, 1);
     const Ic = round(Math.sqrt((3.47 - Math.log10(Qtn)) ** 2 + (Math.log10(Fr) + 1.22) ** 2), 2);
     const zone = mockZoneOfIc(Ic);
