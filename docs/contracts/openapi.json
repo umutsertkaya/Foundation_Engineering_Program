@@ -11094,12 +11094,18 @@
             "description": "Measured groundwater depth [m]"
           },
           "energy_ratio": {
-            "type": "number",
-            "maximum": 100.0,
-            "exclusiveMinimum": 0.0,
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 100.0,
+                "exclusiveMinimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Energy Ratio",
-            "description": "Hammer energy ratio ER [%]",
-            "default": 60.0
+            "description": "Hammer energy ratio ER [%]; None is processed as 60 % with a warning"
           },
           "borehole_diameter_mm": {
             "type": "number",
@@ -14779,6 +14785,103 @@
             "type": "string",
             "title": "Notes",
             "default": ""
+          },
+          "blows": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "integer"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Blows",
+            "description": "Blows per 150 mm increment: seating drive, then the two counted drives"
+          },
+          "drive_start": {
+            "anyOf": [
+              {
+                "type": "number",
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Drive Start",
+            "description": "Start of the test drive [m]"
+          },
+          "drive_end": {
+            "anyOf": [
+              {
+                "type": "number",
+                "exclusiveMinimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Drive End",
+            "description": "End of the test drive [m]"
+          },
+          "rod_length": {
+            "anyOf": [
+              {
+                "type": "number",
+                "exclusiveMinimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rod Length",
+            "description": "Rod length below the hammer [m]"
+          },
+          "energy_ratio": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 100.0,
+                "exclusiveMinimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Energy Ratio",
+            "description": "ER [%]; borehole value if None"
+          },
+          "borehole_diameter_mm": {
+            "anyOf": [
+              {
+                "type": "number",
+                "exclusiveMinimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Borehole Diameter Mm",
+            "description": "Borehole value if None"
+          },
+          "sampler": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "standard",
+                  "no_liner"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sampler",
+            "description": "Borehole value if None"
           }
         },
         "type": "object",

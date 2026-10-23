@@ -18,6 +18,26 @@ class SPTRecord(BaseModel):
     refusal: bool = False
     """True when the test was stopped at refusal (N is then a lower bound)."""
     notes: str = ""
+    blows: list[int] | None = Field(
+        None, description="Blows per 150 mm increment: seating drive, then the two counted drives")
+    drive_start: float | None = Field(None, ge=0, description="Start of the test drive [m]")
+    drive_end: float | None = Field(None, gt=0, description="End of the test drive [m]")
+    rod_length: float | None = Field(None, gt=0, description="Rod length below the hammer [m]")
+    energy_ratio: float | None = Field(None, gt=0, le=100, description="ER [%]; borehole value if None")
+    borehole_diameter_mm: float | None = Field(None, gt=0, description="Borehole value if None")
+    sampler: Literal["standard", "no_liner"] | None = Field(None, description="Borehole value if None")
+
+    @model_validator(mode="after")
+    def _blows_consistent(self) -> SPTRecord:
+        if self.blows is not None:
+            if len(self.blows) != 3 or min(self.blows) < 0:
+                raise ValueError("SPT blows must hold three non-negative counts (3 x 150 mm)")
+            if not self.refusal and self.n_field != self.blows[1] + self.blows[2]:
+                raise ValueError(
+                    f"SPT N ({self.n_field}) must equal the last two 150 mm counts ({self.blows[1]} + {self.blows[2]})")
+        if self.drive_start is not None and self.drive_end is not None and self.drive_end <= self.drive_start:
+            raise ValueError("SPT drive_end must exceed drive_start")
+        return self
 
 
 class LabRecord(BaseModel):
@@ -86,7 +106,8 @@ class Borehole(BaseModel):
     y: float | None = None
     elevation: float | None = Field(None, description="Ground surface elevation [m]")
     gwt_depth: float | None = Field(None, ge=0, description="Measured groundwater depth [m]")
-    energy_ratio: float = Field(60.0, gt=0, le=100, description="Hammer energy ratio ER [%]")
+    energy_ratio: float | None = Field(
+        None, gt=0, le=100, description="Hammer energy ratio ER [%]; None is processed as 60 % with a warning")
     borehole_diameter_mm: float = Field(100.0, gt=0)
     sampler: Literal["standard", "no_liner"] = "standard"
     spt: list[SPTRecord] = Field(default_factory=list)

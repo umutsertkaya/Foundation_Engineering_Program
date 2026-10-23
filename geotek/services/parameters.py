@@ -100,8 +100,8 @@ def layer_points(
         for i in range(len(records)):
             point = {name: float(values[i]) for name, values in columns.items()
                      if math.isfinite(values[i])}
-            point.update(C_B=float(processed.c_b), C_S=float(processed.c_s),
-                         energy_ratio=float(borehole.energy_ratio))
+            point.update(C_B=float(processed.c_b[i]), C_S=float(processed.c_s[i]),
+                         energy_ratio=float(processed.energy_ratio[i]))
             points.append(point)
     for sounding in project.investigations.cpts:
         if sounding.id not in ids:

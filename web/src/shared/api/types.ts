@@ -64,6 +64,13 @@ export interface SPTRecord {
   n_field: number;
   refusal?: boolean;
   notes?: string;
+  blows?: number[] | null;
+  drive_start?: number | null;
+  drive_end?: number | null;
+  rod_length?: number | null;
+  energy_ratio?: number | null;
+  borehole_diameter_mm?: number | null;
+  sampler?: "standard" | "no_liner" | null;
 }
 
 export interface LabRecord {
@@ -97,7 +104,7 @@ export interface Borehole {
   y?: number | null;
   elevation?: number | null;
   gwt_depth?: number | null;
-  energy_ratio?: number;
+  energy_ratio?: number | null;
   borehole_diameter_mm?: number;
   sampler?: "standard" | "no_liner";
   spt?: SPTRecord[];

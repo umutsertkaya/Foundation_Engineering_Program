@@ -591,5 +591,7 @@
   "lab.warning.cu_consolidation_inconsistent": "Test {test_id}: cell pressure minus back pressure ({cell_minus_back} kPa) differs from the stated consolidation stress ({consolidation} kPa).",
   "lab.warning.cu_total_negative_cohesion": "The total-stress cohesion fit was negative and was refitted through the origin (informative only).",
   "lab.warning.cu_total_fit_failed": "No total-stress envelope could be fitted from these tests (informative only).",
-  "lab.warning.void_ratio_invalid": "Computed void ratio {e} is not positive: unit weight, water content and Gs are inconsistent; derived phase values were not computed."
+  "lab.warning.void_ratio_invalid": "Computed void ratio {e} is not positive: unit weight, water content and Gs are inconsistent; derived phase values were not computed.",
+  "insitu.warning.spt_energy_ratio_assumed": "Energy ratio not stated for {count} SPT record(s): ER = {energy_ratio} % assumed.",
+  "insitu.warning.spt_rod_length_assumed": "Rod length not stated for {count} SPT record(s): taken as test depth + {stickup} m."
 }
