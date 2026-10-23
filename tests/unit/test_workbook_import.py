@@ -295,3 +295,23 @@ def test_lab_scale_checks(tmp_path):
     plan = analyze_workbook(xlsx_bytes(book, tmp_path), "l.xlsx")
     found = blocker_codes(plan)
     assert {"import.issue.unit_implausible", "import.issue.water_content_scale"} <= found
+
+
+def test_refresh_plan_rederives_questions_after_edits():
+    from geotek.io.workbook import refresh_plan
+
+    data = EXAMPLE.read_bytes()
+    plan = analyze_workbook(data, "Example.xlsx")
+    assert [i.code for i in plan.blockers()] == ["import.issue.sampler_unmapped"]
+    plan.options.sampler_map = {"Standard split spoon; no liner": "no_liner"}
+    assert refresh_plan(data, "Example.xlsx", plan).blockers() == []
+    # Pointing the depth of the CPT sheet at another column re-derives its unit and keeps asking.
+    cpt = next(s for s in plan.sheets if s.name == "CPT")
+    cpt.columns["qc"].header = "fs (MPa)"
+    cpt.columns["qc"].unit_source = "default"
+    cpt.columns["qc"].unit = None
+    refreshed = refresh_plan(data, "Example.xlsx", plan)
+    assert cpt.columns["qc"].unit == "MPa"
+    del cpt.columns["qc"]
+    assert "import.issue.required_missing" in {i.code for i in refresh_plan(data, "Example.xlsx", plan).blockers()}
+    assert refreshed is plan

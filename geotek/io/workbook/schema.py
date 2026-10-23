@@ -28,6 +28,8 @@ class SheetPlan(BaseModel):
     row_count: int = Field(0, ge=0)
     columns: dict[str, ColumnMap] = Field(default_factory=dict)
     """Canonical field name -> file column."""
+    headers: list[str] = Field(default_factory=list)
+    """All header texts of the sheet, for re-mapping in the UI."""
 
 
 class ImportIssue(BaseModel):

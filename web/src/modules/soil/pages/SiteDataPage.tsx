@@ -23,6 +23,7 @@ import { ApiError } from "../../../shared/api/client";
 import { delete_borehole, delete_cpt, import_cpt, import_spt, list_investigations } from "../api";
 import type { InvestigationsDTO } from "../types";
 import { EmptyState } from "../../../shared/components/EmptyState";
+import { WorkbookImportModal } from "../components/WorkbookImportModal";
 import { InvestigationEditor, type EditTarget } from "../components/InvestigationEditor";
 import { ErrorAlert } from "../../../shared/components/ErrorAlert";
 
@@ -52,6 +53,7 @@ export function SiteDataPage() {
   }, [loadInvestigations]);
 
   const [editTarget, setEditTarget] = useState<EditTarget | null>(null);
+  const [workbookOpen, setWorkbookOpen] = useState(false);
   const [importKind, setImportKind] = useState<"cpt" | "spt" | null>(null);
   const [file, setFile] = useState<File | null>(null);
   const [recordId, setRecordId] = useState("");
@@ -140,7 +142,10 @@ export function SiteDataPage() {
       </div>
 
       <Group gap="xs">
-        <Button leftSection={<IconFileImport size={16} />} onClick={() => openImport("cpt")}>
+        <Button leftSection={<IconFileImport size={16} />} onClick={() => setWorkbookOpen(true)}>
+          {t("web.import.open")}
+        </Button>
+        <Button variant="light" leftSection={<IconFileImport size={16} />} onClick={() => openImport("cpt")}>
           {t("web.site.import_cpt")}
         </Button>
         <Button variant="light" leftSection={<IconFileImport size={16} />} onClick={() => openImport("spt")}>
@@ -154,6 +159,12 @@ export function SiteDataPage() {
           {t("web.site.new_borehole")}
         </Button>
       </Group>
+
+      <WorkbookImportModal
+        opened={workbookOpen}
+        onClose={() => setWorkbookOpen(false)}
+        onImported={() => void loadInvestigations()}
+      />
 
       <InvestigationEditor
         target={editTarget}

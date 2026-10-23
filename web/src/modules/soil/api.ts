@@ -15,6 +15,8 @@ import type {
 import type {
   BoreholeUSCSDTO,
   CPTProcessedDTO,
+  ImportPlan,
+  WorkbookImportResult,
   CPTSBTNDTO,
   InvestigationsDTO,
   ProfileCreate,
@@ -158,6 +160,25 @@ export function import_spt(file: File, borehole_id: string): Promise<Investigati
   body.append("file", file, file.name);
   body.append("borehole_id", borehole_id);
   return request_upload("/m/soil/import/spt", body);
+}
+
+function workbook_form(file: File, plan?: ImportPlan): FormData {
+  const body = new FormData();
+  body.append("file", file, file.name);
+  if (plan) body.append("plan", JSON.stringify(plan));
+  return body;
+}
+
+export function analyze_workbook(file: File): Promise<ImportPlan> {
+  return request_upload("/m/soil/import/workbook/analyze", workbook_form(file));
+}
+
+export function check_workbook(file: File, plan: ImportPlan): Promise<ImportPlan> {
+  return request_upload("/m/soil/import/workbook/check", workbook_form(file, plan));
+}
+
+export function commit_workbook(file: File, plan: ImportPlan): Promise<WorkbookImportResult> {
+  return request_upload("/m/soil/import/workbook/commit", workbook_form(file, plan));
 }
 
 export function delete_cpt(id: string): Promise<DeletionResponse> {
