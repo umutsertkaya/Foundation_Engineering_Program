@@ -12,7 +12,7 @@ from geotek.engine.insitu.spt import (
 
 
 def test_equipment_factors():
-    assert rod_length_factor([2.0, 3.5, 5.0, 8.0, 12.0]).tolist() == [0.75, 0.75, 0.85, 0.95, 1.0]
+    assert rod_length_factor([2.0, 3.5, 5.0, 8.0, 12.0]).tolist() == [0.75, 0.80, 0.85, 0.95, 1.0]
     assert borehole_diameter_factor(100) == 1.0
     assert borehole_diameter_factor(150) == 1.05
     assert borehole_diameter_factor(200) == 1.15
@@ -64,10 +64,10 @@ def test_spt_warnings_are_translatable_codes(two_layer_profile, lang):
     assert text != code and "2.5, 4" in text and "{" not in text
 
 
-def test_rod_length_factor_below_4_m_is_0_75():
-    # Youd et al. (2001) Table 2 / Seed et al. (1985), Skempton (1986): rods shorter than 4 m -> 0.75
-    assert rod_length_factor([1.0, 3.0, 3.5, 3.99]).tolist() == [0.75] * 4
-    assert rod_length_factor([4.0, 6.0, 10.0]).tolist() == [0.85, 0.95, 1.0]
+def test_rod_length_factor_matches_youd_2001_table_2():
+    # Youd et al. (2001) Table 2: <3 m 0.75; 3-4 m 0.80; 4-6 m 0.85; 6-10 m 0.95; 10-30 m 1.0
+    assert rod_length_factor([2.99, 3.0, 3.99, 4.0, 6.0, 10.0]).tolist() == [
+        0.75, 0.80, 0.80, 0.85, 0.95, 1.0]
 
 
 def test_n_from_blows_and_refusal():
@@ -83,6 +83,8 @@ def test_blows_must_match_n():
         SPTRecord(depth=1.3, n_field=20, blows=[8, 11, 11])
     SPTRecord(depth=1.3, n_field=22, blows=[8, 11, 11])
     SPTRecord(depth=1.3, n_field=50, blows=[10, 50, 0], refusal=True)
+    with pytest.raises(ValueError):  # 50 blows in a 150 mm increment must be flagged as refusal
+        SPTRecord(depth=1.3, n_field=60, blows=[50, 30, 30])
 
 
 def test_record_equipment_overrides_borehole_and_assumptions_are_visible(two_layer_profile):

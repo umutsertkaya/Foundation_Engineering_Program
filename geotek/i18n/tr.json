@@ -515,7 +515,7 @@
   "web.site.elevation": "Zemin kotu [m]",
   "web.site.predrill": "Ön delme derinliği [m]",
   "web.site.energy_ratio": "Çekiç enerji oranı ER [%]",
-  "web.site.energy_ratio_hint": "SPT N60 düzeltmesi için; çekiç tipine göre girin (örn. emniyetli çekiç ≈ 60).",
+  "web.site.energy_ratio_hint": "SPT N60 düzeltmesi için; çekiç tipine göre girin (örn. emniyetli çekiç ≈ 60). Boş bırakılırsa %60 varsayılır ve uyarı gösterilir.",
   "web.site.diameter": "Sondaj çapı [mm]",
   "web.site.sampler": "Örnekleyici",
   "web.site.sampler_standard": "Standart (gömlekli)",

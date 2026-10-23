@@ -12,6 +12,10 @@ from pydantic import BaseModel, Field, field_validator, model_validator
 from geotek.core.constants import DEPTH_TOL
 
 
+REFUSAL_BLOWS = 50
+"""Blows in one 150 mm increment that define refusal (ASTM D1586)."""
+
+
 class SPTRecord(BaseModel):
     depth: float = Field(gt=0, description="Test depth [m]")
     n_field: int = Field(ge=0, description="Field blow count N (blows/300 mm)")
@@ -32,6 +36,8 @@ class SPTRecord(BaseModel):
         if self.blows is not None:
             if len(self.blows) != 3 or min(self.blows) < 0:
                 raise ValueError("SPT blows must hold three non-negative counts (3 x 150 mm)")
+            if not self.refusal and max(self.blows) >= REFUSAL_BLOWS:
+                raise ValueError(f"A 150 mm increment with {REFUSAL_BLOWS} blows is refusal: set refusal=True")
             if not self.refusal and self.n_field != self.blows[1] + self.blows[2]:
                 raise ValueError(
                     f"SPT N ({self.n_field}) must equal the last two 150 mm counts ({self.blows[1]} + {self.blows[2]})")

@@ -515,7 +515,7 @@
   "web.site.elevation": "Ground elevation [m]",
   "web.site.predrill": "Pre-drill depth [m]",
   "web.site.energy_ratio": "Hammer energy ratio ER [%]",
-  "web.site.energy_ratio_hint": "Used for the SPT N60 correction; enter for the hammer type (e.g. safety hammer ≈ 60).",
+  "web.site.energy_ratio_hint": "Used for the SPT N60 correction; enter for the hammer type (e.g. safety hammer ≈ 60). If left empty, 60 % is assumed and a warning is shown.",
   "web.site.diameter": "Borehole diameter [mm]",
   "web.site.sampler": "Sampler",
   "web.site.sampler_standard": "Standard (with liner)",

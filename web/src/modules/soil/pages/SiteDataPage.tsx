@@ -149,7 +149,7 @@ export function SiteDataPage() {
         <Button
           variant="default"
           leftSection={<IconPlus size={16} />}
-          onClick={() => setEditTarget({ kind: "borehole", isNew: true, value: { id: "", energy_ratio: 60, borehole_diameter_mm: 100, sampler: "standard", spt: [], lab: [], log: [] } })}
+          onClick={() => setEditTarget({ kind: "borehole", isNew: true, value: { id: "", borehole_diameter_mm: 100, sampler: "standard", spt: [], lab: [], log: [] } })}
         >
           {t("web.site.new_borehole")}
         </Button>

@@ -17,26 +17,24 @@ import pandas as pd
 
 from geotek.core.constants import PA
 from geotek.core.warning_codes import format_warning
-from geotek.core.models.investigations import Borehole
+from geotek.core.models.investigations import REFUSAL_BLOWS, Borehole
 from geotek.core.models.profile import SoilProfile
 
 CN_MAX = 1.7
 ER_ASSUMED = 60.0
 """Energy ratio [%] used (with a warning) when neither the record nor the borehole states one."""
-REFUSAL_BLOWS = 50
-"""A 150 mm increment with this many blows is refusal (ASTM D1586)."""
 BOREHOLE_DIAMETER_RANGE_MM = (65.0, 200.0)
 """Diameters tabulated for C_B (Youd et al. 2001, Table 2); outside it the factor is an extrapolation."""
 
 
 def rod_length_factor(rod_length):
-    """C_R by rod length [m] (Youd et al. 2001, Table 2): <4 m 0.75, 4-6 m 0.85, 6-10 m 0.95, >=10 m 1.0."""
+    """C_R by rod length [m] (Youd et al. 2001, Table 2): <3 m 0.75, 3-4 m 0.80, 4-6 m 0.85, 6-10 m 0.95, 10-30 m 1.0."""
     L = np.asarray(rod_length, dtype=float)
     if not np.all(np.isfinite(L)) or np.any(L < 0):
         raise ValueError("SPT rod length must be finite and non-negative")
     out = np.select(
-        [L < 4.0, L < 6.0, L < 10.0],
-        [0.75, 0.85, 0.95],
+        [L < 3.0, L < 4.0, L < 6.0, L < 10.0],
+        [0.75, 0.80, 0.85, 0.95],
         default=1.0,
     )
     return float(out) if out.ndim == 0 else out
