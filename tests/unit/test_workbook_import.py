@@ -107,7 +107,7 @@ def test_cpt_fs_unit_inferred_from_friction_ratio():
 
 def test_cpt_without_fs_is_an_open_question():
     plan = analyze_workbook(b"Depth (m),qc (MPa)\n1,5\n2,6\n", "c.csv")
-    assert "import.issue.cpt_fs_missing" in {i.code for i in plan.blockers()}
+    assert not plan.blockers() and "import.issue.cpt_fs_missing" in {i.code for i in plan.issues}
 
 
 def test_energy_ratio_scale_is_asked_when_ambiguous(tmp_path):

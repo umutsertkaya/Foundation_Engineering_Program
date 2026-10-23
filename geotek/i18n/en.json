@@ -602,7 +602,7 @@
   "import.issue.sampler_unmapped": "What is the sampler '{text}'? Choose standard or without liner (C_S differs).",
   "import.issue.energy_ratio_scale": "Energy ratio values are all ≤ 1: percent or fraction?",
   "import.issue.u2_all_zero": "The u2 column is all zero: treated as not measured.",
-  "import.issue.cpt_fs_missing": "The CPT sheet has no sleeve friction (fs) column; this is not supported yet.",
+  "import.issue.cpt_fs_missing": "The CPT sheet has no sleeve friction (fs): it is imported as q_c only; classification by I_c and CPT liquefaction are unavailable for it.",
   "import.issue.energy_ratio_missing": "No energy ratio in the SPT sheet: 60 % will be assumed with a warning.",
   "import.warning.rows_dropped": "{count} row(s) in sheet {sheet} were skipped (missing or invalid values).",
   "import.warning.u2_not_measured": "u2 in sheet {sheet} is all zero or empty: stored as not measured.",
@@ -616,5 +616,6 @@
   "import.issue.sieve_opening_unresolved": "Sieve opening '{text}' is not a size in mm or a standard designation (#4, No. 200): fix the file.",
   "import.issue.water_content_scale": "Water content values do not match the chosen scale: percent or fraction?",
   "import.issue.column_confirm": "Column '{header}' was matched by a very short header: confirm the mapping.",
-  "import.warning.spt_short_drive": "{count} SPT drive(s) in {sheet} are shorter than 450 mm: the depth was limited to the drive end."
+  "import.warning.spt_short_drive": "{count} SPT drive(s) in {sheet} are shorter than 450 mm: the depth was limited to the drive end.",
+  "insitu.warning.cpt_no_fs": "This CPT has no sleeve friction (fs): Rf, I_c, SBTn zones and fines content are undefined; only q_c-based correlations apply."
 }

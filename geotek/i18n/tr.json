@@ -602,7 +602,7 @@
   "import.issue.sampler_unmapped": "'{text}' numune alıcı nedir? Standart veya liner'sız seçin (C_S değişir).",
   "import.issue.energy_ratio_scale": "Enerji oranı değerlerinin hepsi ≤ 1: yüzde mi, kesir mi?",
   "import.issue.u2_all_zero": "u2 sütunu tamamen sıfır: ölçülmemiş sayıldı.",
-  "import.issue.cpt_fs_missing": "CPT sayfasında çevre sürtünmesi (fs) sütunu yok; bu henüz desteklenmiyor.",
+  "import.issue.cpt_fs_missing": "CPT sayfasında çevre sürtünmesi (fs) yok: yalnız q_c olarak alınacak; I_c ile sınıflandırma ve CPT sıvılaşma analizi bu sounding için yapılamaz.",
   "import.issue.energy_ratio_missing": "SPT sayfasında enerji oranı yok: uyarıyla birlikte %60 varsayılacak.",
   "import.warning.rows_dropped": "{sheet} sayfasında {count} satır atlandı (eksik veya geçersiz değer).",
   "import.warning.u2_not_measured": "{sheet} sayfasında u2 sıfır veya boş: ölçülmedi olarak kaydedildi.",
@@ -616,5 +616,6 @@
   "import.issue.sieve_opening_unresolved": "Elek açıklığı '{text}' mm cinsinden bir boyut veya standart bir numara (#4, No. 200) değil: dosyayı düzeltin.",
   "import.issue.water_content_scale": "Su muhtevası değerleri seçilen ölçeğe uymuyor: yüzde mi, kesir mi?",
   "import.issue.column_confirm": "'{header}' sütunu çok kısa bir başlıkla eşlendi: eşlemeyi onaylayın.",
-  "import.warning.spt_short_drive": "{sheet} sayfasındaki {count} SPT sürüşü 450 mm'den kısa: derinlik sürüş sonuyla sınırlandı."
+  "import.warning.spt_short_drive": "{sheet} sayfasındaki {count} SPT sürüşü 450 mm'den kısa: derinlik sürüş sonuyla sınırlandı.",
+  "insitu.warning.cpt_no_fs": "Bu CPT'de çevre sürtünmesi (fs) yok: Rf, I_c, SBTn bölgeleri ve ince dane oranı tanımsız; yalnız q_c tabanlı bağıntılar uygulanır."
 }

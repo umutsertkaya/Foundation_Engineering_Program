@@ -1035,3 +1035,24 @@ def test_workbook_import_rejects_bad_input(opened):
     no_plan = opened.post(f"{PREFIX}/import/workbook/commit",
                           files={"file": ("x.csv", b"Depth,N\n1,2\n", "text/csv")})
     assert no_plan.status_code == 422
+
+
+def test_qc_only_cpt_import_and_endpoints_fail_cleanly_or_degrade(opened):
+    csv = b"Depth (m),qc (MPa)\n1,5\n2,6\n3,7\n4,8\n"
+    files = {"file": ("qc.csv", csv, "text/csv")}
+    plan = opened.post(f"{PREFIX}/import/workbook/analyze", files=files).json()
+    assert not [i for i in plan["issues"] if i["severity"] == "blocker"]
+    done = opened.post(f"{PREFIX}/import/workbook/commit", data={"plan": json.dumps(plan)}, files=files)
+    assert done.status_code == 200, done.text
+    cid = done.json()["cpts"][0]["id"]
+    assert done.json()["cpts"][0]["fs"] is None
+    # No profile and no fs: stresses are unknown, so processing is refused with a clear error.
+    assert opened.get(f"{PREFIX}/cpts/{cid}/processed").status_code in (404, 409, 422)
+    create_profile(opened, {**CREATE, "source_ids": [cid]})
+    processed = opened.get(f"{PREFIX}/cpts/{cid}/processed")
+    assert processed.status_code in (200, 404, 409, 422), processed.text
+    sbtn = opened.get(f"{PREFIX}/cpts/{cid}/sbtn")
+    assert sbtn.status_code in (200, 404, 409, 422), sbtn.text
+    layering = opened.post(f"{PREFIX}/layering/cpt/{cid}", json={"method": "cpt_ic"})
+    assert layering.status_code in (409, 422), layering.text
+    assert opened.get("/api/session").status_code == 200

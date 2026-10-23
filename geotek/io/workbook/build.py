@@ -145,11 +145,13 @@ def build_import(data: bytes, filename: str, plan: ImportPlan) -> ImportResult:
 
 def _build_cpt(sheet: _Sheet, plan: ImportPlan, result: ImportResult) -> None:
     ids = _ids(sheet, plan.options.cpt_id or "CPT-1")
-    depth, qc, fs = sheet.num("depth"), sheet.num("qc"), sheet.num("fs")
+    depth, qc = sheet.num("depth"), sheet.num("qc")
+    fs = sheet.num("fs") if sheet.has("fs") else None
     u2 = sheet.num("u2") if sheet.has("u2") else None
     for sid in dict.fromkeys(ids):
         rows = [i for i, v in enumerate(ids) if v == sid]
-        keep = [i for i in rows if np.isfinite(depth[i]) and np.isfinite(qc[i]) and np.isfinite(fs[i])]
+        keep = [i for i in rows if np.isfinite(depth[i]) and np.isfinite(qc[i])
+                and (fs is None or np.isfinite(fs[i]))]
         dropped = len(rows) - len(keep)
         if dropped:
             result.warnings.append(format_warning(
@@ -167,7 +169,7 @@ def _build_cpt(sheet: _Sheet, plan: ImportPlan, result: ImportResult) -> None:
         try:
             result.cpts.append(CPTSounding(
                 id=sid, depth=[float(depth[i]) for i in keep], qc=[float(qc[i]) for i in keep],
-                fs=[float(fs[i]) for i in keep], u2=u2_list))
+                fs=None if fs is None else [float(fs[i]) for i in keep], u2=u2_list))
         except ValidationError as exc:
             raise ImportDataError(f"CPT {sid!r}: {exc.errors()[0]['msg']}") from exc
 
