@@ -75,6 +75,13 @@ Kaynak: Umut'un cihazındaki tam metin md dönüşümü (`docs/research/Youd.et.
 - Faz 6 (2026-10-23): tasarım anahtarları Dr, OCR, K0, Vs, Gmax, M eklendi (`geotek/engine/correlations/state.py`); kaynak Field_Tests_2026 slaytları ve atıf yaptığı yazarlar, hepsi `verified=False`, güvenilirlik C. Gmax için ρ = katman γ'sı (GWT üstü değer); γ özet hash'ine girmez. Açık: özgün makalelere karşı doğrulama; OCR için N60 seçimi slaytta belirtilmemiş; Layer editor sütunları yok (yalnız Parametreler ekranı). Eski sürümler yeni anahtarlı proje dosyasını açamaz.
 - Test (2026-10-23, Linux bulut): pytest 2120+ geçti; web 383 geçti; typecheck, build, kod haritası temiz.
 
+## Hesap sistemi yeniden kurgusu (2026-10-23)
+
+- Biten: PR #57 (HS-A: parametre başına onay tabanı, γsat adayları ve sessiz γsat = γ'nın kaldırılması, yeni korelasyonlar) ve PR #58 (HS-C: sürşarj sismik artışı 2H/3, sükûnet basıncı onaylı K0 ile) birleşti.
+- Sürüyor: HS-B (zemin web arayüzü: düşen onayın nedeni, eski → yeni değer, toplu yeniden onay).
+- Bu PR (HS-D): `tests/unit/test_source_examples.py` (Keleşoğlu ders örnekleri D1–D5, 9 test) ve [denetim raporu](qa/hesap-sistemi-denetimi.md) (B1–B3, K1–K5, karşılaştırma tablosu, bilinçli farklar). Kartta elle hesaplanan bütün değerler yeniden üretildi; formül değişmedi.
+- Test (2026-10-23, Linux bulut, HS-D dalı): pytest 2276 geçti / 2 atlandı; `gen_code_map.py --check` 0; web çalıştırılmadı.
+
 ## Son doğrulama
 
 - 2026-10-20, sistem kontrolü dalı (Linux bulut): tam pytest 1869 geçti / 2 atlandı; `tsc --noEmit` temiz;
