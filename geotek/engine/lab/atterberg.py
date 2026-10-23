@@ -65,6 +65,8 @@ def liquid_limit_multipoint(blows, water_content) -> LiquidLimitResult:
 
 def liquid_limit_one_point(blows: float, water_content: float) -> tuple[float, list[str]]:
     """LL = w (N/25)^0.121 (ASTM D4318 Method B); warns outside 20-30 blows."""
+    if not (math.isfinite(blows) and math.isfinite(water_content)):
+        raise ValueError("Blow count and water content must be finite")
     if blows <= 0 or water_content < 0:
         raise ValueError("Blow count must be positive and water content non-negative")
     warnings = []
@@ -81,15 +83,22 @@ class PlasticityResult:
     pl: float | None
     pi: float | None
     non_plastic: bool
-    """True when PL could not be determined or PL >= LL (reported as NP, not as an error)."""
+    """True when PL >= LL or the soil was flagged not rollable (NP, not an error).
+    A missing PL without that flag only leaves PI undetermined."""
     pl_spread: float | None = None
     """Max - min of the plastic-limit replicates [%]; no acceptance limit is applied."""
     n_pl: int = 0
     warnings: list[str] = field(default_factory=list)
 
 
-def plasticity(ll: float | None, pl_values=None) -> PlasticityResult:
-    """PL = mean of replicates; PI = LL - PL. NP when PL is missing or not below LL."""
+def plasticity(ll: float | None, pl_values=None, *, not_rollable: bool = False) -> PlasticityResult:
+    """PL = mean of replicates; PI = LL - PL. NP when PL is not below LL or the soil is
+    flagged not rollable; a missing PL alone leaves PI undetermined."""
+    if ll is not None and not math.isfinite(ll):
+        raise ValueError("Liquid limit must be finite")
+    if not_rollable:
+        return PlasticityResult(ll, None, 0.0, non_plastic=True,
+                                warnings=[format_warning("lab.warning.non_plastic")])
     pls = [float(v) for v in (pl_values or []) if v is not None and math.isfinite(v)]
     if any(v < 0 for v in pls):
         raise ValueError("Plastic-limit water contents must be non-negative")

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import math
 from dataclasses import dataclass, field
 
 from geotek.core.constants import GAMMA_W
@@ -32,6 +33,9 @@ def phase_relations(
     """
     out = PhaseResult()
     w = None if w_percent is None else w_percent / 100.0
+    for value in (gamma, w_percent, Gs, S):
+        if value is not None and not math.isfinite(value):
+            raise ValueError("Phase-relation inputs must be finite")
     if gamma is not None and gamma <= 0 or Gs is not None and Gs <= 0 or w is not None and w < 0:
         raise ValueError("Unit weight and Gs must be positive, water content non-negative")
     if S is not None and not 0 < S <= 1:
@@ -43,7 +47,10 @@ def phase_relations(
     elif w is not None and Gs is not None and S is not None:
         out.e = w * Gs / S
         out.gamma_d = Gs * gamma_w / (1.0 + out.e)
-    if out.e is not None and out.e > 0 and w is not None and Gs is not None:
+    if out.e is not None and out.e <= 0:
+        out.warnings.append(format_warning("lab.warning.void_ratio_invalid", e=round(out.e, 3)))
+        out.e = None
+    if out.e is not None and w is not None and Gs is not None:
         out.S = w * Gs / out.e
         if out.S > 1.0 + SATURATION_TOL:
             out.warnings.append(format_warning(

@@ -22,6 +22,9 @@ from geotek.core.warning_codes import format_warning
 Criterion = Literal["max_stress_ratio", "max_q", "strain_limit"]
 B_MIN = 0.95
 """Minimum Skempton B accepted as saturated (ASTM D4767)."""
+_MIN_S3_FRACTION = 0.05
+"""Numerical guard: points with sigma3' below this share of the consolidation stress are not
+eligible for the maximum stress ratio (the ratio diverges as sigma3' tends to zero)."""
 STRAIN_LIMIT_DEFAULT = 15.0
 """Axial strain [%] at which a test without a peak is stopped (ASTM D4767)."""
 
@@ -39,6 +42,8 @@ class CUTest:
     u: list[float]
     """Pore pressure including back pressure [kPa]."""
     B: float | None = None
+    back_pressure: float | None = None
+    """Back pressure [kPa]; defaults to the first recorded pore pressure."""
 
 
 @dataclass
@@ -68,8 +73,9 @@ class MCFit:
 class CUResult:
     criterion: str
     points: list[FailurePoint]
-    effective: MCFit | None
+    effective: MCFit
     total: MCFit | None
+    """Total-stress fit (informative only); None when the data do not support one."""
     warnings: list[str] = field(default_factory=list)
 
 
@@ -82,10 +88,13 @@ def failure_point(test: CUTest, criterion: Criterion = "max_stress_ratio",
         raise ValueError(f"{test.test_id}: strain, q and u must be equal-length with >= 2 points")
     if not (np.all(np.isfinite(eps)) and np.all(np.isfinite(q)) and np.all(np.isfinite(u))):
         raise ValueError(f"{test.test_id}: test curve must be finite")
+    if np.any(np.diff(eps) < 0):
+        raise ValueError(f"{test.test_id}: axial strain must not decrease along the record")
     s3 = test.cell_total - u
     s1 = s3 + q
+    back = float(u[0] if test.back_pressure is None else test.back_pressure)
     if criterion == "max_stress_ratio":
-        valid = s3 > 1e-6
+        valid = s3 > _MIN_S3_FRACTION * test.consolidation_eff
         if not valid.any():
             raise ValueError(f"{test.test_id}: effective confining stress never positive")
         ratio = np.where(valid, s1 / np.where(valid, s3, 1.0), -np.inf)
@@ -104,13 +113,15 @@ def failure_point(test: CUTest, criterion: Criterion = "max_stress_ratio",
     return FailurePoint(
         test_id=test.test_id, index=i, strain_percent=float(eps[i]), q_f=float(q[i]),
         sigma3_eff=float(s3[i]), sigma1_eff=float(s1[i]),
-        sigma3_total=float(test.cell_total), sigma1_total=float(test.cell_total + q[i]),
+        sigma3_total=float(test.cell_total - back), sigma1_total=float(test.cell_total - back + q[i]),
         su=float(q[i] / 2.0), at_end_of_record=bool(i == eps.size - 1))
 
 
 def _fit_st(s: np.ndarray, t: np.ndarray) -> tuple[MCFit, list[str]]:
     """Least-squares t = a + s tan(alpha); refit through the origin if a < 0."""
     warnings: list[str] = []
+    if np.ptp(s) < 1e-3 * float(np.max(np.abs(s))):
+        raise ValueError("The tests have the same confining stress: no strength envelope can be fitted")
     slope, a = np.polyfit(s, t, 1)
     through_origin = False
     if a < 0:
@@ -141,6 +152,12 @@ def reduce_cu(tests: list[CUTest], *, criterion: Criterion = "max_stress_ratio",
         warnings.append(format_warning("lab.warning.cu_few_tests", count=len(tests)))
     points = [failure_point(t, criterion, strain_limit) for t in tests]
     for test, point in zip(tests, points):
+        back = test.back_pressure if test.back_pressure is not None else test.u[0]
+        if abs(test.cell_total - back - test.consolidation_eff) > max(2.0, 0.02 * test.consolidation_eff):
+            warnings.append(format_warning(
+                "lab.warning.cu_consolidation_inconsistent", test_id=test.test_id,
+                cell_minus_back=float(test.cell_total - back),
+                consolidation=float(test.consolidation_eff)))
         if test.B is not None and test.B < B_MIN:
             warnings.append(format_warning(
                 "lab.warning.cu_b_low", test_id=test.test_id, b=test.B, minimum=B_MIN))
@@ -150,8 +167,15 @@ def reduce_cu(tests: list[CUTest], *, criterion: Criterion = "max_stress_ratio",
         warnings.append(format_warning("lab.warning.cu_reconstituted"))
     eff = _fit_st(np.array([(p.sigma1_eff + p.sigma3_eff) / 2 for p in points]),
                   np.array([(p.sigma1_eff - p.sigma3_eff) / 2 for p in points]))
-    tot = _fit_st(np.array([(p.sigma1_total + p.sigma3_total) / 2 for p in points]),
-                  np.array([(p.sigma1_total - p.sigma3_total) / 2 for p in points]))
     warnings += eff[1]
-    return CUResult(criterion=criterion, points=points, effective=eff[0], total=tot[0],
+    total = None
+    try:
+        tot = _fit_st(np.array([(p.sigma1_total + p.sigma3_total) / 2 for p in points]),
+                      np.array([(p.sigma1_total - p.sigma3_total) / 2 for p in points]))
+        total = tot[0]
+        warnings += [format_warning("lab.warning.cu_total_negative_cohesion")
+                     for w in tot[1]]
+    except ValueError:
+        warnings.append(format_warning("lab.warning.cu_total_fit_failed"))
+    return CUResult(criterion=criterion, points=points, effective=eff[0], total=total,
                     warnings=warnings)

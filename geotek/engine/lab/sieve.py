@@ -51,7 +51,10 @@ def passing_at(openings_mm, percent_passing, size_mm: float) -> float | None:
 
 
 def diameter_at(openings_mm, percent_passing, percent: float) -> float | None:
-    """Grain size [mm] at which ``percent`` passes; None if the curve never brackets it."""
+    """Grain size [mm] at which ``percent`` passes; None if the curve never brackets it.
+
+    Where the curve is flat at that percentage (empty sieves), the smaller size is returned.
+    Lost mass is not distributed: it counts as passing (see ``sieve_analysis``)."""
     x = np.log10(np.asarray(openings_mm, dtype=float))
     y = np.asarray(percent_passing, dtype=float)
     order = np.argsort(y, kind="stable")
@@ -123,6 +126,8 @@ def sieve_analysis(
     cc = d30**2 / (d10 * d60) if d10 and d30 and d60 else None
     p_gravel = passing_at(size, passing, GRAVEL_SAND_MM)
     p_fines = passing_at(size, passing, SAND_FINES_MM)
+    if p_gravel is None and size[0] < GRAVEL_SAND_MM and passing[0] >= 100.0 - 1e-9:
+        p_gravel = 100.0  # every sieve is finer than the gravel limit and all material passes
     gravel = None if p_gravel is None else 100.0 - p_gravel
     fines = p_fines
     sand = None if p_gravel is None or p_fines is None else p_gravel - p_fines

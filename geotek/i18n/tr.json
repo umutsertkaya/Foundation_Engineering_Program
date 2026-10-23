@@ -581,11 +581,15 @@
   "lab.warning.ll_blows_outside_range": "Akış eğrisi darbe sayıları {minimum}-{maximum} aralığının dışında: likit limit önerilen aralığın dışına taşıyor.",
   "lab.warning.ll_slope_not_negative": "Akış eğrisi darbe sayısıyla azalmıyor; deney verisini kontrol edin.",
   "lab.warning.ll_one_point_range": "{blows} darbede tek nokta likit limit, {minimum}-{maximum} aralığının dışında.",
-  "lab.warning.non_plastic": "Plastik limit yok veya likit limitin altında değil: plastik olmayan (NP) olarak raporlandı.",
+  "lab.warning.non_plastic": "Plastik limit likit limitin altında değil veya zemin yuvarlanamıyor: plastik olmayan (NP) olarak raporlandı.",
   "lab.warning.saturation_over_100": "Hesaplanan doygunluk %{saturation_percent} (> %100): birim hacim ağırlığı, su muhtevası ve Gs tutarsız.",
   "lab.warning.cu_few_tests": "Yalnız {count} CU deneyi var: dayanım zarfı için en az üç önerilir.",
   "lab.warning.cu_b_low": "{test_id} deneyi: B = {b}, {minimum} değerinin altında; numune doygun olmayabilir.",
   "lab.warning.cu_no_peak": "{test_id} deneyi: kopma ölçütü yalnız kayıt sonunda sağlanıyor (tepe yok).",
   "lab.warning.cu_reconstituted": "Yeniden şekillendirilmiş numune yerinde yapıyı temsil etmez: c' ve drenajsız dayanım yerinde değer değildir; drenajsız dayanım önerilmez.",
-  "lab.warning.cu_negative_cohesion": "Uydurulan efektif kohezyon negatif: doğru orijinden geçecek şekilde yeniden uydurulup c' = 0 alındı."
+  "lab.warning.cu_negative_cohesion": "Uydurulan efektif kohezyon negatif: doğru orijinden geçecek şekilde yeniden uydurulup c' = 0 alındı.",
+  "lab.warning.cu_consolidation_inconsistent": "{test_id} deneyi: hücre basıncı eksi geri basınç ({cell_minus_back} kPa), belirtilen konsolidasyon gerilmesinden ({consolidation} kPa) farklı.",
+  "lab.warning.cu_total_negative_cohesion": "Toplam gerilme kohezyonu negatif çıktı, orijinden geçecek şekilde yeniden uydurulup (yalnız bilgi).",
+  "lab.warning.cu_total_fit_failed": "Bu deneylerden toplam gerilme zarfı uydurulamadı (yalnız bilgi).",
+  "lab.warning.void_ratio_invalid": "Hesaplanan boşluk oranı {e} pozitif değil: birim hacim ağırlığı, su muhtevası ve Gs tutarsız; türetilen faz değerleri hesaplanmadı."
 }

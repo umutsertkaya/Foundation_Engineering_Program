@@ -193,3 +193,45 @@ def test_example_cu(workbook):
         assert ratio.effective.c == pytest.approx(c_expect, abs=0.3)
         peak_q = reduce_cu(tests, criterion="max_q")
         assert [p.index for p in peak_q.points] == [p.index for p in ratio.points]
+
+
+def test_cu_total_stress_excludes_back_pressure():
+    def make(back):
+        return [CUTest(f"T{i}", cp, cp + back, [0, 2, 4], [0, 1.2 * cp, 1.0 * cp],
+                       [back, back + 0.2 * cp, back + 0.3 * cp], B=0.97)
+                for i, cp in enumerate((50.0, 100.0, 200.0))]
+    low, high = reduce_cu(make(0.0)), reduce_cu(make(300.0))
+    assert high.total.phi_deg == pytest.approx(low.total.phi_deg)
+    assert high.effective.phi_deg == pytest.approx(low.effective.phi_deg)
+    assert high.points[0].sigma3_total == pytest.approx(50.0)
+    bad = make(100.0)
+    bad[0].consolidation_eff = 80.0
+    assert "lab.warning.cu_consolidation_inconsistent" in codes(reduce_cu(bad).warnings)
+
+
+def test_cu_rejects_identical_confining_stress_and_decreasing_strain():
+    same = [CUTest(f"T{i}", 100.0, 300.0, [0, 4], [0, 150.0], [200, 220]) for i in range(2)]
+    with pytest.raises(ValueError):
+        reduce_cu(same)
+    with pytest.raises(ValueError):
+        reduce_cu([CUTest("a", 100.0, 300.0, [4, 0], [0, 150.0], [200, 220]),
+                   CUTest("b", 200.0, 400.0, [0, 4], [0, 250.0], [200, 220])])
+
+
+def test_edge_cases_nan_np_void_ratio():
+    with pytest.raises(ValueError):
+        phase_relations(gamma=float("nan"), w_percent=10.0, Gs=2.7)
+    with pytest.raises(ValueError):
+        plasticity(float("nan"), [20.0])
+    with pytest.raises(ValueError):
+        liquid_limit_one_point(float("nan"), 30.0)
+    bad = phase_relations(gamma=30.0, w_percent=10.0, Gs=2.65)
+    assert bad.e is None and bad.gamma_sat is None
+    assert "lab.warning.void_ratio_invalid" in codes(bad.warnings)
+    assert plasticity(30.0, []).non_plastic is False
+    assert plasticity(30.0, [], not_rollable=True).non_plastic is True
+
+
+def test_sieve_all_material_finer_than_gravel_limit():
+    r = sieve_analysis([2, 0.075], [0, 400], total_dry_mass_g=500, pan_g=100)
+    assert r.gravel == pytest.approx(0.0)

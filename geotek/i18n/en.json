@@ -581,11 +581,15 @@
   "lab.warning.ll_blows_outside_range": "Flow-curve blow counts outside {minimum}-{maximum}: the liquid limit is an extrapolation of the recommended range.",
   "lab.warning.ll_slope_not_negative": "The flow curve does not fall with increasing blows; check the test data.",
   "lab.warning.ll_one_point_range": "One-point liquid limit at {blows} blows is outside {minimum}-{maximum}.",
-  "lab.warning.non_plastic": "Plastic limit missing or not below the liquid limit: reported as non-plastic (NP).",
+  "lab.warning.non_plastic": "Plastic limit not below the liquid limit, or soil not rollable: reported as non-plastic (NP).",
   "lab.warning.saturation_over_100": "Computed degree of saturation is {saturation_percent} % (> 100 %): unit weight, water content and Gs are inconsistent.",
   "lab.warning.cu_few_tests": "Only {count} CU tests: at least three are recommended for a strength envelope.",
   "lab.warning.cu_b_low": "Test {test_id}: B = {b} is below {minimum}; the specimen may not be saturated.",
   "lab.warning.cu_no_peak": "Test {test_id}: the failure criterion is met only at the end of the record (no peak).",
   "lab.warning.cu_reconstituted": "Reconstituted specimens do not represent in-situ structure: c' and undrained strength are not in-situ values; undrained strength is not proposed.",
-  "lab.warning.cu_negative_cohesion": "The fitted effective cohesion is negative: the line was refitted through the origin (c' = 0)."
+  "lab.warning.cu_negative_cohesion": "The fitted effective cohesion is negative: the line was refitted through the origin (c' = 0).",
+  "lab.warning.cu_consolidation_inconsistent": "Test {test_id}: cell pressure minus back pressure ({cell_minus_back} kPa) differs from the stated consolidation stress ({consolidation} kPa).",
+  "lab.warning.cu_total_negative_cohesion": "The total-stress cohesion fit was negative and was refitted through the origin (informative only).",
+  "lab.warning.cu_total_fit_failed": "No total-stress envelope could be fitted from these tests (informative only).",
+  "lab.warning.void_ratio_invalid": "Computed void ratio {e} is not positive: unit weight, water content and Gs are inconsistent; derived phase values were not computed."
 }

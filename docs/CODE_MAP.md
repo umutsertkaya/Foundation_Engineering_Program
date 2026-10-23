@@ -456,10 +456,10 @@ Test sütunu: o dosyayı doğrudan import eden `tests/` dosyaları (yoksa `—`)
 | Dosya | Satır | Bağımlı olduğu | Kullanan | Test |
 |---|---:|---|---|---|
 | `engine/lab/__init__.py` | 1 | — | — | — |
-| `engine/lab/atterberg.py` | 103 | `core.warning_codes` | — | `unit/test_lab_engine.py` |
-| `engine/lab/phase.py` | 53 | `core.constants`, `core.warning_codes` | — | `unit/test_lab_engine.py` |
-| `engine/lab/sieve.py` | 131 | `core.warning_codes` | — | `unit/test_lab_engine.py` |
-| `engine/lab/triaxial.py` | 157 | `core.warning_codes` | — | `unit/test_lab_engine.py` |
+| `engine/lab/atterberg.py` | 112 | `core.warning_codes` | — | `unit/test_lab_engine.py` |
+| `engine/lab/phase.py` | 60 | `core.constants`, `core.warning_codes` | — | `unit/test_lab_engine.py` |
+| `engine/lab/sieve.py` | 136 | `core.warning_codes` | — | `unit/test_lab_engine.py` |
+| `engine/lab/triaxial.py` | 181 | `core.warning_codes` | — | `unit/test_lab_engine.py` |
 
 #### `geotek.engine.layering`
 
