@@ -61,16 +61,17 @@ def _component(name: str, z, p, height: float) -> dict | None:
 def _require_approved_k0(project: Project, profile, height: float) -> None:
     """Every layer within ``height`` needs an approved, non-stale K0 selection (not just ``design.K0``).
 
-    Staleness is judged on a refreshed copy (the stored profile is not modified): ``refresh_profile``
-    clears ``approved`` when the basis hash of the layer bounds and inputs no longer matches.
+    The stored selection is not re-validated on its own, so staleness is judged on a refreshed copy
+    (the stored profile is not modified): ``refresh_profile`` withdraws ``approved`` and sets
+    ``stale_reason`` when the data or stresses behind the approval changed.
     """
     refreshed = {layer.id: layer for layer in refresh_profile(project, profile.id).layers}
     for layer in profile.layers:
         if min(layer.bottom, height) <= layer.top:
             continue
-        selection = refreshed.get(layer.id, layer).selections.get("K0")
-        stale = getattr(selection, "stale_reason", None) is not None
-        if selection is None or not selection.approved or stale or layer.design.K0 is None:
+        selection = refreshed[layer.id].selections.get("K0")
+        if (selection is None or not selection.approved or selection.stale_reason is not None
+                or layer.design.K0 is None):
             raise LayerDesignError(layer, "k0_missing")
 
 
