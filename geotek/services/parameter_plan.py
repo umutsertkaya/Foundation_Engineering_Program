@@ -63,12 +63,31 @@ def layer_inventory(project: Project, profile: SoilProfile, layer: SoilLayer) ->
                 "inputs": list(c.inputs), "ready_points": ready,
                 "missing_inputs": missing if ready == 0 else [],
             })
+        methods.extend(_derived_methods(layer, key))
         keys.append({"parameter": key, "methods": methods})
     return {
         "layer_id": layer.id, "point_count": len(points), "inputs": inputs, "keys": keys,
         "stress_issue": stress_issue(profile, layer),
         "spt_class": parameters.spt_class(layer_context, points),
     }
+
+
+def _derived_methods(layer: SoilLayer, key: str) -> list[dict]:
+    """delta_base and K0 derivations: ready only from an approved phi' (and OCR for Mayne & Kulhawy)."""
+    phi = parameters.approved_phi(layer) is not None
+    ocr = parameters.approved_ocr(layer) is not None
+    specs = {
+        "delta_base": [("TBDY2018_delta_base", parameters.DELTA_BASE_REFERENCE, ["phi_eff"], phi, "phi_approved")],
+        "K0": [("JAKY_K0", "Jaky (1944)", ["phi_eff"], phi, "phi_approved"),
+               ("MK1982_K0", "Mayne & Kulhawy (1982)", ["phi_eff", "OCR"], phi and ocr, None)],
+    }.get(key, [])
+    out = []
+    for method_id, reference, inputs, ready, _ in specs:
+        missing = [] if ready else (["phi_approved"] if not phi else []) + (
+            ["ocr_approved"] if "OCR" in inputs and not ocr else [])
+        out.append({"id": method_id, "reference": reference, "source": "combined", "inputs": inputs,
+                    "ready_points": 1 if ready else 0, "missing_inputs": missing})
+    return out
 
 
 def profile_readiness(project: Project, profile: SoilProfile) -> list[dict]:

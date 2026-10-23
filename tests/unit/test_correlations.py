@@ -14,10 +14,11 @@ HAND_CALCS = [
     ("TPM1996_phi_PI", {"PI": 20}, 31.23),
     ("CPT_su_Nkt", {"qt": 1000, "sigma_v": 100}, 900 / 14),
     ("CPTu_su_Ndu", {"u2": 450, "u0": 100}, 50.0),
-    # f1 by PI (lower bound of each Stroud band): 6.0 (PI < 20), 4.0 (20-30), 4.2 (> 30) kPa.
+    # f1 by PI (lower bound of each Stroud band): 6.0 (PI < 20), 4.0 (20-30), 4.0 (>= 20) kPa, linear 15-20.
     ("Stroud1974_su_SPT", {"N60": 10, "PI": 10}, 60.0),
     ("Stroud1974_su_SPT", {"N60": 10, "PI": 25}, 40.0),
-    ("Stroud1974_su_SPT", {"N60": 10, "PI": 40}, 42.0),
+    ("Stroud1974_su_SPT", {"N60": 10, "PI": 17.5}, 50.0),
+    ("Stroud1974_su_SPT", {"N60": 10, "PI": 40}, 40.0),
     ("Stroud1974_su_SPT_noPI", {"N60": 10}, 40.0),
     # Sowers: su = 12.5 / 7.5 / 3.75 * N60 with N60 = 8.
     ("Sowers1979_su_high_SPT", {"N60": 8}, 100.0),
@@ -26,7 +27,7 @@ HAND_CALCS = [
     # Shioi & Fukui: N'70 = 20 * 60/70 = 17.142857 -> sqrt(18 * 17.142857) + 15 = 32.566;
     # N70 = 14 * 60/70 = 12 -> 0.36 * 12 + 27 = 31.32.
     ("SF1982_phi_roads_SPT", {"N1_60": 20}, 32.5662),
-    ("SF1982_phi_buildings_SPT", {"N60": 14}, 31.32),
+    ("SF1982_phi_buildings_SPT", {"N1_60": 14}, 31.32),
     ("Hara1974_su_SPT", {"N60": 10}, 29 * 10**0.72),
     ("KM1990_E_SPT", {"N60": 10}, 10132.5),
     ("R2009_E_CPT", {"qt": 10000, "sigma_v": 100, "Ic": 2.0}, 0.015 * 10**2.78 * 9900),

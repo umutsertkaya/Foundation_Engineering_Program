@@ -45,7 +45,7 @@ __all__ = (
     "layer_points", "evaluate_candidates", "suggest", "resolve", "approve", "reapprove",
     "basis_hash", "selection_basis", "refresh_profile", "STRESS_FIELDS", "POINT_FILTERS",
     "ReapproveMismatch", "spt_class", "classify_layer", "evaluation_uscs", "layer_lab", "k0_candidates",
-    "methods_for", "mean_lab_pi",
+    "methods_for", "mean_lab_pi", "approved_phi", "approved_ocr",
 )
 
 DELTA_BASE_REFERENCE = (
@@ -490,21 +490,40 @@ def _measurement_rank(candidate: DerivedParameter) -> int:
     return {PHASE_GAMMA_SAT: 0, LAB_GAMMA_SAT_BELOW_GWT: 1}.get(candidate.method_id, 2)
 
 
+def _approved_design(layer: SoilLayer, key: str) -> float | None:
+    """The design value of ``key`` only while its selection is approved; never a mere proposal."""
+    selection = layer.selections.get(key)
+    if selection is None or not selection.approved:
+        return None
+    value = getattr(layer.design, key)
+    return value if value is not None and math.isfinite(value) else None
+
+
 def _phi_source(layer: SoilLayer) -> float | None:
-    """Approved design phi', else the phi' proposal when it is valid."""
-    phi = layer.design.phi_eff
-    if phi is None:
-        selection = layer.selections.get("phi_eff")
-        proposal = selection.suggested if selection is not None else layer.params.get("phi_eff")
-        if proposal is not None and proposal.validity_ok:
-            phi = proposal.value
-    return phi if phi is not None and math.isfinite(phi) else None
+    """The approved design phi' (delta_base and K0 derive from it); None when not approved."""
+    return _approved_design(layer, "phi_eff")
+
+
+def approved_phi(layer: SoilLayer) -> float | None:
+    """Public alias of the approved-phi' reader."""
+    return _phi_source(layer)
+
+
+def approved_ocr(layer: SoilLayer) -> float | None:
+    """Public alias of the approved-OCR reader."""
+    return _ocr_source(layer)
+
+
+def _ocr_source(layer: SoilLayer) -> float | None:
+    """The approved design OCR (Mayne & Kulhawy K0); None when not approved."""
+    return _approved_design(layer, "OCR")
 
 
 def k0_candidates(layer: SoilLayer) -> list[DerivedParameter]:
     """Jaky (NC) and, with an approved OCR, Mayne & Kulhawy K0 from the layer's phi' source.
 
     Derived like delta_base, outside the registry: K0 = 1 - sin(phi'); K0 = (1 - sin(phi')) OCR^sin(phi').
+    Only an approved phi' (and approved OCR for Mayne & Kulhawy) is used; otherwise no candidate.
     A value above the model bound (UPPER_BOUNDS) is flagged invalid.
     """
     phi = _phi_source(layer)
@@ -514,8 +533,8 @@ def k0_candidates(layer: SoilLayer) -> list[DerivedParameter]:
     out = []
     specs = [("JAKY_K0", 1.0 - sin_phi, {"phi_eff": phi},
               "Jaky (1944): K0 = 1 - sin(phi') (normally consolidated)")]
-    ocr = layer.design.OCR
-    if ocr is not None and math.isfinite(ocr):
+    ocr = _ocr_source(layer)
+    if ocr is not None:
         specs.append(("MK1982_K0", (1.0 - sin_phi) * ocr ** sin_phi, {"phi_eff": phi, "OCR": ocr},
                       "Mayne & Kulhawy (1982): K0 = (1 - sin(phi')) OCR^sin(phi')"))
     bound = registry.UPPER_BOUNDS["K0"]
@@ -693,7 +712,7 @@ def _method_parts(
     if method_id in DERIVED_K0:
         used = {"phi_eff": _phi_source(layer)}
         if method_id == "MK1982_K0":
-            used["OCR"] = layer.design.OCR
+            used["OCR"] = _ocr_source(layer)
         return {name: value for name, value in used.items() if value is not None}, {}
     if method_id == "TBDY2018_delta_base":
         phi = _phi_source(layer)
@@ -825,12 +844,10 @@ def _dependency_changed(layer: SoilLayer, key: str, selection: ParameterSelectio
         return False
     used = selected.inputs_used
     strict = key == "delta_base" or selected.method_id in DERIVED_K0
-    phi = _phi_source(layer)
-    if phi is not None and (("phi_eff" in used or strict) and used.get("phi_eff") != phi):
+    # A basis that is gone (None / unapproved) counts as changed, not only a different value.
+    if ("phi_eff" in used or strict) and used.get("phi_eff") != _phi_source(layer):
         return True
-    ocr = layer.design.OCR
-    if ocr is not None and (
-            "OCR" in used or selected.method_id == "MK1982_K0") and used.get("OCR") != ocr:
+    if ("OCR" in used or selected.method_id == "MK1982_K0") and used.get("OCR") != _ocr_source(layer):
         return True
     return False
 
@@ -884,8 +901,8 @@ def approve(
                 # Manual K0 approvals also depend on the phi'/OCR available at approval.
                 if (phi := _phi_source(context)) is not None:
                     selection.selected.inputs_used["phi_eff"] = phi
-                if context.design.OCR is not None:
-                    selection.selected.inputs_used["OCR"] = context.design.OCR
+                if (ocr := _ocr_source(context)) is not None:
+                    selection.selected.inputs_used["OCR"] = ocr
         selection.approved = True
         selection.approved_at = now
         selection.basis_hash = selection_basis(

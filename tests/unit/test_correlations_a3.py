@@ -10,6 +10,8 @@ from geotek.engine.insitu.spt import rod_length_factor
 from geotek.core.models.investigations import LabRecord
 from geotek.core.models.profile import DesignParameters, GroundwaterCondition, SoilLayer, SoilProfile
 from geotek.services import parameters as svc
+from geotek.core.models.parameters import ParameterSelection
+from geotek.services import parameter_plan
 
 
 def _value(method_id, **inputs):
@@ -43,7 +45,7 @@ def test_sowers_su_by_plasticity(symbol, coefficient):
     assert sowers.reliability == "C" and "Erol" in sowers.reference
 
 
-@pytest.mark.parametrize("pi, f1", [(10.0, 6.0), (19.99, 6.0), (20.0, 4.0), (30.0, 4.0), (30.01, 4.2), (45.0, 4.2)])
+@pytest.mark.parametrize("pi, f1", [(10.0, 6.0), (15.0, 6.0), (17.5, 5.0), (20.0, 4.0), (35.0, 4.0)])
 def test_stroud_f1_follows_pi(pi, f1):
     assert _value("Stroud1974_su_SPT", N60=10.0, PI=pi).value == pytest.approx(10 * f1)
 
@@ -78,8 +80,8 @@ def test_shioi_fukui_friction_angles():
     assert _value("SF1982_phi_roads_SPT", N1_60=20.0).value == pytest.approx(
         math.sqrt(18 * 20 * 60 / 70) + 15, abs=1e-9)
     assert _value("SF1982_phi_roads_SPT", N1_60=20.0).value == pytest.approx(32.5662, abs=1e-4)
-    # N60 = 14: N70 = 12; phi' = 0.36 * 12 + 27 = 31.32.
-    assert _value("SF1982_phi_buildings_SPT", N60=14.0).value == pytest.approx(31.32)
+    # (N1)60 = 14: N'70 = 14 * 60/70 = 12; phi' = 0.36 * 12 + 27 = 31.32 (overburden corrected, not N60).
+    assert _value("SF1982_phi_buildings_SPT", N1_60=14.0).value == pytest.approx(31.32)
     assert "SF1982_phi_roads_SPT" in {c.id for c in registry.applicable("phi_eff", {"N1_60": 1.0})}
 
 
@@ -154,8 +156,14 @@ def test_inventory_lists_uscs_as_missing_for_restricted_methods():
 
 
 def _k0_layer(phi=30.0, ocr=None):
-    return SoilLayer(id="L", top=0, bottom=4, gamma=18,
-                     design=DesignParameters(phi_eff=phi, OCR=ocr))
+    """Layer whose phi' (and OCR) were really approved, as manual values."""
+    selections = {}
+    for key, value in (("phi_eff", phi), ("OCR", ocr)):
+        if value is not None:
+            selections[key] = ParameterSelection(parameter=key, mode="manual", manual_value=value)
+    layer = SoilLayer(id="L", top=0, bottom=4, gamma=18, selections=selections)
+    keys = list(selections)
+    return svc.approve(layer, keys, [], [], dt.datetime(2026, 10, 23)) if keys else layer
 
 
 def test_k0_candidates_jaky_and_mayne_kulhawy():
@@ -220,3 +228,46 @@ def test_spt_class_boundaries_belong_to_the_upper_class(context, mean, expected)
     points = [{"N": 10.0, "N1_60": mean, "N60": mean}]
     assert svc.spt_class(context, points) == expected
     assert svc.spt_class(None, points) is None and svc.spt_class(context, []) is None
+
+
+def test_k0_and_delta_use_only_the_approved_phi_and_ocr():
+    layer = _k0_layer(ocr=4.0)
+    layer.selections["phi_eff"].approved = False
+    assert svc.k0_candidates(layer) == []
+    assert svc.suggest([], "delta_base", layer) is None
+    layer.selections["phi_eff"].approved = True
+    layer.selections["OCR"].approved = False
+    assert [c.method_id for c in svc.k0_candidates(layer)] == ["JAKY_K0"]  # no Mayne & Kulhawy
+    assert svc.suggest([], "delta_base", layer).inputs_used == {"phi_eff": 30.0}
+
+
+def test_inventory_lists_phi_approved_and_ocr_approved_as_missing_inputs():
+    layer = _k0_layer(ocr=4.0)
+    layer.selections["phi_eff"].approved = False
+    layer.selections["OCR"].approved = False
+    methods = {}
+    for key in ("K0", "delta_base"):
+        methods.update({m["id"]: m for m in parameter_plan._derived_methods(layer, key)})
+    assert methods["JAKY_K0"]["missing_inputs"] == ["phi_approved"]
+    assert methods["TBDY2018_delta_base"]["missing_inputs"] == ["phi_approved"]
+    assert methods["MK1982_K0"]["missing_inputs"] == ["phi_approved", "ocr_approved"]
+    layer.selections["phi_eff"].approved = True
+    ready = {m["id"]: m for m in parameter_plan._derived_methods(layer, "K0")}
+    assert ready["JAKY_K0"]["ready_points"] == 1 and ready["MK1982_K0"]["missing_inputs"] == ["ocr_approved"]
+
+
+@pytest.mark.parametrize("key, method, ocr", [("delta_base", "TBDY2018_delta_base", None),
+                                              ("K0", "JAKY_K0", None), ("K0", "MK1982_K0", 4.0)])
+def test_dependent_approval_is_withdrawn_when_phi_or_ocr_stops_being_approved(key, method, ocr):
+    layer = _k0_layer(ocr=ocr)
+    layer = svc.refresh_profile(_k0_project(layer), "P").layers[0]
+    selection = layer.selections[key]
+    selection.mode, selection.method_id = "correlation", method
+    approved = svc.approve(layer, [key], [], [], dt.datetime(2026, 10, 23))
+    project = _k0_project(approved)
+    assert svc.refresh_profile(project, "P").layers[0].selections[key].approved
+    # The phi' (or OCR) approval is withdrawn while its value stays: the dependent value goes stale.
+    withdrawn = "OCR" if method == "MK1982_K0" else "phi_eff"
+    approved.selections[withdrawn].approved = False
+    stale = svc.refresh_profile(project, "P").layers[0].selections[key]
+    assert not stale.approved and stale.stale_reason == "dependency_changed"

@@ -116,7 +116,11 @@ def test_evaluate_candidates_one_mean_and_depth_spread_per_method():
     assert roads.value == pytest.approx((math.sqrt(18 * 5 * 60 / 70) + 15
                                          + math.sqrt(18 * 20 * 60 / 70) + 15) / 2)
     assert roads.value == pytest.approx(28.17467, abs=1e-4)
-    assert set(candidates) == {"HU1996_phi_SPT", "PHT1974_phi_SPT", "SF1982_phi_roads_SPT"}
+    # Shioi & Fukui (buildings): N'70 = 4.285714 -> 0.36 * 4.285714 + 27 = 28.54286; 17.142857 -> 33.17143.
+    buildings = candidates["SF1982_phi_buildings_SPT"]
+    assert buildings.value == pytest.approx((28.542857 + 33.171429) / 2, abs=1e-4)
+    assert set(candidates) == {"HU1996_phi_SPT", "PHT1974_phi_SPT", "SF1982_phi_roads_SPT",
+                               "SF1982_phi_buildings_SPT"}
     assert points == before
 
 
@@ -175,9 +179,9 @@ def test_suggest_prefers_measured_lab_then_valid_registry_mean():
     assert [c.model_dump() for c in candidates] == before
     candidates = evaluate_candidates([{"N1_60": 20}], "phi_eff", [])
     suggestion = suggest(candidates, "phi_eff", _layer())
-    # registry.combine uses (40+32.884+32.56622)/3=35.15007 (HU, PHT, Shioi & Fukui roads);
-    # no reliability weighting.
-    assert suggestion.value == pytest.approx(35.15007, abs=1e-5)
+    # registry.combine uses (40+32.884+32.56622+33.17143)/4=34.65541 (HU, PHT, Shioi & Fukui roads
+    # and buildings); no reliability weighting.
+    assert suggestion.value == pytest.approx(34.65541, abs=1e-4)
     bad = [c.model_copy(update={"validity_ok": False}) for c in candidates]
     assert suggest(bad, "phi_eff", _layer()) is None
     # Source='lab' with a caller-supplied measurement id also has priority: 28 degrees.
@@ -189,8 +193,8 @@ def test_pi_correlation_does_not_override_direct_registry_suggestions_as_a_measu
     candidates = evaluate_candidates([{"N1_60": 20}], "phi_eff", [LabRecord(depth=1, PI=20)])
     suggestion = suggest(candidates, "phi_eff", _layer())
     # PI is a correlation, not a measured angle: average of
-    # (40+32.884+32.56622+31.2250658742)/4 = 34.16882.
-    assert suggestion.value == pytest.approx(34.16882, abs=1e-4)
+    # (40+32.884+32.56622+31.2250659+33.17143)/5 = 33.96934.
+    assert suggestion.value == pytest.approx(33.96934, abs=1e-4)
     assert suggestion.method_id.startswith("mean(")
 
 
@@ -219,9 +223,16 @@ def test_cohesion_ic_cutoff_and_lab_priority(ic, expected):
     assert suggest(measured, "c_eff", layer).value == 7
 
 
+def _approved_phi_layer(phi, **updates):
+    """Layer whose phi' was approved (manual), as delta_base and K0 now require."""
+    layer = _layer(selections={"phi_eff": ParameterSelection(
+        parameter="phi_eff", mode="manual", manual_value=phi)}, **updates)
+    return approve(layer, ["phi_eff"], [], [], dt.datetime(2026, 10, 19))
+
+
 @pytest.mark.parametrize("phi, expected", [(0, 0), (20, 20), (45, 30.9637565321)])
 def test_delta_base_formula_in_degrees(phi, expected):
-    layer = _layer(design=DesignParameters(phi_eff=phi))
+    layer = _approved_phi_layer(phi)
     # tan20<.6 -> atan(tan20)=20deg; tan45=1>.6 -> atan(.6)=30.9637565321deg.
     result = suggest([], "delta_base", layer)
     assert result.value == pytest.approx(expected)
@@ -236,12 +247,13 @@ def test_delta_provisional_phi_and_no_spt_unit_weight():
     layer = _layer(selections={"phi_eff": ParameterSelection(
         parameter="phi_eff", suggested=_candidate(20),
     )})
-    # Provisional phi=20 gives delta=20 without writing either value to design.
-    assert suggest([], "delta_base", layer).value == pytest.approx(20)
+    # A provisional (unapproved) phi' gives no delta_base proposal and writes nothing to design.
+    assert suggest([], "delta_base", layer) is None
     assert layer.design.phi_eff is None and layer.design.delta_base is None
     assert suggest([], "delta_base", _layer()) is None
-    # Existing confirmed phi'=10 takes precedence over a new provisional phi'=20.
-    layer.design.phi_eff = 10
+    # Only the approved phi'=10 counts, not the provisional 20.
+    layer = _approved_phi_layer(10)
+    layer.selections["phi_eff"].suggested = _candidate(20)
     assert suggest([], "delta_base", layer).value == pytest.approx(10)
     # Registry has no SPT gamma or gamma_sat formula, so N alone yields no suggestion.
     for key in ("gamma", "gamma_sat"):
@@ -387,9 +399,9 @@ def test_approve_phi_change_revokes_delta_without_changing_its_design_or_trace(p
 
 
 def test_refresh_revokes_delta_when_design_phi_changes_with_the_same_input_basis():
-    layer = _layer(design=DesignParameters(phi_eff=30), selections={
-        "delta_base": ParameterSelection(parameter="delta_base", mode="manual", manual_value=30),
-    })
+    layer = _approved_phi_layer(30)
+    layer.selections["delta_base"] = ParameterSelection(
+        parameter="delta_base", mode="manual", manual_value=30)
     now = dt.datetime(2026, 10, 19)
     layer = approve(layer, ["delta_base"], [], [], now)
     original_basis = layer.selections["delta_base"].basis_hash
@@ -410,7 +422,7 @@ def test_refresh_revokes_delta_when_design_phi_changes_with_the_same_input_basis
 @pytest.mark.parametrize("keys", [["phi_eff", "delta_base"], ["delta_base", "phi_eff"]])
 @pytest.mark.parametrize("mode, expected_delta", [("manual", 30), ("correlation", 20)])
 def test_joint_phi_delta_approval_uses_resulting_phi_in_either_key_order(keys, mode, expected_delta):
-    layer = _layer(design=DesignParameters(phi_eff=30))
+    layer = _approved_phi_layer(30)
     old_suggestion = suggest([], "delta_base", layer)
     layer.selections = {
         "phi_eff": ParameterSelection(parameter="phi_eff", mode="manual", manual_value=20),
@@ -462,7 +474,8 @@ def test_refresh_candidates_content_hash_and_purity_without_auto_approval():
     # Suggestions are measured phi=32, gamma=18; delta=atan(.6)=30.9637565 degrees.
     assert layer.selections["phi_eff"].suggested.value == 32
     assert layer.selections["gamma"].suggested.value == 18
-    assert layer.selections["delta_base"].suggested.value == pytest.approx(30.9637565321)
+    # delta_base derives only from an approved phi', so the unapproved measured 32 gives no proposal.
+    assert layer.selections["delta_base"].suggested is None
     assert layer.design.phi_eff is None and layer.gamma == 20
     assert all(not s.approved and s.selected is None for s in layer.selections.values())
     assert result.content_hash() == profile.content_hash()

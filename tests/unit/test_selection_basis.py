@@ -287,12 +287,12 @@ def test_parameters_still_work_without_gamma_sat_and_the_inventory_flags_it():
     # Stress-free fields remain; the stress group is absent for the whole layer.
     assert all("N60" in p and "sigma_v_eff" not in p and "gamma_point" not in p for p in points)
     assert [p["below_gwt"] for p in points] == [0.0, 1.0]
-    assert any(c.method_id == "SF1982_phi_buildings_SPT" for c in svc.evaluate_candidates(points, "phi_eff", []))
+    assert any(c.method_id == "Stroud1974_su_SPT_noPI" for c in svc.evaluate_candidates(points, "su", [], "clay"))
     inventory = parameter_plan.layer_inventory(project, profile, layer)
     assert inventory["stress_issue"] == "gamma_sat_missing"
     ready = parameter_plan.profile_readiness(project, profile)[0]
     assert ready["gamma_sat_missing_below_gwt"] and not ready["gamma_sat_approved"]
-    assert svc.refresh_profile(project, "P").layers[0].selections["phi_eff"].candidates
+    assert svc.refresh_profile(project, "P").layers[0].selections["phi_eff"].candidates == []
 
 
 def test_readiness_flags_gamma_sat_equal_to_gamma_without_approval():

@@ -70,15 +70,15 @@ def phi_shioi_fukui_roads(N1_60):
 
 @register(
     id="SF1982_phi_buildings_SPT", parameter="phi_eff", unit="deg", source="SPT",
-    inputs=("N60",),
+    inputs=("N1_60",),
     reference=_SF_REFERENCE + ", buildings",
     reliability="C",
-    validity="Japanese Railway Standards, buildings; sands. N70 = N60 * 60/70",
+    validity="Japanese Railway Standards, buildings; sands. Overburden-corrected N'70 = (N1)60 * 60/70 (Bowles)",
     check=sand_like,
 )
-def phi_shioi_fukui_buildings(N60):
-    """phi' = 0.36 N70 + 27, N70 = N60 * 60 / 70."""
-    return 0.36 * (N60 * 60.0 / 70.0) + 27.0
+def phi_shioi_fukui_buildings(N1_60):
+    """phi' = 0.36 N'70 + 27, N'70 = (N1)60 * 60 / 70 (overburden corrected, not N60)."""
+    return 0.36 * (N1_60 * 60.0 / 70.0) + 27.0
 
 
 # --- phi' from CPT -----------------------------------------------------------------------
@@ -163,8 +163,12 @@ _STROUD_REFERENCE = "Stroud (1974), European Symp. on Penetration Testing (f1 af
 
 
 def stroud_f1(PI):
-    """f1 [kPa] from PI [%]: lower bound of each band, PI < 20 -> 6.0, 20-30 -> 4.0, > 30 -> 4.2."""
-    return 6.0 if PI < 20.0 else (4.0 if PI <= 30.0 else 4.2)
+    """f1 [kPa] from PI [%]: 6.0 up to PI 15, linear 6.0 -> 4.0 over 15-20, 4.0 from PI 20 (monotone, conservative)."""
+    if PI <= 15.0:
+        return 6.0
+    if PI >= 20.0:
+        return 4.0
+    return 6.0 - 2.0 * (PI - 15.0) / 5.0
 
 
 def _stroud_pi_unknown(inputs, opts) -> list[str]:
@@ -176,11 +180,12 @@ def _stroud_pi_unknown(inputs, opts) -> list[str]:
     inputs=("N60", "PI"),
     reference=_STROUD_REFERENCE,
     reliability="C",
-    validity="Insensitive overconsolidated clays; f1 from PI after Stroud (1974): lower bound of each PI band",
+    validity=("Insensitive overconsolidated clays; f1 = band lower bounds of Stroud (1974) table (PI<20: 6-7, 20-30: 4-5); "
+              "transition 15-20 interpolated and PI>30 taken 4.0 so f1 never exceeds Stroud's curve (conservative)"),
     check=clay_like,
 )
 def su_stroud(N60, PI):
-    """s_u = f1 N60, f1 = 6.0 (PI < 20), 4.0 (20 <= PI <= 30), 4.2 (PI > 30) kPa."""
+    """s_u = f1(PI) N60 with f1 = 6.0 (PI <= 15), linear 6 -> 4 (15-20), 4.0 (PI >= 20) kPa."""
     return stroud_f1(PI) * N60
 
 
