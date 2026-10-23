@@ -7,7 +7,7 @@
  * `RetainingWallStructure._check`). It adds no engineering rules of its own; the server
  * remains the authority. Every function returns a new array and never mutates its input.
  */
-import type { DesignParameters, GroundwaterCondition, SoilLayer } from "../api/types";
+import type { DesignKey, DesignParameters, GroundwaterCondition, ParameterSelection, SoilLayer } from "../api/types";
 
 /** Same tolerance as `geotek.core.constants.DEPTH_TOL` [m]. */
 export const DEPTH_TOL = 1e-6;
@@ -280,10 +280,49 @@ export function splitLayer(
   return [...layers.slice(0, i), upper, lower, ...layers.slice(i + 1)];
 }
 
-/** Layer i absorbs layer i+1 (keeps i's properties, takes i+1's bottom). */
+/**
+ * Layer i absorbs layer i+1 (keeps i's id, takes i+1's bottom). Same rules as the server merge
+ * (geotek/modules/soil/service.py `merge`):
+ * - unit weights that differ become the thickness-weighted value; gamma_sat only when both layers have it,
+ *   otherwise null (never falls back to gamma);
+ * - design values that differ are cleared and their selection is reset (no choice, no approval);
+ * - a conflicting c_eff cannot be cleared (the model needs a number): the layers are returned unchanged;
+ * - every remaining selection loses its approval and candidates (the interval changed);
+ * - legacy `params` are dropped.
+ */
 export function mergeWithNext(layers: SoilLayer[], i: number): SoilLayer[] {
   if (i < 0 || i >= layers.length - 1) return layers;
-  const merged: SoilLayer = { ...layers[i], bottom: layers[i + 1].bottom };
+  const first = layers[i];
+  const second = layers[i + 1];
+  const designKeys = new Set([...Object.keys(first.design ?? {}), ...Object.keys(second.design ?? {})]) as Set<keyof DesignParameters>;
+  const conflicts = [...designKeys].filter((key) => (first.design?.[key] ?? null) !== (second.design?.[key] ?? null));
+  if (conflicts.includes("c_eff")) return layers;
+
+  const selections: Record<string, ParameterSelection> = {};
+  for (const [key, state] of Object.entries({ ...(second.selections ?? {}), ...(first.selections ?? {}) })) {
+    selections[key] = { ...state, candidates: [], suggested: null, approved: false, approved_at: null, basis_hash: null };
+  }
+  const design: DesignParameters = { ...(first.design ?? {}) };
+  for (const key of conflicts) {
+    (design as Record<string, number | null>)[key] = null;
+    selections[key] = { parameter: key as DesignKey, approved: false };
+  }
+  const weighted = (a: number | null | undefined, b: number | null | undefined): number | null => {
+    if (a === b) return a ?? null;
+    if (a === null || a === undefined || b === null || b === undefined) return null;
+    const ta = first.bottom - first.top;
+    const tb = second.bottom - second.top;
+    return (a * ta + b * tb) / (ta + tb);
+  };
+  const merged: SoilLayer = {
+    ...first,
+    bottom: second.bottom,
+    gamma: weighted(first.gamma, second.gamma) ?? first.gamma,
+    gamma_sat: weighted(first.gamma_sat, second.gamma_sat),
+    design,
+    selections,
+  };
+  delete merged.params;
   return [...layers.slice(0, i), merged, ...layers.slice(i + 2)];
 }
 

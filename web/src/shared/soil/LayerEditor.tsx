@@ -23,6 +23,7 @@ import {
   IconScissors,
   IconTrash,
 } from "@tabler/icons-react";
+import { notifications } from "@mantine/notifications";
 import { useTranslation } from "react-i18next";
 import type { SoilLayer } from "../api/types";
 import { CommitNumberInput, CommitTextInput } from "./CommitInputs";
@@ -67,6 +68,8 @@ export interface LayerEditorProps {
   history?: LayerEditorHistory;
   /** Last saved layers; approvals of layers whose bounds differ from these are shown as stale. */
   baseLayers?: SoilLayer[];
+  /** In-situ groundwater depth [m]; with it a layer below the water table without γsat gets a row warning. */
+  gwtDepth?: number | null;
   toolbarExtra?: ReactNode;
   /** Shown instead of the table when there are no layers. */
   emptyState?: ReactNode;
@@ -203,6 +206,7 @@ export function LayerEditor({
   allowEmpty = false,
   history,
   baseLayers,
+  gwtDepth,
   toolbarExtra,
   emptyState,
   ariaLabel,
@@ -433,11 +437,19 @@ export function LayerEditor({
                     <CommitNumberInput
                       value={layer.gamma_sat}
                       width={54}
-                      placeholder={Number.isFinite(layer.gamma) ? String(layer.gamma) : undefined}
                       ariaLabel={`${t("ui.layer.gamma_sat")} ${layer.id}`}
                       error={fieldError(i, "gamma_sat")}
                       onCommit={(v) => onChange(updateLayer(layers, i, { gamma_sat: v }))}
                     />
+                    {(layer.gamma_sat === null || layer.gamma_sat === undefined) &&
+                      gwtDepth !== null &&
+                      gwtDepth !== undefined &&
+                      Number.isFinite(gwtDepth) &&
+                      layer.bottom > gwtDepth && (
+                        <Text size="10px" c="red.8" lh={1.2} mt={2} maw={110} data-testid={`layer-gamma-sat-missing-${layer.id}`}>
+                          {t("soil.params.gamma_sat_missing_short")}
+                        </Text>
+                      )}
                   </Table.Td>
                   {DESIGN_COLUMNS.map((c) => (
                     <Table.Td key={c.key}>
@@ -502,7 +514,26 @@ export function LayerEditor({
                           aria-label={`${t("web.soil.action.merge_next")} ${layer.id}`}
                           onClick={(e) => {
                             e.stopPropagation();
-                            onChange(mergeWithNext(layers, i));
+                            const next = mergeWithNext(layers, i);
+                            if (next === layers) {
+                              // Only a conflicting c_eff refuses the merge (same as the server, 409 design_conflict).
+                              notifications.show({ message: t("soil.layering.merge_c_eff_conflict"), color: "red" });
+                              return;
+                            }
+                            const merged = next[i];
+                            const below = layers[i + 1];
+                            if (merged.gamma !== layer.gamma || merged.gamma !== below.gamma
+                              || (merged.gamma_sat ?? null) !== (layer.gamma_sat ?? null)
+                              || (merged.gamma_sat ?? null) !== (below.gamma_sat ?? null)) {
+                              notifications.show({
+                                message: t("soil.layering.merge_gamma_warning", {
+                                  gamma: merged.gamma.toFixed(2),
+                                  gamma_sat: merged.gamma_sat === null || merged.gamma_sat === undefined ? "–" : merged.gamma_sat.toFixed(2),
+                                }),
+                                color: "orange",
+                              });
+                            }
+                            onChange(next);
                           }}
                         >
                           <IconArrowMergeAltLeft size={15} style={{ transform: "rotate(-90deg)" }} />

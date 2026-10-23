@@ -1,16 +1,19 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Alert, Anchor, Badge, Button, Card, Group, Modal, NativeSelect, Paper, Stack, Text, Title, Tooltip, UnstyledButton } from "@mantine/core";
+import { Alert, Anchor, Badge, Button, Card, Checkbox, Group, Modal, NativeSelect, Paper, Stack, Table, Text, Title, Tooltip, UnstyledButton } from "@mantine/core";
 import { IconWand } from "@tabler/icons-react";
 import { Link, useInRouterContext } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { get_project } from "../../../shared/api/client";
+import { notifications } from "@mantine/notifications";
+import { ApiError, get_project } from "../../../shared/api/client";
 import type { DesignKey, ParameterSelection, ProfileSummary, SoilProfile } from "../../../shared/api/types";
 import { EmptyState } from "../../../shared/components/EmptyState";
 import {
   approve_parameters,
   get_profile,
+  get_profile_readiness,
   list_layer_parameters,
   list_profiles,
+  reapprove_parameters,
   suggest_all_parameters,
   update_parameter_selection,
 } from "../api";
@@ -20,7 +23,8 @@ import { ParameterKeyCard } from "../components/ParameterKeyCard";
 import { displayUnit } from "../units";
 import { LatestGuard } from "../latest";
 import { useBeforeUnloadWarning } from "../../../shared/hooks/useBeforeUnloadWarning";
-import { approvalState, formatValue, readiness } from "../parameterState";
+import { approvalState, formatPercent, formatValue, orderSelections, readiness, refreshedDiff, staleReasonKey } from "../parameterState";
+import type { LayerReadiness, ReapproveItem } from "../types";
 
 /** One consistent snapshot: the profile, the layer shown, and the parameters of every layer as last read. */
 interface Loaded {
@@ -28,6 +32,48 @@ interface Loaded {
   profile: SoilProfile;
   layerId: string | null;
   byLayer: Record<string, ParameterSelection[]>;
+  /** Unit-weight status per layer; empty when the readiness route is unavailable. */
+  readiness: LayerReadiness[];
+}
+
+/** One withdrawn approval whose current value is known, ready to be reviewed. */
+interface ReviewRow {
+  id: string;
+  layerId: string;
+  layerRange: string;
+  key: DesignKey;
+  oldValue: number;
+  newValue: number;
+  unit: string;
+  percent: number | null;
+  reasonKey: string;
+}
+
+function reviewRows(
+  profile: SoilProfile,
+  byLayer: Record<string, ParameterSelection[]>,
+  rangeOf: (top: number, bottom: number) => string,
+): ReviewRow[] {
+  return profile.layers.flatMap((layer) =>
+    orderSelections(byLayer[layer.id] ?? []).flatMap((selection) => {
+      const diff = refreshedDiff(selection);
+      const reasonKey = staleReasonKey(selection);
+      if (!diff || !reasonKey) return [];
+      return [
+        {
+          id: `${layer.id}:${selection.parameter}`,
+          layerId: layer.id,
+          layerRange: rangeOf(layer.top, layer.bottom),
+          key: selection.parameter,
+          oldValue: diff.oldValue,
+          newValue: diff.newValue,
+          unit: diff.unit,
+          percent: diff.percent,
+          reasonKey,
+        },
+      ];
+    }),
+  );
 }
 
 function layerCounts(selections: ParameterSelection[]): { approved: number; stale: number; total: number } {
@@ -49,6 +95,8 @@ export function ParametersPage() {
   const [notice, setNotice] = useState<string | null>(null);
   const [dirtyKeys, setDirtyKeys] = useState<ReadonlySet<DesignKey>>(new Set());
   const [confirmKeys, setConfirmKeys] = useState<DesignKey[] | null>(null);
+  const [reviewOpen, setReviewOpen] = useState(false);
+  const [reviewPicked, setReviewPicked] = useState<ReadonlySet<string>>(new Set());
   const guard = useRef(new LatestGuard());
 
   /**
@@ -61,10 +109,12 @@ export function ParametersPage() {
     const entries = await Promise.all(
       profile.layers.map(async (layer) => [layer.id, await list_layer_parameters(profileId, layer.id)] as const),
     );
+    // The status box is advisory: a failing readiness route must not hide the parameters.
+    const readinessList = await get_profile_readiness(profileId).catch(() => [] as LayerReadiness[]);
     if (!guard.current.isCurrent(token)) return;
     const layerId =
       preferLayer && profile.layers.some((l) => l.id === preferLayer) ? preferLayer : (profile.layers[0]?.id ?? null);
-    setLoaded({ profileId, profile, layerId, byLayer: Object.fromEntries(entries) });
+    setLoaded({ profileId, profile, layerId, byLayer: Object.fromEntries(entries), readiness: readinessList });
   }, []);
 
   useEffect(() => {
@@ -119,7 +169,7 @@ export function ParametersPage() {
 
   const profileId = loaded?.profileId ?? "";
   const layerId = loaded?.layerId ?? null;
-  const selections = (loaded && layerId ? loaded.byLayer[layerId] : undefined) ?? [];
+  const selections = orderSelections((loaded && layerId ? loaded.byLayer[layerId] : undefined) ?? []);
   const activeLayer = loaded?.profile.layers.find((l) => l.id === layerId);
   /** Depth range and description instead of the bare layer UUID. */
   const layerLabel = activeLayer
@@ -157,6 +207,35 @@ export function ParametersPage() {
       await load(profileId, layerId);
     });
 
+  /** Renews approvals with the refreshed value the engineer saw; a moved value (409) reloads the list and says so. */
+  const reapprove = (items: ReapproveItem[], doneMessage: string) =>
+    run(async () => {
+      try {
+        await reapprove_parameters(profileId, items);
+      } catch (err) {
+        if (err instanceof ApiError && err.code === "reapprove_value_changed") {
+          await load(profileId, layerId);
+          notifications.show({ message: t("soil.params.reapprove_conflict"), color: "orange" });
+          return;
+        }
+        throw err;
+      }
+      await load(profileId, layerId);
+      setNotice(doneMessage);
+    });
+
+  const rangeOf = (top: number, bottom: number) => t("soil.params.layer_range", { top, bottom });
+  const rows = loaded ? reviewRows(loaded.profile, loaded.byLayer, rangeOf) : [];
+  const submitReview = () => {
+    const items = rows
+      .filter((r) => reviewPicked.has(r.id))
+      .map((r) => ({ layer_id: r.layerId, key: r.key, expected_value: r.newValue }));
+    if (items.length === 0) return;
+    setReviewOpen(false);
+    void reapprove(items, t("soil.params.reapprove_done"));
+  };
+  const activeReadiness = loaded?.readiness.find((r) => r.layer_id === layerId);
+
   // Bulk approval takes only keys that are ready (applied, not stale or outdated) and is blocked while any
   // card holds an unapplied draft, so nothing the engineer is still editing can be approved by accident.
   const readyKeys = selections.filter((s) => readiness(s) === "ready").map((s) => s.parameter);
@@ -188,6 +267,20 @@ export function ParametersPage() {
               onChange={(e) => selectProfile(e.currentTarget.value)}
               data-testid="params-profile"
             />
+            <Tooltip label={rows.length > 0 ? t("soil.params.review_stale_hint") : t("soil.params.review_none")} withArrow multiline w={260}>
+              <Button
+                size="xs"
+                variant="default"
+                disabled={busy || rows.length === 0}
+                onClick={() => {
+                  setReviewPicked(new Set());
+                  setReviewOpen(true);
+                }}
+                data-testid="params-review-stale"
+              >
+                {t("soil.params.review_stale")}
+              </Button>
+            </Tooltip>
             <Tooltip label={t("soil.params.suggest_all_hint")} withArrow multiline w={240}>
               <Button
                 size="xs"
@@ -275,6 +368,21 @@ export function ParametersPage() {
                   </Tooltip>
                 </Group>
               </Card>
+              {activeReadiness && (!activeReadiness.gamma_approved || !activeReadiness.gamma_sat_approved) && (
+                <Alert color="blue" variant="light" data-testid="params-unit-weight-first">
+                  {t("soil.params.unit_weight_first")}
+                </Alert>
+              )}
+              {activeReadiness?.gamma_sat_missing_below_gwt && (
+                <Alert color="red" variant="light" data-testid="params-gamma-sat-missing">
+                  {t("soil.params.gamma_sat_missing_below_gwt")}
+                </Alert>
+              )}
+              {activeReadiness?.gamma_sat_equals_gamma_unapproved && (
+                <Alert color="yellow" variant="light" data-testid="params-gamma-sat-equals">
+                  {t("soil.params.gamma_sat_equals_gamma_unapproved")}
+                </Alert>
+              )}
               {layerId && <LayerInventoryPanel profileId={profileId} layerId={layerId} />}
               {(loaded.profile.source_ids ?? []).length === 0 && !(loaded.profile.layers.find((l) => l.id === layerId)?.source_ids ?? []).length && (
                 <Alert color="orange" variant="light" data-testid="params-no-sources">
@@ -298,6 +406,12 @@ export function ParametersPage() {
                   busy={busy}
                   onApply={(update) => apply(selection.parameter, update)}
                   onApprove={() => approve([selection.parameter])}
+                  onReapprove={(expected) =>
+                    reapprove(
+                      [{ layer_id: layerId as string, key: selection.parameter, expected_value: expected }],
+                      t("soil.params.reapprove_done"),
+                    )
+                  }
                   onDirtyChange={onDirtyChange}
                 />
               ))}
@@ -305,6 +419,73 @@ export function ParametersPage() {
           </Group>
         )
       )}
+
+      <Modal opened={reviewOpen} onClose={() => setReviewOpen(false)} title={t("soil.params.review_title")} size="xl">
+        <Stack gap="sm" data-testid="params-review">
+          <Text size="sm">{t("soil.params.review_intro")}</Text>
+          <Table.ScrollContainer minWidth={560} type="native">
+            <Table withTableBorder fz="xs" verticalSpacing={3}>
+              <Table.Thead>
+                <Table.Tr>
+                  <Table.Th />
+                  <Table.Th>{t("soil.params.review_col.layer")}</Table.Th>
+                  <Table.Th>{t("soil.params.review_col.parameter")}</Table.Th>
+                  <Table.Th>{t("soil.params.review_col.old")}</Table.Th>
+                  <Table.Th>{t("soil.params.review_col.new")}</Table.Th>
+                  <Table.Th>{t("soil.params.review_col.percent")}</Table.Th>
+                  <Table.Th>{t("soil.params.review_col.reason")}</Table.Th>
+                </Table.Tr>
+              </Table.Thead>
+              <Table.Tbody>
+                {rows.map((row) => (
+                  <Table.Tr key={row.id} data-testid={`params-review-row-${row.id}`}>
+                    <Table.Td>
+                      <Checkbox
+                        size="xs"
+                        checked={reviewPicked.has(row.id)}
+                        aria-label={t("soil.params.review_select", { layer: row.layerRange, parameter: t(`soil.params.key.${row.key}`) })}
+                        onChange={(e) => {
+                          const on = e.currentTarget.checked;
+                          setReviewPicked((prev) => {
+                            const next = new Set(prev);
+                            if (on) next.add(row.id);
+                            else next.delete(row.id);
+                            return next;
+                          });
+                        }}
+                        data-testid={`params-review-pick-${row.id}`}
+                      />
+                    </Table.Td>
+                    <Table.Td>{row.layerRange}</Table.Td>
+                    <Table.Td>{t(`soil.params.key.${row.key}`)}</Table.Td>
+                    <Table.Td>
+                      {formatValue(row.oldValue)} {displayUnit(row.unit)}
+                    </Table.Td>
+                    <Table.Td>
+                      <b>{formatValue(row.newValue)}</b> {displayUnit(row.unit)}
+                    </Table.Td>
+                    <Table.Td>{formatPercent(row.percent)}</Table.Td>
+                    <Table.Td style={{ minWidth: 200 }}>{t(row.reasonKey)}</Table.Td>
+                  </Table.Tr>
+                ))}
+              </Table.Tbody>
+            </Table>
+          </Table.ScrollContainer>
+          <Group justify="space-between" gap="xs">
+            <Text size="xs" c="dimmed">
+              {t("soil.params.review_selected", { count: reviewPicked.size })}
+            </Text>
+            <Group gap="xs">
+              <Button size="xs" variant="default" onClick={() => setReviewOpen(false)}>
+                {t("web.common.cancel")}
+              </Button>
+              <Button size="xs" disabled={busy || reviewPicked.size === 0} onClick={submitReview} data-testid="params-review-submit">
+                {t("soil.params.review_submit")}
+              </Button>
+            </Group>
+          </Group>
+        </Stack>
+      </Modal>
 
       <Modal
         opened={confirmKeys !== null}

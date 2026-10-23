@@ -523,6 +523,7 @@ export function ProfilesPage() {
                       idPrefix="L"
                       history={draft}
                       baseLayers={draft.base?.layers}
+                      gwtDepth={profile.gwt.depth_insitu}
                       ariaLabel={t("ui.profile.layers")}
                     />
                   </Stack>

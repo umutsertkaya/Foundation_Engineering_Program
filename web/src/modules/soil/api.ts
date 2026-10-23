@@ -17,6 +17,8 @@ import type {
   CPTProcessedDTO,
   ImportPlan,
   LayerInventory,
+  LayerReadiness,
+  ReapproveItem,
   WorkbookImportResult,
   CPTSBTNDTO,
   InvestigationsDTO,
@@ -112,6 +114,15 @@ export function update_parameter_selection(
 
 export function approve_parameters(profile_id: string, layer_id: string, keys: DesignKey[]): Promise<SoilLayer> {
   return request<SoilLayer>("POST", `${layer_path(profile_id, layer_id)}/parameters/approve`, { keys });
+}
+
+/** Approves exactly the listed withdrawn selections at the refreshed value the caller saw (409 if it moved). */
+export function reapprove_parameters(profile_id: string, items: ReapproveItem[]): Promise<SoilProfile> {
+  return request<SoilProfile>("POST", `/m/soil/profiles/${encodeURIComponent(profile_id)}/parameters/reapprove`, { items });
+}
+
+export function get_profile_readiness(profile_id: string): Promise<LayerReadiness[]> {
+  return request<LayerReadiness[]>("GET", `/m/soil/profiles/${encodeURIComponent(profile_id)}/readiness`);
 }
 
 export function suggest_all_parameters(profile_id: string): Promise<SoilProfile> {

@@ -62,6 +62,8 @@ describe("LayeringModal", () => {
     expect(create).toBeDisabled();
     expect(screen.getByTestId("layering-gamma-0")).toHaveValue("");
     expect(screen.getByTestId("layering-gamma-use-0")).toHaveTextContent("18.2");
+    // The saturated unit weight suggestion is only displayed (the server carries it into the profile).
+    expect(screen.getByTestId("layering-gamma-sat-0")).toHaveTextContent("19.4");
     fireEvent.click(screen.getByTestId("layering-gamma-use-0"));
     typeInto("layering-gamma-1", "17"); // override the suggestion of layer 2
     expect(create).toBeDisabled(); // layer 3 is still open
@@ -71,6 +73,7 @@ describe("LayeringModal", () => {
     await waitFor(() => expect(onCreated).toHaveBeenCalledTimes(1));
     const created = onCreated.mock.calls[0][0] as SoilProfile;
     expect(created.layers.map((l) => l.gamma)).toEqual([18.2, 17, 19.6]);
+    expect(created.layers.map((l) => l.gamma_sat)).toEqual([19.4, 18.5, 20.3]);
     expect(created.origin).toBe("cpt");
     expect(created.source_ids).toEqual(["CPT-M1"]);
     expect(created.layering?.method).toBe("cpt_ic");

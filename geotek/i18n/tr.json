@@ -683,5 +683,20 @@
   "parameters.spt_class.clay.firm": "Sıkı kil",
   "parameters.spt_class.clay.stiff": "Katı kil",
   "parameters.spt_class.clay.very_stiff": "Çok katı kil",
-  "parameters.spt_class.clay.hard": "Sert kil"
+  "parameters.spt_class.clay.hard": "Sert kil",
+  "web.inventory.uscs_needed": "Katman USCS sınıfı gerekli (bu yöntem zemin sınıfına göre seçilir)",
+  "web.inventory.phi_approved_needed": "Önce φ′ onaylanmalı",
+  "web.inventory.ocr_approved_needed": "Önce OCR onaylanmalı",
+  "web.inventory.spt_class": "SPT'ye göre: {name} (Clayton 1993)",
+  "web.inventory.spt_class.sand.very_loose": "çok gevşek",
+  "web.inventory.spt_class.sand.loose": "gevşek",
+  "web.inventory.spt_class.sand.medium_dense": "orta sıkı",
+  "web.inventory.spt_class.sand.dense": "sıkı",
+  "web.inventory.spt_class.sand.very_dense": "çok sıkı",
+  "web.inventory.spt_class.clay.very_soft": "çok yumuşak",
+  "web.inventory.spt_class.clay.soft": "yumuşak",
+  "web.inventory.spt_class.clay.firm": "orta katı",
+  "web.inventory.spt_class.clay.stiff": "katı",
+  "web.inventory.spt_class.clay.very_stiff": "çok katı",
+  "web.inventory.spt_class.clay.hard": "sert"
 }

@@ -293,6 +293,8 @@ export interface ProposedLayer {
   ic_mean: number | null;
   n60_mean: number | null;
   gamma_suggested: number | null;
+  /** Suggested saturated unit weight below the in-situ GWT; shown only, the server carries it. */
+  gamma_sat_suggested?: number | null;
   behaviour: "drained" | "undrained";
 }
 
@@ -367,7 +369,13 @@ export interface ParameterSelection {
   approved?: boolean;
   approved_at?: string | null;
   basis_hash?: string | null;
+  /** Why a withdrawn approval no longer holds (set together with `approved_at` and `approved = false`). */
+  stale_reason?: StaleReason | null;
+  /** The value the current inputs give for the stored choice; absent when the method no longer applies. */
+  refreshed?: DerivedParameter | null;
 }
+
+export type StaleReason = "data_changed" | "stress_changed" | "dependency_changed" | "method_upgraded";
 
 export interface PressureDiagramDTO {
   side: "retained" | "front";

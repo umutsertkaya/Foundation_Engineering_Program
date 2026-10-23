@@ -7,9 +7,13 @@ import {
   approvalState,
   buildUpdate,
   draftFromSelection,
+  formatDiff,
+  formatPercent,
   formatValue,
   isDirty,
   readiness,
+  refreshedDiff,
+  staleReasonKey,
   STATISTICS,
   type PickMode,
   type SelectionDraft,
@@ -26,6 +30,8 @@ interface Props {
   /** Persist the draft (PUT); resolves when the parent has reloaded the list. */
   onApply: (update: NonNullable<ReturnType<typeof buildUpdate>>) => Promise<void>;
   onApprove: () => Promise<void>;
+  /** Approve the withdrawn selection again; the argument is the refreshed value the engineer saw. */
+  onReapprove?: (expectedValue: number) => Promise<void>;
   /** Reports whether the card holds an unapplied draft, so bulk actions can exclude it. */
   onDirtyChange?: (key: ParameterSelection["parameter"], dirty: boolean) => void;
 }
@@ -105,7 +111,7 @@ function CandidateRows({ rows, selection }: { rows: { key: string; candidate: De
   );
 }
 
-export function ParameterKeyCard({ selection, busy, onApply, onApprove, onDirtyChange }: Props) {
+export function ParameterKeyCard({ selection, busy, onApply, onApprove, onReapprove, onDirtyChange }: Props) {
   const { t, i18n } = useTranslation();
   const key = selection.parameter;
   const [draft, setDraft] = useState<SelectionDraft>(() => draftFromSelection(selection));
@@ -149,6 +155,9 @@ export function ParameterKeyCard({ selection, busy, onApply, onApprove, onDirtyC
   ];
 
   const canApprove = ready === "ready" && !dirty;
+  const reasonKey = staleReasonKey(selection);
+  const diff = refreshedDiff(selection);
+  const methodGone = state === "stale" && !selection.refreshed;
 
   return (
     <Card withBorder padding="sm" radius="sm" data-testid={`param-card-${key}`}>
@@ -173,6 +182,41 @@ export function ParameterKeyCard({ selection, busy, onApply, onApprove, onDirtyC
               date: formatDate(selection.approved_at, i18n.language),
               value: selection.selected ? `${formatValue(selection.selected.value)} ${displayUnit(selection.selected.unit)}` : "-",
             })}
+          </Text>
+        )}
+        {reasonKey && (
+          <Text size="xs" c="orange.8" data-testid={`param-stale-reason-${key}`}>
+            {t(reasonKey)}
+          </Text>
+        )}
+        {diff && (
+          <Group gap="xs" align="center" wrap="wrap" data-testid={`param-refreshed-${key}`}>
+            <Text size="xs" fw={600}>
+              {t("soil.params.refreshed_line", {
+                old: formatValue(diff.oldValue),
+                new: formatValue(diff.newValue),
+                unit: displayUnit(diff.unit),
+                diff: formatDiff(diff.diff),
+                percent: formatPercent(diff.percent),
+              })}
+            </Text>
+            {onReapprove && (
+              <Button
+                size="xs"
+                variant="light"
+                color="orange"
+                disabled={busy || dirty}
+                onClick={() => void onReapprove(diff.newValue)}
+                data-testid={`param-reapprove-${key}`}
+              >
+                {t("soil.params.reapprove_one")}
+              </Button>
+            )}
+          </Group>
+        )}
+        {methodGone && (
+          <Text size="xs" c="red.8" data-testid={`param-method-gone-${key}`}>
+            {t("soil.params.method_gone")}
           </Text>
         )}
         {state === "approved" && (
