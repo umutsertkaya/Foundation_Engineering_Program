@@ -35,7 +35,10 @@ from geotek.core.models.investigations import LabRecord
 from geotek.core.models.profile import LayeringSettings
 from geotek.engine.classification.robertson import is_sand_like, zone_from_ic
 from geotek.engine.classification.uscs import dominant_symbol
-from geotek.engine.layering.common import Layer, Proposal, format_warning, mean, parse_warning
+from geotek.engine.correlations.physical import GAMMA_MIN_RC2010
+from geotek.engine.layering.common import (
+    Layer, Proposal, format_warning, interval_warning, mean, parse_warning,
+)
 from geotek.engine.layering.unit_weight import apply_suggestions, suggest_unit_weights
 
 IC_COARSE_MAX = 2.05
@@ -45,7 +48,7 @@ IC_FINE_MIN = 2.60
 
 _KEPT_WARNINGS = frozenset({
     "layering.warning.drainage_ic_based", "layering.warning.processing_warnings",
-    "layering.warning.invalid_ic", "layering.warning.uscs_qualified",
+    "layering.warning.invalid_ic", "layering.warning.uscs_qualified", "layering.warning.gamma_floor",
 })
 
 
@@ -66,6 +69,8 @@ class CPTPoints:
     depth: np.ndarray
     ic: np.ndarray
     gamma: np.ndarray
+    floored: np.ndarray | None = None
+    """True where the RC2010 estimate hit the numerical floor GAMMA_MIN_RC2010."""
 
 
 def cpt_group(ic_mean: float | None) -> str | None:
@@ -144,10 +149,23 @@ def combined_layers(
     edges = [0.0, *(b for b, _ in boundaries), total]
     sources = [None, *(s for _, s in boundaries)]
 
-    lab_records = [(bid, record.depth + shifts[bid], record)
-                   for bid in spt_proposals for record in labs.get(bid, ())]
-    n60_points = [(depth + shifts[bid], n) for bid in spt_proposals
-                  for depth, n in spt_points.get(bid, ())]
+    lab_records, n60_points = [], []
+    for bid in spt_proposals:
+        dropped = 0
+        for record in labs.get(bid, ()):
+            if record.depth + shifts[bid] < 0:
+                dropped += 1
+            else:
+                lab_records.append((bid, record.depth + shifts[bid], record))
+        for depth, n in spt_points.get(bid, ()):
+            if depth + shifts[bid] < 0:
+                dropped += 1
+            else:
+                n60_points.append((depth + shifts[bid], n))
+        if dropped:
+            # The borehole starts above the CPT ground surface: those samples have no CPT depth.
+            warnings.append(format_warning(
+                "layering.warning.points_above_cpt_ground", borehole=bid, count=dropped))
     layers = []
     for i, (top, bottom) in enumerate(zip(edges[:-1], edges[1:])):
         last = i == len(edges) - 2
@@ -171,6 +189,8 @@ def combined_layers(
         decisive = group if group in ("coarse", "fine") else soil
         if decisive is None and ic_mean is not None:
             decisive = "coarse" if bool(is_sand_like(ic_mean)) else "fine"
+        if cpt_points.floored is not None and mask.any() and cpt_points.floored[mask].any():
+            interval_warning(warnings, "gamma_floor", top, bottom, gamma_min=GAMMA_MIN_RC2010)
         if decisive is None:
             warnings.append(format_warning("layering.warning.behaviour_assumed"))
         layers.append(Layer(

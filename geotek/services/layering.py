@@ -8,7 +8,7 @@ from geotek.core.models.investigations import Borehole
 from geotek.core.models.profile import LayeringSettings
 from geotek.core.models.project import Project
 from geotek.engine.classification.uscs import classify_lab_record
-from geotek.engine.correlations.physical import unit_weight_robertson_cabal
+from geotek.engine.correlations.physical import rc2010_below_floor, unit_weight_robertson_cabal
 from geotek.engine.insitu.spt import equipment_corrections
 from geotek.engine.layering import (
     Proposal, combined_layers, cpt_layers, spt_log_layers, spt_uscs_n_layers, suggest_unit_weights,
@@ -207,17 +207,26 @@ def propose_combined_layers(
     for identifier in borehole_ids:
         borehole = boreholes[identifier]
         series[identifier] = _n60_series(project, borehole, results)
-        method = "spt_log" if borehole.log else "spt_uscs_n"
-        proposals[identifier] = _borehole_proposal(
-            borehole, series[identifier], settings.model_copy(update={"method": method}))
+        if not borehole.spt and not borehole.log:
+            if not borehole.lab:
+                raise ValueError("Combined layering needs SPT tests, a log or lab samples per borehole")
+            # Lab-only borehole: no boundaries of its own, its samples still inform soil type and gamma.
+            proposals[identifier] = Proposal(
+                identifier, settings.model_copy(deep=True), [], [], source_ids=[identifier])
+        else:
+            method = "spt_log" if borehole.log else "spt_uscs_n"
+            proposals[identifier] = _borehole_proposal(
+                borehole, series[identifier], settings.model_copy(update={"method": method}))
         labs[identifier] = borehole.lab
         sites[identifier] = Site(identifier, borehole.x, borehole.y, borehole.elevation)
     qt, fs = np.asarray(processed.qt, dtype=float), np.asarray(processed.fs, dtype=float)
     good = np.isfinite(qt) & (qt > 0) & np.isfinite(fs) & (fs >= 0)
     gamma = np.full(len(qt), np.nan)
     gamma[good] = unit_weight_robertson_cabal(qt[good], fs[good])
+    floored = np.zeros(len(qt), dtype=bool)
+    floored[good] = rc2010_below_floor(qt[good], fs[good])
     points = CPTPoints(np.asarray(processed.depth, dtype=float),
-                       np.asarray(processed.Ic, dtype=float), gamma)
+                       np.asarray(processed.Ic, dtype=float), gamma, floored)
     result = combined_layers(
         cpt_proposal, proposals, points, labs,
         cpt_site=Site(cpt_id, sounding.x, sounding.y, sounding.elevation), sites=sites,

@@ -116,3 +116,55 @@ def test_combined_groundwater_falls_back_to_first_borehole_with_a_table(opened):
     expected = [(x["gamma_suggested"], x["gamma_sat_suggested"]) for x in reference]
     assert run(["B1", "B2"]) == expected
     assert run(["B2", "B1"]) != expected  # B2 (4 m) comes first in request order
+
+
+DEPTH = [d / 2 for d in range(1, 13)]
+
+
+def put_cpt(client, **extra):
+    cpt = {"id": "C1", "x": 0.0, "y": 0.0, "depth": DEPTH, "fs": [60.0] * 12,
+           "qc": [5000.0 + 1000.0 * i for i in range(12)], **extra}
+    assert client.put(f"{PREFIX}/cpts/C1", json=cpt).status_code == 200
+
+
+def gammas(response):
+    assert response.status_code == 200, response.text
+    return [(x["gamma_suggested"], x["gamma_sat_suggested"]) for x in response.json()["layers"]]
+
+
+def test_borehole_groundwater_is_shifted_into_the_cpt_frame(opened):
+    """CPT elevation 100 m, borehole elevation 99 m, borehole table 2 m -> 2 + (100 - 99) = 3 m."""
+    put_cpt(opened, elevation=100.0, gwt_depth=3.0)
+    assert opened.put(f"{PREFIX}/boreholes/B1", json={**BOREHOLE, "elevation": 99.0}).status_code == 200
+    at_three = gammas(combined(opened))
+    put_cpt(opened, elevation=100.0, gwt_depth=2.0)
+    at_two = gammas(combined(opened))
+    assert at_three != at_two  # the table position matters for this sounding
+    put_cpt(opened, elevation=100.0)
+    assert opened.put(f"{PREFIX}/boreholes/B1", json={
+        **BOREHOLE, "elevation": 99.0, "gwt_depth": 2.0}).status_code == 200
+    assert gammas(combined(opened)) == at_three
+
+
+def test_lab_only_borehole_is_accepted(opened):
+    lab_only = {"id": "L1", "lab": [{"depth": 0.5, "FC": 0, "gamma": 16.5}]}
+    assert opened.post(f"{PREFIX}/boreholes", json=lab_only).status_code == 200
+    alone = combined(opened).json()
+    response = opened.post(f"{PREFIX}/layering/combined", json={
+        "cpt_id": "C1", "borehole_ids": ["B1", "L1"], "settings": {"method": "combined"}})
+    assert response.status_code == 200, response.text
+    layers = response.json()["layers"]
+    assert [(x["top"], x["bottom"]) for x in layers] == [
+        (x["top"], x["bottom"]) for x in alone["layers"]]  # no boundary of its own
+    assert layers[0]["gamma_source"] == "lab"
+    empty = opened.post(f"{PREFIX}/boreholes", json={"id": "E1"})
+    assert empty.status_code == 200
+    assert opened.post(f"{PREFIX}/layering/combined", json={
+        "cpt_id": "C1", "borehole_ids": ["E1"], "settings": {"method": "combined"}}).status_code == 422
+
+
+def test_gamma_floor_warning_for_a_very_soft_sounding(opened):
+    put_cpt(opened, gwt_depth=2.0, qc=[40.0] * 12, fs=[1.0] * 12)
+    response = combined(opened)
+    assert response.status_code == 200, response.text
+    assert any(w.startswith("layering.warning.gamma_floor: ") for w in response.json()["warnings"])

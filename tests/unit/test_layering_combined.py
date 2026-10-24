@@ -117,3 +117,35 @@ def test_unit_weights_use_all_sources():
     assert first.n60_mean is None and second.n60_mean == pytest.approx(20.0)
     assert (first.gamma_suggested, first.gamma_source) == (17.0, "lab")
     assert (second.gamma_suggested, second.gamma_source) == (18.0, "cpt_rc2010")
+
+
+def test_gamma_floor_warning_names_the_combined_layer():
+    points = cpt_points({0.5: 1.5, 1.5: 1.5, 2.5: 1.5, 4.5: 1.5, 5.5: 1.5})
+    points.floored = np.array([False, True, False, False, False])  # the 1.5 m estimate hit 12.0
+    result = combined_layers(
+        proposal("C", 2.0, 6.0), {"B": proposal("B", 5.0)}, points, {"B": []},
+        cpt_site=Site("C"), sites={"B": Site("B")}, spt_points={"B": []}, settings=SETTINGS, gwt=None)
+    floor = [parse_warning(w) for w in result.warnings if w.startswith("layering.warning.gamma_floor")]
+    assert floor == [("layering.warning.gamma_floor", {"top": 0.0, "bottom": 2.0, "gamma_min": 12.0})]
+
+
+def test_borehole_with_only_lab_samples_adds_no_boundary_but_informs_soil_and_gamma():
+    lab_only = Proposal("B", SETTINGS, [], [], source_ids=["B"])
+    sample = LabRecord(depth=1.0, FC=0, gamma=17.0)
+    result = run(bh=lab_only, labs=[sample])
+    assert [(x.top, x.bottom) for x in result.layers] == [(0.0, 2.0), (2.0, 6.0)]
+    assert result.layers[0].uscs == "SP"
+    assert (result.layers[0].gamma_suggested, result.layers[0].gamma_source) == (17.0, "lab")
+    assert result.source_ids == ["C", "B"]
+
+
+def test_samples_above_the_cpt_ground_after_alignment_are_dropped_with_a_warning():
+    """elev_cpt = 100, elev_bh = 105 -> d' = d - 5: lab at 1 m (-4) and SPT at 2 m (-3) are dropped,
+    the lab sample at 7 m (d' = 2) is kept."""
+    labs = [SP.model_copy(update={"depth": 1.0}), CH.model_copy(update={"depth": 7.0})]
+    result = run(cpt_site=Site("C", elevation=100.0), bh_site=Site("B", elevation=105.0),
+                 bh=proposal("B", 9.0), labs=labs, spt=[(2.0, 10.0)])
+    warning = next(w for w in result.warnings if w.startswith("layering.warning.points_above_cpt_ground"))
+    assert parse_warning(warning)[1] == {"borehole": "B", "count": 2}
+    assert result.layers[0].uscs is None and result.layers[1].uscs == "CH"
+    assert result.layers[0].n60_mean is None

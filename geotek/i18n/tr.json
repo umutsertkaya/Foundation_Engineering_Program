@@ -704,5 +704,6 @@
   "layering.warning.spt_gamma_granular_only": "{top}-{bottom} m tabakası: SPT'den birim hacim ağırlığı yalnız iri daneli (G, S) zeminler için verilir; elle girin veya başka kaynak kullanın.",
   "layering.warning.depth_not_aligned": "{borehole} sondajı: zemin kotu eksik, derinlikler CPT ile hizalanmadı.",
   "layering.warning.gamma_not_converged": "{top}-{bottom} m tabakası: SPT birim hacim ağırlığı yinelemesi 50 adımda yakınsamadı; değeri kontrol edin.",
-  "error.layering_conflict_unresolved": "Bazı tabakalarda CPT ve USCS çelişiyor; her biri için USCS veya CPT seçin."
+  "error.layering_conflict_unresolved": "Bazı tabakalarda CPT ve USCS çelişiyor; her biri için USCS veya CPT seçin.",
+  "layering.warning.points_above_cpt_ground": "{borehole} sondajı: {count} örnek, kot hizalamasından sonra CPT zemin yüzeyinin üstünde kaldı ve kullanılmadı."
 }

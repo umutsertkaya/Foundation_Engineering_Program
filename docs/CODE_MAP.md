@@ -115,7 +115,7 @@ graph LR
   geotek_engine_layering -->|6| geotek_core
   geotek_engine_layering -->|7| geotek_core_models
   geotek_engine_layering -->|3| geotek_engine_classification
-  geotek_engine_layering -->|2| geotek_engine_correlations
+  geotek_engine_layering -->|3| geotek_engine_correlations
   geotek_engine_layering -->|3| geotek_engine_insitu
   geotek_engine_layering -->|1| geotek_engine_lab
   geotek_engine_limit_state -->|1| geotek_config
@@ -441,7 +441,7 @@ Test sütunu: o dosyayı doğrudan import eden `tests/` dosyaları (yoksa `—`)
 |---|---:|---|---|---|
 | `engine/correlations/__init__.py` | 14 | `engine.correlations.physical`, `engine.correlations.registry`, `engine.correlations.state`, `engine.correlations.stiffness`, `engine.correlations.strength` | `services.parameter_plan`, `services.parameters` | `unit/test_correlations.py`, `unit/test_correlations_a3.py`, `unit/test_state_correlations.py` |
 | `engine/correlations/checks.py` | 47 | — | `engine.correlations.physical`, `engine.correlations.state`, `engine.correlations.stiffness`, `engine.correlations.strength` | — |
-| `engine/correlations/physical.py` | 123 | `core.constants`, `core.warning_codes`, `engine.correlations.checks`, `engine.correlations.registry` | `engine.correlations`, `engine.insitu.cpt`, `engine.layering.cpt`, `engine.layering.unit_weight`, `engine.liquefaction.analysis`, `services.layering` +1 | `unit/test_system_check_engine.py`, `verification/test_bi2014_case_histories.py` |
+| `engine/correlations/physical.py` | 123 | `core.constants`, `core.warning_codes`, `engine.correlations.checks`, `engine.correlations.registry` | `engine.correlations`, `engine.insitu.cpt`, `engine.layering.combined`, `engine.layering.cpt`, `engine.layering.unit_weight`, `engine.liquefaction.analysis` +2 | `unit/test_system_check_engine.py`, `verification/test_bi2014_case_histories.py` |
 | `engine/correlations/registry.py` | 195 | `core.models.parameters` | `engine.correlations`, `engine.correlations.physical`, `engine.correlations.state`, `engine.correlations.stiffness`, `engine.correlations.strength`, `services.parameter_plan` +1 | `unit/test_correlations.py`, `unit/test_correlations_a3.py`, `unit/test_layering_cpt.py` +2 |
 | `engine/correlations/state.py` | 100 | `core.constants`, `engine.correlations.checks`, `engine.correlations.registry` | `engine.correlations` | — |
 | `engine/correlations/stiffness.py` | 179 | `core.constants`, `engine.correlations.checks`, `engine.correlations.registry` | `engine.correlations` | — |
@@ -480,7 +480,7 @@ Test sütunu: o dosyayı doğrudan import eden `tests/` dosyaları (yoksa `—`)
 | Dosya | Satır | Bağımlı olduğu | Kullanan | Test |
 |---|---:|---|---|---|
 | `engine/layering/__init__.py` | 43 | `core.models.profile`, `engine.layering.combined`, `engine.layering.common`, `engine.layering.cpt`, `engine.layering.spt`, `engine.layering.unit_weight` | `services.layering` | `unit/test_layering_conversion.py`, `unit/test_layering_cpt.py`, `unit/test_layering_spt.py` |
-| `engine/layering/combined.py` | 203 | `core.models.investigations`, `core.models.profile`, `engine.classification.robertson`, `engine.classification.uscs`, `engine.layering.common`, `engine.layering.unit_weight` | `engine.layering`, `modules.soil.service`, `services.layering` | `unit/test_layering_combined.py` |
+| `engine/layering/combined.py` | 223 | `core.models.investigations`, `core.models.profile`, `engine.classification.robertson`, `engine.classification.uscs`, `engine.correlations.physical`, `engine.layering.common`, `engine.layering.unit_weight` | `engine.layering`, `modules.soil.service`, `services.layering` | `unit/test_layering_combined.py` |
 | `engine/layering/common.py` | 158 | `core.constants`, `core.models.profile`, `core.warning_codes` | `engine.layering`, `engine.layering.combined`, `engine.layering.cpt`, `engine.layering.spt`, `engine.layering.unit_weight`, `services.layering` +1 | `api/test_soil_parameters_api.py`, `unit/test_layering_combined.py`, `unit/test_layering_common.py` +4 |
 | `engine/layering/cpt.py` | 194 | `core.constants`, `core.models.profile`, `engine.classification.robertson`, `engine.correlations.physical`, `engine.insitu.cpt`, `engine.layering.common` | `engine.layering` | — |
 | `engine/layering/spt.py` | 231 | `core.constants`, `core.models.investigations`, `core.models.profile`, `engine.insitu.spt`, `engine.layering.common` | `engine.layering`, `services.layering` | — |
@@ -630,7 +630,7 @@ Test sütunu: o dosyayı doğrudan import eden `tests/` dosyaları (yoksa `—`)
 |---|---:|---|---|---|
 | `services/__init__.py` | 1 | — | `api.calculation_jobs`, `modules.liquefaction.api`, `modules.report.api`, `modules.soil.api`, `services.parameter_plan`, `services.report` | `api/test_liquefaction_api.py`, `api/test_sheet_pile_api.py`, `api/test_walls_api.py` +9 |
 | `services/at_rest.py` | 104 | `core.errors`, `core.models.project`, `engine.earth_pressure.distribution`, `services.parameters` | `modules.walls.api` | `unit/test_hs_c_walls.py` |
-| `services/layering.py` | 227 | `core.models.investigations`, `core.models.profile`, `core.models.project`, `engine.classification.uscs`, `engine.correlations.physical`, `engine.insitu.spt`, `engine.layering`, `engine.layering.combined`, `engine.layering.common`, `engine.layering.spt`, `engine.layering.unit_weight`, `services.module1` | `modules.soil.api` | `unit/test_layering_cpt.py`, `unit/test_layering_spt.py` |
+| `services/layering.py` | 236 | `core.models.investigations`, `core.models.profile`, `core.models.project`, `engine.classification.uscs`, `engine.correlations.physical`, `engine.insitu.spt`, `engine.layering`, `engine.layering.combined`, `engine.layering.common`, `engine.layering.spt`, `engine.layering.unit_weight`, `services.module1` | `modules.soil.api` | `unit/test_layering_cpt.py`, `unit/test_layering_spt.py` |
 | `services/module1.py` | 195 | `core.models.investigations`, `core.models.profile`, `core.models.project`, `core.warning_codes`, `engine.insitu.cpt`, `engine.insitu.spt`, `engine.liquefaction` | `modules.liquefaction.api`, `modules.soil.api`, `services.layering`, `services.report` | `api/test_liquefaction_api.py`, `unit/test_models_v2.py`, `unit/test_module1_service.py` |
 | `services/parameter_plan.py` | 117 | `core.constants`, `core.models.parameters`, `core.models.profile`, `core.models.project`, `engine.correlations`, `engine.correlations.registry`, `services`, `services.parameters` | `modules.soil.api` | `unit/test_correlations_a3.py`, `unit/test_selection_basis.py` |
 | `services/parameters.py` | 1108 | `core.constants`, `core.errors`, `core.models.investigations`, `core.models.parameters`, `core.models.profile`, `core.models.project`, `engine.classification.uscs`, `engine.correlations`, `engine.correlations.physical`, `engine.correlations.registry`, `engine.insitu.cpt`, `engine.insitu.spt`, `engine.lab.phase`, `engine.layering.common` | `modules.soil.api`, `services.at_rest`, `services.parameter_plan` | `unit/test_correlations_a3.py`, `unit/test_cpt_without_fs.py`, `unit/test_hs_c_walls.py` +3 |

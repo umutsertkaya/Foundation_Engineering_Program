@@ -704,5 +704,6 @@
   "layering.warning.spt_gamma_granular_only": "Layer {top}-{bottom} m: unit weight from SPT is given only for granular (G, S) soils; enter it or use another source.",
   "layering.warning.depth_not_aligned": "Borehole {borehole}: ground elevations are missing, depths were not aligned with the CPT.",
   "layering.warning.gamma_not_converged": "Layer {top}-{bottom} m: the SPT unit weight iteration did not converge in 50 steps; check the value.",
-  "error.layering_conflict_unresolved": "CPT and USCS disagree in some layers; choose USCS or CPT for each of them."
+  "error.layering_conflict_unresolved": "CPT and USCS disagree in some layers; choose USCS or CPT for each of them.",
+  "layering.warning.points_above_cpt_ground": "Borehole {borehole}: {count} sample(s) lie above the CPT ground surface after elevation alignment and were not used."
 }
