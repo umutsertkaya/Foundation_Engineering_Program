@@ -17,6 +17,23 @@ GAMMA_MIN_RC2010 = 12.0
 [kN/m3] on the Robertson & Cabal (2010) estimate. The regression has no lower limit and gives
 unphysical (even negative) values for very small q_t; no upper bound is applied."""
 
+BOWLES_GAMMA_CLASSES = (
+    # (name, N'70 lower bound or None, upper bound or None, gamma low, gamma high) [kN/m3]
+    ("very_loose", None, 6.0, 11.0, 16.0),
+    ("loose", 3.0, 9.0, 14.0, 18.0),
+    ("medium", 7.0, 25.0, 17.0, 20.0),
+    ("dense", 16.0, 45.0, 17.0, 22.0),
+    ("very_dense", 40.0, None, 20.0, 23.0),
+)
+"""Bowles (1996) Table 3-4 unit weights of granular soil by N'70 (union of the fine/medium/coarse rows)."""
+
+
+def bowles_gamma_range(n70: float) -> tuple[float, float]:
+    """Union of the Bowles (1996) gamma ranges of every N'70 class containing ``n70``."""
+    rows = [row for row in BOWLES_GAMMA_CLASSES
+            if (row[1] is None or n70 >= row[1]) and (row[2] is None or n70 <= row[2])]
+    return min(row[3] for row in rows), max(row[4] for row in rows)
+
 
 def _rc2010_raw(qt, fs):
     qt = np.asarray(qt, dtype=float)

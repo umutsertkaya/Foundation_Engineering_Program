@@ -301,10 +301,17 @@ def test_service_qualified_uscs_is_flagged():
     assert "layering.warning.uscs_qualified" in result.warnings
 
 
-def test_service_requires_profile_for_spt_tests():
+def test_service_spt_proposal_needs_no_profile():
+    """E1: N60 is stress-free, so a borehole is layered without an active profile.
+
+    Hand calculation: N = 10, ER assumed 60 %, C_B = C_S = 1, rod length 1 m < 3 m gives
+    C_R = 0.75 (Youd et al. 2001), so N60 = 10 * (60/60) * 1 * 1 * 0.75 = 7.5.
+    """
     bh = Borehole(id="B", spt=[SPTRecord(depth=1, n_field=10)])
-    with pytest.raises(ValueError, match="unit weights"):
-        propose_layers(project_for(bh, with_profile=False), "B", settings())
+    result = propose_layers(project_for(bh, with_profile=False), "B", settings())
+    assert result.layers[0].n60_mean == pytest.approx(7.5)
+    assert result.layers[0].gamma_suggested is None  # USCS unknown: no SPT unit weight
+    assert "layering.warning.processing_warnings" in result.warnings
 
 
 def test_service_no_profile_needed_for_log_without_tests():

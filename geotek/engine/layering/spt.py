@@ -11,6 +11,7 @@ exists in the registry.
 from __future__ import annotations
 
 from collections.abc import Sequence
+from dataclasses import dataclass, field
 
 import numpy as np
 
@@ -22,6 +23,21 @@ from geotek.engine.layering.common import (
     Layer, Proposal, Segment, edges, format_warning, interval_warning, mean, merge_thin, proposal,
     sample_arrays, warn_no_data,
 )
+
+
+@dataclass
+class N60Series:
+    """Stress-free SPT input of layering: only N60 (equipment corrections) is needed.
+
+    Duck-types the fields of ``SPTProcessed`` that layering reads, so a proposal needs no
+    soil profile.
+    """
+
+    borehole_id: str
+    depth: np.ndarray
+    n60: np.ndarray
+    refusal: np.ndarray
+    warnings: list[str] = field(default_factory=list)
 
 
 def _layer(top, bottom, symbol, n_mean, description=""):
@@ -55,7 +71,7 @@ def _warn_refusal(z, refusal, top, bottom, warnings):
 
 
 def spt_log_layers(
-    borehole: Borehole, processed: SPTProcessed | None, settings: LayeringSettings,
+    borehole: Borehole, processed: SPTProcessed | N60Series | None, settings: LayeringSettings,
 ) -> Proposal:
     """Preserve log layers, absorbing unlogged gaps into the layer above.
 
@@ -131,7 +147,7 @@ def spt_log_layers(
 
 
 def spt_uscs_n_layers(
-    processed: SPTProcessed, uscs: Sequence[str | None], settings: LayeringSettings,
+    processed: SPTProcessed | N60Series, uscs: Sequence[str | None], settings: LayeringSettings,
 ) -> Proposal:
     """Split when the lab group changes or relative corrected N60 change exceeds settings.
 

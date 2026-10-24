@@ -21,6 +21,7 @@ from geotek.core.errors import GeoTekError
 from geotek.core.models.parameters import ParameterSelection
 from geotek.core.models.profile import DesignParameters, SoilLayer, SoilProfile
 from geotek.core.models.project import Project
+from geotek.engine.layering.combined import resolve_behaviour
 from geotek.io import tabular
 from geotek.modules.soil.schemas import ProfileCreate
 
@@ -92,6 +93,13 @@ def new_id() -> str:
     return uuid4().hex
 
 
+_PROPOSAL_ONLY = {
+    "ic_mean", "n60_mean", "gamma_suggested", "gamma_sat_suggested", "gamma_source",
+    "gamma_sat_source", "gamma_range", "top_source", "conflict", "resolution",
+}
+"""Proposal interval fields that are advice for the client, not soil-layer fields."""
+
+
 def materialise(payload: ProfileCreate) -> SoilProfile:
     """Copy supplied layers or proposal intervals without computing engineering values."""
     data = payload.model_dump(exclude={"from_proposal", "layers"})
@@ -99,18 +107,32 @@ def materialise(payload: ProfileCreate) -> SoilProfile:
     if proposal is None:
         layers = [layer.model_dump() for layer in payload.layers]
     else:
-        if proposal.source_id not in payload.source_ids:
-            api_error(422, "validation", "Proposal source must be included in source_ids.")
+        sources = proposal.source_ids or [proposal.source_id]
+        if not set(sources) <= set(payload.source_ids):
+            api_error(422, "validation", "Proposal sources must be included in source_ids.")
         layers = []
         for interval in proposal.layers:
             if interval.gamma_suggested is None:
                 api_error(422, "validation", "Proposal needs a supplied unit weight for every layer.")
-            layers.append({
-                **interval.model_dump(exclude={
-                    "ic_mean", "n60_mean", "gamma_suggested", "gamma_sat_suggested"}),
+            layer = {
+                **interval.model_dump(exclude=_PROPOSAL_ONLY),
                 "gamma": interval.gamma_suggested, "gamma_sat": interval.gamma_sat_suggested,
-                "source_ids": [proposal.source_id],
-            })
+                "source_ids": list(sources),
+            }
+            if interval.conflict is not None:
+                if interval.resolution is None:
+                    api_error(
+                        422, "layering_conflict_unresolved",
+                        "Resolve the CPT/USCS conflict (uscs or cpt) before creating the profile.",
+                        top=interval.top, bottom=interval.bottom)
+                layer["behaviour"] = resolve_behaviour(
+                    interval.uscs, interval.resolution, interval.conflict.cpt)
+                if interval.resolution == "cpt":
+                    # The CPT wins: the contradicting USCS symbol is dropped, not kept beside it.
+                    if layer["description"] == interval.uscs:
+                        layer["description"] = ""
+                    layer["uscs"] = None
+            layers.append(layer)
         data["layering"] = proposal.settings.model_dump()
     for layer in layers:
         layer["id"] = new_id()

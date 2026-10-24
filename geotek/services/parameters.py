@@ -34,8 +34,9 @@ from geotek.core.models.parameters import (
 )
 from geotek.core.models.profile import SoilLayer, SoilProfile
 from geotek.core.models.project import Project
-from geotek.engine.classification.uscs import classify_lab_record
+from geotek.engine.classification.uscs import classify_lab_record, dominant_symbol
 from geotek.engine.correlations import registry
+from geotek.engine.correlations.physical import BOWLES_GAMMA_CLASSES, bowles_gamma_range  # noqa: F401
 from geotek.engine.insitu.cpt import corrected_tip_resistance, process_cpt
 from geotek.engine.insitu.spt import equipment_corrections, process_borehole
 from geotek.engine.lab.phase import phase_relations
@@ -68,16 +69,6 @@ _LEGACY_FIELDS = ("gamma_point", "below_gwt", "N1_70")
 DERIVED_K0 = ("JAKY_K0", "MK1982_K0")
 PHASE_GAMMA_SAT = "PHASE_gamma_sat_lab"
 LAB_GAMMA_SAT_BELOW_GWT = "lab_gamma_sat_below_gwt"
-
-BOWLES_GAMMA_CLASSES = (
-    # (name, N'70 lower bound or None, upper bound or None, gamma low, gamma high) [kN/m3]
-    ("very_loose", None, 6.0, 11.0, 16.0),
-    ("loose", 3.0, 9.0, 14.0, 18.0),
-    ("medium", 7.0, 25.0, 17.0, 20.0),
-    ("dense", 16.0, 45.0, 17.0, 22.0),
-    ("very_dense", 40.0, None, 20.0, 23.0),
-)
-"""Bowles (1996) Table 3-4 unit weights of granular soil by N'70 (union of the fine/medium/coarse rows)."""
 
 
 def _above(inputs: Mapping[str, float]) -> bool:
@@ -388,13 +379,6 @@ def _phase_candidate(lab: list[LabRecord]) -> DerivedParameter | None:
     )
 
 
-def _bowles_gamma_range(n70: float) -> tuple[float, float]:
-    """Union of the Bowles (1996) gamma ranges of every N'70 class containing ``n70``."""
-    rows = [row for row in BOWLES_GAMMA_CLASSES
-            if (row[1] is None or n70 >= row[1]) and (row[2] is None or n70 <= row[2])]
-    return min(row[3] for row in rows), max(row[4] for row in rows)
-
-
 def _warn_gamma_outside_bowles(
     candidates: list[DerivedParameter], points: list[dict[str, float]],
 ) -> None:
@@ -403,7 +387,7 @@ def _warn_gamma_outside_bowles(
     if not values:
         return
     n70 = statistics.mean(values)
-    low, high = _bowles_gamma_range(n70)
+    low, high = bowles_gamma_range(n70)
     for candidate in candidates:
         if math.isfinite(candidate.value) and not low <= candidate.value <= high:
             candidate.warnings = [*candidate.warnings, format_warning(
@@ -788,14 +772,7 @@ def evaluation_uscs(layer: SoilLayer, lab: list[LabRecord]) -> str | None:
     """
     if layer.uscs and layer.uscs.strip():
         return layer.uscs
-    ordered = sorted(lab, key=lambda record: record.depth)
-    symbols = [classification.symbol for record in ordered
-               if (classification := classify_lab_record(record)).symbol is not None]
-    if not symbols:
-        return None
-    counts = {symbol: symbols.count(symbol) for symbol in symbols}
-    best = max(counts.values())
-    return next(symbol for symbol in symbols if counts[symbol] == best)
+    return dominant_symbol(lab)
 
 
 def _classify_layer(

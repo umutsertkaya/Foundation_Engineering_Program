@@ -6680,7 +6680,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/LayeringSettings"
+                "$ref": "#/components/schemas/LayeringRequest"
               }
             }
           }
@@ -6803,10 +6803,122 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/LayeringSettings"
+                "$ref": "#/components/schemas/LayeringRequest"
               }
             }
           }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LayeringProposal"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid operation or input file",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflicting or stale structure state",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation error or missing_factors",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Engine or server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "501": {
+            "description": "Contract stub; not implemented",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "4XX": {
+            "description": "Other client error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "5XX": {
+            "description": "Other server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/m/soil/layering/combined": {
+      "post": {
+        "tags": [
+          "soil"
+        ],
+        "summary": "Propose Combined",
+        "description": "Return a synchronous, unapproved layering from one CPT and several boreholes.",
+        "operationId": "propose_combined_layers",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CombinedLayeringRequest"
+              }
+            }
+          },
+          "required": true
         },
         "responses": {
           "200": {
@@ -12795,6 +12907,41 @@
         ],
         "title": "ColumnMap"
       },
+      "CombinedLayeringRequest": {
+        "properties": {
+          "cpt_id": {
+            "type": "string",
+            "title": "Cpt Id"
+          },
+          "borehole_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "minItems": 1,
+            "title": "Borehole Ids"
+          },
+          "settings": {
+            "$ref": "#/components/schemas/LayeringSettings"
+          },
+          "supplied_gamma": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/SuppliedGamma"
+            },
+            "type": "object",
+            "title": "Supplied Gamma"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "cpt_id",
+          "borehole_ids",
+          "settings"
+        ],
+        "title": "CombinedLayeringRequest",
+        "description": "One CPT sounding and at least one borehole to layer together."
+      },
       "DeletionResponse": {
         "properties": {
           "id": {
@@ -14112,6 +14259,50 @@
         ],
         "title": "LabRecord"
       },
+      "LayerConflict": {
+        "properties": {
+          "cpt": {
+            "type": "string",
+            "enum": [
+              "coarse",
+              "fine",
+              "transitional"
+            ],
+            "title": "Cpt"
+          },
+          "uscs": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Uscs"
+          },
+          "ic_mean": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ic Mean"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "cpt",
+          "uscs",
+          "ic_mean"
+        ],
+        "title": "LayerConflict",
+        "description": "CPT soil-behaviour group against the USCS group of one combined layer."
+      },
       "LayerInventory": {
         "properties": {
           "layer_id": {
@@ -14270,6 +14461,14 @@
             "type": "string",
             "title": "Source Id"
           },
+          "source_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Source Ids",
+            "description": "Every investigation the proposal rests on"
+          },
           "settings": {
             "$ref": "#/components/schemas/LayeringSettings"
           },
@@ -14286,6 +14485,14 @@
             },
             "type": "array",
             "title": "Warnings"
+          },
+          "distances": {
+            "additionalProperties": {
+              "type": "number"
+            },
+            "type": "object",
+            "title": "Distances",
+            "description": "Combined layering: CPT-borehole distance [m] by id"
           }
         },
         "additionalProperties": false,
@@ -14297,7 +14504,62 @@
           "warnings"
         ],
         "title": "LayeringProposal",
-        "description": "Layer interpretation and reproducible settings for one investigation."
+        "description": "Layer interpretation and reproducible settings for one or several investigations."
+      },
+      "LayeringRequest": {
+        "properties": {
+          "method": {
+            "type": "string",
+            "enum": [
+              "cpt_ic",
+              "spt_log",
+              "spt_uscs_n",
+              "combined"
+            ],
+            "title": "Method"
+          },
+          "smoothing_window": {
+            "type": "number",
+            "exclusiveMinimum": 0.0,
+            "title": "Smoothing Window",
+            "description": "CPT Ic moving window [m]",
+            "default": 0.5
+          },
+          "min_thickness": {
+            "type": "number",
+            "exclusiveMinimum": 0.0,
+            "title": "Min Thickness",
+            "description": "Thinner zones merge into a neighbour [m]",
+            "default": 0.5
+          },
+          "merge_ic_tol": {
+            "type": "number",
+            "minimum": 0.0,
+            "title": "Merge Ic Tol",
+            "description": "Adjacent zones with |dIc| below this merge",
+            "default": 0.15
+          },
+          "n_change_ratio": {
+            "type": "number",
+            "exclusiveMinimum": 0.0,
+            "title": "N Change Ratio",
+            "description": "SPT: relative N change that starts a new layer",
+            "default": 0.5
+          },
+          "supplied_gamma": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/SuppliedGamma"
+            },
+            "type": "object",
+            "title": "Supplied Gamma"
+          }
+        },
+        "type": "object",
+        "required": [
+          "method"
+        ],
+        "title": "LayeringRequest",
+        "description": "Layering settings (flat, as before) plus optional user-supplied unit weights.\n\n``supplied_gamma`` maps a zero-based layer index of the proposal to the user's values;\nomitted means no layer is user-supplied."
       },
       "LayeringSettings": {
         "properties": {
@@ -14306,7 +14568,8 @@
             "enum": [
               "cpt_ic",
               "spt_log",
-              "spt_uscs_n"
+              "spt_uscs_n",
+              "combined"
             ],
             "title": "Method"
           },
@@ -15728,6 +15991,96 @@
               "undrained"
             ],
             "title": "Behaviour"
+          },
+          "gamma_source": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Gamma Source",
+            "description": "Source of gamma_suggested: user, lab, phase, cpt_rc2010 or spt_bowles"
+          },
+          "gamma_sat_source": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Gamma Sat Source",
+            "description": "Source of gamma_sat_suggested"
+          },
+          "gamma_range": {
+            "anyOf": [
+              {
+                "prefixItems": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  }
+                ],
+                "type": "array",
+                "maxItems": 2,
+                "minItems": 2
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Gamma Range",
+            "description": "Bowles (1996) unit-weight range [kN/m3] when a source is spt_bowles"
+          },
+          "top_source": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "cpt",
+                  "borehole",
+                  "both"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Top Source",
+            "description": "Combined layering: which investigation set the top boundary"
+          },
+          "conflict": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/LayerConflict"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Combined layering: CPT group contradicts the USCS group"
+          },
+          "resolution": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "uscs",
+                  "cpt"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Resolution",
+            "description": "Client choice resolving `conflict`; required before a profile is created"
           }
         },
         "additionalProperties": false,
@@ -18381,6 +18734,36 @@
         ],
         "title": "StructureSummary",
         "description": "Structure list entry; stale indicates changed source soil or analysis inputs."
+      },
+      "SuppliedGamma": {
+        "properties": {
+          "gamma": {
+            "type": "number",
+            "exclusiveMinimum": 0.0,
+            "title": "Gamma",
+            "description": "Unit weight [kN/m3]"
+          },
+          "gamma_sat": {
+            "anyOf": [
+              {
+                "type": "number",
+                "exclusiveMinimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Gamma Sat",
+            "description": "Saturated unit weight [kN/m3]"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "gamma"
+        ],
+        "title": "SuppliedGamma",
+        "description": "User-entered unit weights of one proposed layer; they replace the suggestion."
       },
       "TendonInfo": {
         "properties": {
