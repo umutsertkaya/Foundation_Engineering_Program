@@ -5,7 +5,9 @@ import type {
   CPTSounding,
   DesignKey,
   LayeringProposal,
+  LayeringRequest,
   LayeringSettings,
+  SuppliedGamma,
   ParameterSelection,
   ProfileSummary,
   SelectionUpdate,
@@ -42,12 +44,21 @@ export function get_processed_spt(id: string): Promise<SPTProcessedDTO> {
   return request<SPTProcessedDTO>("GET", `/m/soil/boreholes/${encodeURIComponent(id)}/processed`);
 }
 
-export function propose_cpt_layers(cpt_id: string, payload: LayeringSettings): Promise<LayeringProposal> {
+export function propose_cpt_layers(cpt_id: string, payload: LayeringRequest): Promise<LayeringProposal> {
   return request<LayeringProposal>("POST", `/m/soil/layering/cpt/${encodeURIComponent(cpt_id)}`, payload);
 }
 
-export function propose_spt_layers(borehole_id: string, payload: LayeringSettings): Promise<LayeringProposal> {
+export function propose_spt_layers(borehole_id: string, payload: LayeringRequest): Promise<LayeringProposal> {
   return request<LayeringProposal>("POST", `/m/soil/layering/spt/${encodeURIComponent(borehole_id)}`, payload);
+}
+
+export function propose_combined_layers(
+  cpt_id: string,
+  borehole_ids: string[],
+  settings: LayeringSettings,
+  supplied_gamma: Record<number, SuppliedGamma> = {},
+): Promise<LayeringProposal> {
+  return request<LayeringProposal>("POST", "/m/soil/layering/combined", { cpt_id, borehole_ids, settings, supplied_gamma });
 }
 
 export function list_profiles(): Promise<ProfileSummary[]> {

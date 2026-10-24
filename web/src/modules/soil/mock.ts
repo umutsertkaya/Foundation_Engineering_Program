@@ -16,6 +16,8 @@ import type {
   DesignKey,
   LayeringProposal,
   LayeringSettings,
+  LayeringRequest,
+  SuppliedGamma,
   ParameterSelection,
   ProposedLayer,
   SelectionUpdate,
@@ -119,7 +121,25 @@ function energyOf(bh: Borehole): number {
   return bh.energy_ratio ?? 60;
 }
 
-function mockProposalCpt(cpt: CPTSounding, settings: LayeringSettings): LayeringProposal {
+type Supplied = Record<number, SuppliedGamma> | undefined;
+
+/** Demo of the supplied-gamma contract: a user entry replaces the suggestion and is labelled `user`. */
+function applySupplied(layers: ProposedLayer[], supplied: Supplied): ProposedLayer[] {
+  return layers.map((layer, i) => {
+    const entry = supplied?.[i];
+    if (!entry) return layer;
+    return {
+      ...layer,
+      gamma_suggested: entry.gamma,
+      gamma_source: "user",
+      gamma_sat_suggested: entry.gamma_sat ?? null,
+      gamma_sat_source: entry.gamma_sat != null ? "user" : null,
+      gamma_range: null,
+    };
+  });
+}
+
+function mockProposalCpt(cpt: CPTSounding, settings: LayeringSettings, supplied?: Supplied): LayeringProposal {
   const bottom = Math.max(...cpt.depth);
   const cuts = [0, round(bottom * 0.3, 1), round(bottom * 0.65, 1), bottom];
   const demo: Pick<ProposedLayer, "description" | "uscs" | "sbtn_zone" | "ic_mean" | "gamma_suggested" | "gamma_sat_suggested" | "behaviour">[] = [
@@ -129,8 +149,15 @@ function mockProposalCpt(cpt: CPTSounding, settings: LayeringSettings): Layering
   ];
   return {
     source_id: cpt.id,
+    source_ids: [cpt.id],
     settings: effectiveSettings(settings),
-    layers: demo.map((d, i) => ({ ...d, top: cuts[i], bottom: cuts[i + 1], n60_mean: null })),
+    layers: applySupplied(
+      demo.map((d, i) => ({
+        ...d, top: cuts[i], bottom: cuts[i + 1], n60_mean: null,
+        gamma_source: "cpt_rc2010" as const, gamma_sat_source: "cpt_rc2010" as const,
+      })),
+      supplied,
+    ),
     warnings: [
       mockWarning("layering.warning.drainage_ic_based", { message: "Demo (Mock): confirm drainage for the loading case" }),
       mockWarning("layering.warning.similar_merged"),
@@ -138,10 +165,10 @@ function mockProposalCpt(cpt: CPTSounding, settings: LayeringSettings): Layering
   };
 }
 
-function mockProposalSpt(bh: Borehole, settings: LayeringSettings): LayeringProposal {
+function mockProposalSpt(bh: Borehole, settings: LayeringSettings, supplied?: Supplied): LayeringProposal {
   const last = Math.max(0, ...sptOf(bh).map((r) => r.depth));
   const log = [...(bh.log ?? [])].sort((a, b) => a.top - b.top);
-  const warnings = [mockWarning("layering.warning.gamma_unavailable"), mockWarning("layering.warning.behaviour_assumed")];
+  const warnings = [mockWarning("layering.warning.behaviour_assumed")];
   const intervals =
     settings.method === "spt_log" && log.length > 0
       ? log.map((l) => ({ top: l.top, bottom: l.bottom, uscs: l.uscs ?? null, description: l.description ?? "" }))
@@ -162,13 +189,50 @@ function mockProposalSpt(bh: Borehole, settings: LayeringSettings): LayeringProp
       ic_mean: null,
       // Demo: field N scaled by the energy ratio only (no other corrections).
       n60_mean: tests.length ? round((mean(tests) * energyOf(bh)) / 60, 1) : null,
-      // Like the real SPT engine: no reliable unit-weight formula, the engineer supplies it.
-      gamma_suggested: null,
+      // Demo of the HS-E contract: granular layers get a Bowles (1996) table value with its range,
+      // other layers stay empty (the engineer supplies them). Not an engineering result.
+      gamma_suggested: granular ? 18.5 : null,
+      gamma_source: granular ? "spt_bowles" : null,
+      gamma_range: granular ? [17, 20] : null,
       gamma_sat_suggested: null,
       behaviour: granular ? "drained" : "undrained",
     };
   });
-  return { source_id: bh.id, settings: effectiveSettings(settings), layers, warnings };
+  return {
+    source_id: bh.id, source_ids: [bh.id], settings: effectiveSettings(settings),
+    layers: applySupplied(layers, supplied), warnings,
+  };
+}
+
+/** Demo combined layering: CPT-derived boundaries, borehole USCS; layer 2 carries a demo CPT/USCS conflict. */
+function mockProposalCombined(
+  cpt: CPTSounding, boreholes: Borehole[], settings: LayeringSettings, supplied?: Supplied,
+): LayeringProposal {
+  const base = mockProposalCpt(cpt, { ...settings, method: "cpt_ic" }, undefined);
+  const layers: ProposedLayer[] = base.layers.map((layer, i) => ({
+    ...layer,
+    top_source: i === 0 ? "both" : "cpt",
+    ...(i === 1
+      ? { conflict: { cpt: "coarse" as const, uscs: "CL", ic_mean: 1.9 }, resolution: null }
+      : {}),
+  }));
+  const distances: Record<string, number> = {};
+  for (const bh of boreholes) {
+    if (typeof bh.x === "number" && typeof bh.y === "number" && typeof cpt.x === "number" && typeof cpt.y === "number") {
+      distances[bh.id] = round(Math.hypot(bh.x - cpt.x, bh.y - cpt.y), 1);
+    }
+  }
+  const warnings = [...base.warnings];
+  const misaligned = [cpt, ...boreholes].some((s) => s.elevation === null || s.elevation === undefined);
+  if (misaligned) warnings.push(mockWarning("layering.warning.depth_not_aligned", { borehole: boreholes[0]?.id ?? "" }));
+  return {
+    source_id: cpt.id,
+    source_ids: [cpt.id, ...boreholes.map((b) => b.id)],
+    settings: effectiveSettings(settings),
+    layers: applySupplied(layers, supplied),
+    warnings,
+    distances,
+  };
 }
 
 function mockProcessedCpt(cpt: CPTSounding): CPTProcessedDTO {
@@ -418,15 +482,28 @@ function handleLayeringAndParameters(method: string, cleanPath: string, body: un
   if (method === "POST" && m) {
     const cpt = store.cpts.find((c) => c.id === id(m![1]));
     if (!cpt) return notFound("CPT");
-    const settings = body as LayeringSettings;
-    return settingsIssue(settings, ["cpt_ic"]) ?? { status: 200, data: mockProposalCpt(cpt, settings) };
+    const settings = body as LayeringRequest;
+    return settingsIssue(settings, ["cpt_ic"]) ?? { status: 200, data: mockProposalCpt(cpt, settings, settings.supplied_gamma) };
   }
   m = /^\/layering\/spt\/([^/]+)$/.exec(cleanPath);
   if (method === "POST" && m) {
     const bh = store.boreholes.find((b) => b.id === id(m![1]));
     if (!bh) return notFound("Borehole");
-    const settings = body as LayeringSettings;
-    return settingsIssue(settings, ["spt_log", "spt_uscs_n"]) ?? { status: 200, data: mockProposalSpt(bh, settings) };
+    const settings = body as LayeringRequest;
+    return settingsIssue(settings, ["spt_log", "spt_uscs_n"]) ?? { status: 200, data: mockProposalSpt(bh, settings, settings.supplied_gamma) };
+  }
+  if (method === "POST" && cleanPath === "/layering/combined") {
+    const req = body as { cpt_id: string; borehole_ids: string[]; settings: LayeringSettings; supplied_gamma?: Supplied };
+    const cpt = store.cpts.find((c) => c.id === req.cpt_id);
+    if (!cpt) return notFound("CPT");
+    if (!Array.isArray(req.borehole_ids) || req.borehole_ids.length === 0) return bad("At least one borehole is required");
+    const boreholes: Borehole[] = [];
+    for (const bid of req.borehole_ids) {
+      const bh = store.boreholes.find((b) => b.id === bid);
+      if (!bh) return notFound("Borehole");
+      boreholes.push(bh);
+    }
+    return settingsIssue(req.settings, ["combined"]) ?? { status: 200, data: mockProposalCombined(cpt, boreholes, req.settings, req.supplied_gamma) };
   }
 
   m = /^\/profiles\/([^/]+)\/layers\/([^/]+)\/parameters$/.exec(cleanPath);
@@ -607,7 +684,20 @@ function createFromProposal(payload: ProfileCreate): Reply {
   const proposal = payload.from_proposal;
   if (!proposal) return bad("Supply exactly one of layers or from_proposal");
   if (payload.layers) return bad("Omit the unused layer source");
-  if (!payload.source_ids.includes(proposal.source_id)) return bad("Proposal source must be included in source_ids.");
+  const proposalSources = proposal.source_ids?.length ? proposal.source_ids : [proposal.source_id];
+  if (!proposalSources.every((sid) => payload.source_ids.includes(sid))) return bad("Proposal sources must be included in source_ids.");
+  const open = proposal.layers.find((l) => l.conflict && !l.resolution);
+  if (open) {
+    return {
+      status: 422,
+      data: {
+        code: "layering_conflict_unresolved",
+        message: "Resolve the CPT/USCS conflict before creating the profile (Mock).",
+        details: { top: open.top, bottom: open.bottom },
+        missing_factors: [],
+      },
+    };
+  }
   if (proposal.layers.some((l) => l.gamma_suggested === null || l.gamma_suggested === undefined)) {
     return bad("Proposal needs a supplied unit weight for every layer.");
   }
@@ -616,13 +706,13 @@ function createFromProposal(payload: ProfileCreate): Reply {
     top: l.top,
     bottom: l.bottom,
     description: l.description,
-    uscs: l.uscs,
+    uscs: l.conflict && l.resolution === "cpt" ? null : l.uscs,
     sbtn_zone: l.sbtn_zone,
-    behaviour: l.behaviour,
+    behaviour: l.conflict && l.resolution === "cpt" ? (l.conflict.cpt === "fine" ? "undrained" : "drained") : l.behaviour,
     gamma: l.gamma_suggested as number,
     // The server carries the suggested saturated unit weight into the new layer.
     ...(l.gamma_sat_suggested !== null && l.gamma_sat_suggested !== undefined ? { gamma_sat: l.gamma_sat_suggested } : {}),
-    source_ids: [proposal.source_id],
+    source_ids: [...proposalSources],
   }));
   const issues = [...validateLayers(layers, { mustStartAtZero: true }), ...validateGwt(payload.gwt)];
   if (issues.length > 0) return bad("Invalid soil profile", { issues });

@@ -83,6 +83,12 @@ Kaynak: Umut'un cihazındaki tam metin md dönüşümü (`docs/research/Youd.et.
 - Bu PR (HS-D): `tests/unit/test_source_examples.py` (Keleşoğlu ders örnekleri D1–D5, 9 test) ve [denetim raporu](qa/hesap-sistemi-denetimi.md) (B1–B3, K1–K5, karşılaştırma tablosu, bilinçli farklar). Kartta elle hesaplanan bütün değerler yeniden üretildi; formül değişmedi.
 - Test (2026-10-23, Linux bulut, HS-D dalı): pytest 2276 geçti / 2 atlandı; `gen_code_map.py --check` 0; web çalıştırılmadı.
 
+## Ortak katmanlama ve otomatik birim hacim ağırlığı (2026-10-24)
+
+- Biten: PR #61 (HS-E arka uç) ve bu PR (HS-F arayüz). Katmanlama önerisi her katmana kaynaklı γ/γsat önerir (γ: lab > CPT Robertson & Cabal 2010 > SPT Bowles 1996 Tablo 3-4; γsat: faz bağıntısı S = 1 > lab > CPT > SPT). SPT tablosu yalnız iri daneli USCS için (kaynak notlarında kil için SPT–γ yok); öneri onay değildir, hücreler düzenlenebilir. SPT katmanlaması profil istemez. Yeni `POST /layering/combined`: CPT + sondaj ortak sınırlar, kot hizalama, mesafe, iri/ince çelişkisi kullanıcıya seçtirilir.
+- Not: örnek projede USCS'siz SPT katmanlarında öneri yok; kullanıcı girer (uyarı gösterilir).
+- Test (2026-10-24, Linux bulut): pytest 2303 geçti / 2 atlandı (HS-E); web 53 dosya / 409 test geçti, build ve kod haritası temiz (HS-F). Ekran görüntüleri `/mnt/project-files/ekran/2026-10-24/`.
+
 ## Son doğrulama
 
 - 2026-10-20, sistem kontrolü dalı (Linux bulut): tam pytest 1869 geçti / 2 atlandı; `tsc --noEmit` temiz;
