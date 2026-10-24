@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { mockRequest, resetMockState } from "../../../shared/api/mock";
+import { getMockStore, mockRequest, resetMockState } from "../../../shared/api/mock";
 import type { LayeringProposal, ParameterSelection, SoilLayer, SoilProfile } from "../../../shared/api/types";
 
 beforeEach(() => resetMockState());
@@ -22,9 +22,16 @@ describe("mock layering routes", () => {
     expect(p.warnings.every((w) => /^layering\.warning\.[a-z_]+/.test(w))).toBe(true);
   });
 
-  it("SPT proposals carry no unit weight; a method that does not fit the source is a 422", async () => {
+  it("SPT proposals suggest a unit weight for granular layers only; a method that does not fit the source is a 422", async () => {
+    const store = getMockStore();
+    store.boreholes[0] = { ...store.boreholes[0], log: [
+      { top: 0, bottom: 2.5, uscs: "SM", description: "silty sand" },
+      { top: 2.5, bottom: 10, uscs: "CL", description: "clay" },
+    ] };
     const p = await proposal("spt/SK-M1", "spt_log");
-    expect(p.layers.every((l) => l.gamma_suggested === null)).toBe(true);
+    expect(p.layers.map((l) => l.gamma_suggested)).toEqual([18.5, null]);
+    expect(p.layers[0].gamma_source).toBe("spt_bowles");
+    expect(p.layers[0].gamma_range).toEqual([17, 20]);
     expect((await mockRequest("POST", "/m/soil/layering/spt/SK-M1", { method: "cpt_ic" })).status).toBe(422);
     expect((await mockRequest("POST", "/m/soil/layering/cpt/CPT-M1", { method: "cpt_ic", min_thickness: 0 })).status).toBe(422);
     expect((await mockRequest("POST", "/m/soil/layering/cpt/nope", { method: "cpt_ic" })).status).toBe(404);
@@ -39,6 +46,8 @@ describe("mock layering routes", () => {
     expect(profile.layers).toHaveLength(cpt.layers.length);
     expect(profile.layers.every((l) => l.selections === undefined)).toBe(true);
 
+    const store = getMockStore();
+    store.boreholes[0] = { ...store.boreholes[0], log: [{ top: 0, bottom: 10, uscs: "CL", description: "clay" }] };
     const spt = await proposal("spt/SK-M1", "spt_log");
     const bad = await mockRequest("POST", "/m/soil/profiles", { name: "P", origin: "spt", source_ids: ["SK-M1"], gwt, from_proposal: spt });
     expect(bad.status).toBe(422);

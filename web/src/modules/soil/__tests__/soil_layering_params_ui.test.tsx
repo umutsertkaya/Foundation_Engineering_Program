@@ -3,7 +3,7 @@ import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-li
 import { MemoryRouter } from "react-router-dom";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { setMockMode } from "../../../shared/api/client";
-import { resetMockState } from "../../../shared/api/mock";
+import { getMockStore, resetMockState } from "../../../shared/api/mock";
 import type { SoilProfile } from "../../../shared/api/types";
 import i18n from "../../../app/i18n";
 import { theme } from "../../../app/theme";
@@ -57,17 +57,18 @@ describe("LayeringModal", () => {
     expect(within(warnings).getAllByRole("listitem")).toHaveLength(2);
     expect(warnings.textContent).toContain("Adjacent layers of the same soil behaviour were merged.");
 
-    // The program's unit weights are shown but never filled in: Create stays blocked until each one is confirmed.
+    // The suggested unit weights are pre-filled and editable, with their source under the cell.
     const create = screen.getByTestId("layering-create");
-    expect(create).toBeDisabled();
-    expect(screen.getByTestId("layering-gamma-0")).toHaveValue("");
-    expect(screen.getByTestId("layering-gamma-use-0")).toHaveTextContent("18.2");
-    // The saturated unit weight suggestion is only displayed (the server carries it into the profile).
-    expect(screen.getByTestId("layering-gamma-sat-0")).toHaveTextContent("19.4");
-    fireEvent.click(screen.getByTestId("layering-gamma-use-0"));
+    expect(screen.getByTestId("layering-gamma-0")).toHaveValue("18.2");
+    expect(screen.getByTestId("layering-gamma-source-0")).toHaveTextContent("CPT (Robertson & Cabal 2010)");
+    expect(screen.getByTestId("layering-gamma-sat-0")).toHaveValue("19.4");
+    expect(screen.getByTestId("layering-gamma-sat-source-0")).toHaveTextContent("CPT (Robertson & Cabal 2010)");
+    await waitFor(() => expect(create).not.toBeDisabled());
     typeInto("layering-gamma-1", "17"); // override the suggestion of layer 2
-    expect(create).toBeDisabled(); // layer 3 is still open
-    fireEvent.click(screen.getByTestId("layering-gamma-use-2"));
+    fireEvent.blur(screen.getByTestId("layering-gamma-1"));
+    await waitFor(() => expect(screen.getByTestId("layering-gamma-source-1")).toHaveTextContent("Manual"));
+    expect(screen.getByTestId("layering-gamma-1")).toHaveValue("17");
+    expect(screen.getByTestId("layering-gamma-source-0")).toHaveTextContent("CPT (Robertson & Cabal 2010)");
     await waitFor(() => expect(create).not.toBeDisabled());
     fireEvent.click(create);
     await waitFor(() => expect(onCreated).toHaveBeenCalledTimes(1));
@@ -101,20 +102,22 @@ describe("LayeringModal", () => {
   });
 
   it("SPT: unit weights are entered by the engineer and Create stays disabled until they are", async () => {
+    const store = getMockStore();
+    store.boreholes[0] = { ...store.boreholes[0], log: [{ top: 0, bottom: 10, uscs: "CL", description: "clay" }] };
     const { onCreated } = open("spt");
     const propose = await screen.findByTestId("layering-propose");
     await waitFor(() => expect(propose).not.toBeDisabled());
     fireEvent.click(propose);
     await screen.findByTestId("layering-proposal");
-    // Plain wording: the unit weights are the engineer entries, no claim about provenance or gamma_sat.
-    expect(screen.getByTestId("layering-gamma-note")).toHaveTextContent(/your entries/);
-    expect(screen.getByTestId("layering-gamma-note")).toHaveTextContent(/not where it came from/);
-    expect(screen.queryByTestId("layering-gamma-use-all")).toBeNull(); // SPT has no suggestion to confirm
-
+    expect(screen.getByTestId("layering-gamma-note")).toHaveTextContent(/source is shown under each cell/);
+    // A clay layer has no SPT suggestion: the cell is empty and required.
     const create = screen.getByTestId("layering-create");
     expect(create).toBeDisabled();
     const rows = screen.getAllByTestId(/^layering-row-/);
-    rows.forEach((_, i) => typeInto(`layering-gamma-${i}`, "18.5"));
+    rows.forEach((_, i) => {
+      typeInto(`layering-gamma-${i}`, "18.5");
+      fireEvent.blur(screen.getByTestId(`layering-gamma-${i}`));
+    });
     await waitFor(() => expect(create).not.toBeDisabled());
     fireEvent.click(create);
     await waitFor(() => expect(onCreated).toHaveBeenCalledTimes(1));

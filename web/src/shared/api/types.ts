@@ -277,11 +277,32 @@ export interface LayerSplit {
 }
 
 export interface LayeringSettings {
-  method: "cpt_ic" | "spt_log" | "spt_uscs_n";
+  method: "cpt_ic" | "spt_log" | "spt_uscs_n" | "combined";
   smoothing_window?: number;
   min_thickness?: number;
   merge_ic_tol?: number;
   n_change_ratio?: number;
+}
+
+/** User-entered unit weights of one proposed layer (zero-based layer index in the request map). */
+export interface SuppliedGamma {
+  gamma: number;
+  gamma_sat?: number | null;
+}
+
+/** Flat request body of the CPT / SPT layering routes. */
+export interface LayeringRequest extends LayeringSettings {
+  supplied_gamma?: Record<number, SuppliedGamma>;
+}
+
+export type GammaSource = "user" | "lab" | "phase" | "cpt_rc2010" | "spt_bowles";
+export type LayerBoundarySource = "cpt" | "borehole" | "both";
+
+/** Combined layering: the CPT soil-behaviour group contradicts the USCS group of the layer. */
+export interface LayerConflict {
+  cpt: "coarse" | "fine" | "transitional";
+  uscs: string | null;
+  ic_mean: number | null;
 }
 
 export interface ProposedLayer {
@@ -296,11 +317,22 @@ export interface ProposedLayer {
   /** Suggested saturated unit weight below the in-situ GWT; shown only, the server carries it. */
   gamma_sat_suggested?: number | null;
   behaviour: "drained" | "undrained";
+  gamma_source?: GammaSource | null;
+  gamma_sat_source?: GammaSource | null;
+  /** Bowles (1996) range [low, high] when the source is spt_bowles. */
+  gamma_range?: [number, number] | null;
+  top_source?: LayerBoundarySource | null;
+  conflict?: LayerConflict | null;
+  /** Client choice resolving `conflict`; required before a profile is created. */
+  resolution?: "uscs" | "cpt" | null;
 }
 
 export interface LayeringProposal {
   source_id: string;
+  source_ids?: string[];
   settings: LayeringSettings;
+  /** Combined layering: horizontal CPT-borehole distance [m] by borehole id. */
+  distances?: Record<string, number>;
   layers: ProposedLayer[];
   warnings: string[];
 }

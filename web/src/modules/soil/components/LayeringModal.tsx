@@ -3,11 +3,13 @@ import {
   Alert,
   Badge,
   Button,
+  Checkbox,
   Divider,
   Group,
   Modal,
   NativeSelect,
   NumberInput,
+  Radio,
   SimpleGrid,
   Stack,
   Table,
@@ -15,8 +17,21 @@ import {
   TextInput,
 } from "@mantine/core";
 import { useTranslation } from "react-i18next";
-import type { LayeringProposal, LayeringSettings, SoilProfile } from "../../../shared/api/types";
-import { create_profile, list_investigations, propose_cpt_layers, propose_spt_layers } from "../api";
+import type {
+  GammaSource,
+  LayeringProposal,
+  LayeringSettings,
+  ProposedLayer,
+  SoilProfile,
+  SuppliedGamma,
+} from "../../../shared/api/types";
+import {
+  create_profile,
+  list_investigations,
+  propose_combined_layers,
+  propose_cpt_layers,
+  propose_spt_layers,
+} from "../api";
 import type { InvestigationsDTO } from "../types";
 import { LatestGuard } from "../latest";
 import { ErrorAlert } from "./ErrorAlert";
@@ -28,15 +43,18 @@ type MethodId = LayeringSettings["method"];
 type NumericSetting = "smoothing_window" | "min_thickness" | "merge_ic_tol" | "n_change_ratio";
 
 const METHODS: Record<LayeringKind, MethodId[]> = {
-  cpt: ["cpt_ic"],
+  cpt: ["cpt_ic", "combined"],
   spt: ["spt_log", "spt_uscs_n"],
 };
 const SETTING_FIELDS: Record<LayeringKind, NumericSetting[]> = {
   cpt: ["smoothing_window", "min_thickness", "merge_ic_tol"],
   spt: ["min_thickness", "n_change_ratio"],
 };
+const GAMMA_SOURCES: GammaSource[] = ["user", "lab", "phase", "cpt_rc2010", "spt_bowles"];
+const NOT_ALIGNED_CODE = "layering.warning.depth_not_aligned";
 
 interface Props {
+  /** `cpt` also offers the combined CPT + borehole method; `spt` layers one borehole. */
   kind: LayeringKind | null;
   onClose: () => void;
   /** Called with the profile the server created from the proposal. */
@@ -52,9 +70,13 @@ function finite(value: number | string): value is number {
   return typeof value === "number" && Number.isFinite(value);
 }
 
+function positive(value: number | string | null | undefined): value is number {
+  return finite(value ?? "") && (value as number) > 0;
+}
+
 export function LayeringModal({ kind, onClose, onCreated }: Props) {
   return (
-    <Modal opened={kind !== null} onClose={onClose} size="xl" title={null} withCloseButton centered={false}>
+    <Modal opened={kind !== null} onClose={onClose} size="min(1040px, 96vw)" title={null} withCloseButton centered={false}>
       {kind && <LayeringBody key={kind} kind={kind} onClose={onClose} onCreated={onCreated} />}
     </Modal>
   );
@@ -68,12 +90,18 @@ function LayeringBody({ kind, onClose, onCreated }: { kind: LayeringKind; onClos
   const [values, setValues] = useState<Partial<Record<NumericSetting, number | string>>>({});
   const [proposal, setProposal] = useState<LayeringProposal | null>(null);
   const [outdated, setOutdated] = useState(false);
-  const [gammas, setGammas] = useState<Record<number, number | string>>({});
+  // Only the cells the engineer typed in; every other cell shows the server suggestion.
+  const [userGamma, setUserGamma] = useState<Record<number, number | string>>({});
+  const [userSat, setUserSat] = useState<Record<number, number | string>>({});
+  const [resolutions, setResolutions] = useState<Record<number, "uscs" | "cpt">>({});
+  const [boreholeIds, setBoreholeIds] = useState<string[]>([]);
+  const [refreshing, setRefreshing] = useState(false);
   const [name, setName] = useState("");
   const [gwt, setGwt] = useState<number | string>("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<unknown>(null);
   const guard = useRef(new LatestGuard());
+  const lastRequest = useRef<{ settings: LayeringSettings; cpt: string; boreholes: string[]; supplied: string } | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -93,10 +121,12 @@ function LayeringBody({ kind, onClose, onCreated }: { kind: LayeringKind; onClos
     };
   }, [kind]);
 
+  const combined = method === "combined";
   const sources = useMemo(
     () => (kind === "cpt" ? (data?.cpts ?? []) : (data?.boreholes ?? [])).map((s) => s.id),
     [data, kind],
   );
+  const boreholeOptions = useMemo(() => (data?.boreholes ?? []).map((b) => b.id), [data]);
 
   const sourceDepth = useMemo(() => {
     const depths =
@@ -111,24 +141,44 @@ function LayeringBody({ kind, onClose, onCreated }: { kind: LayeringKind; onClos
     if (proposal) setOutdated(true);
   };
 
-  const propose = async () => {
-    if (!sourceId) return;
-    const token = guard.current.begin();
-    setBusy(true);
-    setError(null);
+  const buildSettings = (): LayeringSettings => {
     // Send only what the engineer typed; everything else keeps the server default.
     const settings: LayeringSettings = { method };
     for (const field of SETTING_FIELDS[kind]) {
       const value = values[field];
       if (finite(value ?? "")) settings[field] = value as number;
     }
+    return settings;
+  };
+
+  const request = (
+    settings: LayeringSettings,
+    cpt: string,
+    boreholes: string[],
+    supplied: Record<number, SuppliedGamma>,
+  ): Promise<LayeringProposal> => {
+    if (settings.method === "combined") return propose_combined_layers(cpt, boreholes, settings, supplied);
+    return kind === "cpt"
+      ? propose_cpt_layers(cpt, { ...settings, supplied_gamma: supplied })
+      : propose_spt_layers(cpt, { ...settings, supplied_gamma: supplied });
+  };
+
+  const propose = async () => {
+    if (!sourceId || (combined && boreholeIds.length === 0)) return;
+    const token = guard.current.begin();
+    setBusy(true);
+    setRefreshing(false);
+    setError(null);
+    const settings = buildSettings();
     try {
-      const result =
-        kind === "cpt" ? await propose_cpt_layers(sourceId, settings) : await propose_spt_layers(sourceId, settings);
+      const result = await request(settings, sourceId, boreholeIds, {});
       if (!guard.current.isCurrent(token)) return;
+      lastRequest.current = { settings, cpt: sourceId, boreholes: boreholeIds, supplied: "{}" };
       setProposal(result);
       setOutdated(false);
-      setGammas({});
+      setUserGamma({});
+      setUserSat({});
+      setResolutions({});
       setName(t("soil.layering.default_name", { source: result.source_id }));
       const source = (kind === "cpt" ? data?.cpts : data?.boreholes)?.find((s) => s.id === sourceId);
       setGwt(source?.gwt_depth ?? "");
@@ -139,30 +189,72 @@ function LayeringBody({ kind, onClose, onCreated }: { kind: LayeringKind; onClos
     }
   };
 
-  // Every layer needs a unit weight the engineer confirmed or typed; a suggestion is never filled in silently.
-  const suggestionOf = (i: number): number | null => proposal?.layers[i].gamma_suggested ?? null;
-  const anySuggestion = proposal ? proposal.layers.some((_, i) => suggestionOf(i) !== null) : false;
-  const gammasComplete = proposal
-    ? proposal.layers.every((_, i) => finite(gammas[i] ?? "") && (gammas[i] as number) > 0)
-    : false;
+  // What the table shows: the engineer's entry when there is one, otherwise the server suggestion.
+  const gammaOf = (i: number): number | string =>
+    i in userGamma ? userGamma[i] : (proposal?.layers[i].gamma_suggested ?? "");
+  const satOf = (i: number): number | string =>
+    i in userSat ? userSat[i] : (proposal?.layers[i].gamma_sat_suggested ?? "");
+
+  const suppliedNow = (): Record<number, SuppliedGamma> => {
+    const supplied: Record<number, SuppliedGamma> = {};
+    const indexes = new Set([...Object.keys(userGamma), ...Object.keys(userSat)].map(Number));
+    for (const i of [...indexes].sort((a, b) => a - b)) {
+      const gamma = gammaOf(i);
+      if (!positive(gamma)) continue; // the server needs a gamma; an empty cell supplies nothing
+      const sat = satOf(i);
+      supplied[i] = { gamma, gamma_sat: positive(sat) ? sat : null };
+    }
+    return supplied;
+  };
+
+  // Leaving a γ / γsat cell re-asks the server so the suggestions of the layers below follow the new value.
+  const refreshSuggestions = async () => {
+    const last = lastRequest.current;
+    if (!proposal || !last || outdated) return;
+    const supplied = suppliedNow();
+    const key = JSON.stringify(supplied);
+    if (key === last.supplied) return;
+    const token = guard.current.begin();
+    setRefreshing(true);
+    setError(null);
+    try {
+      const result = await request(last.settings, last.cpt, last.boreholes, supplied);
+      if (!guard.current.isCurrent(token)) return;
+      lastRequest.current = { ...last, supplied: key };
+      setProposal(result);
+    } catch (err) {
+      if (guard.current.isCurrent(token)) setError(err);
+    } finally {
+      if (guard.current.isCurrent(token)) setRefreshing(false);
+    }
+  };
+
+  const conflictIndexes = proposal ? proposal.layers.flatMap((l, i) => (l.conflict ? [i] : [])) : [];
+  const conflictsOpen = conflictIndexes.some((i) => !(i in resolutions));
+  const gammasComplete = proposal ? proposal.layers.every((_, i) => positive(gammaOf(i))) : false;
   const gwtValid = finite(gwt) && gwt >= 0;
-  const canCreate = proposal !== null && !outdated && gammasComplete && gwtValid && name.trim().length > 0;
+  const canCreate =
+    proposal !== null && !outdated && !refreshing && gammasComplete && !conflictsOpen && gwtValid && name.trim().length > 0;
 
   const create = async () => {
     if (!proposal || !canCreate) return;
     setBusy(true);
     setError(null);
-    // The unit weights are the engineer entries (confirmed suggestion or typed value) and the only edit made
-    // to the proposal; the backend stores no provenance for them (open question: layer_gamma, gamma_sat).
+    // The unit weights and the conflict choices are the engineer's, and the only edits made to the proposal.
     const supplied: LayeringProposal = {
       ...proposal,
-      layers: proposal.layers.map((layer, i) => ({ ...layer, gamma_suggested: gammas[i] as number })),
+      layers: proposal.layers.map((layer, i) => ({
+        ...layer,
+        gamma_suggested: gammaOf(i) as number,
+        gamma_sat_suggested: positive(satOf(i)) ? (satOf(i) as number) : null,
+        ...(layer.conflict ? { resolution: resolutions[i] } : {}),
+      })),
     };
     try {
       const created = await create_profile({
         name: name.trim(),
-        origin: kind,
-        source_ids: [proposal.source_id],
+        origin: proposal.settings.method === "combined" ? "mixed" : kind,
+        source_ids: proposal.source_ids?.length ? proposal.source_ids : [proposal.source_id],
         gwt: { depth_insitu: gwt as number },
         from_proposal: supplied,
       });
@@ -174,8 +266,32 @@ function LayeringBody({ kind, onClose, onCreated }: { kind: LayeringKind; onClos
     }
   };
 
+  const sourceText = (source: GammaSource | null | undefined, range: ProposedLayer["gamma_range"]): string | null => {
+    if (!source || !GAMMA_SOURCES.includes(source)) return null;
+    if (source === "spt_bowles") {
+      return range
+        ? t("soil.layering.gamma_source.spt_bowles", { low: range[0], high: range[1] })
+        : t("soil.layering.gamma_source.spt_bowles_plain");
+    }
+    return t(`soil.layering.gamma_source.${source}`);
+  };
+
+  const conflictText = (layer: ProposedLayer): string => {
+    const c = layer.conflict;
+    if (!c) return "";
+    return t("soil.layering.conflict.text", {
+      group: t(`soil.layering.conflict.cpt_${c.cpt}`),
+      ic: fmt(c.ic_mean, 1, t("web.common.none")),
+      uscs: c.uscs ?? t("web.common.none"),
+    });
+  };
+
   const noSources = data !== null && sources.length === 0;
   const effective = proposal?.settings;
+  const isCombinedProposal = effective?.method === "combined";
+  const notAligned = proposal?.warnings.some((w) => w.startsWith(NOT_ALIGNED_CODE)) ?? false;
+  const otherSources = proposal ? (proposal.source_ids ?? []).filter((id) => id !== proposal.source_id) : [];
+  const showIc = kind === "cpt";
 
   return (
     <Stack gap="sm">
@@ -226,6 +342,26 @@ function LayeringBody({ kind, onClose, onCreated }: { kind: LayeringKind; onClos
             />
           </SimpleGrid>
 
+          {combined && (
+            <Checkbox.Group
+              label={t("soil.layering.boreholes")}
+              size="xs"
+              value={boreholeIds}
+              onChange={(v) => {
+                setBoreholeIds(v);
+                invalidate();
+              }}
+              error={boreholeIds.length === 0 ? t("soil.layering.boreholes_required") : undefined}
+              data-testid="layering-boreholes"
+            >
+              <Group mt={4} gap="md">
+                {boreholeOptions.map((id) => (
+                  <Checkbox key={id} value={id} label={id} size="xs" disabled={busy} data-testid={`layering-borehole-${id}`} />
+                ))}
+              </Group>
+            </Checkbox.Group>
+          )}
+
           <Stack gap={4}>
             <Text size="xs" fw={600}>
               {t("soil.layering.settings")}
@@ -253,7 +389,13 @@ function LayeringBody({ kind, onClose, onCreated }: { kind: LayeringKind; onClos
           </Stack>
 
           <Group>
-            <Button size="xs" onClick={() => void propose()} loading={busy && proposal === null} disabled={!sourceId || busy} data-testid="layering-propose">
+            <Button
+              size="xs"
+              onClick={() => void propose()}
+              loading={busy && proposal === null}
+              disabled={!sourceId || busy || (combined && boreholeIds.length === 0)}
+              data-testid="layering-propose"
+            >
               {t("soil.layering.propose")}
             </Button>
           </Group>
@@ -281,100 +423,163 @@ function LayeringBody({ kind, onClose, onCreated }: { kind: LayeringKind; onClos
                 .join("")}
             </Text>
           )}
+          {isCombinedProposal && otherSources.length > 0 && (
+            <Stack gap={0} data-testid="layering-distances">
+              {otherSources.map((id) => {
+                const distance = proposal.distances?.[id];
+                return (
+                  <Text key={id} size="xs" data-testid={`layering-distance-${id}`}>
+                    {typeof distance === "number"
+                      ? t("soil.layering.distance", { id, distance: distance.toFixed(1) })
+                      : t("soil.layering.distance_unknown", { id })}
+                  </Text>
+                );
+              })}
+            </Stack>
+          )}
+          {notAligned && (
+            <Alert color="yellow" variant="light" p="xs" data-testid="layering-not-aligned">
+              <Text size="xs">{t("soil.layering.not_aligned")}</Text>
+            </Alert>
+          )}
           {outdated && (
             <Alert color="yellow" variant="light" p="xs">
               <Text size="xs">{t("soil.layering.stale")}</Text>
             </Alert>
           )}
 
-          <Table.ScrollContainer minWidth={560} type="native">
+          <Table.ScrollContainer minWidth={isCombinedProposal ? 820 : 640} type="native">
             <Table striped withTableBorder withColumnBorders fz="xs" verticalSpacing={4}>
               <Table.Thead>
                 <Table.Tr>
                   <Table.Th>{t("soil.layering.col.top")}</Table.Th>
                   <Table.Th>{t("soil.layering.col.bottom")}</Table.Th>
+                  {isCombinedProposal && <Table.Th>{t("soil.layering.col.boundary")}</Table.Th>}
                   <Table.Th>{t("soil.layering.col.description")}</Table.Th>
                   <Table.Th>{t("soil.layering.col.uscs")}</Table.Th>
                   <Table.Th>{kind === "cpt" ? t("soil.layering.col.zone") : t("soil.layering.col.n60")}</Table.Th>
-                  {kind === "cpt" && <Table.Th>{t("soil.layering.col.ic")}</Table.Th>}
+                  {showIc && <Table.Th>{t("soil.layering.col.ic")}</Table.Th>}
                   <Table.Th>{t("soil.layering.col.behaviour")}</Table.Th>
                   <Table.Th>{t("soil.layering.col.gamma")}</Table.Th>
                   <Table.Th>{t("soil.layering.col.gamma_sat")}</Table.Th>
                 </Table.Tr>
               </Table.Thead>
               <Table.Tbody>
-                {proposal.layers.map((layer, i) => (
-                  <Table.Tr key={`${layer.top}-${layer.bottom}`} data-testid={`layering-row-${i}`}>
-                    <Table.Td>{layer.top}</Table.Td>
-                    <Table.Td>{layer.bottom}</Table.Td>
-                    <Table.Td>{layer.description || t("web.common.none")}</Table.Td>
-                    <Table.Td>{layer.uscs ?? t("web.common.none")}</Table.Td>
-                    <Table.Td>{kind === "cpt" ? (layer.sbtn_zone ?? t("web.common.none")) : fmt(layer.n60_mean, 1, t("web.common.none"))}</Table.Td>
-                    {kind === "cpt" && <Table.Td>{fmt(layer.ic_mean, 2, t("web.common.none"))}</Table.Td>}
-                    <Table.Td>{t(`soil.layering.behaviour.${layer.behaviour}`)}</Table.Td>
-                    <Table.Td>
-                      <Group gap={4} wrap="nowrap">
+                {proposal.layers.map((layer, i) => {
+                  const gammaSource = i in userGamma ? (positive(userGamma[i]) ? "user" : null) : layer.gamma_source;
+                  const satSource = i in userSat ? (positive(userSat[i]) ? "user" : null) : layer.gamma_sat_source;
+                  const gammaLabel = sourceText(gammaSource, i in userGamma ? null : layer.gamma_range);
+                  const satLabel = sourceText(satSource, i in userSat ? null : layer.gamma_range);
+                  const satMissing = finite(gwt) && layer.bottom > gwt && !positive(satOf(i));
+                  return (
+                    <Table.Tr
+                      key={`${layer.top}-${layer.bottom}`}
+                      data-testid={`layering-row-${i}`}
+                      data-conflict={layer.conflict ? "true" : undefined}
+                      style={layer.conflict ? { backgroundColor: "var(--mantine-color-red-light)" } : undefined}
+                    >
+                      <Table.Td>{layer.top}</Table.Td>
+                      <Table.Td>{layer.bottom}</Table.Td>
+                      {isCombinedProposal && (
+                        <Table.Td data-testid={`layering-boundary-${i}`}>
+                          {layer.top_source ? t(`soil.layering.boundary.${layer.top_source}`) : t("web.common.none")}
+                        </Table.Td>
+                      )}
+                      <Table.Td>
+                        {layer.description || t("web.common.none")}
+                        {layer.conflict && (
+                          <Stack gap={4} mt={4}>
+                            <Text size="xs" c="red.8" fw={600} data-testid={`layering-conflict-${i}`}>
+                              {conflictText(layer)}
+                            </Text>
+                            <Radio.Group
+                              size="xs"
+                              aria-label={t("soil.layering.resolution.label")}
+                              value={resolutions[i] ?? ""}
+                              onChange={(v) => setResolutions((prev) => ({ ...prev, [i]: v as "uscs" | "cpt" }))}
+                            >
+                              <Group gap="sm">
+                                <Radio
+                                  size="xs"
+                                  value="uscs"
+                                  label={t("soil.layering.resolution.uscs")}
+                                  disabled={busy}
+                                  data-testid={`layering-resolution-${i}-uscs`}
+                                />
+                                <Radio
+                                  size="xs"
+                                  value="cpt"
+                                  label={t("soil.layering.resolution.cpt")}
+                                  disabled={busy}
+                                  data-testid={`layering-resolution-${i}-cpt`}
+                                />
+                              </Group>
+                            </Radio.Group>
+                          </Stack>
+                        )}
+                      </Table.Td>
+                      <Table.Td>{layer.uscs ?? t("web.common.none")}</Table.Td>
+                      <Table.Td>{kind === "cpt" ? (layer.sbtn_zone ?? t("web.common.none")) : fmt(layer.n60_mean, 1, t("web.common.none"))}</Table.Td>
+                      {showIc && <Table.Td>{fmt(layer.ic_mean, 2, t("web.common.none"))}</Table.Td>}
+                      <Table.Td>{t(`soil.layering.behaviour.${layer.behaviour}`)}</Table.Td>
+                      <Table.Td>
                         <NumberInput
                           size="xs"
-                          w={84}
+                          w={92}
                           min={0}
                           decimalScale={2}
                           hideControls
                           disabled={busy}
-                          aria-label={t("soil.layering.gamma_enter")}
+                          aria-label={t("soil.layering.col.gamma")}
                           placeholder={t("soil.layering.gamma_enter")}
-                          value={gammas[i] ?? ""}
-                          onChange={(v) => setGammas((prev) => ({ ...prev, [i]: v }))}
+                          value={gammaOf(i)}
+                          onChange={(v) => setUserGamma((prev) => ({ ...prev, [i]: v }))}
+                          onBlur={() => void refreshSuggestions()}
                           data-testid={`layering-gamma-${i}`}
                         />
-                        {suggestionOf(i) !== null && (
-                          <Button
-                            size="compact-xs"
-                            variant="light"
-                            disabled={busy}
-                            onClick={() => setGammas((prev) => ({ ...prev, [i]: suggestionOf(i) as number }))}
-                            data-testid={`layering-gamma-use-${i}`}
-                          >
-                            {t("soil.layering.gamma_use", { value: fmt(suggestionOf(i), 1, "") })}
-                          </Button>
+                        {gammaLabel && (
+                          <Text size="10px" c="dimmed" lh={1.2} mt={2} data-testid={`layering-gamma-source-${i}`}>
+                            {gammaLabel}
+                          </Text>
                         )}
-                      </Group>
-                    </Table.Td>
-                    <Table.Td data-testid={`layering-gamma-sat-${i}`}>
-                      {fmt(layer.gamma_sat_suggested ?? null, 1, t("web.common.none"))}
-                    </Table.Td>
-                  </Table.Tr>
-                ))}
+                      </Table.Td>
+                      <Table.Td>
+                        <NumberInput
+                          size="xs"
+                          w={92}
+                          min={0}
+                          decimalScale={2}
+                          hideControls
+                          disabled={busy}
+                          aria-label={t("soil.layering.col.gamma_sat")}
+                          value={satOf(i)}
+                          onChange={(v) => setUserSat((prev) => ({ ...prev, [i]: v }))}
+                          onBlur={() => void refreshSuggestions()}
+                          data-testid={`layering-gamma-sat-${i}`}
+                        />
+                        {satLabel && (
+                          <Text size="10px" c="dimmed" lh={1.2} mt={2} data-testid={`layering-gamma-sat-source-${i}`}>
+                            {satLabel}
+                          </Text>
+                        )}
+                        {satMissing && (
+                          <Text size="10px" c="orange.8" lh={1.2} mt={2} data-testid={`layering-gamma-sat-missing-${i}`}>
+                            {t("soil.params.gamma_sat_missing_short")}
+                          </Text>
+                        )}
+                      </Table.Td>
+                    </Table.Tr>
+                  );
+                })}
               </Table.Tbody>
             </Table>
           </Table.ScrollContainer>
 
           <Stack gap={4}>
-            {anySuggestion && (
-              <Group gap="xs">
-                <Button
-                  size="compact-xs"
-                  variant="default"
-                  disabled={busy}
-                  onClick={() =>
-                    setGammas((prev) => {
-                      const next = { ...prev };
-                      proposal.layers.forEach((l, i) => {
-                        if (l.gamma_suggested !== null && l.gamma_suggested !== undefined) next[i] = l.gamma_suggested;
-                      });
-                      return next;
-                    })
-                  }
-                  data-testid="layering-gamma-use-all"
-                >
-                  {t("soil.layering.gamma_use_all")}
-                </Button>
-                {!gammasComplete && (
-                  <Text size="xs" c="orange.8">
-                    {t("soil.layering.gamma_confirm_needed")}
-                  </Text>
-                )}
-              </Group>
+            {refreshing && (
+              <Text size="xs" c="dimmed" data-testid="layering-gamma-refreshing">
+                {t("soil.layering.gamma_refreshing")}
+              </Text>
             )}
             <Text size="xs" c="dimmed" data-testid="layering-gamma-note">
               {t("soil.layering.gamma_note")}
@@ -418,14 +623,14 @@ function LayeringBody({ kind, onClose, onCreated }: { kind: LayeringKind; onClos
             />
           </SimpleGrid>
           <Group justify="space-between" wrap="wrap">
-            <Text size="xs" c="dimmed">
-              {canCreate ? "" : t("soil.layering.create_blocked")}
+            <Text size="xs" c="dimmed" data-testid="layering-create-hint">
+              {canCreate ? "" : conflictsOpen ? t("soil.layering.create_blocked_conflict") : t("soil.layering.create_blocked")}
             </Text>
             <Group gap="xs">
               <Button size="xs" variant="default" onClick={onClose}>
                 {t("web.common.close")}
               </Button>
-              <Button size="xs" onClick={() => void create()} disabled={!canCreate || busy} loading={busy && proposal !== null} data-testid="layering-create">
+              <Button size="xs" onClick={() => void create()} disabled={!canCreate || busy} loading={busy && proposal !== null && !refreshing} data-testid="layering-create">
                 {t("soil.layering.create")}
               </Button>
             </Group>
