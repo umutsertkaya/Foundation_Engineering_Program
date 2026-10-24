@@ -24,7 +24,9 @@ cap, reused from the SPT processing). sigma'_v integrates the unit weights of th
 (gamma above the groundwater table, gamma_sat - gamma_w below it) and the trial value of the
 current layer. The layer N'70 is the mean of its points; the suggestion is the middle of the
 Bowles range of the matching classes. The trial value starts at 18.0 kN/m3 and the step is
-repeated until it changes by less than 0.01 kN/m3 (at most 50 steps). Layers are processed
+repeated until it changes by less than 0.01 kN/m3 (at most 50 steps). If the values cycle (or the
+limit is hit) the suggestion is the middle of the union of the ranges in the cycle, that union is
+the reported range, and a warning is given. Layers are processed
 top-down; a layer whose upper layers lack a needed unit weight gets no SPT suggestion.
 """
 
@@ -98,6 +100,7 @@ def _bowles(index, layers, results, points, gwt, start_gamma, start_sat):
     bottoms = [layer.bottom for layer in layers[:index + 1]]
     known = [(r.gamma, r.gamma_sat) for r in results]
     value = BOWLES_START_GAMMA
+    states: list[tuple[float, tuple[float, float]]] = []
     for _ in range(BOWLES_MAX_STEPS):
         gammas = [g for g, _ in known] + [value if start_gamma is None else start_gamma]
         sats = [s for _, s in known] + [value if start_sat is None else start_sat]
@@ -109,12 +112,26 @@ def _bowles(index, layers, results, points, gwt, start_gamma, start_sat):
             n70.append(n60 * N60_TO_N70 * overburden_factor_liao_whitman(sigma))
         if not n70:
             return None
-        low, high = bowles_gamma_range(sum(n70) / len(n70))
-        new = (low + high) / 2.0
+        bounds = bowles_gamma_range(sum(n70) / len(n70))
+        states.append((value, bounds))
+        new = (bounds[0] + bounds[1]) / 2.0
         if abs(new - value) < BOWLES_TOLERANCE:
-            return new, (low, high), True
+            return new, bounds, True
+        repeat = next((i for i, (v, _) in enumerate(states) if abs(v - new) < 1e-9), None)
+        if repeat is not None:
+            # Cycle between classes: the union of the ranges in the cycle is deterministic.
+            return _union(states[repeat:]), _union_bounds(states[repeat:]), False
         value = new
-    return value, (low, high), False
+    return _union(states), _union_bounds(states), False
+
+
+def _union_bounds(states) -> tuple[float, float]:
+    return min(b[0] for _, b in states), max(b[1] for _, b in states)
+
+
+def _union(states) -> float:
+    low, high = _union_bounds(states)
+    return (low + high) / 2.0
 
 
 def suggest_unit_weights(

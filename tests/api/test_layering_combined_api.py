@@ -23,7 +23,7 @@ def opened(shell):
     data = {"sounding_id": "C1", "qc_unit": "MPa", "delimiter": ",", "decimal": "."}
     assert shell.post(f"{PREFIX}/import/cpt", data=data, files=files).status_code == 200
     depth = [d / 2 for d in range(1, 13)]
-    cpt = {"id": "C1", "x": 0.0, "y": 0.0, "gwt_depth": 2.0, "depth": depth, "qc": [10000.0] * 12, "fs": [60.0] * 12}
+    cpt = {"id": "C1", "x": 0.0, "y": 0.0, "gwt_depth": 2.0, "depth": depth, "qc": [5000.0 + 1000.0 * i for i in range(12)], "fs": [60.0] * 12}
     assert shell.put(f"{PREFIX}/cpts/C1", json=cpt).status_code == 200
     assert shell.post(f"{PREFIX}/boreholes", json=BOREHOLE).status_code == 200
     return shell
@@ -91,3 +91,28 @@ def test_spt_layering_works_without_profile_and_accepts_supplied_gamma(opened):
     assert layer["gamma_source"] == layer["gamma_sat_source"] == "user"
     assert opened.post(f"{PREFIX}/layering/spt/B1", json={
         **body, "supplied_gamma": {"9": {"gamma": 17.5}}}).status_code == 422
+
+
+def test_combined_groundwater_falls_back_to_first_borehole_with_a_table(opened):
+    """GWT order: CPT, first selected borehole with gwt_depth, active profile, none.
+
+    No elevations, so no shift: a borehole table at 2 m reproduces the CPT's 2 m table.
+    """
+    reference = combined(opened).json()["layers"]
+    depth = [d / 2 for d in range(1, 13)]
+    bare = {"id": "C1", "x": 0.0, "y": 0.0, "depth": depth, "qc": [5000.0 + 1000.0 * i for i in range(12)], "fs": [60.0] * 12}
+    assert opened.put(f"{PREFIX}/cpts/C1", json=bare).status_code == 200
+    assert combined(opened).status_code == 422  # no table anywhere
+    assert opened.put(f"{PREFIX}/boreholes/B1", json={**BOREHOLE, "gwt_depth": 2.0}).status_code == 200
+    assert opened.post(f"{PREFIX}/boreholes", json={**BOREHOLE, "id": "B2", "gwt_depth": 4.0}
+                       ).status_code == 200
+
+    def run(ids):
+        response = opened.post(f"{PREFIX}/layering/combined", json={
+            "cpt_id": "C1", "borehole_ids": ids, "settings": {"method": "combined"}})
+        assert response.status_code == 200, response.text
+        return [(x["gamma_suggested"], x["gamma_sat_suggested"]) for x in response.json()["layers"]]
+
+    expected = [(x["gamma_suggested"], x["gamma_sat_suggested"]) for x in reference]
+    assert run(["B1", "B2"]) == expected
+    assert run(["B2", "B1"]) != expected  # B2 (4 m) comes first in request order

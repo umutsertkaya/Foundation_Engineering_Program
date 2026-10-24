@@ -56,10 +56,12 @@ def test_bowles_below_groundwater_uses_buoyant_weight_and_reports_non_convergenc
     g = 18: 60.57 kPa, C_N = 1.2934, N'70 = 16.63 -> medium+dense -> 19.5.
     g = 19.5: 68.07 kPa, C_N = 1.2201, N'70 = 15.69 (< 16, dense not reached) -> medium -> 18.5.
     g = 18.5: 63.07 kPa, N'70 = 16.30 -> medium+dense -> 19.5 again: the table is discontinuous
-    at N'70 = 16, the iteration oscillates and the 50-step limit is reported.
+    at N'70 = 16, so the values cycle (19.5 repeats). The cycle states are g = 19.5 (range 17-20)
+    and g = 18.5 (range 17-22); union 17-22, middle (17 + 22)/2 = 19.5, reported with a warning.
     """
     [result], warnings = suggest([layer(0, 6, "SP")], gwt=2.0, spt=[(5.0, 15.0)])
-    assert result.gamma in (pytest.approx(18.5), pytest.approx(19.5))
+    assert result.gamma == result.gamma_sat == pytest.approx(19.5)
+    assert result.range == (17.0, 22.0)
     assert "layering.warning.gamma_not_converged" in codes(warnings)
     assert "layering.warning.gwt_unknown_for_gamma" not in codes(warnings)
 

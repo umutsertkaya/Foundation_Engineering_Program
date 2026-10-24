@@ -166,7 +166,8 @@ def propose_combined_layers(
     The CPT and each borehole are layered with their own rules (``cpt_ic``; ``spt_log`` when a
     log exists, else ``spt_uscs_n``) and merged by ``combined_layers`` (elevation alignment,
     boundary merging, USCS/Ic conflict flags, unit weights from all sources). The groundwater
-    depth is the sounding's own, else the active profile's. Nothing is approved.
+    depth is the sounding's own, else the first selected borehole's (aligned by elevation when both
+    have one), else the active profile's in-situ one. Nothing is approved.
     """
     if settings.method != "combined":
         raise ValueError("Layering method does not match investigation type")
@@ -179,11 +180,28 @@ def propose_combined_layers(
             raise KeyError(identifier)
     if not borehole_ids or len(set(borehole_ids)) != len(borehole_ids):
         raise ValueError("Combined layering needs distinct borehole ids")
+    sounding = cpts[cpt_id]
+    gwt = sounding.gwt_depth
+    if gwt is None:
+        # First selected borehole (request order) with a measured table, shifted to the CPT frame.
+        for identifier in borehole_ids:
+            borehole = boreholes[identifier]
+            if borehole.gwt_depth is not None:
+                shift = (sounding.elevation - borehole.elevation
+                         if None not in (sounding.elevation, borehole.elevation) else 0.0)
+                gwt = borehole.gwt_depth + shift
+                break
+        if gwt is not None:
+            # CPT processing needs the table too: use it on a copy, the project stays unchanged.
+            investigations = project.investigations.model_copy(update={"cpts": [
+                c.model_copy(update={"gwt_depth": gwt}) if c.id == cpt_id else c
+                for c in project.investigations.cpts]})
+            project = project.model_copy(update={"investigations": investigations})
     results = process_investigations(project)
     if cpt_id in results.errors:
         raise ValueError(results.errors[cpt_id])
-    sounding, processed = cpts[cpt_id], results.cpt[cpt_id]
-    gwt = _gwt_insitu(project, sounding.gwt_depth)
+    processed = results.cpt[cpt_id]
+    gwt = _gwt_insitu(project, gwt)
     cpt_proposal = cpt_layers(processed, settings.model_copy(update={"method": "cpt_ic"}), gwt)
     proposals, series, labs, sites = {}, {}, {}, {}
     for identifier in borehole_ids:
