@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Literal
 
 import numpy as np
@@ -27,6 +27,15 @@ class Layer:
     behaviour: Literal["drained", "undrained"]
     gamma_sat_suggested: float | None = None
     """Saturated unit weight from the points below the in-situ groundwater table (CPT only)."""
+    gamma_source: str | None = None
+    """Where gamma_suggested came from: user, lab, phase, cpt_rc2010 or spt_bowles."""
+    gamma_sat_source: str | None = None
+    gamma_range: tuple[float, float] | None = None
+    """Bowles range [kN/m3] when a unit weight comes from the SPT correlation."""
+    top_source: str | None = None
+    """Combined layering: which investigation set the top boundary (cpt, borehole, both)."""
+    conflict: dict | None = None
+    """Combined layering: CPT group versus USCS group disagreement the engineer must resolve."""
 
 
 @dataclass
@@ -37,6 +46,9 @@ class Proposal:
     settings: LayeringSettings
     layers: list[Layer]
     warnings: list[str]
+    source_ids: list[str] = field(default_factory=list)
+    distances: dict[str, float] = field(default_factory=dict)
+    """Combined layering: horizontal distance [m] from the CPT to each borehole."""
 
 
 @dataclass
@@ -142,4 +154,5 @@ def merge_thin(segments, boundaries, minimum, distance, warnings, *, can_merge=N
 
 def proposal(source_id, settings, layers, warnings):
     """Copy settings and deduplicate identical warning messages in occurrence order."""
-    return Proposal(source_id, settings.model_copy(deep=True), layers, list(dict.fromkeys(warnings)))
+    return Proposal(source_id, settings.model_copy(deep=True), layers, list(dict.fromkeys(warnings)),
+                    source_ids=[source_id])

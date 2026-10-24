@@ -1068,6 +1068,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/m/soil/layering/combined": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Propose Combined
+         * @description Return a synchronous, unapproved layering from one CPT and several boreholes.
+         */
+        post: operations["propose_combined_layers"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/m/soil/profiles": {
         parameters: {
             query?: never;
@@ -2445,6 +2465,21 @@ export interface components {
             unit_source: "header" | "inferred" | "default" | "user";
         };
         /**
+         * CombinedLayeringRequest
+         * @description One CPT sounding and at least one borehole to layer together.
+         */
+        CombinedLayeringRequest: {
+            /** Cpt Id */
+            cpt_id: string;
+            /** Borehole Ids */
+            borehole_ids: string[];
+            settings: components["schemas"]["LayeringSettings"];
+            /** Supplied Gamma */
+            supplied_gamma?: {
+                [key: string]: components["schemas"]["SuppliedGamma"];
+            };
+        };
+        /**
          * DeletionResponse
          * @description JSON acknowledgement of a deleted investigation, profile or structure.
          */
@@ -2941,6 +2976,21 @@ export interface components {
             notes?: string | null;
         };
         /**
+         * LayerConflict
+         * @description CPT soil-behaviour group against the USCS group of one combined layer.
+         */
+        LayerConflict: {
+            /**
+             * Cpt
+             * @enum {string}
+             */
+            cpt: "coarse" | "fine" | "transitional";
+            /** Uscs */
+            uscs: string | null;
+            /** Ic Mean */
+            ic_mean: number | null;
+        };
+        /**
          * LayerInventory
          * @description Input availability of a layer and the correlations it enables, nothing assumed.
          */
@@ -2996,16 +3046,70 @@ export interface components {
         };
         /**
          * LayeringProposal
-         * @description Layer interpretation and reproducible settings for one investigation.
+         * @description Layer interpretation and reproducible settings for one or several investigations.
          */
         LayeringProposal: {
             /** Source Id */
             source_id: string;
+            /**
+             * Source Ids
+             * @description Every investigation the proposal rests on
+             */
+            source_ids?: string[];
             settings: components["schemas"]["LayeringSettings"];
             /** Layers */
             layers: components["schemas"]["ProposedLayer"][];
             /** Warnings */
             warnings: string[];
+            /**
+             * Distances
+             * @description Combined layering: CPT-borehole distance [m] by id
+             */
+            distances?: {
+                [key: string]: number;
+            };
+        };
+        /**
+         * LayeringRequest
+         * @description Layering settings (flat, as before) plus optional user-supplied unit weights.
+         *
+         *     ``supplied_gamma`` maps a zero-based layer index of the proposal to the user's values;
+         *     omitted means no layer is user-supplied.
+         */
+        LayeringRequest: {
+            /**
+             * Method
+             * @enum {string}
+             */
+            method: "cpt_ic" | "spt_log" | "spt_uscs_n" | "combined";
+            /**
+             * Smoothing Window
+             * @description CPT Ic moving window [m]
+             * @default 0.5
+             */
+            smoothing_window: number;
+            /**
+             * Min Thickness
+             * @description Thinner zones merge into a neighbour [m]
+             * @default 0.5
+             */
+            min_thickness: number;
+            /**
+             * Merge Ic Tol
+             * @description Adjacent zones with |dIc| below this merge
+             * @default 0.15
+             */
+            merge_ic_tol: number;
+            /**
+             * N Change Ratio
+             * @description SPT: relative N change that starts a new layer
+             * @default 0.5
+             */
+            n_change_ratio: number;
+            /** Supplied Gamma */
+            supplied_gamma?: {
+                [key: string]: components["schemas"]["SuppliedGamma"];
+            };
         };
         /**
          * LayeringSettings
@@ -3018,7 +3122,7 @@ export interface components {
              * Method
              * @enum {string}
              */
-            method: "cpt_ic" | "spt_log" | "spt_uscs_n";
+            method: "cpt_ic" | "spt_log" | "spt_uscs_n" | "combined";
             /**
              * Smoothing Window
              * @description CPT Ic moving window [m]
@@ -3565,6 +3669,36 @@ export interface components {
              * @enum {string}
              */
             behaviour: "drained" | "undrained";
+            /**
+             * Gamma Source
+             * @description Source of gamma_suggested: user, lab, phase, cpt_rc2010 or spt_bowles
+             */
+            gamma_source?: string | null;
+            /**
+             * Gamma Sat Source
+             * @description Source of gamma_sat_suggested
+             */
+            gamma_sat_source?: string | null;
+            /**
+             * Gamma Range
+             * @description Bowles (1996) unit-weight range [kN/m3] when a source is spt_bowles
+             */
+            gamma_range?: [
+                number,
+                number
+            ] | null;
+            /**
+             * Top Source
+             * @description Combined layering: which investigation set the top boundary
+             */
+            top_source?: ("cpt" | "borehole" | "both") | null;
+            /** @description Combined layering: CPT group contradicts the USCS group */
+            conflict?: components["schemas"]["LayerConflict"] | null;
+            /**
+             * Resolution
+             * @description Client choice resolving `conflict`; required before a profile is created
+             */
+            resolution?: ("uscs" | "cpt") | null;
         };
         /**
          * ReapproveItem
@@ -4424,6 +4558,22 @@ export interface components {
             source_stale: boolean;
             /** Has Result */
             has_result: boolean;
+        };
+        /**
+         * SuppliedGamma
+         * @description User-entered unit weights of one proposed layer; they replace the suggestion.
+         */
+        SuppliedGamma: {
+            /**
+             * Gamma
+             * @description Unit weight [kN/m3]
+             */
+            gamma: number;
+            /**
+             * Gamma Sat
+             * @description Saturated unit weight [kN/m3]
+             */
+            gamma_sat?: number | null;
         };
         /** TendonInfo */
         TendonInfo: {
@@ -10274,7 +10424,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["LayeringSettings"];
+                "application/json": components["schemas"]["LayeringRequest"];
             };
         };
         responses: {
@@ -10372,7 +10522,103 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["LayeringSettings"];
+                "application/json": components["schemas"]["LayeringRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LayeringProposal"];
+                };
+            };
+            /** @description Invalid operation or input file */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Resource not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Conflicting or stale structure state */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Validation error or missing_factors */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Engine or server error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Contract stub; not implemented */
+            501: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Other client error */
+            "4XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Other server error */
+            "5XX": {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    propose_combined_layers: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CombinedLayeringRequest"];
             };
         };
         responses: {

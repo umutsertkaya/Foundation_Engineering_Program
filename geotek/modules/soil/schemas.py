@@ -7,7 +7,7 @@ from pydantic import ConfigDict, Field, model_validator
 from geotek.api.schemas import DTO, LayeringProposal, ProfileSummary, ResultNumber  # noqa: F401
 from geotek.core.models.investigations import Borehole, CPTSounding
 from geotek.core.models.parameters import DesignKey, SelectionMode, Statistic
-from geotek.core.models.profile import GroundwaterCondition, ProfileOrigin, SoilLayer
+from geotek.core.models.profile import GroundwaterCondition, LayeringSettings, ProfileOrigin, SoilLayer
 
 
 class InvestigationsDTO(DTO):
@@ -190,6 +190,32 @@ class ProfileCreate(DTO):
         if {"layers", "from_proposal"} <= self.model_fields_set:
             raise ValueError("Omit the unused layer source")
         return self
+
+
+class SuppliedGamma(DTO):
+    """User-entered unit weights of one proposed layer; they replace the suggestion."""
+
+    gamma: float = Field(gt=0, description="Unit weight [kN/m3]")
+    gamma_sat: float | None = Field(None, gt=0, description="Saturated unit weight [kN/m3]")
+
+
+class LayeringRequest(LayeringSettings):
+    """Layering settings (flat, as before) plus optional user-supplied unit weights.
+
+    ``supplied_gamma`` maps a zero-based layer index of the proposal to the user's values;
+    omitted means no layer is user-supplied.
+    """
+
+    supplied_gamma: dict[int, SuppliedGamma] = Field(default_factory=dict)
+
+
+class CombinedLayeringRequest(DTO):
+    """One CPT sounding and at least one borehole to layer together."""
+
+    cpt_id: str
+    borehole_ids: list[str] = Field(min_length=1)
+    settings: LayeringSettings
+    supplied_gamma: dict[int, SuppliedGamma] = Field(default_factory=dict)
 
 
 class LayerSplit(DTO):

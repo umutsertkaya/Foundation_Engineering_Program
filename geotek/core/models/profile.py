@@ -100,7 +100,7 @@ class LayeringSettings(BaseModel):
     Defaults are algorithm settings (not code or correlation coefficients) and are editable.
     """
 
-    method: Literal["cpt_ic", "spt_log", "spt_uscs_n"]
+    method: Literal["cpt_ic", "spt_log", "spt_uscs_n", "combined"]
     smoothing_window: float = Field(0.5, gt=0, description="CPT Ic moving window [m]")
     min_thickness: float = Field(0.5, gt=0, description="Thinner zones merge into a neighbour [m]")
     merge_ic_tol: float = Field(0.15, ge=0, description="Adjacent zones with |dIc| below this merge")

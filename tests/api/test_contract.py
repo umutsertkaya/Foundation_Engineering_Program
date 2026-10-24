@@ -95,6 +95,8 @@ REQUESTS = [
     ("GET", "/api/m/soil/boreholes/{id}/processed", None),
     ("POST", "/api/m/soil/layering/cpt/{cpt_id}", LAYERING),
     ("POST", "/api/m/soil/layering/spt/{borehole_id}", {"method": "spt_log"}),
+    ("POST", "/api/m/soil/layering/combined", {
+        "cpt_id": "CPT1", "borehole_ids": ["B1"], "settings": {"method": "combined"}}),
     ("GET", "/api/m/soil/profiles", None),
     ("POST", "/api/m/soil/profiles", PROFILE_CREATE),
     ("GET", "/api/m/soil/profiles/{id}", None),
@@ -177,6 +179,7 @@ IMPLEMENTED = {
         "/api/m/soil/profiles/{id}/layers/{layer_id}/split",
         "/api/m/soil/profiles/{id}/layers/merge",
         "/api/m/soil/layering/cpt/{cpt_id}", "/api/m/soil/layering/spt/{borehole_id}",
+        "/api/m/soil/layering/combined",
         "/api/m/soil/profiles/{id}/layers/{layer_id}/parameters",
         "/api/m/soil/profiles/{id}/layers/{layer_id}/inventory",
         "/api/m/soil/profiles/{id}/layers/{layer_id}/parameters/{key}",

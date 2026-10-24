@@ -112,11 +112,12 @@ graph LR
   geotek_engine_insitu -->|1| geotek_engine_classification
   geotek_engine_insitu -->|1| geotek_engine_correlations
   geotek_engine_lab -->|5| geotek_core
-  geotek_engine_layering -->|4| geotek_core
-  geotek_engine_layering -->|5| geotek_core_models
-  geotek_engine_layering -->|1| geotek_engine_classification
-  geotek_engine_layering -->|1| geotek_engine_correlations
-  geotek_engine_layering -->|2| geotek_engine_insitu
+  geotek_engine_layering -->|6| geotek_core
+  geotek_engine_layering -->|7| geotek_core_models
+  geotek_engine_layering -->|3| geotek_engine_classification
+  geotek_engine_layering -->|2| geotek_engine_correlations
+  geotek_engine_layering -->|3| geotek_engine_insitu
+  geotek_engine_layering -->|1| geotek_engine_lab
   geotek_engine_limit_state -->|1| geotek_config
   geotek_engine_limit_state -->|1| geotek_core
   geotek_engine_limit_state -->|2| geotek_core_models
@@ -175,6 +176,7 @@ graph LR
   geotek_modules_soil -->|4| geotek_core
   geotek_modules_soil -->|9| geotek_core_models
   geotek_modules_soil -->|4| geotek_engine_classification
+  geotek_modules_soil -->|1| geotek_engine_layering
   geotek_modules_soil -->|3| geotek_io
   geotek_modules_soil -->|5| geotek_services
   geotek_modules_walls -->|7| geotek_api
@@ -183,13 +185,13 @@ graph LR
   geotek_services -->|1| geotek_api
   geotek_services -->|4| geotek_config
   geotek_services -->|13| geotek_core
-  geotek_services -->|23| geotek_core_models
+  geotek_services -->|24| geotek_core_models
   geotek_services -->|6| geotek_engine_classification
-  geotek_services -->|4| geotek_engine_correlations
+  geotek_services -->|6| geotek_engine_correlations
   geotek_services -->|4| geotek_engine_earth_pressure
-  geotek_services -->|4| geotek_engine_insitu
+  geotek_services -->|5| geotek_engine_insitu
   geotek_services -->|1| geotek_engine_lab
-  geotek_services -->|3| geotek_engine_layering
+  geotek_services -->|6| geotek_engine_layering
   geotek_services -->|2| geotek_engine_limit_state
   geotek_services -->|1| geotek_engine_liquefaction
   geotek_services -->|2| geotek_engine_sheet_pile
@@ -217,7 +219,7 @@ graph LR
 | `geotek.engine.earth_pressure` | 5 | `geotek.core`, `geotek.core.models` |
 | `geotek.engine.insitu` | 3 | `geotek.core`, `geotek.core.models`, `geotek.engine.classification`, `geotek.engine.correlations` |
 | `geotek.engine.lab` | 5 | `geotek.core` |
-| `geotek.engine.layering` | 4 | `geotek.core`, `geotek.core.models`, `geotek.engine.classification`, `geotek.engine.correlations`, `geotek.engine.insitu` |
+| `geotek.engine.layering` | 6 | `geotek.core`, `geotek.core.models`, `geotek.engine.classification`, `geotek.engine.correlations`, `geotek.engine.insitu`, `geotek.engine.lab` |
 | `geotek.engine.limit_state` | 1 | `geotek.config`, `geotek.core`, `geotek.core.models`, `geotek.engine.bearing`, `geotek.engine.sheet_pile`, `geotek.engine.stability`, `geotek.engine.walls`, `geotek.services` |
 | `geotek.engine.liquefaction` | 5 | `geotek.core`, `geotek.core.models`, `geotek.engine.classification`, `geotek.engine.correlations`, `geotek.engine.insitu`, `geotek.engine.stresses` |
 | `geotek.engine.sheet_pile` | 1 | `geotek.core`, `geotek.core.models`, `geotek.engine.earth_pressure` |
@@ -234,7 +236,7 @@ graph LR
 | `geotek.modules.liquefaction` | 3 | `geotek.api`, `geotek.core`, `geotek.core.models`, `geotek.services` |
 | `geotek.modules.report` | 3 | `geotek.api`, `geotek.core`, `geotek.services` |
 | `geotek.modules.sheet_pile` | 2 | `geotek.api`, `geotek.core` |
-| `geotek.modules.soil` | 4 | `geotek.api`, `geotek.core`, `geotek.core.models`, `geotek.engine.classification`, `geotek.io`, `geotek.services` |
+| `geotek.modules.soil` | 4 | `geotek.api`, `geotek.core`, `geotek.core.models`, `geotek.engine.classification`, `geotek.engine.layering`, `geotek.io`, `geotek.services` |
 | `geotek.modules.walls` | 3 | `geotek.api`, `geotek.core`, `geotek.services` |
 | `geotek.services` | 10 | `geotek.api`, `geotek.config`, `geotek.core`, `geotek.core.models`, `geotek.engine.classification`, `geotek.engine.correlations`, `geotek.engine.earth_pressure`, `geotek.engine.insitu`, `geotek.engine.lab`, `geotek.engine.layering`, `geotek.engine.limit_state`, `geotek.engine.liquefaction`, `geotek.engine.sheet_pile`, `geotek.engine.stability`, `geotek.engine.walls`, `geotek.i18n` |
 
@@ -275,41 +277,42 @@ Yer sütunu işleyicinin `def` satırıdır; çok satırlı dekoratörler AST il
 | POST | `/api/m/report/docx` | `geotek/modules/report/api.py:45` | `build_docx` | — |
 | GET | `/api/m/report/sections` | `geotek/modules/report/api.py:32` | `list_sections` | `web/src/modules/report/api.ts` |
 | POST | `/api/m/sheet_pile/structures/{id}/design` | `geotek/modules/sheet_pile/api.py:21` | `design_sheet_pile` | `web/src/modules/sheet_pile/api.ts` |
-| POST | `/api/m/soil/boreholes` | `geotek/modules/soil/api.py:279` | `create_borehole` | `web/src/modules/soil/api.ts` |
-| DELETE | `/api/m/soil/boreholes/{id}` | `geotek/modules/soil/api.py:300` | `delete_borehole` | `web/src/modules/soil/api.ts` |
-| PUT | `/api/m/soil/boreholes/{id}` | `geotek/modules/soil/api.py:293` | `update_borehole` | `web/src/modules/soil/api.ts` |
-| PUT | `/api/m/soil/boreholes/{id}/log` | `geotek/modules/soil/api.py:307` | `set_borehole_log` | — |
-| GET | `/api/m/soil/boreholes/{id}/processed` | `geotek/modules/soil/api.py:434` | `get_processed_spt` | `web/src/modules/soil/api.ts` |
-| GET | `/api/m/soil/boreholes/{id}/uscs` | `geotek/modules/soil/api.py:401` | `get_borehole_uscs` | `web/src/modules/soil/api.ts` |
-| GET | `/api/m/soil/classification/sbtn/reference` | `geotek/modules/soil/api.py:350` | `get_sbtn_reference` | `web/src/modules/soil/api.ts` |
-| POST | `/api/m/soil/classification/uscs` | `geotek/modules/soil/api.py:413` | `classify_uscs` | `web/src/modules/soil/api.ts` |
-| GET | `/api/m/soil/classification/uscs/reference` | `geotek/modules/soil/api.py:421` | `get_uscs_reference` | `web/src/modules/soil/api.ts` |
-| DELETE | `/api/m/soil/cpts/{id}` | `geotek/modules/soil/api.py:322` | `delete_cpt` | `web/src/modules/soil/api.ts` |
-| PUT | `/api/m/soil/cpts/{id}` | `geotek/modules/soil/api.py:317` | `update_cpt` | `web/src/modules/soil/api.ts` |
-| GET | `/api/m/soil/cpts/{id}/processed` | `geotek/modules/soil/api.py:329` | `get_processed_cpt` | `web/src/modules/soil/api.ts` |
-| GET | `/api/m/soil/cpts/{id}/sbtn` | `geotek/modules/soil/api.py:384` | `get_cpt_sbtn` | `web/src/modules/soil/api.ts` |
-| POST | `/api/m/soil/import/cpt` | `geotek/modules/soil/api.py:161` | `import_cpt` | — |
-| POST | `/api/m/soil/import/spt` | `geotek/modules/soil/api.py:191` | `import_spt` | — |
-| POST | `/api/m/soil/import/workbook/analyze` | `geotek/modules/soil/api.py:216` | `analyze_workbook_route` | — |
-| POST | `/api/m/soil/import/workbook/check` | `geotek/modules/soil/api.py:231` | `check_workbook` | — |
-| POST | `/api/m/soil/import/workbook/commit` | `geotek/modules/soil/api.py:248` | `commit_workbook` | — |
-| GET | `/api/m/soil/investigations` | `geotek/modules/soil/api.py:151` | `list_investigations` | `web/src/modules/soil/api.ts` |
-| POST | `/api/m/soil/layering/cpt/{cpt_id}` | `geotek/modules/soil/api.py:453` | `propose_cpt_layers` | `web/src/modules/soil/api.ts` |
-| POST | `/api/m/soil/layering/spt/{borehole_id}` | `geotek/modules/soil/api.py:463` | `propose_spt_layers` | `web/src/modules/soil/api.ts` |
-| GET | `/api/m/soil/profiles` | `geotek/modules/soil/api.py:470` | `list_profiles` | `web/src/modules/soil/api.ts` |
-| POST | `/api/m/soil/profiles` | `geotek/modules/soil/api.py:479` | `create_profile` | `web/src/modules/soil/api.ts` |
-| DELETE | `/api/m/soil/profiles/{id}` | `geotek/modules/soil/api.py:544` | `delete_profile` | `web/src/modules/soil/api.ts` |
-| GET | `/api/m/soil/profiles/{id}` | `geotek/modules/soil/api.py:488` | `get_profile` | `web/src/modules/soil/api.ts` |
-| PUT | `/api/m/soil/profiles/{id}` | `geotek/modules/soil/api.py:522` | `update_profile` | `web/src/modules/soil/api.ts` |
-| POST | `/api/m/soil/profiles/{id}/layers/merge` | `geotek/modules/soil/api.py:574` | `merge_layers` | — |
-| GET | `/api/m/soil/profiles/{id}/layers/{layer_id}/inventory` | `geotek/modules/soil/api.py:606` | `get_layer_inventory` | `web/src/modules/soil/api.ts` |
-| GET | `/api/m/soil/profiles/{id}/layers/{layer_id}/parameters` | `geotek/modules/soil/api.py:592` | `list_layer_parameters` | `web/src/modules/soil/api.ts` |
-| POST | `/api/m/soil/profiles/{id}/layers/{layer_id}/parameters/approve` | `geotek/modules/soil/api.py:644` | `approve_parameters` | `web/src/modules/soil/api.ts` |
-| PUT | `/api/m/soil/profiles/{id}/layers/{layer_id}/parameters/{key}` | `geotek/modules/soil/api.py:621` | `update_parameter_selection` | `web/src/modules/soil/api.ts` |
-| POST | `/api/m/soil/profiles/{id}/layers/{layer_id}/split` | `geotek/modules/soil/api.py:565` | `split_layer` | — |
-| POST | `/api/m/soil/profiles/{id}/parameters/reapprove` | `geotek/modules/soil/api.py:671` | `reapprove_parameters` | `web/src/modules/soil/api.ts` |
-| POST | `/api/m/soil/profiles/{id}/parameters/suggest-all` | `geotek/modules/soil/api.py:711` | `suggest_all_parameters` | `web/src/modules/soil/api.ts` |
-| GET | `/api/m/soil/profiles/{id}/readiness` | `geotek/modules/soil/api.py:697` | `get_profile_readiness` | `web/src/modules/soil/api.ts` |
+| POST | `/api/m/soil/boreholes` | `geotek/modules/soil/api.py:289` | `create_borehole` | `web/src/modules/soil/api.ts` |
+| DELETE | `/api/m/soil/boreholes/{id}` | `geotek/modules/soil/api.py:310` | `delete_borehole` | `web/src/modules/soil/api.ts` |
+| PUT | `/api/m/soil/boreholes/{id}` | `geotek/modules/soil/api.py:303` | `update_borehole` | `web/src/modules/soil/api.ts` |
+| PUT | `/api/m/soil/boreholes/{id}/log` | `geotek/modules/soil/api.py:317` | `set_borehole_log` | — |
+| GET | `/api/m/soil/boreholes/{id}/processed` | `geotek/modules/soil/api.py:444` | `get_processed_spt` | `web/src/modules/soil/api.ts` |
+| GET | `/api/m/soil/boreholes/{id}/uscs` | `geotek/modules/soil/api.py:411` | `get_borehole_uscs` | `web/src/modules/soil/api.ts` |
+| GET | `/api/m/soil/classification/sbtn/reference` | `geotek/modules/soil/api.py:360` | `get_sbtn_reference` | `web/src/modules/soil/api.ts` |
+| POST | `/api/m/soil/classification/uscs` | `geotek/modules/soil/api.py:423` | `classify_uscs` | `web/src/modules/soil/api.ts` |
+| GET | `/api/m/soil/classification/uscs/reference` | `geotek/modules/soil/api.py:431` | `get_uscs_reference` | `web/src/modules/soil/api.ts` |
+| DELETE | `/api/m/soil/cpts/{id}` | `geotek/modules/soil/api.py:332` | `delete_cpt` | `web/src/modules/soil/api.ts` |
+| PUT | `/api/m/soil/cpts/{id}` | `geotek/modules/soil/api.py:327` | `update_cpt` | `web/src/modules/soil/api.ts` |
+| GET | `/api/m/soil/cpts/{id}/processed` | `geotek/modules/soil/api.py:339` | `get_processed_cpt` | `web/src/modules/soil/api.ts` |
+| GET | `/api/m/soil/cpts/{id}/sbtn` | `geotek/modules/soil/api.py:394` | `get_cpt_sbtn` | `web/src/modules/soil/api.ts` |
+| POST | `/api/m/soil/import/cpt` | `geotek/modules/soil/api.py:171` | `import_cpt` | — |
+| POST | `/api/m/soil/import/spt` | `geotek/modules/soil/api.py:201` | `import_spt` | — |
+| POST | `/api/m/soil/import/workbook/analyze` | `geotek/modules/soil/api.py:226` | `analyze_workbook_route` | — |
+| POST | `/api/m/soil/import/workbook/check` | `geotek/modules/soil/api.py:241` | `check_workbook` | — |
+| POST | `/api/m/soil/import/workbook/commit` | `geotek/modules/soil/api.py:258` | `commit_workbook` | — |
+| GET | `/api/m/soil/investigations` | `geotek/modules/soil/api.py:161` | `list_investigations` | `web/src/modules/soil/api.ts` |
+| POST | `/api/m/soil/layering/combined` | `geotek/modules/soil/api.py:483` | `propose_combined` | — |
+| POST | `/api/m/soil/layering/cpt/{cpt_id}` | `geotek/modules/soil/api.py:463` | `propose_cpt_layers` | `web/src/modules/soil/api.ts` |
+| POST | `/api/m/soil/layering/spt/{borehole_id}` | `geotek/modules/soil/api.py:473` | `propose_spt_layers` | `web/src/modules/soil/api.ts` |
+| GET | `/api/m/soil/profiles` | `geotek/modules/soil/api.py:503` | `list_profiles` | `web/src/modules/soil/api.ts` |
+| POST | `/api/m/soil/profiles` | `geotek/modules/soil/api.py:512` | `create_profile` | `web/src/modules/soil/api.ts` |
+| DELETE | `/api/m/soil/profiles/{id}` | `geotek/modules/soil/api.py:577` | `delete_profile` | `web/src/modules/soil/api.ts` |
+| GET | `/api/m/soil/profiles/{id}` | `geotek/modules/soil/api.py:521` | `get_profile` | `web/src/modules/soil/api.ts` |
+| PUT | `/api/m/soil/profiles/{id}` | `geotek/modules/soil/api.py:555` | `update_profile` | `web/src/modules/soil/api.ts` |
+| POST | `/api/m/soil/profiles/{id}/layers/merge` | `geotek/modules/soil/api.py:607` | `merge_layers` | — |
+| GET | `/api/m/soil/profiles/{id}/layers/{layer_id}/inventory` | `geotek/modules/soil/api.py:639` | `get_layer_inventory` | `web/src/modules/soil/api.ts` |
+| GET | `/api/m/soil/profiles/{id}/layers/{layer_id}/parameters` | `geotek/modules/soil/api.py:625` | `list_layer_parameters` | `web/src/modules/soil/api.ts` |
+| POST | `/api/m/soil/profiles/{id}/layers/{layer_id}/parameters/approve` | `geotek/modules/soil/api.py:677` | `approve_parameters` | `web/src/modules/soil/api.ts` |
+| PUT | `/api/m/soil/profiles/{id}/layers/{layer_id}/parameters/{key}` | `geotek/modules/soil/api.py:654` | `update_parameter_selection` | `web/src/modules/soil/api.ts` |
+| POST | `/api/m/soil/profiles/{id}/layers/{layer_id}/split` | `geotek/modules/soil/api.py:598` | `split_layer` | — |
+| POST | `/api/m/soil/profiles/{id}/parameters/reapprove` | `geotek/modules/soil/api.py:704` | `reapprove_parameters` | `web/src/modules/soil/api.ts` |
+| POST | `/api/m/soil/profiles/{id}/parameters/suggest-all` | `geotek/modules/soil/api.py:744` | `suggest_all_parameters` | `web/src/modules/soil/api.ts` |
+| GET | `/api/m/soil/profiles/{id}/readiness` | `geotek/modules/soil/api.py:730` | `get_profile_readiness` | `web/src/modules/soil/api.ts` |
 | POST | `/api/m/walls/at-rest` | `geotek/modules/walls/api.py:60` | `analyze_at_rest` | `web/src/modules/walls/api.ts` |
 | POST | `/api/m/walls/structures/{id}/check` | `geotek/modules/walls/api.py:55` | `check_wall` | `web/src/modules/walls/api.ts` |
 | POST | `/api/m/walls/structures/{id}/required-factors` | `geotek/modules/walls/api.py:32` | `get_structure_required_factors` | `web/src/modules/walls/api.ts` |
@@ -358,7 +361,7 @@ Test sütunu: o dosyayı doğrudan import eden `tests/` dosyaları (yoksa `—`)
 | `api/jobs.py` | 226 | `api`, `api.schemas`, `api.session`, `core.errors` | `api.app`, `api.calculation_jobs`, `modules.anchored_wall.api`, `modules.liquefaction.api`, `modules.sheet_pile.api`, `modules.walls.api` | `api/test_jobs_api.py`, `unit/test_sheet_pile_slope.py`, `unit/test_t10c_messages.py` |
 | `api/library_routes.py` | 289 | `api`, `api.common`, `api.registry`, `api.schemas`, `api.session`, `core.errors`, `core.models.project`, `library` | `api.app` | `api/test_library_hardening_api.py` |
 | `api/registry.py` | 74 | `core.errors`, `core.modules`, `modules`, `modules._index` | `api.app`, `api.library_routes`, `services.report` | `api/test_anchored_wall_api.py`, `api/test_codes_api.py`, `unit/test_module_manifests.py` +2 |
-| `api/schemas.py` | 630 | `config.codes`, `core.models.profile`, `core.models.project`, `core.models.structures`, `core.models.walls` | `api.app`, `api.calculation_jobs`, `api.calculation_results`, `api.common`, `api.jobs`, `api.library_routes` +10 | `api/test_contract.py`, `api/test_jobs_api.py`, `api/test_sheet_pile_api.py` +4 |
+| `api/schemas.py` | 653 | `config.codes`, `core.models.profile`, `core.models.project`, `core.models.structures`, `core.models.walls` | `api.app`, `api.calculation_jobs`, `api.calculation_results`, `api.common`, `api.jobs`, `api.library_routes` +10 | `api/test_contract.py`, `api/test_jobs_api.py`, `api/test_sheet_pile_api.py` +4 |
 | `api/session.py` | 97 | `api`, `api.schemas`, `core.models.project`, `io.project_io`, `library` | `api.app`, `api.calculation_jobs`, `api.jobs`, `api.library_routes`, `modules.anchored_wall.api`, `modules.liquefaction.api` +4 | — |
 
 #### `geotek.config`
@@ -373,12 +376,12 @@ Test sütunu: o dosyayı doğrudan import eden `tests/` dosyaları (yoksa `—`)
 | Dosya | Satır | Bağımlı olduğu | Kullanan | Test |
 |---|---:|---|---|---|
 | `core/__init__.py` | 1 | — | — | — |
-| `core/constants.py` | 13 | — | `core.models.investigations`, `core.models.profile`, `core.models.structures`, `engine.correlations.physical`, `engine.correlations.state`, `engine.correlations.stiffness` +19 | `unit/test_earth_pressure.py`, `unit/test_layering_spt.py`, `unit/test_parameters_service.py` +9 |
+| `core/constants.py` | 13 | — | `core.models.investigations`, `core.models.profile`, `core.models.structures`, `engine.correlations.physical`, `engine.correlations.state`, `engine.correlations.stiffness` +20 | `unit/test_earth_pressure.py`, `unit/test_layering_spt.py`, `unit/test_parameters_service.py` +9 |
 | `core/errors.py` | 91 | `services.walls_advanced` | `api.app`, `api.calculation_jobs`, `api.jobs`, `api.library_routes`, `api.registry`, `config.codes` +34 | `api/test_jobs_api.py`, `unit/test_anchored_wall.py`, `unit/test_anchors.py` +29 |
 | `core/module_state.py` | 54 | `core.errors`, `core.models.project` | `modules.anchored_wall.api`, `modules.anchored_wall.report` | `api/test_anchored_wall_api.py`, `unit/test_module_report_hook.py`, `unit/test_project_io_13.py` |
 | `core/modules.py` | 76 | `core.errors` | `api.registry`, `modules.anchored_wall`, `modules.anchored_wall.report`, `modules.education`, `modules.liquefaction`, `modules.report` +3 | `unit/test_module_registry.py`, `unit/test_module_report_hook.py`, `unit/test_new_module.py` |
 | `core/units.py` | 83 | `core.errors` | `io.tabular`, `io.workbook.build`, `io.workbook.detect` | `unit/test_units.py` |
-| `core/warning_codes.py` | 48 | — | `api.calculation_results`, `engine.correlations.physical`, `engine.correlations.strength`, `engine.insitu.cpt`, `engine.insitu.spt`, `engine.lab.atterberg` +11 | `unit/test_cpt.py`, `unit/test_cpt_without_fs.py`, `unit/test_lab_engine.py` +4 |
+| `core/warning_codes.py` | 48 | — | `api.calculation_results`, `engine.correlations.physical`, `engine.correlations.strength`, `engine.insitu.cpt`, `engine.insitu.spt`, `engine.lab.atterberg` +12 | `unit/test_cpt.py`, `unit/test_cpt_without_fs.py`, `unit/test_lab_engine.py` +4 |
 
 #### `geotek.core.models`
 
@@ -386,9 +389,9 @@ Test sütunu: o dosyayı doğrudan import eden `tests/` dosyaları (yoksa `—`)
 |---|---:|---|---|---|
 | `core/models/__init__.py` | 51 | `core.models.investigations`, `core.models.parameters`, `core.models.profile`, `core.models.project`, `core.models.structures` | — | `api/test_anchored_wall_api.py`, `conftest.py`, `unit/test_anchored_wall.py` +22 |
 | `core/models/anchors.py` | 404 | `core.models.structures` | `engine.anchored_wall`, `engine.anchors`, `modules.anchored_wall`, `modules.anchored_wall.api`, `modules.anchored_wall.report`, `modules.anchored_wall.schemas` | `api/test_anchored_wall_api.py`, `unit/test_anchored_wall.py`, `unit/test_anchors.py` +2 |
-| `core/models/investigations.py` | 202 | `core.constants` | `core.models`, `core.models.project`, `engine.classification.uscs`, `engine.insitu.cpt`, `engine.insitu.spt`, `engine.layering.spt` +6 | `api/test_liquefaction_api.py`, `api/test_report_api.py`, `unit/test_correlations_a3.py` +5 |
+| `core/models/investigations.py` | 202 | `core.constants` | `core.models`, `core.models.project`, `engine.classification.uscs`, `engine.insitu.cpt`, `engine.insitu.spt`, `engine.layering.combined` +8 | `api/test_liquefaction_api.py`, `api/test_report_api.py`, `unit/test_correlations_a3.py` +6 |
 | `core/models/parameters.py` | 88 | — | `core.models`, `core.models.profile`, `engine.correlations.registry`, `modules.soil.api`, `modules.soil.schemas`, `modules.soil.service` +2 | `unit/test_correlations_a3.py`, `unit/test_hs_c_walls.py`, `unit/test_parameters_service.py` +2 |
-| `core/models/profile.py` | 171 | `core.constants`, `core.errors`, `core.models.parameters`, `engine.stresses` | `api.schemas`, `core.models`, `core.models.project`, `core.models.structures`, `engine.anchored_wall`, `engine.earth_pressure.distribution` +24 | `api/job_helpers.py`, `api/test_report_api.py`, `api/test_system_check_api.py` +16 |
+| `core/models/profile.py` | 171 | `core.constants`, `core.errors`, `core.models.parameters`, `engine.stresses` | `api.schemas`, `core.models`, `core.models.project`, `core.models.structures`, `engine.anchored_wall`, `engine.earth_pressure.distribution` +25 | `api/job_helpers.py`, `api/test_report_api.py`, `api/test_system_check_api.py` +17 |
 | `core/models/project.py` | 113 | `config.codes`, `core.models.investigations`, `core.models.profile`, `core.models.structures` | `api.app`, `api.library_routes`, `api.schemas`, `api.session`, `core.models`, `core.module_state` +11 | `api/job_helpers.py`, `api/test_anchored_wall_api.py`, `api/test_contract.py` +20 |
 | `core/models/structures.py` | 228 | `core.constants`, `core.models.profile`, `core.models.walls` | `api.app`, `api.schemas`, `core.models`, `core.models.anchors`, `core.models.project`, `engine.walls.layered` +2 | `api/job_helpers.py`, `api/test_report_api.py`, `api/test_soil_api.py` +10 |
 | `core/models/walls.py` | 172 | `config.codes` | `api.schemas`, `core.models.structures`, `engine.limit_state`, `engine.walls.base`, `engine.walls.global_stability`, `engine.walls.layered` +4 | `api/job_helpers.py`, `api/test_report_api.py`, `unit/test_hs_c_walls.py` +11 |
@@ -428,8 +431,8 @@ Test sütunu: o dosyayı doğrudan import eden `tests/` dosyaları (yoksa `—`)
 | Dosya | Satır | Bağımlı olduğu | Kullanan | Test |
 |---|---:|---|---|---|
 | `engine/classification/__init__.py` | 1 | — | `modules.soil.api`, `services.report` | `api/test_soil_classification_api.py` |
-| `engine/classification/robertson.py` | 94 | — | `engine.insitu.cpt`, `engine.layering.cpt`, `engine.liquefaction.youd2001`, `modules.soil.api`, `services.report` | `api/test_soil_classification_api.py`, `unit/test_cpt.py`, `unit/test_layering_cpt.py` +2 |
-| `engine/classification/uscs.py` | 118 | `core.models.investigations` | `modules.soil.api`, `services.layering`, `services.parameters`, `services.report` | `api/test_soil_classification_api.py`, `unit/test_uscs.py` |
+| `engine/classification/robertson.py` | 94 | — | `engine.insitu.cpt`, `engine.layering.combined`, `engine.layering.cpt`, `engine.liquefaction.youd2001`, `modules.soil.api`, `services.report` | `api/test_soil_classification_api.py`, `unit/test_cpt.py`, `unit/test_layering_cpt.py` +2 |
+| `engine/classification/uscs.py` | 132 | `core.models.investigations` | `engine.layering.combined`, `modules.soil.api`, `services.layering`, `services.parameters`, `services.report` | `api/test_soil_classification_api.py`, `unit/test_uscs.py` |
 | `engine/classification/uscs_names.py` | 112 | — | `modules.soil.api`, `services.report` | `api/test_soil_classification_api.py` |
 
 #### `geotek.engine.correlations`
@@ -438,7 +441,7 @@ Test sütunu: o dosyayı doğrudan import eden `tests/` dosyaları (yoksa `—`)
 |---|---:|---|---|---|
 | `engine/correlations/__init__.py` | 14 | `engine.correlations.physical`, `engine.correlations.registry`, `engine.correlations.state`, `engine.correlations.stiffness`, `engine.correlations.strength` | `services.parameter_plan`, `services.parameters` | `unit/test_correlations.py`, `unit/test_correlations_a3.py`, `unit/test_state_correlations.py` |
 | `engine/correlations/checks.py` | 47 | — | `engine.correlations.physical`, `engine.correlations.state`, `engine.correlations.stiffness`, `engine.correlations.strength` | — |
-| `engine/correlations/physical.py` | 106 | `core.constants`, `core.warning_codes`, `engine.correlations.checks`, `engine.correlations.registry` | `engine.correlations`, `engine.insitu.cpt`, `engine.layering.cpt`, `engine.liquefaction.analysis` | `unit/test_system_check_engine.py`, `verification/test_bi2014_case_histories.py` |
+| `engine/correlations/physical.py` | 123 | `core.constants`, `core.warning_codes`, `engine.correlations.checks`, `engine.correlations.registry` | `engine.correlations`, `engine.insitu.cpt`, `engine.layering.cpt`, `engine.layering.unit_weight`, `engine.liquefaction.analysis`, `services.layering` +1 | `unit/test_system_check_engine.py`, `verification/test_bi2014_case_histories.py` |
 | `engine/correlations/registry.py` | 195 | `core.models.parameters` | `engine.correlations`, `engine.correlations.physical`, `engine.correlations.state`, `engine.correlations.stiffness`, `engine.correlations.strength`, `services.parameter_plan` +1 | `unit/test_correlations.py`, `unit/test_correlations_a3.py`, `unit/test_layering_cpt.py` +2 |
 | `engine/correlations/state.py` | 100 | `core.constants`, `engine.correlations.checks`, `engine.correlations.registry` | `engine.correlations` | — |
 | `engine/correlations/stiffness.py` | 179 | `core.constants`, `engine.correlations.checks`, `engine.correlations.registry` | `engine.correlations` | — |
@@ -460,7 +463,7 @@ Test sütunu: o dosyayı doğrudan import eden `tests/` dosyaları (yoksa `—`)
 |---|---:|---|---|---|
 | `engine/insitu/__init__.py` | 1 | — | — | — |
 | `engine/insitu/cpt.py` | 224 | `core.constants`, `core.errors`, `core.models.investigations`, `core.models.profile`, `core.warning_codes`, `engine.classification.robertson`, `engine.correlations.physical` | `engine.layering.cpt`, `engine.liquefaction.analysis`, `engine.liquefaction.common`, `services.module1`, `services.parameters` | `api/test_soil_api.py`, `unit/test_cpt.py`, `unit/test_cpt_without_fs.py` +5 |
-| `engine/insitu/spt.py` | 194 | `core.constants`, `core.models.investigations`, `core.models.profile`, `core.warning_codes` | `engine.layering.spt`, `engine.liquefaction.analysis`, `io.workbook.build`, `services.module1`, `services.parameters` | `api/test_soil_api.py`, `unit/test_correlations_a3.py`, `unit/test_io.py` +4 |
+| `engine/insitu/spt.py` | 194 | `core.constants`, `core.models.investigations`, `core.models.profile`, `core.warning_codes` | `engine.layering.spt`, `engine.layering.unit_weight`, `engine.liquefaction.analysis`, `io.workbook.build`, `services.layering`, `services.module1` +1 | `api/test_soil_api.py`, `unit/test_correlations_a3.py`, `unit/test_io.py` +4 |
 
 #### `geotek.engine.lab`
 
@@ -468,7 +471,7 @@ Test sütunu: o dosyayı doğrudan import eden `tests/` dosyaları (yoksa `—`)
 |---|---:|---|---|---|
 | `engine/lab/__init__.py` | 1 | — | — | — |
 | `engine/lab/atterberg.py` | 112 | `core.warning_codes` | `io.workbook.build` | `unit/test_lab_engine.py` |
-| `engine/lab/phase.py` | 60 | `core.constants`, `core.warning_codes` | `services.parameters` | `unit/test_lab_engine.py` |
+| `engine/lab/phase.py` | 60 | `core.constants`, `core.warning_codes` | `engine.layering.unit_weight`, `services.parameters` | `unit/test_lab_engine.py` |
 | `engine/lab/sieve.py` | 136 | `core.warning_codes` | `io.workbook.build` | `unit/test_lab_engine.py` |
 | `engine/lab/triaxial.py` | 181 | `core.warning_codes` | `io.workbook.build` | `unit/test_lab_engine.py` |
 
@@ -476,10 +479,12 @@ Test sütunu: o dosyayı doğrudan import eden `tests/` dosyaları (yoksa `—`)
 
 | Dosya | Satır | Bağımlı olduğu | Kullanan | Test |
 |---|---:|---|---|---|
-| `engine/layering/__init__.py` | 41 | `core.models.profile`, `engine.layering.common`, `engine.layering.cpt`, `engine.layering.spt` | `services.layering` | `unit/test_layering_conversion.py`, `unit/test_layering_cpt.py`, `unit/test_layering_spt.py` |
-| `engine/layering/common.py` | 145 | `core.constants`, `core.models.profile`, `core.warning_codes` | `engine.layering`, `engine.layering.cpt`, `engine.layering.spt`, `services.layering`, `services.parameters` | `api/test_soil_parameters_api.py`, `unit/test_layering_common.py`, `unit/test_layering_cpt.py` +2 |
+| `engine/layering/__init__.py` | 43 | `core.models.profile`, `engine.layering.combined`, `engine.layering.common`, `engine.layering.cpt`, `engine.layering.spt`, `engine.layering.unit_weight` | `services.layering` | `unit/test_layering_conversion.py`, `unit/test_layering_cpt.py`, `unit/test_layering_spt.py` |
+| `engine/layering/combined.py` | 203 | `core.models.investigations`, `core.models.profile`, `engine.classification.robertson`, `engine.classification.uscs`, `engine.layering.common`, `engine.layering.unit_weight` | `engine.layering`, `modules.soil.service`, `services.layering` | `unit/test_layering_combined.py` |
+| `engine/layering/common.py` | 158 | `core.constants`, `core.models.profile`, `core.warning_codes` | `engine.layering`, `engine.layering.combined`, `engine.layering.cpt`, `engine.layering.spt`, `engine.layering.unit_weight`, `services.layering` +1 | `api/test_soil_parameters_api.py`, `unit/test_layering_combined.py`, `unit/test_layering_common.py` +4 |
 | `engine/layering/cpt.py` | 194 | `core.constants`, `core.models.profile`, `engine.classification.robertson`, `engine.correlations.physical`, `engine.insitu.cpt`, `engine.layering.common` | `engine.layering` | — |
-| `engine/layering/spt.py` | 215 | `core.constants`, `core.models.investigations`, `core.models.profile`, `engine.insitu.spt`, `engine.layering.common` | `engine.layering` | — |
+| `engine/layering/spt.py` | 231 | `core.constants`, `core.models.investigations`, `core.models.profile`, `engine.insitu.spt`, `engine.layering.common` | `engine.layering`, `services.layering` | — |
+| `engine/layering/unit_weight.py` | 226 | `core.constants`, `core.warning_codes`, `engine.correlations.physical`, `engine.insitu.spt`, `engine.lab.phase`, `engine.layering.common` | `engine.layering`, `engine.layering.combined`, `services.layering` | `unit/test_layering_gamma.py` |
 
 #### `geotek.engine.limit_state`
 
@@ -607,9 +612,9 @@ Test sütunu: o dosyayı doğrudan import eden `tests/` dosyaları (yoksa `—`)
 | Dosya | Satır | Bağımlı olduğu | Kullanan | Test |
 |---|---:|---|---|---|
 | `modules/soil/__init__.py` | 16 | `core.modules`, `modules.soil.api` | `modules.soil.api` | `api/test_soil_api.py`, `unit/test_selection_basis.py` |
-| `modules/soil/api.py` | 717 | `api`, `api.common`, `api.schemas`, `api.session`, `core.errors`, `core.models.investigations`, `core.models.parameters`, `core.models.profile`, `engine.classification`, `engine.classification.robertson`, `engine.classification.uscs`, `engine.classification.uscs_names`, `io.workbook`, `modules.soil`, `modules.soil.schemas`, `modules.soil.service`, `services`, `services.layering`, `services.module1`, `services.parameter_plan`, `services.parameters` | `modules.soil` | — |
-| `modules/soil/schemas.py` | 275 | `api.schemas`, `core.models.investigations`, `core.models.parameters`, `core.models.profile` | `modules.soil.api`, `modules.soil.service` | — |
-| `modules/soil/service.py` | 322 | `api.session`, `core.constants`, `core.errors`, `core.models.parameters`, `core.models.profile`, `core.models.project`, `io`, `io.tabular`, `modules.soil.schemas` | `modules.soil.api` | `api/test_soil_api.py`, `unit/test_selection_basis.py` |
+| `modules/soil/api.py` | 750 | `api`, `api.common`, `api.schemas`, `api.session`, `core.errors`, `core.models.investigations`, `core.models.parameters`, `core.models.profile`, `engine.classification`, `engine.classification.robertson`, `engine.classification.uscs`, `engine.classification.uscs_names`, `io.workbook`, `modules.soil`, `modules.soil.schemas`, `modules.soil.service`, `services`, `services.layering`, `services.module1`, `services.parameter_plan`, `services.parameters` | `modules.soil` | — |
+| `modules/soil/schemas.py` | 301 | `api.schemas`, `core.models.investigations`, `core.models.parameters`, `core.models.profile` | `modules.soil.api`, `modules.soil.service` | — |
+| `modules/soil/service.py` | 344 | `api.session`, `core.constants`, `core.errors`, `core.models.parameters`, `core.models.profile`, `core.models.project`, `engine.layering.combined`, `io`, `io.tabular`, `modules.soil.schemas` | `modules.soil.api` | `api/test_soil_api.py`, `unit/test_selection_basis.py` |
 
 #### `geotek.modules.walls`
 
@@ -625,10 +630,10 @@ Test sütunu: o dosyayı doğrudan import eden `tests/` dosyaları (yoksa `—`)
 |---|---:|---|---|---|
 | `services/__init__.py` | 1 | — | `api.calculation_jobs`, `modules.liquefaction.api`, `modules.report.api`, `modules.soil.api`, `services.parameter_plan`, `services.report` | `api/test_liquefaction_api.py`, `api/test_sheet_pile_api.py`, `api/test_walls_api.py` +9 |
 | `services/at_rest.py` | 104 | `core.errors`, `core.models.project`, `engine.earth_pressure.distribution`, `services.parameters` | `modules.walls.api` | `unit/test_hs_c_walls.py` |
-| `services/layering.py` | 71 | `core.models.profile`, `core.models.project`, `engine.classification.uscs`, `engine.layering`, `engine.layering.common`, `services.module1` | `modules.soil.api` | `unit/test_layering_cpt.py`, `unit/test_layering_spt.py` |
+| `services/layering.py` | 209 | `core.models.investigations`, `core.models.profile`, `core.models.project`, `engine.classification.uscs`, `engine.correlations.physical`, `engine.insitu.spt`, `engine.layering`, `engine.layering.combined`, `engine.layering.common`, `engine.layering.spt`, `engine.layering.unit_weight`, `services.module1` | `modules.soil.api` | `unit/test_layering_cpt.py`, `unit/test_layering_spt.py` |
 | `services/module1.py` | 195 | `core.models.investigations`, `core.models.profile`, `core.models.project`, `core.warning_codes`, `engine.insitu.cpt`, `engine.insitu.spt`, `engine.liquefaction` | `modules.liquefaction.api`, `modules.soil.api`, `services.layering`, `services.report` | `api/test_liquefaction_api.py`, `unit/test_models_v2.py`, `unit/test_module1_service.py` |
 | `services/parameter_plan.py` | 117 | `core.constants`, `core.models.parameters`, `core.models.profile`, `core.models.project`, `engine.correlations`, `engine.correlations.registry`, `services`, `services.parameters` | `modules.soil.api` | `unit/test_correlations_a3.py`, `unit/test_selection_basis.py` |
-| `services/parameters.py` | 1131 | `core.constants`, `core.errors`, `core.models.investigations`, `core.models.parameters`, `core.models.profile`, `core.models.project`, `engine.classification.uscs`, `engine.correlations`, `engine.correlations.registry`, `engine.insitu.cpt`, `engine.insitu.spt`, `engine.lab.phase`, `engine.layering.common` | `modules.soil.api`, `services.at_rest`, `services.parameter_plan` | `unit/test_correlations_a3.py`, `unit/test_cpt_without_fs.py`, `unit/test_hs_c_walls.py` +3 |
+| `services/parameters.py` | 1108 | `core.constants`, `core.errors`, `core.models.investigations`, `core.models.parameters`, `core.models.profile`, `core.models.project`, `engine.classification.uscs`, `engine.correlations`, `engine.correlations.physical`, `engine.correlations.registry`, `engine.insitu.cpt`, `engine.insitu.spt`, `engine.lab.phase`, `engine.layering.common` | `modules.soil.api`, `services.at_rest`, `services.parameter_plan` | `unit/test_correlations_a3.py`, `unit/test_cpt_without_fs.py`, `unit/test_hs_c_walls.py` +3 |
 | `services/report.py` | 572 | `api.registry`, `config.codes`, `core.errors`, `core.models.profile`, `core.models.project`, `core.warning_codes`, `engine.classification`, `engine.classification.robertson`, `engine.classification.uscs`, `engine.classification.uscs_names`, `i18n`, `services`, `services.module1`, `services.structures` | `modules.report.api` | `unit/test_module_report_hook.py`, `unit/test_report_status_guard.py`, `unit/test_t10c_messages.py` |
 | `services/structures.py` | 854 | `config.codes`, `core.errors`, `core.models.profile`, `core.models.project`, `core.models.structures`, `core.models.walls`, `core.warning_codes`, `engine.earth_pressure.coefficients`, `engine.earth_pressure.distribution`, `engine.limit_state`, `engine.sheet_pile`, `engine.walls.base`, `engine.walls.global_stability`, `engine.walls.layered`, `services.walls_advanced`, `services.walls_basic` | `api.app`, `api.calculation_jobs`, `api.calculation_results`, `modules.walls.api`, `services.report` | `api/test_sheet_pile_api.py`, `api/test_structures_api.py`, `api/test_walls_api.py` +5 |
 | `services/walls_advanced.py` | 352 | `config.codes`, `core.constants`, `core.errors`, `core.models.profile`, `core.models.walls`, `engine.limit_state`, `engine.stability`, `engine.walls.base`, `engine.walls.global_stability`, `engine.walls.walls`, `services.walls_basic` | `api.app`, `core.errors`, `engine.limit_state`, `services.structures` | `api/test_codes_api.py`, `api/test_contract.py`, `api/test_jobs_api.py` +3 |
@@ -899,7 +904,7 @@ Testler yalnız **Kullanan** sütununda görünür; “Test” sütunu o dosyay�
 | `shared/api/mock/hash.ts` | 36 | `shared/api/types.ts` | `modules/anchored_wall/mock.ts`, `shared/api/mock/coreRoutes.ts`, `shared/api/mock/store.ts` | `modules/sheet_pile/__tests__/sheet_pile.test.tsx` |
 | `shared/api/mock/index.ts` | 26 | `shared/api/mock/core.ts`, `shared/api/mock/coreRoutes.ts`, `shared/api/mock/dispatcher.ts`, `shared/api/mock/store.ts` | `shared/api/http.ts` | `modules/anchored_wall/__tests__/anchored_wall.test.tsx`, `modules/liquefaction/__tests__/liquefaction.test.tsx`, `modules/sheet_pile/__tests__/sheet_pile.test.tsx` +18 |
 | `shared/api/mock/store.ts` | 149 | `shared/api/mock/data.ts`, `shared/api/mock/hash.ts`, `shared/api/types.ts` | `modules/anchored_wall/mock.ts`, `modules/liquefaction/mock.ts`, `modules/sheet_pile/mock.ts`, `modules/soil/mock.ts`, `modules/walls/mock.ts` +3 | `modules/liquefaction/__tests__/liquefaction.test.tsx`, `modules/sheet_pile/__tests__/sheet_pile.test.tsx`, `modules/soil/__tests__/soil_mock.test.ts` +4 |
-| `shared/api/schema.d.ts` | 13318 | — | — | — |
+| `shared/api/schema.d.ts` | 13564 | — | — | — |
 | `shared/api/types.ts` | 832 | — | `app/ModuleShell.tsx`, `app/ProjectProvider.tsx`, `app/i18n.ts`, `app/pages/LauncherPage.tsx`, `app/pages/SettingsPage.tsx` +66 | `modules/liquefaction/__tests__/liquefaction.test.tsx`, `modules/liquefaction/__tests__/results.test.tsx`, `modules/sheet_pile/__tests__/result-contract.test.tsx` +18 |
 | `shared/components/EmptyState.tsx` | 26 | — | `app/ModuleShell.tsx`, `app/pages/LauncherPage.tsx`, `app/pages/StartPage.tsx`, `modules/liquefaction/pages/ResultsPage.tsx`, `modules/report/pages/HomePage.tsx` +9 | — |
 | `shared/components/ErrorAlert.tsx` | 36 | `shared/api/errorMessage.ts` | `app/ModuleShell.tsx`, `app/RequireProject.tsx`, `app/pages/LauncherPage.tsx`, `app/pages/SettingsPage.tsx`, `app/pages/StartPage.tsx` +17 | `test/error_alert.test.tsx` |

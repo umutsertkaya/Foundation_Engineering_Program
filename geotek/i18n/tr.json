@@ -698,5 +698,11 @@
   "web.inventory.spt_class.clay.firm": "orta katı",
   "web.inventory.spt_class.clay.stiff": "katı",
   "web.inventory.spt_class.clay.very_stiff": "çok katı",
-  "web.inventory.spt_class.clay.hard": "sert"
+  "web.inventory.spt_class.clay.hard": "sert",
+  "layering.warning.gwt_unknown_for_gamma": "Yeraltı suyu derinliği bilinmiyor; SPT birim hacim ağırlığı zemin su seviyesinin üstündeymiş (kuru) gibi hesaplandı.",
+  "layering.warning.gamma_above_missing": "{top}-{bottom} m tabakası: üstteki bir tabakanın birim hacim ağırlığı yok, bu yüzden SPT'den öneri yapılmadı. Önce üst değerleri girin.",
+  "layering.warning.spt_gamma_granular_only": "{top}-{bottom} m tabakası: SPT'den birim hacim ağırlığı yalnız iri daneli (G, S) zeminler için verilir; elle girin veya başka kaynak kullanın.",
+  "layering.warning.depth_not_aligned": "{borehole} sondajı: zemin kotu eksik, derinlikler CPT ile hizalanmadı.",
+  "layering.warning.gamma_not_converged": "{top}-{bottom} m tabakası: SPT birim hacim ağırlığı yinelemesi 50 adımda yakınsamadı; değeri kontrol edin.",
+  "error.layering_conflict_unresolved": "Bazı tabakalarda CPT ve USCS çelişiyor; her biri için USCS veya CPT seçin."
 }

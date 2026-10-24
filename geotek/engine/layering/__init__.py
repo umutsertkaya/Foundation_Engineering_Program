@@ -2,12 +2,14 @@
 
 from geotek.core.models.profile import SoilLayer
 from geotek.engine.layering.common import Layer, Proposal
+from geotek.engine.layering.combined import combined_layers
 from geotek.engine.layering.cpt import cpt_layers
 from geotek.engine.layering.spt import spt_log_layers, spt_uscs_n_layers
+from geotek.engine.layering.unit_weight import suggest_unit_weights
 
 __all__ = [
     "Layer", "Proposal", "cpt_layers", "spt_log_layers", "spt_uscs_n_layers",
-    "proposal_to_layers",
+    "proposal_to_layers", "combined_layers", "suggest_unit_weights",
 ]
 
 
@@ -36,6 +38,6 @@ def proposal_to_layers(
             id=f"{id_prefix}{i + 1}", top=layer.top, bottom=layer.bottom,
             description=layer.description, uscs=layer.uscs, sbtn_zone=layer.sbtn_zone,
             behaviour=layer.behaviour, gamma=weights[0], gamma_sat=weights[1],
-            source_ids=[result.source_id],
+            source_ids=list(result.source_ids) or [result.source_id],
         ))
     return layers

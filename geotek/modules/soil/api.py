@@ -24,11 +24,13 @@ from geotek.modules.soil import service
 from geotek.modules.soil.schemas import (
     AxisRangeDTO,
     BoreholeUSCSDTO,
+    CombinedLayeringRequest,
     CPTProcessedDTO,
     CPTSBTNDTO,
     InvestigationsDTO,
     LayerInventory,
     LayerMerge,
+    LayeringRequest,
     LayerReadiness,
     LayerSplit,
     ParameterApproval,
@@ -42,6 +44,7 @@ from geotek.modules.soil.schemas import (
     SBTNPointDTO,
     SBTNReferenceDTO,
     SBTNZoneDTO,
+    SuppliedGamma,
     SPTProcessedDTO,
     USCSClassifyRequest,
     USCSItemDTO,
@@ -50,7 +53,7 @@ from geotek.modules.soil.schemas import (
     WorkbookImportResult,
 )
 from geotek.services import parameter_plan, parameters
-from geotek.services.layering import propose_layers
+from geotek.services.layering import propose_combined_layers, propose_layers
 from geotek.services.module1 import process_investigations
 
 SessionDep = Annotated[Session, Depends(get_session)]
@@ -107,10 +110,16 @@ def _profile(session: Session, profile: SoilProfile) -> SoilProfile:
     return profile
 
 
+def _supplied(values: dict[int, SuppliedGamma]) -> dict[int, tuple[float, float | None]]:
+    """Engine form of the user-supplied unit weights."""
+    return {index: (item.gamma, item.gamma_sat) for index, item in values.items()}
+
+
 def _propose(
-    session: Session, identifier: str, settings: LayeringSettings,
+    session: Session, identifier: str, request: LayeringRequest,
 ) -> dto.LayeringProposal:
     """Propose layers for one investigation without modifying the project."""
+    settings = LayeringSettings.model_validate(request.model_dump(exclude={"supplied_gamma"}))
     with session.lock:
         project = session.require_project()
         known = {item.id for item in project.investigations.cpts}
@@ -118,7 +127,8 @@ def _propose(
         if identifier not in known:
             api_error(404, "not_found", f"Investigation {identifier!r} not found.")
         try:
-            proposal = propose_layers(project, identifier, settings)
+            proposal = propose_layers(
+                project, identifier, settings, _supplied(request.supplied_gamma))
         except ValueError as exc:
             api_error(422, "validation", str(exc))
         return dto.LayeringProposal.model_validate(asdict(proposal))
@@ -451,7 +461,7 @@ def router() -> APIRouter:
         operation_id="propose_cpt_layers",
     )
     def propose_cpt_layers(
-        cpt_id: str, payload: LayeringSettings, session: SessionDep,
+        cpt_id: str, payload: LayeringRequest, session: SessionDep,
     ) -> dto.LayeringProposal:
         """Return a synchronous, unapproved CPT layering proposal."""
         return _propose(session, cpt_id, payload)
@@ -461,10 +471,33 @@ def router() -> APIRouter:
         operation_id="propose_spt_layers",
     )
     def propose_spt_layers(
-        borehole_id: str, payload: LayeringSettings, session: SessionDep,
+        borehole_id: str, payload: LayeringRequest, session: SessionDep,
     ) -> dto.LayeringProposal:
         """Return a synchronous, unapproved SPT layering proposal."""
         return _propose(session, borehole_id, payload)
+
+    @api.post(
+        "/layering/combined", response_model=dto.LayeringProposal,
+        operation_id="propose_combined_layers",
+    )
+    def propose_combined(
+        payload: CombinedLayeringRequest, session: SessionDep,
+    ) -> dto.LayeringProposal:
+        """Return a synchronous, unapproved layering from one CPT and several boreholes."""
+        with session.lock:
+            project = session.require_project()
+            known = {item.id for item in project.investigations.cpts}
+            known |= {item.id for item in project.investigations.boreholes}
+            for identifier in (payload.cpt_id, *payload.borehole_ids):
+                if identifier not in known:
+                    api_error(404, "not_found", f"Investigation {identifier!r} not found.")
+            try:
+                proposal = propose_combined_layers(
+                    project, payload.cpt_id, payload.borehole_ids, payload.settings,
+                    _supplied(payload.supplied_gamma))
+            except ValueError as exc:
+                api_error(422, "validation", str(exc))
+            return dto.LayeringProposal.model_validate(asdict(proposal))
 
     @api.get("/profiles", response_model=list[ProfileSummary], operation_id="list_profiles")
     def list_profiles(session: SessionDep) -> list[ProfileSummary]:

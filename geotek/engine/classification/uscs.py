@@ -116,3 +116,17 @@ def classify_lab_record(record: LabRecord) -> USCSResult:
         fines=record.FC, gravel=record.gravel, LL=record.LL, PI=record.PI,
         D10=record.D10, D30=record.D30, D60=record.D60,
     )
+
+
+def dominant_symbol(records) -> str | None:
+    """Most common classified USCS symbol of lab records; a tie goes to the shallowest symbol.
+
+    Records are taken in depth order, so the symbol met first in depth order wins a tie.
+    """
+    symbols = [result.symbol for record in sorted(records, key=lambda r: r.depth)
+               if (result := classify_lab_record(record)).symbol is not None]
+    if not symbols:
+        return None
+    counts = {symbol: symbols.count(symbol) for symbol in symbols}
+    best = max(counts.values())
+    return next(symbol for symbol in symbols if counts[symbol] == best)

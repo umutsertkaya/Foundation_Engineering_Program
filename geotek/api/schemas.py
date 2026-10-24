@@ -174,6 +174,14 @@ class DeletionResponse(DTO):
     deleted: Literal[True]
 
 
+class LayerConflict(DTO):
+    """CPT soil-behaviour group against the USCS group of one combined layer."""
+
+    cpt: Literal["coarse", "fine", "transitional"]
+    uscs: str | None
+    ic_mean: ResultNumber
+
+
 class ProposedLayer(DTO):
     """Interpreted interval; suggested values remain unapproved engineering inputs."""
 
@@ -188,15 +196,30 @@ class ProposedLayer(DTO):
     gamma_sat_suggested: ResultNumber = Field(
         None, description="Suggested saturated unit weight below the in-situ GWT [kN/m3]")
     behaviour: Literal["drained", "undrained"]
+    gamma_source: str | None = Field(
+        None, description="Source of gamma_suggested: user, lab, phase, cpt_rc2010 or spt_bowles")
+    gamma_sat_source: str | None = Field(None, description="Source of gamma_sat_suggested")
+    gamma_range: tuple[float, float] | None = Field(
+        None, description="Bowles (1996) unit-weight range [kN/m3] when a source is spt_bowles")
+    top_source: Literal["cpt", "borehole", "both"] | None = Field(
+        None, description="Combined layering: which investigation set the top boundary")
+    conflict: LayerConflict | None = Field(
+        None, description="Combined layering: CPT group contradicts the USCS group")
+    resolution: Literal["uscs", "cpt"] | None = Field(
+        None, description="Client choice resolving `conflict`; required before a profile is created")
 
 
 class LayeringProposal(DTO):
-    """Layer interpretation and reproducible settings for one investigation."""
+    """Layer interpretation and reproducible settings for one or several investigations."""
 
     source_id: str
+    source_ids: list[str] = Field(
+        default_factory=list, description="Every investigation the proposal rests on")
     settings: LayeringSettings
     layers: list[ProposedLayer]
     warnings: list[str]
+    distances: dict[str, float] = Field(
+        default_factory=dict, description="Combined layering: CPT-borehole distance [m] by id")
 
 
 class ProfileSummary(DTO):
