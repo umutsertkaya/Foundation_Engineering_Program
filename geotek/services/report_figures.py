@@ -243,3 +243,73 @@ def liquefaction_plot(series: dict, labels: dict[str, str]) -> bytes | None:
     if isinstance(lpi, (int, float)) and math.isfinite(lpi):
         ax.text(0.97, 0.03, f"LPI = {lpi:.1f}", transform=ax.transAxes, ha="right", fontsize=9, color=NAVY)
     return _png(fig)
+
+
+def anchored_wall_section(*, excavation_height: float, wall_length: float, levels: list[dict],
+                          labels: dict[str, str]) -> bytes | None:
+    """Scaled wall elevation: excavation, wall, embedment and every anchor (free length plain, bond length thick)."""
+    if not _finite([excavation_height, wall_length]) or wall_length <= 0 or excavation_height <= 0:
+        return None
+    reach = max(6.0, 0.9 * wall_length)
+    fig, ax = plt.subplots(figsize=(6.4, 4.4))
+    ax.add_patch(Polygon([(0, 0), (reach, 0), (reach, wall_length + 1), (0, wall_length + 1)], color=SOIL, lw=0))
+    ax.add_patch(Polygon([(-reach * 0.5, excavation_height), (0, excavation_height), (0, wall_length + 1),
+                          (-reach * 0.5, wall_length + 1)], color=SOIL, lw=0))
+    ax.add_patch(Polygon([(-reach * 0.5, 0), (0, 0), (0, excavation_height), (-reach * 0.5, excavation_height)],
+                         color="white", lw=0))
+    ax.add_patch(Polygon([(-0.25, 0), (0, 0), (0, wall_length), (-0.25, wall_length)], facecolor=CONCRETE,
+                         edgecolor="#444", zorder=3))
+    ax.plot([-reach * 0.5, 0], [excavation_height] * 2, color="#7A6A45", lw=1.2)
+    for lv in levels:
+        d, a = lv["depth"], math.radians(lv.get("inclination_deg") or 0.0)
+        free, bond = lv.get("free_length"), lv.get("bond_length")
+        if not _finite([d, a]):
+            continue
+        free_len = free if free is not None and math.isfinite(free) else 0.5 * reach
+        bond_len = bond if bond is not None and math.isfinite(bond) else 0.0
+        x1, y1 = free_len * math.cos(a), d + free_len * math.sin(a)
+        x2, y2 = x1 + bond_len * math.cos(a), y1 + bond_len * math.sin(a)
+        ax.plot([0, x1], [d, y1], color=NAVY, lw=1.6, zorder=4)
+        if bond_len:
+            ax.plot([x1, x2], [y1, y2], color=NAVY, lw=5, solid_capstyle="butt", zorder=4)
+        ax.text(0.2, d - 0.15, f"{d:.1f} m", fontsize=8, color=NAVY)
+    ax.annotate("", xy=(-0.9, 0), xytext=(-0.9, excavation_height), arrowprops={"arrowstyle": "<->"})
+    ax.text(-1.0, excavation_height / 2, f"H = {excavation_height:.2f} m", rotation=90, ha="right", va="center")
+    ax.annotate("", xy=(-0.9, excavation_height), xytext=(-0.9, wall_length), arrowprops={"arrowstyle": "<->"})
+    ax.text(-1.0, (excavation_height + wall_length) / 2, f"D = {wall_length - excavation_height:.2f} m",
+            rotation=90, ha="right", va="center")
+    ax.plot([], [], color=NAVY, lw=1.6, label=labels["free"])
+    ax.plot([], [], color=NAVY, lw=5, label=labels["bond"])
+    ax.legend(frameon=False, loc="lower right", fontsize=8)
+    ax.set_xlim(-reach * 0.5, reach)
+    ax.set_ylim(wall_length + 1, -1.5)
+    ax.set_aspect("equal")
+    ax.axis("off")
+    return _png(fig)
+
+
+def shear_moment_plot(z: list[float], shear: list[float], moment: list[float], *, excavation_height: float,
+                      z_m_max: float, m_max: float, anchor_depths: list[float],
+                      labels: dict[str, str]) -> bytes | None:
+    """Shear force and bending moment along the wall with anchor levels and the largest moment marked."""
+    if not z or not (len(z) == len(shear) == len(moment)) or not _finite(z + shear + moment):
+        return None
+    fig, axes = plt.subplots(1, 2, figsize=(5.6, 4.4), sharey=True)
+    for ax, values, title, color in ((axes[0], shear, labels["shear"], NAVY), (axes[1], moment, labels["moment"], "#7B3F9E")):
+        ax.fill_betweenx(z, 0, values, color=color, alpha=0.25, lw=0)
+        ax.plot(values, z, color=color, lw=1.5)
+        ax.axvline(0, color="#333", lw=0.8)
+        ax.axhline(excavation_height, color="#888", ls=":", lw=1)
+        for depth in anchor_depths:
+            ax.axhline(depth, color=NAVY, ls="--", lw=0.8, alpha=0.6)
+        ax.set_title(title, fontsize=9)
+        ax.grid(alpha=0.3)
+    axes[0].invert_yaxis()
+    axes[0].set_ylabel(labels["y"])
+    if _finite([z_m_max, m_max]):
+        sign = 1 if max(moment) >= -min(moment) else -1
+        axes[1].plot([sign * abs(m_max)], [z_m_max], "o", color=BAD)
+        axes[1].annotate(f"{labels['mmax']} = {abs(m_max):.1f}", (sign * abs(m_max), z_m_max),
+                         textcoords="offset points", xytext=(6, -10), color=BAD, fontsize=8)
+    fig.tight_layout()
+    return _png(fig)
