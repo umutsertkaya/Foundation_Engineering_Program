@@ -145,6 +145,25 @@ def _anchor_section(w, inputs: AnchorDesignInputs, result: AnchorDesignResult) -
     _evidence(w, result.assumptions, result.warnings, result.sources)
 
 
+def _figures(w, result: AnalysisResult) -> None:
+    """Wall elevation with the anchors and the shear/moment diagrams from the stored result."""
+    from geotek.services import report_figures as figures
+
+    w.figure(figures.anchored_wall_section(
+        excavation_height=result.excavation_height, wall_length=result.wall_length,
+        levels=[{"depth": lv.depth, "inclination_deg": lv.inclination_deg,
+                 "free_length": lv.design.free_length if lv.design else None,
+                 "bond_length": lv.design.bond_length if lv.design else None} for lv in result.levels],
+        labels={"free": w.tr("anchored_wall.fig.free"), "bond": w.tr("anchored_wall.fig.bond")}),
+        w.tr("anchored_wall.fig.section_caption"), 13.0)
+    w.figure(figures.shear_moment_plot(
+        result.z, result.shear, result.moment, excavation_height=result.excavation_height,
+        z_m_max=result.z_m_max, m_max=result.m_max, anchor_depths=[lv.depth for lv in result.levels],
+        labels={"shear": w.tr("report.fig.shear"), "moment": w.tr("report.fig.moment"),
+                "y": w.tr("report.fig.depth_axis"), "mmax": w.tr("report.fig.mmax")}),
+        w.tr("anchored_wall.fig.vm_caption"), 11.0)
+
+
 def _analysis_section(w, result: AnalysisResult, inputs) -> None:
     w.heading(w.tr("anchored_wall.report.analysis"))
     w.key_values([
@@ -191,6 +210,7 @@ def _analysis_section(w, result: AnalysisResult, inputs) -> None:
          w.tr("report.soil.phi"), w.tr("report.soil.c"), w.tr("report.soil.su")],
         [[_num(layer.top), _num(layer.bottom), _num(layer.gamma), _num(layer.design.phi_eff, 1),
           _num(layer.design.c_eff, 1), _num(layer.design.su, 1)] for layer in soil.layers])
+    _figures(w, result)
     if result.envelope is not None:
         env = result.envelope
         w.paragraph(w.tr("anchored_wall.report.envelope", kind=w.tr(f"anchored_wall.envelope.{env.kind}"),

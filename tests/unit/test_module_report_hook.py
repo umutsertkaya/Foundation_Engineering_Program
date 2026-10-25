@@ -151,3 +151,13 @@ def test_anchored_wall_report_is_written_in_both_languages(language, heading):
     assert "{kind}" not in text
     expected = "(kum)" if language == "tr" else "(sand)"
     assert f"Görünür basınç zarfı {expected}" in text or f"pressure envelope {expected}" in text
+
+
+def test_anchored_wall_report_embeds_section_and_diagram_figures():
+    from geotek.services import report
+
+    data = report.build_docx(_anchored_project(), ["anchored_wall:analysis"], language="en")
+    doc = Document(io.BytesIO(data))
+    assert len(doc.inline_shapes) == 2
+    text = "\n".join(p.text for p in doc.paragraphs)
+    assert "Anchored wall section (to scale)" in text and "could not be drawn" not in text

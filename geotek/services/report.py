@@ -754,7 +754,6 @@ def _structure_summary_row(w: _Writer, info: SectionInfo, structure) -> list[str
 
 def _summary(w: _Writer, project: Project, sections: dict[str, SectionInfo], selected: list[str]) -> None:
     """One page that answers "does the design work?" before any detail."""
-    w.heading(w.tr("report.summary.title"), 1)
     rows, failing = [], []
     for sid in selected:
         info = sections[sid]
@@ -765,6 +764,9 @@ def _summary(w: _Writer, project: Project, sections: dict[str, SectionInfo], sel
         rows.append(row)
         if row[2] == w.tr("report.fail"):
             failing.append(row[0])
+    if not rows:  # only modules or soil sections selected: no verdict to summarise
+        return
+    w.heading(w.tr("report.summary.title"), 1)
     if rows:
         if failing:
             w.callout(w.tr("report.summary.not_ok"), w.tr("report.summary.not_ok_text", names=", ".join(failing)), False)

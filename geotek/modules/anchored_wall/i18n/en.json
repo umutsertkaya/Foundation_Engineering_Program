@@ -308,5 +308,9 @@
   "anchored_wall.report.ground": "Anchor ground",
   "anchored_wall.warning.henkel_depth_below_b_eff": "Henkel failure depth d = {d} m is smaller than the basal heave depth B′ = {b_eff} m; a smaller d lowers Ka (unconservative). d should be the depth to a firm stratum (GEC-4 figure 28).",
   "anchored_wall.assumption.ns_from_lowest_su_below": "Ns = γH/Su,b with Su,b the lowest Su between the base and B′ below it (GEC-4 eq. 9 says average; the lowest is conservative and may switch the envelope from stiff to soft clay).",
-  "anchored_wall.warning.basal_profile_short": "The soil profile does not reach the basal heave depth ({depth} m); Su,b comes only from the profile layers. A weaker clay deeper down would be missed: extend the profile or enter the stiff layer depth."
+  "anchored_wall.warning.basal_profile_short": "The soil profile does not reach the basal heave depth ({depth} m); Su,b comes only from the profile layers. A weaker clay deeper down would be missed: extend the profile or enter the stiff layer depth.",
+  "anchored_wall.fig.free": "Free length",
+  "anchored_wall.fig.bond": "Bond (grouted) length",
+  "anchored_wall.fig.section_caption": "Anchored wall section (to scale): excavation, wall length, anchor levels and inclinations. The thick part is the bond length anchored in the ground.",
+  "anchored_wall.fig.vm_caption": "Shear force and bending moment of the wall. Dashed lines are anchor levels, the dotted line is the excavation level."
 }

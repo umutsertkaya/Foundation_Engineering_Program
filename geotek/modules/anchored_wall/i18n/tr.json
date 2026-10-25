@@ -308,5 +308,9 @@
   "anchored_wall.report.ground": "Ankraj zemini",
   "anchored_wall.warning.henkel_depth_below_b_eff": "Henkel göçme derinliği d = {d} m, taban kabarması derinliği B′ = {b_eff} m'den küçük; d küçüldükçe Ka azalır (güvensiz taraf). d, sert tabakaya kadar olan derinlik olmalı (GEC-4 Şekil 28).",
   "anchored_wall.assumption.ns_from_lowest_su_below": "Ns = γH/Su,b; Su,b taban ile B′ derinliği arasındaki en düşük Su (GEC-4 denk. 9 ortalama der; en düşük değer güvenli taraf, zarf türünü sert kilden yumuşak kile çevirebilir).",
-  "anchored_wall.warning.basal_profile_short": "Zemin profili taban kabarması derinliğine ({depth} m) ulaşmıyor; Su,b yalnız profildeki katmanlardan alındı. Daha derinde zayıf kil varsa sonuç güvensizdir: profili uzatın veya sert tabaka derinliğini girin."
+  "anchored_wall.warning.basal_profile_short": "Zemin profili taban kabarması derinliğine ({depth} m) ulaşmıyor; Su,b yalnız profildeki katmanlardan alındı. Daha derinde zayıf kil varsa sonuç güvensizdir: profili uzatın veya sert tabaka derinliğini girin.",
+  "anchored_wall.fig.free": "Serbest boy",
+  "anchored_wall.fig.bond": "Kök (enjeksiyon) boyu",
+  "anchored_wall.fig.section_caption": "Ankrajlı duvarın kesiti (ölçekli): kazı, duvar boyu, ankraj seviyeleri ve eğimleri. Kalın kısım ankrajın zemine kenetlenen kök boyudur.",
+  "anchored_wall.fig.vm_caption": "Duvarın kesme kuvveti ve eğilme momenti. Kesikli çizgiler ankraj seviyeleri, noktalı çizgi kazı tabanıdır."
 }
