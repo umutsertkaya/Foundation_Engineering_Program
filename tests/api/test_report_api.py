@@ -285,3 +285,14 @@ def test_wall_assumptions_follow_the_report_language(shell, open_project):
     assert "report.assumption" not in en
     tr = _text(shell.post(f"{BASE}/docx", json={"language": "tr", "sections": ["structure:wall"]}))
     assert "Beton birim hacim ağırlığı" in tr
+
+
+def test_report_has_cover_summary_and_running_footer(shell, open_project):
+    response = shell.post(f"{BASE}/docx", json={"language": "en"})
+    doc = Document(io.BytesIO(response.content))
+    text = _text(response)
+    assert "Geotechnical Calculation Report" in text
+    assert "Prepared by" in text and "Checked by" in text
+    assert "Utilisation is the load (demand)" in text  # summary explains the number it shows
+    assert "All design checks are satisfied" in text
+    assert "PAGE" in doc.sections[0].footer._element.xml
