@@ -168,3 +168,78 @@ def check_bars(checks: list[dict], labels: dict[str, str]) -> bytes | None:
     ax.set_xlabel(labels["x"])
     ax.grid(axis="x", alpha=0.3)
     return _png(fig)
+
+
+def soil_column(layers: list[dict], gwt_depth: float | None, labels: dict[str, str]) -> bytes | None:
+    """Layer column to scale: one coloured block per layer with its main parameters, water level line."""
+    if not layers or not _finite([v for l in layers for v in (l["top"], l["bottom"])]):
+        return None
+    palette = ["#E8DCC4", "#D9C7A0", "#C9B38A", "#BBA27A", "#A89268", "#D7CDB6"]
+    depth = max(l["bottom"] for l in layers)
+    fig, ax = plt.subplots(figsize=(5.2, max(2.6, 0.45 * depth + 1.2)))
+    for i, layer in enumerate(layers):
+        top, bottom = layer["top"], layer["bottom"]
+        ax.add_patch(Polygon([(0, top), (1, top), (1, bottom), (0, bottom)], facecolor=palette[i % len(palette)],
+                             edgecolor="#555", lw=0.8))
+        ax.text(0.04, (top + bottom) / 2, layer["text"], va="center", fontsize=8)
+        ax.text(-0.04, top, f"{top:g}", ha="right", va="center", fontsize=8)
+    ax.text(-0.04, depth, f"{depth:g}", ha="right", va="center", fontsize=8)
+    if gwt_depth is not None and math.isfinite(gwt_depth) and 0 <= gwt_depth <= depth:
+        ax.plot([-0.1, 1.05], [gwt_depth, gwt_depth], color=WATER, lw=1.5, ls="--", zorder=5)
+        ax.text(1.06, gwt_depth, labels["gwt"], color=WATER, va="center", fontsize=8)
+    ax.set_xlim(-0.2, 1.4)
+    ax.set_ylim(depth, 0)
+    ax.set_ylabel(labels["y"])
+    ax.set_xticks([])
+    ax.spines["bottom"].set_visible(False)
+    return _png(fig)
+
+
+def cpt_plot(data: dict, labels: dict[str, str]) -> bytes | None:
+    """Cone resistance, sleeve friction and soil behaviour index Ic against depth (Ic 2.6 = sand/clay boundary)."""
+    depth, qc, fs, ic = (data.get(k) for k in ("depth", "qc", "fs", "Ic"))
+    if not depth or not (len(depth) == len(qc) == len(fs) == len(ic)):
+        return None
+    ok = [i for i in range(len(depth)) if _finite([depth[i], qc[i], fs[i], ic[i]])]
+    if len(ok) < 2:
+        return None
+    pick = lambda values: [values[i] for i in ok]  # noqa: E731
+    fig, axes = plt.subplots(1, 3, figsize=(7.2, 4.4), sharey=True)
+    for ax, values, title, color in ((axes[0], qc, labels["qc"], NAVY), (axes[1], fs, labels["fs"], "#B5651D"),
+                                     (axes[2], ic, labels["ic"], "#7B3F9E")):
+        ax.plot(pick(values), pick(depth), color=color, lw=1.2)
+        ax.set_title(title, fontsize=9)
+        ax.grid(alpha=0.3)
+    axes[2].axvline(2.6, color="#888", ls=":", lw=1.2)
+    axes[2].text(2.6, 0.01, labels["boundary"], transform=axes[2].get_xaxis_transform(), fontsize=7, color="#555",
+                 ha="center", va="bottom")
+    axes[0].invert_yaxis()
+    axes[0].set_ylabel(labels["y"])
+    fig.tight_layout()
+    return _png(fig)
+
+
+def liquefaction_plot(series: dict, labels: dict[str, str]) -> bytes | None:
+    """Safety factor against liquefaction with depth; the part below FS = 1 is shaded red."""
+    depth, fs, status = series.get("depth"), series.get("FS"), series.get("status") or []
+    if not depth or not fs or len(depth) != len(fs):
+        return None
+    ok = [i for i in range(len(depth)) if fs[i] is not None and _finite([depth[i], fs[i]])]
+    if len(ok) < 2:
+        return None
+    d = [depth[i] for i in ok]
+    v = [min(fs[i], 5.0) for i in ok]
+    fig, ax = plt.subplots(figsize=(4.2, 4.2))
+    ax.plot(v, d, color=NAVY, lw=1.4)
+    ax.fill_betweenx(d, v, 1.0, where=[x < 1.0 for x in v], color=BAD, alpha=0.35, lw=0)
+    ax.axvline(1.0, color=BAD, lw=1.4)
+    ax.text(1.0, 1.01, labels["limit"], transform=ax.get_xaxis_transform(), color=BAD, ha="center", fontsize=8)
+    ax.set_xlim(0, 5.2)
+    ax.invert_yaxis()
+    ax.set_xlabel(labels["x"])
+    ax.set_ylabel(labels["y"])
+    ax.grid(alpha=0.3)
+    lpi = series.get("LPI")
+    if isinstance(lpi, (int, float)) and math.isfinite(lpi):
+        ax.text(0.97, 0.03, f"LPI = {lpi:.1f}", transform=ax.transAxes, ha="right", fontsize=9, color=NAVY)
+    return _png(fig)
