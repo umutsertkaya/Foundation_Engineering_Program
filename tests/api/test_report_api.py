@@ -330,3 +330,23 @@ def test_soil_and_cpt_figures_return_none_without_data():
     assert figures.soil_column([], 1.0, {}) is None
     assert figures.cpt_plot({"depth": [1.0], "qc": [1.0], "fs": [1.0], "Ic": [1.0]}, {}) is None
     assert figures.liquefaction_plot({"depth": [], "FS": []}, {}) is None
+
+
+def test_assumptions_are_a_table_without_internal_code_names(shell, open_project):
+    response = shell.post(f"{BASE}/docx", json={"language": "tr"})
+    doc = Document(io.BytesIO(response.content))
+    header_rows = [[c.text for c in t.rows[0].cells] for t in doc.tables]
+    assert ["Kabul", "Dayanak"] in header_rows
+    text = _text(response)
+    for internal in ("WallSettings", "WallDesignInputs", "StructureSoilModel", "FoundationSoil", "proportion_for", "P1 §"):
+        assert internal not in text
+    assert "Güvenlik katsayısı: kayma, statik" in text  # factor path shown as words
+
+
+def test_public_source_keeps_lookup_references_only():
+    from geotek.services.report import _Writer
+
+    w = _Writer("en")
+    assert w.public_source("WallSettings; mevcut varsayılan") == "Engineering assumption"
+    assert w.public_source("TBDY 2018 Tablo 16.3; P1 §5") == "TBDY 2018 Tablo 16.3"
+    assert w.public_source("FHWA-NHI-06-089 Vol. II (2026-10-20 karşılaştırma, secondary)") == "FHWA-NHI-06-089 Vol. II"

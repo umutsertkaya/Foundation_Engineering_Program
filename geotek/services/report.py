@@ -121,6 +121,16 @@ def _xml_safe(text: str) -> str:
     return _XML_INVALID.sub("", str(text))
 
 
+_INTERNAL_SOURCE = re.compile(
+    r"\bP\d\b|Settings|Inputs|StructureSoilModel|FoundationSoil|sözleşme|contract|sheet_pile\.py|"
+    r"proportion_for|adaptör|adapter|lateral_pressure|limit_state|bearing_capacity/|^mevcut|^existing|"
+    r"proje girdisi|project input|^Kullanıcı|^User|None olduğunda|mevcut varsayılan",
+    re.IGNORECASE)
+
+
+_COMPARISON_NOTE = re.compile(r"\s*\([^)]*(karşılaştırma|comparison|secondary|primary)[^)]*\)", re.IGNORECASE)
+
+
 class _Writer:
     def __init__(self, language: str) -> None:
         from docx import Document
@@ -160,14 +170,29 @@ class _Writer:
         code = list_design_codes().get(code_id)
         return code.label.get(self.lang) if code is not None else code_id
 
-    def assumption(self, item: dict) -> str:
+    def assumption_row(self, item: dict) -> list[str]:
+        """``[text, basis]`` of an assumption; internal code references are dropped from the basis."""
         code = item.get("code")
         text = item["text"]
         if code and not code.startswith("wall."):
             text = self.coded(f"sheet_pile.assumption.{code}", item.get("params") or {}, text)
         elif code:
             text = self.coded(f"report.assumption.{code}", item.get("params") or {}, text)
-        return f"{text} ({item['source']})"
+        return [text, self.public_source(item.get("source"))]
+
+    def public_source(self, source: str | None) -> str:
+        """Keep only references a reader can look up; settings and contract names are internal."""
+        source = _COMPARISON_NOTE.sub("", source or "")
+        parts = [p.strip() for p in re.split(r";", source) if p.strip()]
+        kept = [p for p in parts if not _INTERNAL_SOURCE.search(p)]
+        return "; ".join(kept) if kept else self.tr("report.assumption.engineering")
+
+    def factor_label(self, path: str) -> str:
+        """``safety.sliding.static`` as "Güvenlik katsayısı: kayma, statik"; unknown parts stay as they are."""
+        head, *rest = path.split(".")
+        words = [self.coded(f"report.factorpath.{part}", {}, part) for part in rest]
+        label = self.coded(f"report.factorpath.{head}", {}, head)
+        return f"{label}: {', '.join(words)}" if words else label
 
     def _style_document(self) -> None:
         """Page margins, base fonts, heading colours, header and footer with page numbers."""
@@ -449,13 +474,15 @@ def _evidence(w: _Writer, result: dict) -> None:
     assumptions = result.get("assumptions") or []
     if assumptions:
         w.heading(w.tr("report.assumptions"), 3)
-        w.bullets([w.assumption(item) for item in assumptions])
+        w.note(w.tr("report.assumptions_intro"))
+        w.table([w.tr("report.assumption.col"), w.tr("report.assumption.basis")],
+                [w.assumption_row(item) for item in assumptions])
     factors = result.get("factors_used") or []
     if factors:
         w.heading(w.tr("report.factors"), 3)
         w.table([w.tr("report.factor.path"), w.tr("report.col.value"),
                  w.tr("report.factor.source"), w.tr("report.factor.status")],
-                [[f["path"], _fmt(f["value"], 3), f["source"], w.enum("fstatus", f["status"])]
+                [[w.factor_label(f["path"]), _fmt(f["value"], 3), w.public_source(f["source"]), w.enum("fstatus", f["status"])]
                  for f in factors])
     items = result.get("warning_items") or []
     warnings = ([w.coded(f"sheet_pile.warning.{i['code']}", i.get("params") or {}, i.get("params", {}).get("text"))
@@ -557,6 +584,9 @@ def _wall_figures(w: _Writer, structure, result: dict) -> None:
 
 def _wall_section(w: _Writer, structure, result: dict) -> None:
     w.heading(w.tr("report.section.wall", name=structure.name or structure.id))
+    passed = result.get("passed")
+    w.callout(f"{w.tr('report.wall.verdict')}: {w.passfail(bool(passed)) if passed is not None else DASH}",
+              _governing_line(w, result), None if passed is None else bool(passed))
     inputs = structure.inputs
     w.key_values([
         (w.tr("report.wall.type"), w.enum("walls.type", structure.wall_type)),
@@ -596,9 +626,6 @@ def _wall_section(w: _Writer, structure, result: dict) -> None:
                      for r in rows])
             w.paragraph(w.tr("walls.key.note"))
     _wall_figures(w, structure, result)
-    w.paragraph(f"{w.tr('report.wall.verdict')}: {(w.passfail(bool(result.get('passed'))) if result.get('passed') is not None else DASH)}",
-                bold=True)
-    w.paragraph(_governing_line(w, result))
     w.heading(w.tr("report.wall.checks"), 3)
     w.table(
         [w.tr("report.check.case"), w.tr("report.check.name"), w.tr("report.check.value"),
