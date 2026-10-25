@@ -296,3 +296,20 @@ def test_report_has_cover_summary_and_running_footer(shell, open_project):
     assert "Utilisation is the load (demand)" in text  # summary explains the number it shows
     assert "All design checks are satisfied" in text
     assert "PAGE" in doc.sections[0].footer._element.xml
+
+
+def test_report_embeds_wall_and_pile_figures(shell, open_project):
+    response = shell.post(f"{BASE}/docx", json={"language": "tr"})
+    doc = Document(io.BytesIO(response.content))
+    assert len(doc.inline_shapes) >= 5  # wall section, pressures, check bars, pile diagrams
+    text = _text(response)
+    assert "Şekil 1." in text and "Eğilme momenti" not in text.split("Şekil 1.")[0]
+
+
+def test_figures_return_none_without_data():
+    from geotek.services import report_figures as figures
+
+    assert figures.sheet_pile_diagrams({"z": [], "net": [], "shear": [], "moment": []}, {}) is None
+    assert figures.pressure_plot([], "static", {}) is None
+    assert figures.check_bars([], {}) is None
+    assert figures.wall_section("cantilever", {}, slope_deg=0, surcharge=0, gwt_depth=None, labels={}) is None

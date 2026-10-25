@@ -256,6 +256,24 @@ class _Writer:
         run.font.size = Pt(10.5)
         self.doc.add_paragraph()
 
+    def figure(self, png: bytes | None, caption: str, width_cm: float = 14.0) -> None:
+        """Numbered picture with a caption; a figure that could not be drawn says so, never stays silent."""
+        from docx.enum.text import WD_ALIGN_PARAGRAPH
+        from docx.shared import Cm
+
+        self._figures = getattr(self, "_figures", 0) + 1
+        if png is None:
+            self.note(f"{self.tr('report.figure')} {self._figures}: {caption} — {self.tr('report.figure_missing')}")
+            return
+        paragraph = self.doc.add_paragraph()
+        paragraph.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        paragraph.paragraph_format.keep_with_next = True
+        paragraph.add_run().add_picture(io.BytesIO(png), width=Cm(width_cm))
+        label = self.doc.add_paragraph()
+        label.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        run = label.add_run(_xml_safe(f"{self.tr('report.figure')} {self._figures}. {caption}"))
+        run.italic = True
+
     def note(self, text: str) -> None:
         """Small grey explanatory sentence (how to read a table or figure)."""
         from docx.shared import Pt, RGBColor
@@ -487,6 +505,36 @@ def _structure_gwt_rows(w: _Writer, structure) -> list[tuple[str, str]]:
     return rows
 
 
+def _figures():
+    """Figure module, imported on first use (matplotlib is only needed when a report is built)."""
+    from geotek.services import report_figures
+
+    return report_figures
+
+
+def _wall_figures(w: _Writer, structure, result: dict) -> None:
+    soil = structure.soil
+    gwt = (soil.gwt_retained or soil.profile.gwt).depth_design
+    w.heading(w.tr("report.wall.figures"), 3)
+    w.figure(_figures().wall_section(structure.wall_type, result.get("geometry") or {},
+                                  slope_deg=structure.backfill_slope or 0.0,
+                                  surcharge=structure.inputs.surcharge or 0.0, gwt_depth=gwt,
+                                  labels={"gwt": w.tr("report.fig.gwt"), "front": w.tr("report.fig.front_soil"),
+                                          "backfill": w.tr("report.fig.backfill")}),
+             w.tr("report.fig.wall_caption"), 13.0)
+    pressures = result.get("pressures") or []
+    for state in ("static", "seismic"):
+        case = next((p["case"] for p in pressures if p.get("side") == "retained"
+                     and p["case"].partition(":")[0] == state), None)
+        if case is None:
+            continue
+        w.figure(_figures().pressure_plot(pressures, case, {
+            "total": w.tr("report.fig.total_pressure"), "water": w.tr("report.fig.water_pressure"),
+            "x": w.tr("report.fig.pressure_axis"), "y": w.tr("report.fig.depth_axis"),
+            "title": _case_label(w, case), "force": w.tr("report.fig.resultant")}),
+            w.tr("report.fig.pressure_caption", case=_case_label(w, case)), 9.0)
+
+
 def _wall_section(w: _Writer, structure, result: dict) -> None:
     w.heading(w.tr("report.section.wall", name=structure.name or structure.id))
     inputs = structure.inputs
@@ -527,6 +575,7 @@ def _wall_section(w: _Writer, structure, result: dict) -> None:
                       _fmt(r["passive_used"], 1), _fmt(r["demand_v"], 1), _fmt(r["demand_m"], 1)]
                      for r in rows])
             w.paragraph(w.tr("walls.key.note"))
+    _wall_figures(w, structure, result)
     w.paragraph(f"{w.tr('report.wall.verdict')}: {(w.passfail(bool(result.get('passed'))) if result.get('passed') is not None else DASH)}",
                 bold=True)
     w.paragraph(_governing_line(w, result))
@@ -539,6 +588,10 @@ def _wall_section(w: _Writer, structure, result: dict) -> None:
           _fmt(c.get("utilisation"), 2), (w.passfail(bool(c["passed"])) if c.get("passed") is not None else DASH)]
          for c in result.get("checks") or []],
     )
+    checks = [{**c, "label": f"{_case_label(w, c['case'])} · {_check_label(w, c['name'])}"}
+              for c in result.get("checks") or []]
+    w.figure(_figures().check_bars(checks, {"limit": w.tr("report.fig.limit"), "x": w.tr("report.fig.utilisation")}),
+             w.tr("report.fig.checks_caption"), 14.0)
     _evidence(w, result)
 
 
@@ -576,6 +629,11 @@ def _sheet_pile_section(w: _Writer, structure, result: dict) -> None:
         (w.tr("report.pile.z_M_max"), _fmt(result.get("z_M_max"))),
         (w.tr("report.pile.section_modulus"), _fmt(result.get("section_modulus_cm3"), 1)),
     ])
+    w.figure(_figures().sheet_pile_diagrams(result, {
+        "net": w.tr("report.fig.net_pressure"), "shear": w.tr("report.fig.shear"),
+        "moment": w.tr("report.fig.moment"), "y": w.tr("report.fig.depth_axis"),
+        "excavation": w.tr("report.fig.excavation_level"), "mmax": w.tr("report.fig.mmax")}),
+        w.tr("report.fig.pile_caption"), 15.5)
     _evidence(w, result)
 
 

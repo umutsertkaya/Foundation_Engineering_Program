@@ -18,7 +18,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-report = ["python-docx>=1.1"]
+report = ["python-docx>=1.1", "matplotlib>=3.8"]
 web = ["fastapi>=0.140", "uvicorn>=0.50", "pywebview>=6.0"]
 package = ["pyinstaller>=6.20"]
 dev = ["pytest>=8", "hypothesis>=6.90", "ruff>=0.4", "mypy>=1.8", "httpx>=0.28"]
