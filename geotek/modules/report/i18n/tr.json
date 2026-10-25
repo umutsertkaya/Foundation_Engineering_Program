@@ -212,5 +212,13 @@
   "report.fig.moment": "Eğilme momenti [kNm/m]",
   "report.fig.excavation_level": "Kazı tabanı",
   "report.fig.mmax": "M maks.",
-  "report.fig.pile_caption": "Palplanşın derinlik boyunca net basıncı, kesme kuvveti ve eğilme momenti. Kırmızı nokta en büyük momenti gösterir."
+  "report.fig.pile_caption": "Palplanşın derinlik boyunca net basıncı, kesme kuvveti ve eğilme momenti. Kırmızı nokta en büyük momenti gösterir.",
+  "report.fig.soil_caption": "Zemin profili (ölçekli). Her katmanda birim hacim ağırlık γ [kN/m³], içsel sürtünme açısı φ′, kohezyon c′ ve drenajsız kayma dayanımı su [kPa] yazılıdır.",
+  "report.fig.qc": "Uç direnci qc [kPa]",
+  "report.fig.fs": "Yan sürtünme fs [kPa]",
+  "report.fig.ic": "Davranış indeksi Ic",
+  "report.fig.ic_boundary": "kum / kil sınırı",
+  "report.fig.cpt_caption": "CPT {id}: uç direnci, yan sürtünme ve zemin davranış indeksi Ic. Ic 2,6'nın altı genelde kumlu, üstü killi zemin demektir.",
+  "report.fig.fs_liq": "Sıvılaşma güvenlik sayısı FS",
+  "report.fig.liq_caption": "{id}: derinliğe göre sıvılaşma güvenlik sayısı. Kırmızı çizginin solu (FS < 1) sıvılaşma olasılığını gösterir."
 }

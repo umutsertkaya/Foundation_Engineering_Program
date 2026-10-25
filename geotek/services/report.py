@@ -256,11 +256,15 @@ class _Writer:
         run.font.size = Pt(10.5)
         self.doc.add_paragraph()
 
-    def figure(self, png: bytes | None, caption: str, width_cm: float = 14.0) -> None:
-        """Numbered picture with a caption; a figure that could not be drawn says so, never stays silent."""
+    def figure(self, png: bytes | None, caption: str, width_cm: float = 14.0, *, optional: bool = False) -> None:
+        """Numbered picture with a caption; a figure that could not be drawn says so, never stays silent.
+
+        ``optional`` figures (a sounding with too few points for a curve) are left out without a note."""
         from docx.enum.text import WD_ALIGN_PARAGRAPH
         from docx.shared import Cm
 
+        if png is None and optional:
+            return
         self._figures = getattr(self, "_figures", 0) + 1
         if png is None:
             self.note(f"{self.tr('report.figure')} {self._figures}: {caption} — {self.tr('report.figure_missing')}")
@@ -354,6 +358,16 @@ def _soil_section(w: _Writer, profile: SoilProfile) -> None:
         (w.tr("report.soil.gwt_design"), _fmt(gwt.depth_design)),
         (w.tr("report.soil.gwt_seismic"), _fmt(gwt.depth_seismic)),
     ])
+    column = [{"top": layer.top, "bottom": layer.bottom,
+               "text": " · ".join(x for x in (layer.description or layer.uscs or "",
+                                              f"γ={_fmt(layer.gamma, 1)}",
+                                              f"φ'={_fmt(layer.design.phi_eff, 0)}°" if layer.design.phi_eff else "",
+                                              f"c'={_fmt(layer.design.c_eff, 0)}" if layer.design.c_eff else "",
+                                              f"su={_fmt(layer.design.su, 0)}" if layer.design.su else "") if x)}
+              for layer in profile.layers]
+    w.figure(_figures().soil_column(column, gwt.depth_design,
+                                    {"gwt": w.tr("report.fig.gwt"), "y": w.tr("report.fig.depth_axis")}),
+             w.tr("report.fig.soil_caption"), 11.0)
     w.table(
         [w.tr("report.soil.top"), w.tr("report.soil.bottom"), w.tr("report.soil.description"),
          w.tr("report.soil.uscs"), w.tr("report.soil.gamma"), w.tr("report.soil.gamma_sat"),
@@ -402,6 +416,12 @@ def _classification_section(w: _Writer, project: Project) -> None:
                     ])
                     start = i
             w.paragraph(cpt.id, bold=True)
+            w.figure(_figures().cpt_plot(
+                {"depth": [float(x) for x in data.depth], "qc": [float(x) for x in data.qc],
+                 "fs": [float(x) for x in data.fs], "Ic": [float(x) for x in data.Ic]},
+                {"qc": w.tr("report.fig.qc"), "fs": w.tr("report.fig.fs"), "ic": w.tr("report.fig.ic"),
+                 "boundary": w.tr("report.fig.ic_boundary"), "y": w.tr("report.fig.depth_axis")}),
+                w.tr("report.fig.cpt_caption", id=cpt.id), 15.0)
             w.table([w.tr("report.soil.top"), w.tr("report.soil.bottom"), w.tr("report.cls.zone"),
                      w.tr("report.cls.zone_name"), w.tr("report.cls.ic_mean")], rows)
     labs = [(b.id, record) for b in project.investigations.boreholes for record in b.lab]
@@ -674,6 +694,10 @@ def _liquefaction_section(w: _Writer, project: Project, data: dict) -> None:
     w.table([w.tr("report.liq.sounding"), w.tr("report.liq.min_fs"), w.tr("report.liq.min_fs_depth"),
              w.tr("report.liq.n_liquefiable"), w.tr("report.liq.n_marginal"),
              w.tr("report.liq.lpi"), w.tr("report.liq.lpi_category")], rows)
+    for sounding_id, series in (data["result"].get("per_sounding") or {}).items():
+        w.figure(_figures().liquefaction_plot(series, {
+            "x": w.tr("report.fig.fs_liq"), "y": w.tr("report.fig.depth_axis"), "limit": w.tr("report.fig.limit")}),
+            w.tr("report.fig.liq_caption", id=sounding_id), 8.5, optional=True)
     notes = [f"{sid}: {w.tr('report.liq.lpi_incomplete')}" for sid, series in (data["result"].get("per_sounding") or {}).items()
              if series.get("LPI_incomplete")]
     notes += [f"{sid}: {w.message(msg)}" for sid, series in (data["result"].get("per_sounding") or {}).items()

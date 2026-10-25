@@ -212,5 +212,13 @@
   "report.fig.moment": "Bending moment [kNm/m]",
   "report.fig.excavation_level": "Excavation level",
   "report.fig.mmax": "M max",
-  "report.fig.pile_caption": "Net pressure, shear force and bending moment of the sheet pile along its depth. The red dot marks the largest moment."
+  "report.fig.pile_caption": "Net pressure, shear force and bending moment of the sheet pile along its depth. The red dot marks the largest moment.",
+  "report.fig.soil_caption": "Soil profile (to scale). Each layer lists unit weight γ [kN/m³], friction angle φ′, cohesion c′ and undrained shear strength su [kPa].",
+  "report.fig.qc": "Cone resistance qc [kPa]",
+  "report.fig.fs": "Sleeve friction fs [kPa]",
+  "report.fig.ic": "Behaviour index Ic",
+  "report.fig.ic_boundary": "sand / clay boundary",
+  "report.fig.cpt_caption": "CPT {id}: cone resistance, sleeve friction and soil behaviour index Ic. Ic below 2.6 is generally sandy, above it clayey soil.",
+  "report.fig.fs_liq": "Liquefaction safety factor FS",
+  "report.fig.liq_caption": "{id}: liquefaction safety factor with depth. Left of the red line (FS < 1) liquefaction is expected."
 }

@@ -313,3 +313,20 @@ def test_figures_return_none_without_data():
     assert figures.pressure_plot([], "static", {}) is None
     assert figures.check_bars([], {}) is None
     assert figures.wall_section("cantilever", {}, slope_deg=0, surcharge=0, gwt_depth=None, labels={}) is None
+
+
+def test_report_embeds_soil_cpt_and_liquefaction_figures(shell, open_project):
+    response = shell.post(f"{BASE}/docx", json={"language": "en"})
+    text = _text(response)
+    assert "Soil profile (to scale)" in text
+    assert "CPT CPT1:" in text
+    assert "liquefaction safety factor with depth" in text
+    assert "could not be drawn" not in text
+
+
+def test_soil_and_cpt_figures_return_none_without_data():
+    from geotek.services import report_figures as figures
+
+    assert figures.soil_column([], 1.0, {}) is None
+    assert figures.cpt_plot({"depth": [1.0], "qc": [1.0], "fs": [1.0], "Ic": [1.0]}, {}) is None
+    assert figures.liquefaction_plot({"depth": [], "FS": []}, {}) is None
