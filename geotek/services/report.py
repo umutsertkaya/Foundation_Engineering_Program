@@ -127,6 +127,7 @@ class _Writer:
 
         self.lang = language
         self.doc = Document()
+        self._style_document()
 
     def tr(self, key: str, **kwargs) -> str:
         return t(key, self.lang, **kwargs)
@@ -168,6 +169,100 @@ class _Writer:
             text = self.coded(f"report.assumption.{code}", item.get("params") or {}, text)
         return f"{text} ({item['source']})"
 
+    def _style_document(self) -> None:
+        """Page margins, base fonts, heading colours, header and footer with page numbers."""
+        from docx.shared import Cm, Pt, RGBColor
+
+        base = self.doc.styles["Normal"]
+        base.font.name, base.font.size = "Calibri", Pt(10.5)
+        base.paragraph_format.space_after = Pt(4)
+        for name, size in (("Title", 26), ("Heading 1", 16), ("Heading 2", 13), ("Heading 3", 11)):
+            style = self.doc.styles[name]
+            style.font.name, style.font.size = "Calibri", Pt(size)
+            style.font.color.rgb = RGBColor(0x1F, 0x3A, 0x5F)
+        section = self.doc.sections[0]
+        section.left_margin = section.right_margin = Cm(2.2)
+        section.top_margin, section.bottom_margin = Cm(2.2), Cm(2.0)
+        section.different_first_page_header_footer = True
+
+    def set_running_text(self, project_name: str) -> None:
+        """Header (project name) and footer (page number) of every page after the cover."""
+        from docx.enum.text import WD_ALIGN_PARAGRAPH
+        from docx.shared import Pt, RGBColor
+
+        section = self.doc.sections[0]
+        head = section.header.paragraphs[0]
+        head.text = ""
+        run = head.add_run(_xml_safe(f"{self.tr('report.title')} · {project_name}"))
+        run.font.size, run.font.color.rgb = Pt(8.5), RGBColor(0x66, 0x66, 0x66)
+        foot = section.footer.paragraphs[0]
+        foot.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        foot.add_run(f"{self.tr('report.page')} ").font.size = Pt(8.5)
+        self._field(foot, "PAGE")
+
+    def _field(self, paragraph, instruction: str, placeholder: str = "1") -> None:
+        """Insert a Word field (page number, table of contents) that Word fills in on open."""
+        from docx.oxml import OxmlElement
+        from docx.oxml.ns import qn
+
+        run = paragraph.add_run()
+        for kind, extra in (("begin", None), (None, instruction), ("separate", None), (None, placeholder),
+                            ("end", None)):
+            if kind:
+                element = OxmlElement("w:fldChar")
+                element.set(qn("w:fldCharType"), kind)
+            elif extra == instruction:
+                element = OxmlElement("w:instrText")
+                element.set(qn("xml:space"), "preserve")
+                element.text = f" {instruction} "
+            else:
+                element = OxmlElement("w:t")
+                element.text = extra
+            run._r.append(element)
+
+    def table_of_contents(self) -> None:
+        self.heading(self.tr("report.contents"), 1)
+        self._field(self.doc.add_paragraph(), 'TOC \\o "1-2" \\h \\z \\u', self.tr("report.contents_hint"))
+        self.page_break()
+
+    def page_break(self) -> None:
+        self.doc.add_page_break()
+
+    @staticmethod
+    def _shade(cell, fill: str) -> None:
+        from docx.oxml import OxmlElement
+        from docx.oxml.ns import qn
+
+        props = cell._tc.get_or_add_tcPr()
+        shading = OxmlElement("w:shd")
+        shading.set(qn("w:val"), "clear")
+        shading.set(qn("w:color"), "auto")
+        shading.set(qn("w:fill"), fill)
+        props.append(shading)
+
+    def callout(self, title: str, text: str, ok: bool | None) -> None:
+        """One-cell coloured box for the headline result of a section (green ok, red not ok, grey unknown)."""
+        from docx.shared import Pt
+
+        fill = {True: "E3F4E7", False: "FBE3E1", None: "ECEFF3"}[ok]
+        table = self.doc.add_table(rows=1, cols=1)
+        table.style = "Table Grid"
+        cell = table.rows[0].cells[0]
+        self._shade(cell, fill)
+        cell.text = ""
+        cell.paragraphs[0].add_run(_xml_safe(title)).bold = True
+        body = cell.add_paragraph()
+        run = body.add_run(_xml_safe(text))
+        run.font.size = Pt(10.5)
+        self.doc.add_paragraph()
+
+    def note(self, text: str) -> None:
+        """Small grey explanatory sentence (how to read a table or figure)."""
+        from docx.shared import Pt, RGBColor
+
+        run = self.doc.add_paragraph().add_run(_xml_safe(text))
+        run.italic, run.font.size, run.font.color.rgb = True, Pt(9), RGBColor(0x55, 0x55, 0x55)
+
     def heading(self, text: str, level: int = 1) -> None:
         self.doc.add_heading(_xml_safe(text), level=level)
 
@@ -180,14 +275,31 @@ class _Writer:
             self.doc.add_paragraph(_xml_safe(item), style="List Bullet")
 
     def table(self, header: list[str], rows: list[list[str]]) -> None:
+        from docx.oxml import OxmlElement
+        from docx.shared import Pt, RGBColor
+
+        verdict_fill = {self.tr("report.pass"): "E3F4E7", self.tr("report.fail"): "FBE3E1"}
         table = self.doc.add_table(rows=1, cols=len(header))
         table.style = "Table Grid"
-        for cell, text in zip(table.rows[0].cells, header):
+        head_row = table.rows[0]
+        repeat = OxmlElement("w:tblHeader")  # header row repeats on every page
+        head_row._tr.get_or_add_trPr().append(repeat)
+        for cell, text in zip(head_row.cells, header):
             cell.text = ""
-            cell.paragraphs[0].add_run(_xml_safe(text)).bold = True
-        for row in rows:
+            run = cell.paragraphs[0].add_run(_xml_safe(text))
+            run.bold, run.font.size = True, Pt(9.5)
+            run.font.color.rgb = RGBColor(0xFF, 0xFF, 0xFF)
+            self._shade(cell, "1F3A5F")
+        for index, row in enumerate(rows):
             for cell, text in zip(table.add_row().cells, row):
-                cell.text = _xml_safe(text)
+                cell.text = ""
+                run = cell.paragraphs[0].add_run(_xml_safe(text))
+                run.font.size = Pt(9.5)
+                if text in verdict_fill:
+                    run.bold = True
+                    self._shade(cell, verdict_fill[text])
+                elif index % 2:
+                    self._shade(cell, "F4F6F9")
         self.doc.add_paragraph()
 
     def key_values(self, pairs: list[tuple[str, str]]) -> None:
@@ -517,6 +629,71 @@ def _liquefaction_section(w: _Writer, project: Project, data: dict) -> None:
         w.bullets([f"{key}: {message}" for key, message in errors.items()])
 
 
+def _cover(w: _Writer, project: Project) -> None:
+    from docx.enum.text import WD_ALIGN_PARAGRAPH
+    from docx.shared import Pt
+
+    meta = project.meta
+    for _ in range(5):
+        w.doc.add_paragraph()
+    title = w.doc.add_heading(w.tr("report.cover.title"), 0)
+    title.alignment = WD_ALIGN_PARAGRAPH.LEFT
+    sub = w.doc.add_paragraph().add_run(_xml_safe(meta.name))
+    sub.bold, sub.font.size = True, Pt(18)
+    w.doc.add_paragraph()
+    w.key_values([
+        (w.tr("report.project.number"), meta.number or DASH),
+        (w.tr("report.project.engineer"), meta.engineer or DASH),
+        (w.tr("report.project.date"), meta.date.isoformat()),
+        (w.tr("report.project.code"), w.code_label(meta.design_code)),
+    ])
+    for _ in range(6):
+        w.doc.add_paragraph()
+    w.table([w.tr("report.cover.prepared"), w.tr("report.cover.checked"), w.tr("report.cover.approved")],
+            [["\n\n", "\n\n", "\n\n"]])
+    w.page_break()
+
+
+def _structure_summary_row(w: _Writer, info: SectionInfo, structure) -> list[str]:
+    """One line of the executive summary: what the structure is and whether it works."""
+    result = structure.result or {}
+    if info.kind == "retaining_wall":
+        kind = w.enum("walls.type", structure.wall_type)
+        verdict = w.passfail(bool(result["passed"])) if result.get("passed") is not None else DASH
+    else:
+        kind = w.tr("report.section.sheet_pile_short")
+        verdict = DASH
+    rated = [c for c in result.get("checks") or [] if c.get("utilisation") is not None
+             and math.isfinite(c["utilisation"])]
+    top = max(rated, key=lambda c: c["utilisation"]) if rated else None
+    critical = f"{_check_label(w, top['name'])} ({_fmt(top['utilisation'], 2)})" if top else DASH
+    return [structure.name or structure.id, kind, verdict, critical]
+
+
+def _summary(w: _Writer, project: Project, sections: dict[str, SectionInfo], selected: list[str]) -> None:
+    """One page that answers "does the design work?" before any detail."""
+    w.heading(w.tr("report.summary.title"), 1)
+    rows, failing = [], []
+    for sid in selected:
+        info = sections[sid]
+        if info.kind not in ("retaining_wall", "sheet_pile"):
+            continue
+        structure = project.structure(sid.removeprefix("structure:"))
+        row = _structure_summary_row(w, info, structure)
+        rows.append(row)
+        if row[2] == w.tr("report.fail"):
+            failing.append(row[0])
+    if rows:
+        if failing:
+            w.callout(w.tr("report.summary.not_ok"), w.tr("report.summary.not_ok_text", names=", ".join(failing)), False)
+        elif any(r[2] == w.tr("report.pass") for r in rows):
+            w.callout(w.tr("report.summary.ok"), w.tr("report.summary.ok_text"), True)
+        w.table([w.tr("report.summary.structure"), w.tr("report.summary.kind"),
+                 w.tr("report.wall.verdict"), w.tr("report.summary.critical")], rows)
+        w.note(w.tr("report.summary.how_to_read"))
+    w.page_break()
+
+
 def default_selection(project: Project) -> list[str]:
     """Project, every profile and every section whose result is current."""
     return [s.id for s in list_sections(project)
@@ -545,8 +722,10 @@ def build_docx(project: Project, section_ids: list[str] | None = None,
         raise ReportError("empty_selection", [])
 
     w = _Writer(language or project.meta.language)
-    w.doc.add_heading(w.tr("report.title"), 0)
-    w.paragraph(project.meta.name, bold=True)
+    _cover(w, project)
+    w.set_running_text(project.meta.name)
+    w.table_of_contents()
+    _summary(w, project, sections, selected)
     for info in sections.values():
         if info.id not in selected:
             continue

@@ -173,5 +173,22 @@
   "report.assumption.wall.submerged_seismic": "Su altı deprem seçimi: {mode}; γ*=γ_sat−γ_w; geçirimsiz tanψ=γ_sat/γ*·kh/(1−kv), geçirimli tanψ=γ/γ*·kh/(1−kv) (γ doğal birim ağırlık); dinamik su kh=0.4·S_DS (r=1). Taban sanal arka düzlemin altıdır; kısmi batıklık katman bazında mühendislik yargısıdır; karışık geçirgenlikte herhangi bir geçirimli katman için tam su yüksekliği bir kez kullanılır (doğrulanmamış mühendislik yaklaşımı); dış serbest su modellenmez. Yöneten seçim durum uyarılarında; dinamik suyun kuvvet ve konumu forces içindedir.",
   "report.assumption.wall.global_model": "Bishop daireleri taban altından geçer; taşınan ağırlık taban izine eşdeğer yük olarak yayılır; kayma modelinde tek yatay su kotu için ön/arka YASS'ın yükseği alınır; bantlar yatay ve en alt bant sonsuzdur; ön taraftaki taban üstü ince şerit de tutulan taraf bantlarıyla temsil edilir; global dilimlerde k_v uygulanmaz",
   "report.assumption.wall.global_partial_factors": "Kısmi katsayılı global stabilitede sürşarj γ_Q (LS), taban izindeki beton/taşınan zemin yükleri elverişsiz γ_G (DC/EV) ile çarpılır. Dilim zemini öz ağırlığı karakteristik tutulur (DA1-C2/DA3 için 1.0); DA1-C1/DA2 zemin öz ağırlığı katsayılaması uygulanmaz",
-  "report.assumption.wall.global_off": "Toptan göçme tahkiki kullanıcı girdisiyle kapalıdır"
+  "report.assumption.wall.global_off": "Toptan göçme tahkiki kullanıcı girdisiyle kapalıdır",
+  "report.page": "Sayfa",
+  "report.contents": "İçindekiler",
+  "report.contents_hint": "İçindekiler, dosya Word'de açıldığında güncellenir (sağ tık → Alanı güncelle).",
+  "report.cover.title": "Geoteknik Hesap Raporu",
+  "report.cover.prepared": "Hazırlayan",
+  "report.cover.checked": "Kontrol eden",
+  "report.cover.approved": "Onaylayan",
+  "report.summary.title": "Özet",
+  "report.summary.ok": "Tasarım kontrolleri sağlanıyor",
+  "report.summary.ok_text": "Raporda yer alan yapıların hesaplanan bütün kontrolleri izin verilen sınırların içinde.",
+  "report.summary.not_ok": "Dikkat: bazı kontroller sağlanmıyor",
+  "report.summary.not_ok_text": "Şu yapılarda en az bir kontrol sınırı aşıyor: {names}. Ayrıntı ilgili yapının bölümünde.",
+  "report.summary.structure": "Yapı",
+  "report.summary.kind": "Tür",
+  "report.summary.critical": "En çok zorlanan kontrol (kullanım oranı)",
+  "report.summary.how_to_read": "Kullanım oranı, yükün (talebin) yapının taşıyabileceği değere (kapasiteye) bölümüdür. 1,00'in altı sınırın içinde olduğunu, 1,00'in üstü sınırın aşıldığını gösterir.",
+  "report.section.sheet_pile_short": "Palplanş"
 }

@@ -173,5 +173,22 @@
   "report.assumption.wall.submerged_seismic": "Submerged seismic option: {mode}; γ*=γ_sat−γ_w; impervious tanψ=γ_sat/γ*·kh/(1−kv), pervious tanψ=γ/γ*·kh/(1−kv) (γ natural unit weight); dynamic water kh=0.4·S_DS (r=1). The base lies below the virtual back plane; partial submergence is a per-layer engineering judgement; for mixed permeability the full water height is used once if any layer is pervious (unverified engineering approximation); external free water is not modelled. The governing option is in the case warnings; the force and position of the dynamic water are in forces.",
   "report.assumption.wall.global_model": "Bishop circles pass below the base; the carried weight is spread as an equivalent load on the base footprint; for the slip model the higher of the front/back groundwater is used as a single horizontal water level; slices are horizontal and the lowest slice is infinite; the thin strip above the base on the front side is represented with the retained-side slices; k_v is not applied in the global slices",
   "report.assumption.wall.global_partial_factors": "In partial-factor global stability the surcharge is multiplied by γ_Q (LS) and the concrete/carried-soil loads on the base footprint by the unfavourable γ_G (DC/EV). Slice soil self-weight stays characteristic (1.0 for DA1-C2/DA3); no factoring of soil self-weight is applied for DA1-C1/DA2",
-  "report.assumption.wall.global_off": "The global-stability check is switched off by user input"
+  "report.assumption.wall.global_off": "The global-stability check is switched off by user input",
+  "report.page": "Page",
+  "report.contents": "Contents",
+  "report.contents_hint": "The table of contents updates when the file is opened in Word (right-click, Update field).",
+  "report.cover.title": "Geotechnical Calculation Report",
+  "report.cover.prepared": "Prepared by",
+  "report.cover.checked": "Checked by",
+  "report.cover.approved": "Approved by",
+  "report.summary.title": "Summary",
+  "report.summary.ok": "All design checks are satisfied",
+  "report.summary.ok_text": "Every calculated check of the structures in this report is within its allowed limit.",
+  "report.summary.not_ok": "Attention: some checks are not satisfied",
+  "report.summary.not_ok_text": "At least one check exceeds its limit in: {names}. Details are in the section of each structure.",
+  "report.summary.structure": "Structure",
+  "report.summary.kind": "Type",
+  "report.summary.critical": "Most heavily loaded check (utilisation)",
+  "report.summary.how_to_read": "Utilisation is the load (demand) divided by what the structure can carry (capacity). Below 1.00 the check is within its limit; above 1.00 the limit is exceeded.",
+  "report.section.sheet_pile_short": "Sheet pile"
 }
