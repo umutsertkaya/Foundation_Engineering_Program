@@ -16,6 +16,8 @@ The same loads were found independently from the Caltrans Trenching and Shoring 
 eq. 8-2-6 (sigma_a = 1.3 P / (H - (H1 + H_n+1)/3)).
 """
 
+import math
+
 import pytest
 
 from geotek.core.errors import GeoTekError
@@ -278,14 +280,53 @@ def test_sand_surcharge_adds_ka_q():
 
 @pytest.mark.parametrize("kw,code", [
     ({"backfill_slope": 5.0}, "envelope_sloping_ground"),
-    ({"soil": _soil(gwt=4.0)}, "envelope_water_in_cut"),
-    ({"soil": _soil([_clay(80.0)]), **CLAY, "surcharge": 5.0}, "envelope_clay_surcharge"),
     ({"soil": _soil([_clay(15.0)])}, "layer_behaviour_mismatch"),
 ])
 def test_multi_level_stops(kw, code):
     with pytest.raises(AnchoredWallStop) as exc:
         run_analysis(_inputs(passive_factor=1.5, **kw))
     assert exc.value.code == code
+
+
+def _rankine_ka(phi):
+    return math.tan(math.radians(45.0 - phi / 2.0)) ** 2
+
+
+def test_stratified_sand_envelope_uses_layered_active_load():
+    """GEC-4 5.2.7 by hand: 1.3 x the layer-by-layer Rankine load on the figure 24 trapezoid."""
+    layers = [SoilLayer(id="A", top=0, bottom=4, gamma=18.0, gamma_sat=20.0, design=DesignParameters(phi_eff=30.0)),
+              SoilLayer(id="B", top=4, bottom=40, gamma=20.0, gamma_sat=21.0, design=DesignParameters(phi_eff=36.0))]
+    r = run_analysis(_inputs(soil=_soil(layers), passive_factor=1.5))
+    k1, k2 = _rankine_ka(30.0), _rankine_ka(36.0)
+    pa = 0.5 * k1 * 18.0 * 16 + k2 * 18.0 * 4 * 6 + 0.5 * k2 * 20.0 * 36
+    length = 10.0 - 1.5 / 3 - 2.5 / 3
+    assert r.envelope.total_thrust == pytest.approx(1.3 * pa, rel=1e-3)
+    assert r.envelope.p_max == pytest.approx(1.3 * pa / length, rel=1e-3)
+    assert any(n.code == "envelope_stratified_active_load" for n in r.assumptions)
+
+
+def test_sand_envelope_adds_hydrostatic_water_in_the_cut():
+    """GEC-4 5.2.4: water pressure is added explicitly; GWT 4 m, H = 10 m, gamma' = 20 - 9.81."""
+    r = run_analysis(_inputs(soil=_soil(gwt=4.0), passive_factor=1.5))
+    ka = _rankine_ka(PHI)
+    pa_eff = ka * (0.5 * G * 16 + G * 4 * 6 + 0.5 * (20.0 - 9.81) * 36)
+    water = 0.5 * 9.81 * 36
+    assert r.envelope.total_thrust == pytest.approx(1.3 * pa_eff + water, rel=2e-3)
+    assert any(n.code == "envelope_water_hydrostatic" for n in r.assumptions)
+
+
+def test_clay_envelope_surcharge_is_added_with_unity_coefficient():
+    base = run_analysis(_inputs(soil=_soil([_clay(80.0)]), passive_factor=1.5, **CLAY))
+    loaded = run_analysis(_inputs(soil=_soil([_clay(80.0)]), passive_factor=1.5, surcharge=5.0, **CLAY))
+    assert loaded.envelope.total_thrust == pytest.approx(base.envelope.total_thrust + 5.0 * 10.0)
+    assert any(n.code == "envelope_clay_surcharge_unity" for n in loaded.assumptions)
+
+
+def test_soft_clay_henkel_range_surcharge_stops():
+    kw = dict(soil=_soil([_clay(20.0)]), passive_factor=1.5, surcharge=10.0, henkel_depth=5.0, **CLAY)
+    with pytest.raises(AnchoredWallStop) as exc:
+        run_analysis(_inputs(**kw))
+    assert exc.value.code == "envelope_clay_surcharge"
 
 
 def test_soldier_pile_passive_width_and_member_demands():

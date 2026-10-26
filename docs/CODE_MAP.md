@@ -95,7 +95,7 @@ graph LR
   geotek_engine_anchored_wall -->|2| geotek_core_models
   geotek_engine_anchored_wall -->|1| geotek_engine
   geotek_engine_anchored_wall -->|1| geotek_engine_anchors
-  geotek_engine_anchored_wall -->|1| geotek_engine_earth_pressure
+  geotek_engine_anchored_wall -->|2| geotek_engine_earth_pressure
   geotek_engine_anchored_wall -->|1| geotek_engine_sheet_pile
   geotek_engine_anchors -->|1| geotek_core
   geotek_engine_anchors -->|1| geotek_core_models
@@ -413,7 +413,7 @@ Test sütunu: o dosyayı doğrudan import eden `tests/` dosyaları (yoksa `—`)
 
 | Dosya | Satır | Bağımlı olduğu | Kullanan | Test |
 |---|---:|---|---|---|
-| `engine/anchored_wall.py` | 607 | `core.errors`, `core.models.anchors`, `core.models.profile`, `engine`, `engine.anchors`, `engine.earth_pressure.coefficients`, `engine.sheet_pile` | `modules.anchored_wall.api` | `unit/test_anchored_wall.py`, `unit/test_module_report_hook.py`, `unit/test_source_examples.py` |
+| `engine/anchored_wall.py` | 654 | `core.errors`, `core.models.anchors`, `core.models.profile`, `engine`, `engine.anchors`, `engine.earth_pressure.coefficients`, `engine.earth_pressure.distribution`, `engine.sheet_pile` | `modules.anchored_wall.api` | `unit/test_anchored_wall.py`, `unit/test_module_report_hook.py`, `unit/test_source_examples.py` |
 
 #### `geotek.engine.anchors`
 
@@ -454,7 +454,7 @@ Test sütunu: o dosyayı doğrudan import eden `tests/` dosyaları (yoksa `—`)
 |---|---:|---|---|---|
 | `engine/earth_pressure/__init__.py` | 0 | — | — | — |
 | `engine/earth_pressure/coefficients.py` | 196 | `core.errors` | `engine.anchored_wall`, `engine.earth_pressure.distribution`, `engine.walls.base`, `services.structures`, `services.walls_basic` | `unit/test_anchored_wall.py`, `unit/test_earth_pressure.py`, `unit/test_earth_pressure_crosscheck.py` +12 |
-| `engine/earth_pressure/distribution.py` | 294 | `core.constants`, `core.errors`, `core.models.profile`, `engine.earth_pressure.coefficients`, `engine.earth_pressure.log_spiral` | `engine.sheet_pile`, `engine.walls.base`, `engine.walls.layered`, `services.at_rest`, `services.structures` | `unit/test_earth_pressure.py`, `unit/test_hs_c_walls.py`, `unit/test_sheet_pile_slope.py` +3 |
+| `engine/earth_pressure/distribution.py` | 294 | `core.constants`, `core.errors`, `core.models.profile`, `engine.earth_pressure.coefficients`, `engine.earth_pressure.log_spiral` | `engine.anchored_wall`, `engine.sheet_pile`, `engine.walls.base`, `engine.walls.layered`, `services.at_rest`, `services.structures` | `unit/test_earth_pressure.py`, `unit/test_hs_c_walls.py`, `unit/test_sheet_pile_slope.py` +3 |
 | `engine/earth_pressure/log_spiral.py` | 110 | `core.errors` | `engine.earth_pressure.distribution` | `unit/test_earth_pressure.py`, `verification/test_earth_pressure_textbook.py` |
 | `engine/earth_pressure/wedge.py` | 119 | `core.errors` | `engine.walls.base` | `unit/test_earth_pressure_crosscheck.py`, `unit/test_hs_c_walls.py`, `unit/test_sheet_pile_slope.py` +1 |
 
