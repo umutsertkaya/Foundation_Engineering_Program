@@ -1,9 +1,9 @@
 {
   "education.title": "Learn",
-  "education.description": "Formulas, assumptions and sources of the methods in the program.",
+  "education.description": "Formulas, assumptions and sources of the methods.",
   "education.nav.home": "Topics",
   "education.home.heading": "Learn",
-  "education.home.intro": "The methods the program actually uses: formulas, assumptions, sources and figures. This section never changes any calculation.",
+  "education.home.intro": "The methods GeoTek uses: formulas, assumptions, sources and figures. This section does not change any calculation.",
   "education.level.basic": "Basic",
   "education.level.intermediate": "Intermediate",
   "education.level.advanced": "Advanced",
@@ -13,11 +13,11 @@
   "education.sources": "References",
   "education.code_refs": "Where it lives in code",
   "education.worked": "Worked example",
-  "education.program_result": "Program result (same input)",
+  "education.program_result": "GeoTek result (same input)",
   "education.quiz": "Test yourself",
   "education.mistakes": "Common mistakes",
   "education.glossary": "Glossary",
   "education.reading": "Further reading",
   "education.tab.student": "Student guide",
-  "education.tab.engineer": "How the program computes this"
+  "education.tab.engineer": "How GeoTek calculates this"
 }
