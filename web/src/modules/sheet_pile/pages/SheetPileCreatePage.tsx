@@ -1,9 +1,11 @@
 import { useState } from "react";
-import { Button, Group, Stack, Text, Title } from "@mantine/core";
-import { IconArrowLeft } from "@tabler/icons-react";
+import { Button, Stack } from "@mantine/core";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { create_structure } from "../../../shared/api/client";
+import { ActionBar } from "../../../shared/components/ActionBar";
+import { PageHeader } from "../../../shared/components/PageHeader";
+import { SectionCard } from "../../../shared/components/SectionCard";
 import { ErrorAlert } from "../../../shared/components/ErrorAlert";
 import { InputsForm } from "../components/InputsForm";
 import { MissingList } from "../components/MissingList";
@@ -38,29 +40,24 @@ export function SheetPileCreatePage() {
 
   return (
     <Stack gap="md" maw={880}>
-      <Group>
-        <Button size="xs" variant="subtle" leftSection={<IconArrowLeft size={14} />} onClick={() => navigate("/m/sheet_pile")}>
-          {t("web.common.back_to_list")}
-        </Button>
-      </Group>
-      <Title order={3}>{t("sheet_pile.create.title")}</Title>
+      <PageHeader
+        title={t("sheet_pile.create.title")}
+        back={{ to: "/m/sheet_pile", label: t("web.common.back_to_list") }}
+      />
 
-      <Title order={5}>{t("sheet_pile.create.section_inputs")}</Title>
       <InputsForm value={inputs} onChange={setInputs} missing={submitted ? missing : []} />
 
-      <Title order={5}>{t("sheet_pile.create.section_soil")}</Title>
-      <SoilSourceForm value={soil} onChange={setSoil} missing={submitted ? missing : []} />
+      <SectionCard step={3} title={t("sheet_pile.card.soil")}>
+        <SoilSourceForm value={soil} onChange={setSoil} missing={submitted ? missing : []} />
+      </SectionCard>
 
       {submitted && <MissingList keys={missing} />}
       {error != null && <ErrorAlert error={error} />}
-      <Group>
+      <ActionBar text={t("sheet_pile.create.note")}>
         <Button onClick={() => void create()} loading={saving}>
           {t("web.common.create")}
         </Button>
-        <Text size="xs" c="dimmed">
-          {t("sheet_pile.create.note")}
-        </Text>
-      </Group>
+      </ActionBar>
     </Stack>
   );
 }

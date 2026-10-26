@@ -1,10 +1,13 @@
 import { useCallback, useEffect, useState } from "react";
-import { Badge, Button, Card, Group, SimpleGrid, Stack, Text, Title } from "@mantine/core";
+import { Button, Card, Group, SimpleGrid, Stack, Text } from "@mantine/core";
+import { IconPlus } from "@tabler/icons-react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { list_structures } from "../../../shared/api/client";
 import type { StructureSummary } from "../../../shared/api/types";
 import { EmptyState } from "../../../shared/components/EmptyState";
+import { PageHeader } from "../../../shared/components/PageHeader";
+import { StatusChip } from "../../../shared/components/StatusChip";
 import { ErrorAlert } from "../../../shared/components/ErrorAlert";
 
 export function SheetPileListPage() {
@@ -38,34 +41,27 @@ export function SheetPileListPage() {
 
   const open = (id: string) => navigate(`/m/sheet_pile/s/${encodeURIComponent(id)}`);
 
+  const newButton = (
+    <Button leftSection={<IconPlus size={16} aria-hidden="true" />} onClick={() => navigate("/m/sheet_pile/new")}>
+      {t("sheet_pile.list.new")}
+    </Button>
+  );
+
   return (
     <Stack gap="md">
-      <Group justify="space-between" align="flex-start">
-        <div>
-          <Title order={3}>{t("sheet_pile.nav.list")}</Title>
-          <Text size="sm" c="dimmed">
-            {t("sheet_pile.list.subtitle")}
-          </Text>
-        </div>
-        <Button size="xs" onClick={() => navigate("/m/sheet_pile/new")}>
-          {t("sheet_pile.list.new")}
-        </Button>
-      </Group>
+      <PageHeader title={t("sheet_pile.nav.list")} lead={t("sheet_pile.list.subtitle")} actions={newButton} />
 
       {error != null && <ErrorAlert error={error} onRetry={() => void load()} />}
 
       {error == null && structures.length === 0 && (
-        <EmptyState title={t("sheet_pile.list.empty_title")} description={t("sheet_pile.list.empty_desc")} />
+        <EmptyState title={t("sheet_pile.list.empty_title")} description={t("sheet_pile.list.empty_desc")} action={newButton} />
       )}
 
       {structures.length > 0 && (
-        <SimpleGrid cols={{ base: 1, md: 2 }} spacing="sm">
+        <SimpleGrid cols={{ base: 1, md: 2 }} spacing="md">
           {structures.map((s) => (
             <Card
               key={s.id}
-              withBorder
-              padding="sm"
-              radius="sm"
               style={{ cursor: "pointer" }}
               role="button"
               tabIndex={0}
@@ -78,14 +74,10 @@ export function SheetPileListPage() {
               }}
             >
               <Group justify="space-between" wrap="nowrap">
-                <Text fw={700} size="sm">
-                  {s.name}
-                </Text>
-                {s.stale && (
-                  <Badge size="xs" color="amber" variant="light">
-                    {t("web.structures.badge.stale")}
-                  </Badge>
-                )}
+                <Text fw={600}>{s.name}</Text>
+                <StatusChip tone={s.stale ? "stale" : s.has_result ? "current" : "neutral"}>
+                  {s.stale ? t("sheet_pile.status.stale") : s.has_result ? t("sheet_pile.status.current") : t("sheet_pile.status.draft")}
+                </StatusChip>
               </Group>
             </Card>
           ))}

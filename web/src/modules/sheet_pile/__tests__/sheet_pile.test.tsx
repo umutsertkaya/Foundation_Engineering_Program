@@ -80,7 +80,7 @@ describe("sheet_pile shell (mock)", () => {
     fireEvent.click(await screen.findByText("Perde A"));
     await waitFor(() => expect(screen.getByTestId("loc").textContent).toBe("/m/sheet_pile/s/sp-1"));
     expect(await screen.findByRole("heading", { name: "Perde A" })).toBeInTheDocument();
-    fireEvent.click(screen.getByRole("button", { name: "Listeye dön" }));
+    fireEvent.click(screen.getByRole("link", { name: "Listeye dön" }));
     await waitFor(() => expect(screen.getByTestId("loc").textContent).toBe("/m/sheet_pile"));
   });
 
@@ -175,7 +175,7 @@ describe("sheet_pile shell (mock)", () => {
     fireEvent.click(await screen.findByRole("button", { name: "Tasarımı çalıştır" }));
     await screen.findByTestId("sheet-pile-result", {}, { timeout: 5000 });
     fireEvent.change(screen.getByLabelText(/^Sürşarj \(kPa\)/), { target: { value: "12" } });
-    fireEvent.click(screen.getByRole("button", { name: "Yapı girdilerini kaydet" }));
+    fireEvent.click(screen.getByRole("button", { name: "Girdileri kaydet" }));
     expect(await screen.findByText(/Girdiler değişti/)).toBeInTheDocument();
     expect(screen.getByTestId("sheet-pile-result").parentElement).toHaveStyle({ opacity: "0.5" });
   });
@@ -197,7 +197,7 @@ describe("sheet_pile shell (mock)", () => {
     fireEvent.click(await screen.findByRole("button", { name: "Tasarımı çalıştır" }));
     await screen.findByTestId("sheet-pile-result", {}, { timeout: 5000 });
     fireEvent.change(screen.getByLabelText(/^Sürşarj \(kPa\)/), { target: { value: "12" } });
-    fireEvent.click(screen.getByRole("button", { name: "Yapı girdilerini kaydet" }));
+    fireEvent.click(screen.getByRole("button", { name: "Girdileri kaydet" }));
     expect(await screen.findByText(/Girdiler değişti/)).toBeInTheDocument();
     expect(screen.queryByText("Kaynak zemin profili güncel değil")).not.toBeInTheDocument();
     expect(screen.getByTestId("gwt-summary")).toBeInTheDocument();
@@ -236,7 +236,7 @@ describe("sheet_pile shell (mock)", () => {
     fireEvent.click(await screen.findByRole("button", { name: "Tasarımı çalıştır" }));
     await screen.findByTestId("sheet-pile-result", {}, { timeout: 5000 });
     fireEvent.change(screen.getByLabelText(/^Sürşarj \(kPa\)/), { target: { value: "12" } });
-    fireEvent.click(screen.getByRole("button", { name: "Yapı girdilerini kaydet" }));
+    fireEvent.click(screen.getByRole("button", { name: "Girdileri kaydet" }));
     expect(await screen.findByText(/Girdiler değişti/)).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Kaynak profille eşitle" })).not.toBeInTheDocument();
   });
@@ -253,7 +253,7 @@ describe("sheet_pile shell (mock)", () => {
   it("unknown job id shows unavailable", async () => {
     seedSheetPile("sp-4", "Perde D");
     renderAt("/m/sheet_pile/s/sp-4?job=nope");
-    expect(await screen.findByText(/artık mevcut değil/)).toBeInTheDocument();
+    expect(await screen.findByText(/artık yok/)).toBeInTheDocument();
   });
 
   it("names a deleted source profile as such, never by its id", async () => {
@@ -272,7 +272,7 @@ describe("sheet_pile shell (mock)", () => {
     await screen.findByTestId("sheet-pile-result", {}, { timeout: 5000 });
     first.unmount();
     renderAt("/m/sheet_pile/s/sp-gone?job=nope");
-    expect(await screen.findByText(/artık mevcut değil/)).toBeInTheDocument();
+    expect(await screen.findByText(/artık yok/)).toBeInTheDocument();
     expect(await screen.findByText("Kaydedilmiş sonuç")).toBeInTheDocument();
     expect(screen.getByTestId("sheet-pile-result")).toBeInTheDocument();
   });
@@ -289,7 +289,7 @@ describe("sheet_pile shell (mock)", () => {
     expect(runHash).not.toBe("before-the-run");
     await waitFor(() => expect(screen.getByRole("button", { name: "Tasarımı çalıştır" })).toBeEnabled());
     fireEvent.change(screen.getByLabelText(/^Sürşarj \(kPa\)/), { target: { value: "12" } });
-    fireEvent.click(screen.getByRole("button", { name: "Yapı girdilerini kaydet" }));
+    fireEvent.click(screen.getByRole("button", { name: "Girdileri kaydet" }));
     expect(await screen.findByText(/Girdiler değişti/)).toBeInTheDocument();
     expect(stored().result_hash).toBe(runHash);
   });
@@ -343,10 +343,10 @@ describe("sheet_pile shell (mock)", () => {
   it("shows advanced inputs collapsed, hides anchors for cantilever and sends changed design values", async () => {
     renderAt("/m/sheet_pile/new");
     expect(screen.queryByLabelText("Ankraj aralığı (m)")).not.toBeInTheDocument();
-    fireEvent.click(screen.getByText("Gelişmiş girdiler"));
+    fireEvent.click(screen.getByText("Gelişmiş: tasarım kodu, ankraj ve ön taraftaki su"));
     expect(screen.queryByLabelText("Ankraj aralığı (m)")).not.toBeInTheDocument();
     const frontWater = await screen.findByLabelText("Ön su derinliği (m)");
-    fireEvent.change(await screen.findByLabelText("Gömülme artışı"), { target: { value: "0.35" } });
+    fireEvent.change(await screen.findByLabelText("Gömme artışı"), { target: { value: "0.35" } });
     fireEvent.change(frontWater, { target: { value: "2.5" } });
     fireEvent.change(await screen.findByLabelText("Ad"), { target: { value: "Advanced" } });
     fireEvent.change(screen.getByLabelText(/Tutulan yükseklik/), { target: { value: "4" } });
