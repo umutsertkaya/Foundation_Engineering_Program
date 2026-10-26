@@ -62,3 +62,6 @@ bu PR'da düzeltildi.
 - Ns için taban altı en düşük Su kullanılıyor (GEC-4 ortalama der; güvenli taraf).
 - Rapor sayıları TR metinde nokta ondalık kullanıyor; bazı TR terim tutarsızlıkları (menteşe/mafsal) duruyor.
 - Peck (1969), Terzaghi-Peck-Mesri (1996), EN 1997-1 §8–9, EN 1537, EN ISO 22477-5, BS 8081, PTI DC35.1, CIRIA C580, EAU 2012, USACE EM 1110-2-2504 özgün metinlerine erişilemedi; bu PR GEC-4'e dayanır.
+
+## 2026-10-26 ek: zarf kapsamı (GEC-4 5.2.7)
+Katmanlı kum: toplam yük = 1,3 × katman katman Rankine aktif yükü (c′ = 0); tek katmanda 0,65·Ka·γ·H² ile aynı. Kazı içindeki YASS hidrostatik olarak ayrıca eklenir (5.2.4, 5.2.9; sızıntı yok), sürşarj katman başına Ka_i·q. Kil üstü sürşarj K = 1 ile düzgün eklenir (Ns ≥ 5,14 Henkel aralığında hesap durur). Eğimli zemin ve düzensiz sürşarj kapsam dışı.

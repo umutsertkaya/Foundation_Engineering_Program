@@ -147,7 +147,7 @@ function syntheticAnalysis(inputs: AnalysisInputs): AnalysisResult {
     embedment: D * 1.2,
     wall_length: H + D * 1.2,
     base_reaction: inputs.levels.length > 1 ? 60 : null,
-    envelope: null,
+    envelope: { kind: "sand", p_max: 30, total_thrust: 20 * H, gamma: 18, phi_deg: 32, su: null, ka: 0.31, z: [0, H * 0.3, H * 0.8, H], p: [0, 30, 30, 0] },
     levels,
     m_max: 180,
     z_m_max: H * 0.6,

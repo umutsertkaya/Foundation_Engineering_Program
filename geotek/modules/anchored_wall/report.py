@@ -215,6 +215,14 @@ def _analysis_section(w, result: AnalysisResult, inputs) -> None:
         env = result.envelope
         w.paragraph(w.tr("anchored_wall.report.envelope", kind=w.tr(f"anchored_wall.envelope.{env.kind}"),
                          p=_num(env.p_max, 1), thrust=_num(env.total_thrust, 1)))
+        from geotek.services import report_figures as figures
+
+        w.figure(figures.apparent_envelope_plot(
+            env.z, env.p, excavation_height=result.excavation_height,
+            anchor_depths=[lv.depth for lv in result.levels],
+            labels={"x": w.tr("anchored_wall.envelope.axis"), "y": w.tr("report.fig.depth_axis"),
+                    "title": w.tr("anchored_wall.envelope.title")}),
+            w.tr("anchored_wall.fig.envelope_caption"), 9.0)
     w.heading(w.tr("anchored_wall.report.levels"), 3)
     w.table(
         [w.tr("anchored_wall.report.level_depth"), w.tr("anchored_wall.report.level_inclination"),

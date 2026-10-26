@@ -8,10 +8,12 @@ Apparent earth pressure envelopes over the excavation height H, level ground onl
 * sand (5.2.4, figure 24): trapezoid, zero at the top and the base, full ordinate from 2/3 H1
   down to 2/3 H_n+1 above the base, total load 0.65 Ka gamma H^2, so
   ``p = 0.65 Ka gamma H^2 / (H - H1/3 - H_n+1/3)``; a uniform surcharge adds ``Ka q`` (added
-  explicitly, 5.2.4);
+  explicitly, 5.2.4). Stratified profile (5.2.7): total = 1.3 x the layer-by-layer Rankine active
+  load (c' = 0), same trapezoid; groundwater above the base adds hydrostatic pressure explicitly
+  (5.2.4, 5.2.9; seepage ignored) and the surcharge adds Ka_i q per layer;
 * stiff to hard clay, N_s = gamma H / Su,b <= 4 (5.2.5, figure 27): same trapezoid with
   ``p = c gamma H``, c = 0.2-0.4 chosen by the user; the total load is raised to at least
-  3 H^2 kN/m; permanent works also take 0.65 Ka gamma H^2 with the drained phi' when larger;
+  3 H^2 kN/m; a surcharge adds q with K = 1 (5.2.10.1, safe side for phi_u = 0); permanent works also take 0.65 Ka gamma H^2 with the drained phi' when larger;
 * soft to medium clay, N_s > 4 (5.2.6, figure 23c): ``p = Ka gamma H``, zero at the top, full from
   0.25 H; ``Ka = 0.22`` for 4 < N_s < 5.14, Henkel (eq. 12) for N_s >= 5.14:
   ``Ka = 1 - 4 Su / (gamma H) + 2 sqrt(2) (d / H) (1 - 5.14 Su,b / (gamma H))``.
@@ -61,6 +63,7 @@ from geotek.core.models.anchors import (
 from geotek.core.models.profile import SoilProfile
 from geotek.engine import anchors as anchor_engine
 from geotek.engine.anchors import MissingAnchorInputsError, design_anchor
+from geotek.engine.earth_pressure.distribution import lateral_pressure
 from geotek.engine.earth_pressure.coefficients import rankine_ka, surcharge_per_horizontal
 from geotek.engine.sheet_pile import (
     anchored_sheet_pile,
@@ -69,9 +72,11 @@ from geotek.engine.sheet_pile import (
     net_pressure,
 )
 
-ENGINE_VERSION = "2"
+ENGINE_VERSION = "3"
 """Part of the inputs hash: bump when a formula or table value changes."""
 SAND_FACTOR = 0.65
+STRATIFIED_FACTOR = 1.3
+"""GEC-4 5.2.7: factor on the total active load of a stratified profile (0.65 Ka gamma H^2 = 1.3 x the Rankine load)."""
 STIFF_CLAY_LIMIT = 4.0
 HENKEL_LIMIT = 5.14
 TRANSITION_KA = 0.22
@@ -218,6 +223,53 @@ def _trapezoid(H: float, anchors: list[float], p: float) -> tuple[list[float], l
     return [0.0, top, bottom, H], [0.0, p, p, 0.0], H - h1 / 3.0 - hn1 / 3.0
 
 
+def _stratified_sand_envelope(profile: SoilProfile, H: float, layers, *, surcharge: float,
+                              anchors: list[float], notes: list[Notice]) -> EnvelopeResult:
+    """Drained envelope after GEC-4 5.2.7 / 5.2.4: layered Rankine active load, water and surcharge.
+
+    The effective active load over 0..H comes from the layer-by-layer Rankine pressure (c' = 0, as
+    in the uniform sand envelope), is raised by 1.3 and distributed on the figure 24 trapezoid. For
+    one layer this equals 0.65 Ka gamma H^2. Hydrostatic water pressure behind the wall and the
+    surcharge pressure Ka_i q of each layer are added explicitly (5.2.4)."""
+    no_cohesion = profile.model_copy(update={"layers": [
+        layer.model_copy(update={"design": layer.design.model_copy(update={"c_eff": 0.0})})
+        for layer in profile.layers]})
+    for layer, _ in layers:
+        if layer.design.phi_eff is None:
+            raise AnchoredWallStop("missing_soil_parameter", f"Layer {layer.id} has no design phi_eff",
+                                   layer=layer.id, parameter="phi_eff")
+    common = dict(state="active", method="rankine", drainage="drained")
+    soil = lateral_pressure(no_cohesion, H, **common)
+    with_q = lateral_pressure(no_cohesion, H, surcharge=surcharge, **common) if surcharge > 0 else None
+    pa_eff = soil.component("effective")[0]
+    total = STRATIFIED_FACTOR * pa_eff
+    top_z, _, length = _trapezoid(H, anchors, 0.0)
+    p_soil = total / length
+    soil_line = np.interp(soil.z, top_z, [0.0, p_soil, p_soil, 0.0])
+    kq = np.zeros_like(soil.z) if with_q is None else with_q.sigma_h_eff - soil.sigma_h_eff
+    p = soil_line + kq + soil.u
+    # the soil trapezoid breakpoints (anchor ramps) join the pressure nodes of the layers and water
+    extra = [z for z in top_z if not np.any(np.isclose(soil.z, z))]
+    z_all = np.concatenate([soil.z, extra])
+    order = np.argsort(z_all, kind="stable")
+    p_extra = [float(np.interp(z, top_z, [0.0, p_soil, p_soil, 0.0])
+                     + np.interp(z, soil.z, kq) + np.interp(z, soil.z, soil.u)) for z in extra]
+    z_out = z_all[order]
+    p_out = np.concatenate([p, p_extra])[order]
+    thrust = float(np.sum(0.5 * (p_out[1:] + p_out[:-1]) * np.diff(z_out)))
+    gammas = sum(layer.gamma * t for layer, t in layers) / sum(t for _, t in layers)
+    phi_mean = sum(layer.design.phi_eff * t for layer, t in layers) / sum(t for _, t in layers)
+    ka_single = rankine_ka(phi_mean) if len(layers) == 1 else None  # a layered load has no single Ka
+    if len(layers) > 1 or float(np.max(soil.u)) > 1e-9:
+        notes.append(Notice(code="envelope_stratified_active_load", params={"total": round(total, 1)}))
+    if float(np.max(soil.u)) > 1e-9:
+        notes.append(Notice(code="envelope_water_hydrostatic",
+                            params={"gwt": round(profile.gwt.depth_for("design"), 2)}))
+    return EnvelopeResult(kind="sand", p_max=float(np.max(p_out)), total_thrust=thrust, gamma=gammas,
+                          phi_deg=phi_mean, su=None, ka=ka_single, z=[float(z) for z in z_out],
+                          p=[float(v) for v in p_out])
+
+
 def apparent_envelope(profile: SoilProfile, H: float, *, drainage: str, surcharge: float,
                       stiff_coefficient: float, anchors: list[float], su_b: float | None = None,
                       henkel_depth: float | None = None, henkel_default: float | None = None,
@@ -233,29 +285,17 @@ def apparent_envelope(profile: SoilProfile, H: float, *, drainage: str, surcharg
         raise AnchoredWallStop("envelope_mixed_layers",
                                "Sand and clay layers within the excavation height: the apparent "
                                "pressure envelope applies to a uniform soil type only")
-    if profile.gwt.depth_for("design") < H - 1e-9:
-        raise AnchoredWallStop("envelope_water_in_cut",
-                               "Groundwater above the excavation base is not covered by the "
-                               "apparent pressure envelope")
     if drained:
-        avg = retained_averages(profile, H, True)
-        ka = rankine_ka(avg["phi_eff"])
-        total = SAND_FACTOR * ka * avg["gamma"] * H ** 2
-        z, p, length = _trapezoid(H, anchors, 0.0)
-        p_soil = total / length
-        kq = ka * surcharge
-        ps = [kq, p_soil + kq, p_soil + kq, kq]
-        return EnvelopeResult(kind="sand", p_max=p_soil + kq, total_thrust=total + kq * H,
-                              gamma=avg["gamma"], phi_deg=avg["phi_eff"], su=None, ka=ka, z=z, p=ps)
-    if surcharge > 0:
-        raise AnchoredWallStop("envelope_clay_surcharge",
-                               "Surcharge on clay is not covered by the apparent pressure envelope")
+        return _stratified_sand_envelope(profile, H, layers, surcharge=surcharge, anchors=anchors,
+                                         notes=notes)
     if su_b is None:
         raise GeoTekError("su_b is required for clay envelopes")
     avg = retained_averages(profile, H, False)
     gamma, su = avg["gamma"], avg["su"]
     gamma_h = gamma * H
     ns = gamma_h / su_b
+    if surcharge > 0:
+        notes.append(Notice(code="envelope_clay_surcharge_unity"))
     if ns <= STIFF_CLAY_LIMIT:
         z, _, length = _trapezoid(H, anchors, 0.0)
         p = stiff_coefficient * gamma_h
@@ -285,12 +325,18 @@ def apparent_envelope(profile: SoilProfile, H: float, *, drainage: str, surcharg
                                 params={"total": round(total, 1), "limit": round(STIFF_CRITICAL_TOTAL * H ** 2, 1)}))
         p = total / length
         notes.append(Notice(code="stiff_clay_coefficient", params={"value": stiff_coefficient}))
-        return EnvelopeResult(kind="stiff_clay", p_max=p, total_thrust=total, gamma=gamma, phi_deg=None,
-                              su=su, ka=None, z=z, p=[0.0, p, p, 0.0], ns=ns, su_below=su_b)
+        return EnvelopeResult(kind="stiff_clay", p_max=p + surcharge, total_thrust=total + surcharge * H,
+                              gamma=gamma, phi_deg=None, su=su, ka=None, z=z,
+                              p=[surcharge, p + surcharge, p + surcharge, surcharge], ns=ns, su_below=su_b)
     if ns < HENKEL_LIMIT:
         ka = TRANSITION_KA
         notes.append(Notice(code="soft_clay_transition_ka", params={"ns": round(ns, 2)}))
     else:
+        if surcharge > 0:
+            # q also enters Henkel's base-failure term (eq. 12); K = 1 would not be conservative here
+            raise AnchoredWallStop("envelope_clay_surcharge",
+                                   "Surcharge on soft clay with N_s >= 5.14 (Henkel) is not covered by "
+                                   "the apparent pressure envelope")
         d = henkel_depth if henkel_depth is not None else henkel_default
         if d is None:
             raise AnchoredWallStop("henkel_depth_missing",
@@ -306,9 +352,10 @@ def apparent_envelope(profile: SoilProfile, H: float, *, drainage: str, surcharg
             notes.append(Notice(code="soft_clay_ka_floor", params={"ka": round(ka, 3)}))
             ka = TRANSITION_KA
     p = ka * gamma_h
-    return EnvelopeResult(kind="soft_clay", p_max=p, total_thrust=p * (H - 0.5 * SOFT_RAMP * H),
+    return EnvelopeResult(kind="soft_clay", p_max=p + surcharge,
+                          total_thrust=p * (H - 0.5 * SOFT_RAMP * H) + surcharge * H,
                           gamma=gamma, phi_deg=None, su=su, ka=ka, z=[0.0, SOFT_RAMP * H, H],
-                          p=[0.0, p, p], ns=ns, su_below=su_b)
+                          p=[surcharge, p + surcharge, p + surcharge], ns=ns, su_below=su_b)
 
 
 def _hinge_model(env: EnvelopeResult, supports: list[float], method: str):

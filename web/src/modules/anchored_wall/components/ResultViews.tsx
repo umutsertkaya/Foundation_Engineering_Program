@@ -7,7 +7,7 @@ import { KpiTile } from "../../../shared/components/KpiTile";
 import { SectionCard } from "../../../shared/components/SectionCard";
 import { StatusChip } from "../../../shared/components/StatusChip";
 import { Notices, type LabelledNotice } from "./Notices";
-import { ForceDiagrams, WallSection } from "./WallSection";
+import { EnvelopeDiagram, ForceDiagrams, WallSection } from "./WallSection";
 
 function Stat({ label, value, unit, sub }: { label: string; value: string; unit?: string; sub?: string }) {
   return <KpiTile label={label} value={value} unit={unit && value !== "—" ? unit : undefined} sub={sub} />;
@@ -220,6 +220,12 @@ export function AnalysisResultView({ result, soil }: { result: AnalysisResult; s
         {allChecks.length > 0 && (
           <DisclosureRow title={t("anchored_wall.report.check")}>
             <Checks checks={allChecks.map((r) => r.check)} prefixes={allChecks.map((r) => r.prefix)} />
+          </DisclosureRow>
+        )}
+        {result.envelope && (
+          <DisclosureRow title={t("anchored_wall.envelope.title")}>
+            <EnvelopeDiagram result={result} />
+            <Text size="xs" c="dimmed" mt="xs">{t("anchored_wall.envelope.caption")}</Text>
           </DisclosureRow>
         )}
         {result.z.length >= 2 && (

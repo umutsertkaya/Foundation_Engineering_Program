@@ -133,3 +133,35 @@ export function ForceDiagrams({ result }: { result: AnalysisResult }) {
     </div>
   );
 }
+
+/** Apparent pressure envelope against depth (depth downward); dashed lines are the anchor levels. */
+export function EnvelopeDiagram({ result }: { result: AnalysisResult }) {
+  const { t } = useTranslation();
+  const env = result.envelope;
+  if (!env || env.z.length < 2) return null;
+  const w = 260;
+  const h = 280;
+  const pad = 28;
+  const left = 34;
+  const pMax = Math.max(...env.p, 1e-6);
+  const H = result.excavation_height;
+  const px = (v: number) => left + (v / pMax) * (w - left - pad);
+  const py = (z: number) => pad + (z / H) * (h - 2 * pad);
+  const points = [`${px(0)},${py(0)}`, ...env.z.map((z, i) => `${px(env.p[i])},${py(z)}`), `${px(0)},${py(H)}`].join(" ");
+  return (
+    <svg viewBox={`0 0 ${w} ${h}`} width="100%" style={{ maxWidth: w, color: "var(--mantine-color-text)" }} role="img"
+      aria-label={t("anchored_wall.envelope.aria")} data-testid="aw-envelope-diagram">
+      <text x={w / 2} y={12} fontSize={11} textAnchor="middle" fill="currentColor">{t("anchored_wall.envelope.axis")}</text>
+      <line x1={left} x2={left} y1={py(0)} y2={py(H)} stroke="currentColor" strokeOpacity={0.5} />
+      <polygon points={points} fill="var(--mantine-color-blue-6)" fillOpacity={0.2} stroke="var(--mantine-color-blue-6)" strokeWidth={1.8} />
+      {result.levels.map((lv, i) => (
+        <g key={i}>
+          <line x1={4} x2={w - 4} y1={py(lv.depth)} y2={py(lv.depth)} stroke="currentColor" strokeOpacity={0.5} strokeDasharray="4 3" />
+          <text x={w - 4} y={py(lv.depth) - 2} fontSize={9} textAnchor="end" fill="currentColor">{fmt(lv.depth, 1)} m</text>
+        </g>
+      ))}
+      <text x={px(pMax)} y={py(env.z[1]) - 4} fontSize={10} textAnchor="end" fill="currentColor">{fmt(pMax, 1)} kPa</text>
+      <text x={left + 4} y={py(H) + 12} fontSize={9} fill="currentColor">{fmt(H, 1)} m</text>
+    </svg>
+  );
+}

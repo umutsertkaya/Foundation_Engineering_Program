@@ -60,7 +60,7 @@
   "anchored_wall.assumption.load_method_hinge": "Anchor loads by the hinge method: hinges at every anchor except the first; bending moments from the same model.",
   "anchored_wall.assumption.load_method_tributary": "Anchor loads are from the tributary-area method (mid-points between supports), but the shear and bending-moment diagrams still come from the hinge model (continuous beam with hinges); the diagrams are therefore not in equilibrium with these anchor loads.",
   "anchored_wall.assumption.embedment_from_base_reaction": "Embedment: moment equilibrium about the toe under the base reaction R_B and the net pressure below the base (passive divided by the given factor of safety; where smaller, the passive pressure from tan φ′ and c′ divided by that factor is used, USACE EM 1110-2-2504 5-2d). This is deeper than the GEC-4 5.5.3 force criterion.",
-  "anchored_wall.assumption.sand_surcharge_uniform": "Sand envelope: the surcharge adds a uniform Ka q over the full height.",
+  "anchored_wall.assumption.sand_surcharge_uniform": "Sand envelope: the surcharge adds Ka q of each layer over the full height.",
   "anchored_wall.assumption.stiff_clay_coefficient": "Stiff clay envelope ordinate p = {value}·γH (chosen by the user, GEC-4 figure 27 range 0.2–0.4); trapezoidal shape.",
   "anchored_wall.assumption.stiff_clay_bottom_ramp_omitted": "The bottom ramp of the stiff clay envelope is omitted (conservative).",
   "anchored_wall.assumption.soft_clay_m_unity": "Soft clay envelope γ H - 4 Su (m = 1).",
@@ -69,8 +69,6 @@
   "anchored_wall.assumption.anchor_design_not_requested": "Anchor design inputs not given: anchor loads only, no free or bond length.",
   "anchored_wall.error.envelope_sloping_ground": "The apparent pressure envelope is for level ground; use a single anchor level for sloping ground.",
   "anchored_wall.error.envelope_mixed_layers": "Sand and clay layers within the excavation height: the apparent pressure envelope needs one soil type.",
-  "anchored_wall.error.envelope_water_in_cut": "Groundwater above the excavation base is not covered by the apparent pressure envelope.",
-  "anchored_wall.error.envelope_clay_surcharge": "Surcharge on clay is not covered by the apparent pressure envelope.",
   "anchored_wall.error.missing_soil_parameter": "Layer {layer} has no design value for {parameter}.",
   "anchored_wall.check.bending_stress": "Bending stress ≤ allowable stress",
   "anchored_wall.error.no_embedment_resistance": "The soil below the excavation base cannot balance the base reaction within the profile (net pressure not resisted, e.g. undrained clay with γH > 4Su, or profile too shallow). GEC-4 5.5.3 / appendix C: in weak ground use ≈ 0.2H embedment, design the wall as a cantilever from the lowest anchor and add R to the lowest anchor; this path is not in the program and must be calculated separately.",
@@ -334,5 +332,14 @@
   "anchored_wall.result.more": "More results",
   "anchored_wall.result.diagrams": "Moment and shear diagrams",
   "anchored_wall.result.assumptions_title": "Assumptions and warnings ({n})",
-  "anchored_wall.unit.kn_per_anchor": "kN / anchor"
+  "anchored_wall.unit.kn_per_anchor": "kN / anchor",
+  "anchored_wall.envelope.title": "Apparent pressure envelope",
+  "anchored_wall.envelope.aria": "Apparent pressure envelope against depth",
+  "anchored_wall.envelope.axis": "Pressure [kPa]",
+  "anchored_wall.envelope.caption": "Apparent pressure envelope over the wall height. Dashed lines are the anchor levels. The envelope is an empirical design diagram for level ground, not the real pressure distribution.",
+  "anchored_wall.fig.envelope_caption": "Apparent pressure envelope over the wall height. Dashed lines are the anchor levels. The envelope is an empirical design diagram for level ground, not the real pressure distribution.",
+  "anchored_wall.assumption.envelope_stratified_active_load": "Stratified soil (GEC-4 5.2.7): the envelope total is 1.3 times the layer-by-layer Rankine active load ({total} kN/m), distributed on the figure 24 trapezoid. For one layer this equals 0.65 Ka gamma H^2. Do not use it where the critical failure surface extends below the base; check this separately.",
+  "anchored_wall.assumption.envelope_water_hydrostatic": "Groundwater inside the cut (GWT {gwt} m): water pressure is added to the envelope as hydrostatic (GEC-4 5.2.4, 5.2.9). Seepage is not included.",
+  "anchored_wall.assumption.envelope_clay_surcharge_unity": "Surcharge on clay is added uniformly over the excavation height with K = 1.0 (GEC-4 5.2.10.1 asks for an appropriate K; 1.0 is on the safe side for phi_u = 0).",
+  "anchored_wall.error.envelope_clay_surcharge": "Surcharge on clay in the Henkel range (Ns ≥ 5.14) is not covered by the apparent pressure envelope."
 }
