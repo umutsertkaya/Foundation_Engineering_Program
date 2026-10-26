@@ -215,6 +215,8 @@ glob'larıyla derlendiği için `web/dist` içinde yeni modül kendiliğinden bu
 9. `npm --prefix web run test`, `typecheck` ve `build` betiklerini çalıştırın.
 10. Açık bir projede menü, modül ana sayfası ve dil değişimini gözle kontrol edin.
 
+Arayüz metni, terimler ve ortak bileşenler için [UI_TEXT_GUIDE](UI_TEXT_GUIDE.md) kuralları geçerlidir.
+
 ## Mühendislik doğruluğu
 
 Katsayı veya zemin parametresi uydurulmaz; eksik veri açıkça bildirilir.

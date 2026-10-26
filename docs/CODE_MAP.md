@@ -657,12 +657,12 @@ graph LR
   modules_soil["modules/soil"]
   modules_walls["modules/walls"]
   shared["shared"]
-  app -->|34| shared
+  app -->|39| shared
   modules_anchored_wall -->|1| app
   modules_anchored_wall -->|34| shared
-  modules_education -->|1| shared
+  modules_education -->|6| shared
   modules_liquefaction -->|30| shared
-  modules_report -->|8| shared
+  modules_report -->|11| shared
   modules_sheet_pile -->|1| app
   modules_sheet_pile -->|47| shared
   modules_soil -->|49| shared
@@ -723,8 +723,8 @@ Testler yalnız **Kullanan** sütununda görünür; “Test” sütunu o dosyay�
 | `app/main.tsx` | 48 | `app/App.tsx`, `app/i18n.ts`, `app/theme.ts` | — | — |
 | `app/moduleRegistry.ts` | 29 | `shared/moduleTypes.ts` | `app/App.tsx`, `app/ModuleShell.tsx`, `app/pages/LauncherPage.tsx` | `test/module_paths.test.ts`, `test/shell.test.tsx` |
 | `app/pages/LauncherPage.tsx` | 593 | `app/ProjectProvider.tsx`, `app/ViewMenu.tsx`, `app/launcherModel.ts`, `app/moduleRegistry.ts`, `shared/api/client.ts`, `shared/api/launcher.ts`, `shared/api/types.ts`, `shared/components/EmptyState.tsx`, `shared/components/ErrorAlert.tsx`, `shared/components/StatusChip.tsx`, `shared/moduleTypes.ts` | `app/App.tsx` | — |
-| `app/pages/SettingsPage.tsx` | 173 | `app/i18n.ts`, `shared/api/core.ts`, `shared/api/launcher.ts`, `shared/api/types.ts`, `shared/components/ErrorAlert.tsx` | `app/App.tsx` | — |
-| `app/pages/StartPage.tsx` | 898 | `app/ProjectProvider.tsx`, `app/ThemeToggle.tsx`, `app/i18n.ts`, `shared/api/client.ts`, `shared/api/core.ts`, `shared/api/launcher.ts`, `shared/api/types.ts`, `shared/components/EmptyState.tsx`, `shared/components/ErrorAlert.tsx` | `app/App.tsx` | — |
+| `app/pages/SettingsPage.tsx` | 176 | `app/i18n.ts`, `shared/api/core.ts`, `shared/api/launcher.ts`, `shared/api/types.ts`, `shared/components/ErrorAlert.tsx`, `shared/components/PageHeader.tsx`, `shared/components/SectionCard.tsx` | `app/App.tsx` | — |
+| `app/pages/StartPage.tsx` | 892 | `app/ProjectProvider.tsx`, `app/ThemeToggle.tsx`, `app/i18n.ts`, `shared/api/client.ts`, `shared/api/core.ts`, `shared/api/launcher.ts`, `shared/api/types.ts`, `shared/components/EmptyState.tsx`, `shared/components/ErrorAlert.tsx`, `shared/components/PageHeader.tsx`, `shared/components/SectionCard.tsx`, `shared/components/StatusChip.tsx` | `app/App.tsx` | — |
 | `app/theme.ts` | 54 | — | `app/main.tsx` | `modules/liquefaction/__tests__/liquefaction.test.tsx`, `modules/liquefaction/__tests__/results.test.tsx`, `modules/sheet_pile/__tests__/sheet_pile.test.tsx` +25 |
 
 #### `modules/anchored_wall`
@@ -789,9 +789,9 @@ Testler yalnız **Kullanan** sütununda görünür; “Test” sütunu o dosyay�
 | `modules/education/manifest.ts` | 14 | `modules/education/Root.tsx`, `shared/moduleTypes.ts` | — | — |
 | `modules/education/math/Formula.tsx` | 40 | `modules/education/math/toTex.ts` | `modules/education/pages/TopicPage.tsx` | — |
 | `modules/education/math/toTex.ts` | 88 | — | `modules/education/math/Formula.tsx` | `modules/education/__tests__/math.test.tsx` |
-| `modules/education/pages/GalleryPage.tsx` | 19 | `modules/education/figures/index.tsx` | `modules/education/Root.tsx` | — |
-| `modules/education/pages/HomePage.tsx` | 25 | `modules/education/content/index.ts` | `modules/education/Root.tsx` | — |
-| `modules/education/pages/TopicPage.tsx` | 170 | `modules/education/content/index.ts`, `modules/education/content/types.ts`, `modules/education/figures/index.tsx`, `modules/education/math/Formula.tsx` | `modules/education/Root.tsx` | — |
+| `modules/education/pages/GalleryPage.tsx` | 20 | `modules/education/figures/index.tsx`, `shared/components/PageHeader.tsx` | `modules/education/Root.tsx` | — |
+| `modules/education/pages/HomePage.tsx` | 26 | `modules/education/content/index.ts`, `shared/components/PageHeader.tsx`, `shared/components/StatusChip.tsx` | `modules/education/Root.tsx` | — |
+| `modules/education/pages/TopicPage.tsx` | 172 | `modules/education/content/index.ts`, `modules/education/content/types.ts`, `modules/education/figures/index.tsx`, `modules/education/math/Formula.tsx`, `shared/components/PageHeader.tsx`, `shared/components/StatusChip.tsx` | `modules/education/Root.tsx` | — |
 
 #### `modules/liquefaction`
 
@@ -814,7 +814,7 @@ Testler yalnız **Kullanan** sütununda görünür; “Test” sütunu o dosyay�
 | `modules/report/api.ts` | 18 | `shared/api/http.ts`, `shared/api/types.ts` | `modules/report/pages/HomePage.tsx` | `modules/report/__tests__/report.test.tsx` |
 | `modules/report/manifest.ts` | 15 | `modules/report/Root.tsx`, `shared/moduleTypes.ts` | — | — |
 | `modules/report/mock.ts` | 53 | `shared/api/mock/dispatcher.ts` | — | — |
-| `modules/report/pages/HomePage.tsx` | 150 | `modules/report/api.ts`, `shared/api/client.ts`, `shared/api/types.ts`, `shared/components/EmptyState.tsx`, `shared/components/ErrorAlert.tsx` | `modules/report/Root.tsx` | `modules/report/__tests__/report.test.tsx` |
+| `modules/report/pages/HomePage.tsx` | 167 | `modules/report/api.ts`, `shared/api/client.ts`, `shared/api/types.ts`, `shared/components/EmptyState.tsx`, `shared/components/ErrorAlert.tsx`, `shared/components/PageHeader.tsx`, `shared/components/SectionCard.tsx`, `shared/components/StatusChip.tsx` | `modules/report/Root.tsx` | `modules/report/__tests__/report.test.tsx` |
 
 #### `modules/sheet_pile`
 
@@ -920,9 +920,9 @@ Testler yalnız **Kullanan** sütununda görünür; “Test” sütunu o dosyay�
 | `shared/components/FieldNote.tsx` | 25 | — | `modules/anchored_wall/components/AnalysisForm.tsx`, `modules/liquefaction/pages/AnalysisPage.tsx`, `modules/walls/components/ShearKeyFields.tsx`, `modules/walls/pages/WallWizardPage.tsx` | `test/shared_components.test.tsx` |
 | `shared/components/KpiTile.tsx` | 25 | — | `modules/anchored_wall/components/ResultViews.tsx`, `modules/liquefaction/pages/ResultsPage.tsx`, `modules/sheet_pile/components/ResultPanel.tsx` | `test/shared_components.test.tsx` |
 | `shared/components/MissingFactorsForm.tsx` | 116 | `shared/api/types.ts` | `modules/walls/pages/WallWizardPage.tsx` | `test/missing_factors_form.test.tsx` |
-| `shared/components/PageHeader.tsx` | 39 | — | `modules/anchored_wall/pages/AnalysisPage.tsx`, `modules/anchored_wall/pages/AnchorPage.tsx`, `modules/liquefaction/pages/AnalysisPage.tsx`, `modules/liquefaction/pages/ResultsPage.tsx`, `modules/sheet_pile/pages/SheetPileCreatePage.tsx` +10 | `test/shared_components.test.tsx` |
-| `shared/components/SectionCard.tsx` | 39 | — | `modules/anchored_wall/components/AnalysisForm.tsx`, `modules/anchored_wall/components/ResultViews.tsx`, `modules/anchored_wall/pages/AnchorPage.tsx`, `modules/liquefaction/components/SoundingDetail.tsx`, `modules/liquefaction/pages/AnalysisPage.tsx` +12 | `test/shared_components.test.tsx` |
-| `shared/components/StatusChip.tsx` | 53 | — | `app/ModuleShell.tsx`, `app/launcherModel.ts`, `app/pages/LauncherPage.tsx`, `modules/anchored_wall/components/ResultViews.tsx`, `modules/anchored_wall/pages/AnalysisPage.tsx` +11 | `test/shared_components.test.tsx` |
+| `shared/components/PageHeader.tsx` | 39 | — | `app/pages/SettingsPage.tsx`, `app/pages/StartPage.tsx`, `modules/anchored_wall/pages/AnalysisPage.tsx`, `modules/anchored_wall/pages/AnchorPage.tsx`, `modules/education/pages/GalleryPage.tsx` +16 | `test/shared_components.test.tsx` |
+| `shared/components/SectionCard.tsx` | 39 | — | `app/pages/SettingsPage.tsx`, `app/pages/StartPage.tsx`, `modules/anchored_wall/components/AnalysisForm.tsx`, `modules/anchored_wall/components/ResultViews.tsx`, `modules/anchored_wall/pages/AnchorPage.tsx` +15 | `test/shared_components.test.tsx` |
+| `shared/components/StatusChip.tsx` | 53 | — | `app/ModuleShell.tsx`, `app/launcherModel.ts`, `app/pages/LauncherPage.tsx`, `app/pages/StartPage.tsx`, `modules/anchored_wall/components/ResultViews.tsx` +15 | `test/shared_components.test.tsx` |
 | `shared/components/ToggleRow.tsx` | 18 | — | `modules/anchored_wall/components/AnalysisForm.tsx`, `modules/walls/pages/WallWizardPage.tsx` | — |
 | `shared/components/VerdictBanner.tsx` | 40 | — | `modules/anchored_wall/pages/AnalysisPage.tsx`, `modules/anchored_wall/pages/AnchorPage.tsx`, `modules/liquefaction/pages/ResultsPage.tsx`, `modules/sheet_pile/pages/SheetPileDetailPage.tsx`, `modules/soil/pages/ProfilesPage.tsx` +2 | `test/shared_components.test.tsx` |
 | `shared/hooks/useAssumptionText.ts` | 31 | `shared/warnings.ts` | `modules/walls/components/WallResultView.tsx` | `test/assumption_text.test.tsx` |

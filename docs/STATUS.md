@@ -8,6 +8,7 @@ ayrıntılı geçmiş Git günlüğünde ve birleşmiş PR'lardadır. Son kontro
 Compact veya devir öncesi yalnız bu üç satır güncellenir (kural: [WORKFLOW](WORKFLOW.md#bağlam-ve-compact-kuralı)).
 
 - Biten: 2026-10-22 GPT incelemesinin [değerlendirmesi](audit/2026-10-22-inceleme-degerlendirmesi.md) ve düzeltmeleri: ASD palplanş statik+deprem zarfı, TBDY tanδ_b ≤ 0,6 (karakteristik değere), sismik Bishop ağırlık merkezi, daire taraması, pasif izdüşüm, ankraj v_max, LPI (GWT kırpma, DTO/ekran/rapor), içe alma/korelasyon geçerliliği, kil tabakada kum bağıntısı, üst Kaydet taslak kaybı, DOCX yapı esası, eğitim şekilleri. Bağımsız Opus incelemesi 4 kusur buldu, düzeltildi, ikinci kontrol geçti. 2026-10-22 testleri: pytest 2068 geçti / 2 atlandı; web 382 geçti; typecheck, build ve kod haritası kontrolü başarılı.
+- Biten: 2026-10-26 arayüz yeniden tasarımı: PR #69 temel+ana sayfa, #70 zemin+sıvılaşma, #71 duvar/palplanş/ankrajlı duvar, bu PR rapor/eğitim/başlangıç/ayarlar sayfaları + metin sadeleştirme (TR/EN) + [UI_TEXT_GUIDE](UI_TEXT_GUIDE.md). Hesap koduna dokunulmadı. 2026-10-26 testleri: web 422 geçti (55 dosya); typecheck, build, kod haritası kontrolü ve TR/EN anahtar eşliği (8 katalog) başarılı; pytest bu ortamda çalıştırılamadı (paket kurulu değil).
 - Sıradaki: hedef adım 2 (modüler yapı ve yeni modül eklenebilirliği), ardından adım 3 [K1](tasks/K1.md) exe üretimi.
 - Açık karar: yok. CPT γ alt sınırı (R&C 2010, 12 kN/m³) ve `predrill_depth` dışlama Umut onayıyla, profilsiz CPT q_t ≤ 0 için en yakın γ koordinatör kararıyla uygulandı (2026-10-20).
 

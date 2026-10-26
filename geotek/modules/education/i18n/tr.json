@@ -1,9 +1,9 @@
 {
   "education.title": "Eğitim",
-  "education.description": "Programdaki yöntemlerin formülleri, varsayımları ve kaynakları.",
+  "education.description": "Yöntemlerin formülleri, varsayımları ve kaynakları.",
   "education.nav.home": "Konular",
   "education.home.heading": "Eğitim",
-  "education.home.intro": "Programın gerçekte kullandığı yöntemler: formüller, varsayımlar, kaynaklar ve şekiller. Bu bölüm hesapları değiştirmez.",
+  "education.home.intro": "GeoTek'in kullandığı yöntemler: formüller, varsayımlar, kaynaklar ve şekiller. Bu bölüm hesapları değiştirmez.",
   "education.level.basic": "Temel",
   "education.level.intermediate": "Orta",
   "education.level.advanced": "İleri",
@@ -13,11 +13,11 @@
   "education.sources": "Kaynaklar",
   "education.code_refs": "Kodda karşılığı",
   "education.worked": "Çözümlü örnek",
-  "education.program_result": "Programın sonucu (aynı girdi)",
+  "education.program_result": "GeoTek sonucu (aynı girdi)",
   "education.quiz": "Kendini sına",
   "education.mistakes": "Sık yapılan hatalar",
   "education.glossary": "Terimler sözlüğü",
   "education.reading": "Önerilen okuma",
   "education.tab.student": "Öğrenci anlatımı",
-  "education.tab.engineer": "Program bunu nasıl hesaplıyor"
+  "education.tab.engineer": "GeoTek bunu nasıl hesaplıyor"
 }

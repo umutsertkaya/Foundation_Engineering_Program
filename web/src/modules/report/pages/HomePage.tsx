@@ -1,17 +1,21 @@
-import { Alert, Badge, Button, Checkbox, Group, Loader, Stack, Text, Title } from "@mantine/core";
+import { Alert, Button, Checkbox, Group, Loader, Stack, Text } from "@mantine/core";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ApiError } from "../../../shared/api/client";
 import type { Language } from "../../../shared/api/types";
 import { EmptyState } from "../../../shared/components/EmptyState";
 import { ErrorAlert } from "../../../shared/components/ErrorAlert";
+import { PageHeader } from "../../../shared/components/PageHeader";
+import { SectionCard } from "../../../shared/components/SectionCard";
+import { StatusChip } from "../../../shared/components/StatusChip";
+import type { StatusTone } from "../../../shared/components/StatusChip";
 import { build_report_docx, list_report_sections } from "../api";
 import type { ReportSection } from "../api";
 
-const STATUS_COLOR: Record<ReportSection["status"], string> = {
-  ready: "green",
-  stale: "orange",
-  no_result: "gray",
+const STATUS_TONE: Record<ReportSection["status"], StatusTone> = {
+  ready: "current",
+  stale: "stale",
+  no_result: "missing",
 };
 const REFUSAL_CODES = new Set(["no_result", "stale_result", "empty_selection", "unknown_section"]);
 
@@ -96,12 +100,20 @@ export function HomePage() {
     ? (refusal.details.sections as string[]).map((id) => nameById.get(id) ?? id).join(", ")
     : "";
 
+  const readyCount = (sections ?? []).filter((s) => s.status === "ready").length;
+  const outdatedCount = (sections ?? []).filter((s) => s.status === "stale").length;
+
   return (
     <Stack gap="md">
-      <div>
-        <Title order={3}>{t("report.title")}</Title>
-        <Text size="sm" c="dimmed">{t("report.page.subtitle")}</Text>
-      </div>
+      <PageHeader
+        title={t("report.title")}
+        lead={t("report.page.subtitle")}
+        actions={sections !== null && sections.length > 0 ? (
+          <Button onClick={() => void build()} loading={busy} disabled={selected.size === 0}>
+            {t("report.page.build")}
+          </Button>
+        ) : undefined}
+      />
 
       {loadError ? <ErrorAlert error={loadError} onRetry={() => void load()} /> : null}
       {sections === null && !loadError ? <Loader size="sm" /> : null}
@@ -110,32 +122,37 @@ export function HomePage() {
       ) : null}
 
       {sections !== null && sections.length > 0 ? (
-        <Stack gap="xs">
-          {sections.map((section) => {
-            const usable = section.status === "ready";
-            return (
-              <Group key={section.id} justify="space-between" wrap="nowrap">
-                <Checkbox
-                  label={sectionLabel(section)}
-                  checked={selected.has(section.id)}
-                  disabled={!usable || busy}
-                  onChange={(event) => toggle(section.id, event.currentTarget.checked)}
-                />
-                <Badge color={STATUS_COLOR[section.status]} variant="light">
-                  {t(`report.page.status.${section.status}`)}
-                </Badge>
-              </Group>
-            );
-          })}
-          <Group>
-            <Button onClick={() => void build()} loading={busy} disabled={selected.size === 0}>
-              {t("report.page.build")}
-            </Button>
-            <Button variant="default" onClick={() => void load()} disabled={busy}>
+        <SectionCard
+          title={t("report.page.sections_title")}
+          aside={
+            <Button variant="default" size="xs" onClick={() => void load()} disabled={busy}>
               {t("report.page.refresh")}
             </Button>
-          </Group>
-        </Stack>
+          }
+        >
+          <Text size="sm" c="dimmed" mb="sm">
+            {t("report.page.summary", { ready: readyCount, total: sections.length })}
+            {outdatedCount > 0 ? ` ${t("report.page.summary_stale", { count: outdatedCount })}` : ""}
+          </Text>
+          <Stack gap="xs">
+            {sections.map((section) => {
+              const usable = section.status === "ready";
+              return (
+                <Group key={section.id} justify="space-between" wrap="nowrap">
+                  <Checkbox
+                    label={sectionLabel(section)}
+                    checked={selected.has(section.id)}
+                    disabled={!usable || busy}
+                    onChange={(event) => toggle(section.id, event.currentTarget.checked)}
+                  />
+                  <StatusChip tone={STATUS_TONE[section.status]}>
+                    {t(`report.page.status.${section.status}`)}
+                  </StatusChip>
+                </Group>
+              );
+            })}
+          </Stack>
+        </SectionCard>
       ) : null}
 
       {refusal ? (

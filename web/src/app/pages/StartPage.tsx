@@ -3,9 +3,7 @@ import {
   ActionIcon,
   Anchor,
   Alert,
-  Badge,
   Button,
-  Card,
   Container,
   FileInput,
   Group,
@@ -18,7 +16,6 @@ import {
   Table,
   Text,
   TextInput,
-  Title,
   Tooltip,
 } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
@@ -57,6 +54,9 @@ import type {
 import { EmptyState } from "../../shared/components/EmptyState";
 import { launcherAvailable, pickPath } from "../../shared/api/launcher";
 import { ErrorAlert } from "../../shared/components/ErrorAlert";
+import { PageHeader } from "../../shared/components/PageHeader";
+import { SectionCard } from "../../shared/components/SectionCard";
+import { StatusChip } from "../../shared/components/StatusChip";
 import { loadLanguageCatalog } from "../i18n";
 import { useProjectSession } from "../ProjectProvider";
 import { ThemeToggle } from "../ThemeToggle";
@@ -397,37 +397,35 @@ export function StartPage() {
     <Container size={1100} py="xl">
       <Stack gap="lg">
         {/* Header */}
-        <Group justify="space-between" align="flex-start" wrap="wrap">
-          <div>
-            <Title order={1}>{t("start.app_title")}</Title>
-            <Text size="sm" c="dimmed">
-              {t("start.subtitle")}
-            </Text>
-          </div>
-          <Group gap="xs">
-            <SegmentedControl
-              size="xs"
-              aria-label={t("web.header.lang_switch")}
-              value={currentLang}
-              onChange={(val) => handleLanguageChange(val as Language)}
-              data={[
-                { value: "tr", label: "TR" },
-                { value: "en", label: "EN" },
-              ]}
-            />
-            <ThemeToggle />
-            <Tooltip label={t("start.settings_tooltip")}>
-              <ActionIcon
-                variant="default"
-                size="lg"
-                aria-label={t("start.settings_tooltip")}
-                onClick={() => navigate("/settings")}
-              >
-                <IconSettings size={18} />
-              </ActionIcon>
-            </Tooltip>
-          </Group>
+        <PageHeader
+          title={t("start.app_title")}
+          lead={t("start.subtitle")}
+          actions={
+        <Group gap="xs">
+          <SegmentedControl
+            size="xs"
+            aria-label={t("web.header.lang_switch")}
+            value={currentLang}
+            onChange={(val) => handleLanguageChange(val as Language)}
+            data={[
+              { value: "tr", label: "TR" },
+              { value: "en", label: "EN" },
+            ]}
+          />
+          <ThemeToggle />
+          <Tooltip label={t("start.settings_tooltip")}>
+            <ActionIcon
+              variant="default"
+              size="lg"
+              aria-label={t("start.settings_tooltip")}
+              onClick={() => navigate("/settings")}
+            >
+              <IconSettings size={18} />
+            </ActionIcon>
+          </Tooltip>
         </Group>
+          }
+        />
 
         {/* Primary actions */}
         <Group gap="sm">
@@ -462,9 +460,8 @@ export function StartPage() {
           <>
             {/* Top card: Recent projects (first 5 by modified) */}
             {recentEntries.length > 0 && (
-              <Card withBorder padding="sm" radius="sm">
+              <SectionCard title={t("start.recent_title")}>
                 <Stack gap="xs">
-                  <Title order={4}>{t("start.recent_title")}</Title>
                   <Group gap="xs" wrap="wrap">
                     {recentEntries.map((entry) => (
                       <Button
@@ -479,13 +476,12 @@ export function StartPage() {
                     ))}
                   </Group>
                 </Stack>
-              </Card>
+              </SectionCard>
             )}
 
             {/* Main card: Project library table */}
-            <Card withBorder padding="sm" radius="sm">
+            <SectionCard title={t("start.library_title")}>
               <Stack gap="sm">
-                <Title order={4}>{t("start.library_title")}</Title>
                 {entries.length === 0 ? (
                   <EmptyState title={t("start.library_empty")} description="" />
                 ) : (
@@ -510,9 +506,7 @@ export function StartPage() {
                                   {entry.name || entry.file}
                                 </Text>
                                 {isCorrupt && (
-                                  <Badge color="red" variant="light" size="xs">
-                                    {t("start.corrupt_badge")}
-                                  </Badge>
+                                  <StatusChip tone="bad">{t("start.corrupt_badge")}</StatusChip>
                                 )}
                               </Group>
                             </Table.Td>
@@ -587,7 +581,7 @@ export function StartPage() {
                   </Table>
                 )}
               </Stack>
-            </Card>
+            </SectionCard>
           </>
         )}
 
