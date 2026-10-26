@@ -1,6 +1,12 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Alert, Badge, Button, Group, Stack, Text, Title } from "@mantine/core";
+import { Alert, Button, SimpleGrid, Stack, Text } from "@mantine/core";
 import { useTranslation } from "react-i18next";
+import { ActionBar } from "../../../shared/components/ActionBar";
+import { DisclosureList, DisclosureRow } from "../../../shared/components/DisclosureRow";
+import { EmptyState } from "../../../shared/components/EmptyState";
+import { PageHeader } from "../../../shared/components/PageHeader";
+import { StatusChip } from "../../../shared/components/StatusChip";
+import { VerdictBanner } from "../../../shared/components/VerdictBanner";
 import { ErrorAlert } from "../../../shared/components/ErrorAlert";
 import { get_reference, get_state, run_analysis } from "../api";
 import { AnalysisFormView } from "../components/AnalysisForm";
@@ -64,39 +70,63 @@ export function AnalysisPage() {
     }
   };
 
+  const statusTone = !hasResult ? "neutral" : stale ? "stale" : "current";
+  const statusText = t(!hasResult ? "anchored_wall.status.no_result" : stale ? "anchored_wall.status.stale" : "anchored_wall.status.ready");
+
   return (
-    <Stack gap="md" maw={920}>
-      <Group justify="space-between">
-        <Title order={3}>{t("anchored_wall.analysis.heading")}</Title>
-        <Badge color={!hasResult ? "gray" : stale ? "yellow" : "teal"} variant="light" data-testid="aw-status">
-          {t(!hasResult ? "anchored_wall.status.no_result" : stale ? "anchored_wall.status.stale" : "anchored_wall.status.ready")}
-        </Badge>
-      </Group>
-      <Text size="sm" c="dimmed">{t("anchored_wall.analysis.intro")}</Text>
-      {stale && (
-        <Alert color="yellow" variant="light" title={t("anchored_wall.status.stale_title")}>
-          <Text size="sm">{t(dirty ? "anchored_wall.status.stale_edited" : soilStale ? "anchored_wall.status.stale_soil" : "anchored_wall.status.stale_stored")}</Text>
-        </Alert>
-      )}
+    <Stack gap="md">
+      <PageHeader
+        title={t("anchored_wall.analysis.heading")}
+        lead={t("anchored_wall.analysis.intro")}
+        status={<span data-testid="aw-status"><StatusChip tone={statusTone}>{statusText}</StatusChip></span>}
+      />
 
-      <AnalysisFormView value={form} onChange={setForm} reference={reference} soilStale={soilStale} />
+      <SimpleGrid cols={{ base: 1, md: 2 }} spacing="md" style={{ alignItems: "start" }}>
+        <Stack gap="md">
+          <AnalysisFormView value={form} onChange={setForm} reference={reference} soilStale={soilStale} />
+        </Stack>
 
-      <MissingList keys={missing} />
+        <Stack gap="md">
+          {stale && (
+            <VerdictBanner
+              tone="warn"
+              title={t("anchored_wall.status.stale_title")}
+              text={t(dirty ? "anchored_wall.status.stale_edited" : soilStale ? "anchored_wall.status.stale_soil" : "anchored_wall.status.stale_stored")}
+              action={
+                <Button size="compact-sm" onClick={() => void run()} disabled={missing.length > 0 || busy} loading={busy}>
+                  {t("anchored_wall.action.rerun")}
+                </Button>
+              }
+            />
+          )}
+          {record?.result ? (
+            <div style={stale ? { opacity: 0.55 } : undefined}>
+              <AnalysisResultView result={record.result} soil={record.inputs.soil} />
+            </div>
+          ) : (
+            <EmptyState title={t("anchored_wall.result.empty_title")} description={t("anchored_wall.result.empty_desc")} />
+          )}
+        </Stack>
+      </SimpleGrid>
+
       {gaps.length > 0 && (
         <Alert color="orange" variant="light">{t("anchored_wall.soil.gaps", { layers: gaps.join(", ") })}</Alert>
       )}
       {runError != null && (isCoded(runError) ? <StopAlert error={runError} /> : <ErrorAlert error={runError} />)}
-      <Group>
+      <DisclosureList>
+        <DisclosureRow title={t("anchored_wall.missing.list_title", { n: missing.length })} aside={undefined}>
+          <MissingList keys={missing} />
+        </DisclosureRow>
+      </DisclosureList>
+
+      <ActionBar
+        summary={missing.length > 0 ? t("anchored_wall.missing.count", { n: missing.length }) : undefined}
+        text={missing.length === 0 ? t("anchored_wall.action.all_set") : undefined}
+      >
         <Button onClick={() => void run()} disabled={missing.length > 0 || busy} loading={busy}>
           {t("anchored_wall.action.run")}
         </Button>
-      </Group>
-
-      {record?.result && (
-        <div style={stale ? { opacity: 0.55 } : undefined}>
-          <AnalysisResultView result={record.result} soil={record.inputs.soil} />
-        </div>
-      )}
+      </ActionBar>
     </Stack>
   );
 }

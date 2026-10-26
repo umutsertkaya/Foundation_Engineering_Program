@@ -28,7 +28,7 @@ function renderWizard() {
   );
 }
 
-const step = (name: string) => screen.findByRole("button", { name: new RegExp(name) });
+const step = (name: string) => screen.findByRole("button", { name: new RegExp(`^${name}$`) });
 const openAdvanced = async () => fireEvent.click(await screen.findByRole("button", { name: tr["walls.options.advanced"] }));
 
 function storedSettings(): WallSettingsPayload | undefined {

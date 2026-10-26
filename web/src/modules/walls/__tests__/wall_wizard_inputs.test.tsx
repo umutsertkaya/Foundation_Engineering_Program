@@ -29,7 +29,7 @@ function renderWizard() {
   );
 }
 
-const step = (name: string) => screen.findByRole("button", { name: new RegExp(name) });
+const step = (name: string) => screen.findByRole("button", { name: new RegExp(`^${name}$`) });
 const storedWall = () => getMockStore().structures.find((s) => s.id === "wall-mock-1") as RetainingWallStructure;
 
 async function runCheck() {

@@ -33,7 +33,7 @@ describe("WallWizardPage soil step (mock)", () => {
         </MemoryRouter>
       </MantineProvider>,
     );
-    const soilStep = await screen.findByRole("button", { name: new RegExp(wallsCatalog["walls.wizard.step.soil"]) });
+    const soilStep = await screen.findByRole("button", { name: new RegExp(`^${wallsCatalog["walls.wizard.step.soil"]}$`) });
     fireEvent.click(soilStep);
     expect(await screen.findByDisplayValue("F2")).toBeInTheDocument();
     expect(screen.getByText(trCatalog["web.wizard.tab.profile"])).toBeInTheDocument();

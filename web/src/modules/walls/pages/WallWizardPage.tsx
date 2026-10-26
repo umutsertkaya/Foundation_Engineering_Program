@@ -35,6 +35,7 @@ import type {
   WallSettings,
   WallType,
 } from "../../../shared/api/types";
+import { ToggleRow } from "../../../shared/components/ToggleRow";
 import { ActionBar } from "../../../shared/components/ActionBar";
 import { CollapsibleSection } from "../../../shared/components/CollapsibleSection";
 import { EmptyState } from "../../../shared/components/EmptyState";
@@ -933,14 +934,5 @@ function SubHeading({ children }: { children: ReactNode }) {
     <Text fz={12} fw={600} c="dimmed" tt="uppercase" mt="md" mb={8} style={{ letterSpacing: "0.06em" }}>
       {children}
     </Text>
-  );
-}
-
-/** Switch with a title and one line of explanation in a soft box (the "toggle row" of the page pattern). */
-function ToggleRow({ checked, onChange, label, hint }: { checked: boolean; onChange: (next: boolean) => void; label: string; hint: string }) {
-  return (
-    <Box p="sm" style={{ borderRadius: 10, background: "var(--gt-ground)" }}>
-      <Switch size="md" checked={checked} onChange={(e) => onChange(e.currentTarget.checked)} label={label} description={hint} />
-    </Box>
   );
 }
