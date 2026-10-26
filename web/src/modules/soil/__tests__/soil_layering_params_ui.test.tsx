@@ -214,7 +214,7 @@ describe("ParametersPage", () => {
     fireEvent.change(screen.getByTestId("params-profile"), { target: { value: "prof-mock-1" } });
     await waitFor(() => expect(screen.getByTestId("params-layer-L2")).toBeInTheDocument());
     fireEvent.click(screen.getByTestId("params-layer-L2"));
-    await waitFor(() => expect(screen.getByTestId("param-state-phi_eff")).toHaveTextContent("Stale"));
+    await waitFor(() => expect(screen.getByTestId("param-state-phi_eff")).toHaveTextContent("Needs refresh"));
     expect(screen.getByTestId("params-badge-L2")).toHaveTextContent(/0\/7 approved/); // counted from fresh data
     expect(screen.getByTestId("param-approve-phi_eff")).toBeDisabled();
     expect(screen.getByTestId("param-reapply-phi_eff")).toBeInTheDocument();

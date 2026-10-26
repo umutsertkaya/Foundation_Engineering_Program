@@ -33,6 +33,7 @@ import type {
   USCSReferenceDTO,
 } from "../types";
 import { ErrorAlert } from "../components/ErrorAlert";
+import { PageHeader } from "../../../shared/components/PageHeader";
 import { WarningList } from "../components/WarningList";
 import { EmptyState } from "../../../shared/components/EmptyState";
 import { PlasticityChart } from "../classification/PlasticityChart";
@@ -444,10 +445,7 @@ export function ClassificationPage() {
 
   return (
     <Stack gap="md">
-      <div>
-        <Title order={3}>{t("soil.cls.title")}</Title>
-        <Text size="sm" c="dimmed">{t("soil.cls.subtitle")}</Text>
-      </div>
+      <PageHeader title={t("soil.cls.title")} lead={t("soil.cls.subtitle")} />
       <Alert color="blue" variant="light" data-testid="cls-scope-note">
         <Text size="xs">{t("soil.cls.scope_note")}</Text>
       </Alert>

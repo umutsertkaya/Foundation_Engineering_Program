@@ -18,6 +18,7 @@ import {
   update_parameter_selection,
 } from "../api";
 import { ErrorAlert } from "../components/ErrorAlert";
+import { PageHeader } from "../../../shared/components/PageHeader";
 import { LayerInventoryPanel } from "../components/LayerInventoryPanel";
 import { ParameterKeyCard } from "../components/ParameterKeyCard";
 import { displayUnit } from "../units";
@@ -248,15 +249,12 @@ export function ParametersPage() {
       : t("soil.params.approve_ready_hint");
 
   return (
-    <Stack gap="sm">
-      <Group justify="space-between" align="flex-end" wrap="wrap">
-        <div>
-          <Title order={3}>{t("soil.params.title")}</Title>
-          <Text size="sm" c="dimmed">
-            {t("soil.params.subtitle")}
-          </Text>
-        </div>
-        {profiles.length > 0 && (
+    <Stack gap="md">
+      <PageHeader
+        title={t("soil.params.title")}
+        lead={t("soil.params.subtitle")}
+        actions={profiles.length > 0 ? (
+        
           <Group align="flex-end" gap="xs" wrap="wrap">
             <NativeSelect
               size="xs"
@@ -294,8 +292,8 @@ export function ParametersPage() {
               </Button>
             </Tooltip>
           </Group>
-        )}
-      </Group>
+        ) : undefined}
+      />
 
       <ErrorAlert error={error} onClose={() => setError(null)} />
       {notice && (
@@ -309,7 +307,7 @@ export function ParametersPage() {
       ) : (
         loaded && (
           <Group align="flex-start" wrap="wrap" gap="sm">
-            <Paper withBorder radius="sm" p={6} style={{ flex: "1 1 200px", maxWidth: 260 }}>
+            <Paper withBorder radius="md" p={8} style={{ flex: "1 1 200px", maxWidth: 260 }}>
               <Text size="xs" fw={700} c="dimmed" tt="uppercase" px={6} py={4}>
                 {t("soil.params.layers")}
               </Text>

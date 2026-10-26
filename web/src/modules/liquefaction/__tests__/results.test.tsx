@@ -15,6 +15,10 @@ import { ResultsPage } from "../pages/ResultsPage";
 const tr = trModule as Record<string, string>;
 const label = (key: string) => tr[`liquefaction.results.${key}`];
 const color = "var(--mantine-color-blue-6)";
+const openTable = () => {
+  const toggle = screen.getAllByRole("button").find((b) => /Nokta tablosu/.test(b.textContent ?? ""));
+  fireEvent.click(toggle!);
+};
 const chartProps = {
   ariaLabel: label("chart_fs"), xLabel: label("fs_dimensionless"), yLabel: label("depth_m"),
 };
@@ -194,7 +198,8 @@ describe("finished job result", () => {
     const ratios = await screen.findByRole("img", { name: label("chart_csr_crr") });
     expect(within(ratios).getByTestId("clipped-point").textContent).toBe("45.50");
     expect(screen.getByText(tr["liquefaction.results.ratio_clipped"].replace("{max}", "1.00"))).toBeInTheDocument();
-    expect(screen.getByRole("cell", { name: "45.500" })).toBeInTheDocument();
+    openTable();
+    expect(screen.getByRole("cell", { name: "45.500", hidden: true })).toBeInTheDocument();
   });
 });
 
@@ -220,12 +225,13 @@ describe("liquefaction result details", () => {
     const fsChart = await screen.findByRole("img", { name: label("chart_fs") });
     const ratiosChart = screen.getByRole("img", { name: label("chart_csr_crr") });
     expect(screen.getAllByRole("img")).toHaveLength(2);
-    expect(screen.getByRole("columnheader", { name: label("min_fs") })).toBeInTheDocument();
-    const table = screen.getByRole("table", { name: label("detail_table") });
-    expect(within(table).getAllByRole("row")).toHaveLength(4);
-    const cells = within(within(table).getAllByRole("row")[1]).getAllByRole("cell");
+    openTable();
+    expect(screen.getAllByRole("columnheader", { name: label("fs"), hidden: true })[0]).toBeInTheDocument();
+    const table = screen.getByRole("table", { name: label("detail_table"), hidden: true });
+    expect(within(table).getAllByRole("row", { hidden: true })).toHaveLength(4);
+    const cells = within(within(table).getAllByRole("row", { hidden: true })[1]).getAllByRole("cell", { hidden: true });
     expect(cells.map((cell) => cell.textContent)).toEqual([
-      "1.000", "0.123", "0.098", "0.800", label("status.liquefiable"), label("mock_note"),
+      "1.000", "0.123", "0.098", "0.800", label("status.liquefiable"),
     ]);
     expect(within(table).getAllByText("—").length).toBeGreaterThan(0);
     expect(screen.getAllByText(label("mock_note")).length).toBeGreaterThan(0);
@@ -234,19 +240,19 @@ describe("liquefaction result details", () => {
     expect(ratiosChart.querySelector('path[stroke-dasharray="7 4"]')).toBeInTheDocument();
     expect(container.innerHTML).not.toMatch(/NaN|Infinity/);
 
-    fireEvent.click(screen.getByRole("textbox", { name: label("select_sounding") }));
-    fireEvent.click(await screen.findByRole("option", { name: "BH-2" }));
-    expect(screen.getByRole("heading", { name: `${label("sounding")}: BH-2` })).toBeInTheDocument();
-    expect(within(screen.getByRole("table", { name: label("detail_table") })).getAllByRole("row")).toHaveLength(2);
-    expect(screen.getByRole("cell", { name: "1.500" })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: tr["liquefaction.results.select_sounding"].replace("{id}", "BH-2") }));
+    expect(screen.getByRole("heading", { name: "BH-2 derinlik grafikleri" })).toBeInTheDocument();
+    expect(within(screen.getByRole("table", { name: label("detail_table"), hidden: true })).getAllByRole("row", { hidden: true })).toHaveLength(2);
+    expect(screen.getByRole("cell", { name: "1.500", hidden: true })).toBeInTheDocument();
     expect(screen.getAllByRole("img")).toHaveLength(2);
   });
 
   it("shows a single sounding directly without a picker", async () => {
     renderResults({ per_sounding: { "BH-2": result.per_sounding["BH-2"] }, errors: {} });
     await screen.findByRole("img", { name: label("chart_fs") });
-    expect(screen.queryByRole("textbox", { name: label("select_sounding") })).not.toBeInTheDocument();
-    expect(screen.getByRole("cell", { name: label("status.safe") })).toBeInTheDocument();
+    expect(screen.getAllByRole("button", { name: /sondajını göster/ })).toHaveLength(1);
+    openTable();
+    expect(screen.getByRole("cell", { name: label("status.safe"), hidden: true })).toBeInTheDocument();
     expect(screen.queryByText(label("mock_note"))).not.toBeInTheDocument();
   });
 

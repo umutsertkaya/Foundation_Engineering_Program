@@ -14,7 +14,6 @@ import {
   Table,
   Text,
   TextInput,
-  Title,
 } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
 import { IconFileImport, IconPencil, IconPlus, IconTrash } from "@tabler/icons-react";
@@ -26,6 +25,8 @@ import { EmptyState } from "../../../shared/components/EmptyState";
 import { WorkbookImportModal } from "../components/WorkbookImportModal";
 import { InvestigationEditor, type EditTarget } from "../components/InvestigationEditor";
 import { ErrorAlert } from "../../../shared/components/ErrorAlert";
+import { PageHeader } from "../../../shared/components/PageHeader";
+import { SectionCard } from "../../../shared/components/SectionCard";
 
 export function SiteDataPage() {
   const { t } = useTranslation();
@@ -134,31 +135,30 @@ export function SiteDataPage() {
 
   return (
     <Stack gap="md">
-      <div>
-        <Title order={3}>{t("web.site.title")}</Title>
-        <Text size="sm" c="dimmed">
-          {t("web.site.subtitle")}
-        </Text>
-      </div>
-
-      <Group gap="xs">
-        <Button leftSection={<IconFileImport size={16} />} onClick={() => setWorkbookOpen(true)}>
-          {t("web.import.open")}
-        </Button>
-        <Button variant="light" leftSection={<IconFileImport size={16} />} onClick={() => openImport("cpt")}>
-          {t("web.site.import_cpt")}
-        </Button>
-        <Button variant="light" leftSection={<IconFileImport size={16} />} onClick={() => openImport("spt")}>
-          {t("web.site.import_spt")}
-        </Button>
-        <Button
-          variant="default"
-          leftSection={<IconPlus size={16} />}
-          onClick={() => setEditTarget({ kind: "borehole", isNew: true, value: { id: "", borehole_diameter_mm: 100, sampler: "standard", spt: [], lab: [], log: [] } })}
-        >
-          {t("web.site.new_borehole")}
-        </Button>
-      </Group>
+      <PageHeader
+        title={t("web.site.title")}
+        lead={t("web.site.subtitle")}
+        actions={(
+          <>
+            <Button leftSection={<IconFileImport size={16} />} onClick={() => setWorkbookOpen(true)}>
+              {t("web.import.open")}
+            </Button>
+            <Button variant="default" leftSection={<IconFileImport size={16} />} onClick={() => openImport("cpt")}>
+              {t("web.site.import_cpt")}
+            </Button>
+            <Button variant="default" leftSection={<IconFileImport size={16} />} onClick={() => openImport("spt")}>
+              {t("web.site.import_spt")}
+            </Button>
+            <Button
+              variant="default"
+              leftSection={<IconPlus size={16} />}
+              onClick={() => setEditTarget({ kind: "borehole", isNew: true, value: { id: "", borehole_diameter_mm: 100, sampler: "standard", spt: [], lab: [], log: [] } })}
+            >
+              {t("web.site.new_borehole")}
+            </Button>
+          </>
+        )}
+      />
 
       <WorkbookImportModal
         opened={workbookOpen}
@@ -253,8 +253,8 @@ export function SiteDataPage() {
       ) : (
         <Stack gap="md">
           {/* CPT Soundings */}
-          <Stack gap="xs">
-            <Title order={5}>{t("web.site.cpt_section")}</Title>
+          {cpts.length > 0 && (
+<SectionCard title={t("web.site.cpt_section")}>
             <SimpleGrid cols={{ base: 1, md: 2 }} spacing="sm">
               {cpts.map((cpt) => {
                 const maxDepth =
@@ -305,11 +305,12 @@ export function SiteDataPage() {
                 );
               })}
             </SimpleGrid>
-          </Stack>
+          </SectionCard>
+)}
 
           {/* Boreholes & Log Intervals */}
-          <Stack gap="xs">
-            <Title order={5}>{t("web.site.borehole_section")}</Title>
+          {boreholes.length > 0 && (
+<SectionCard title={t("web.site.borehole_section")}>
             <SimpleGrid cols={{ base: 1, md: 2 }} spacing="sm">
               {boreholes.map((bh) => {
                 const sptCount = bh.spt?.length ?? 0;
@@ -397,7 +398,8 @@ export function SiteDataPage() {
                 );
               })}
             </SimpleGrid>
-          </Stack>
+          </SectionCard>
+)}
         </Stack>
       )}
     </Stack>

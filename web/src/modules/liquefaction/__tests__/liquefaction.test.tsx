@@ -44,8 +44,7 @@ function fill(label: string, value: string) {
 }
 
 async function chooseMethod(label: string) {
-  fireEvent.click(await screen.findByRole("textbox", { name: tr["liquefaction.field.method"] }));
-  fireEvent.click(await screen.findByRole("option", { name: label }));
+  fireEvent.click(await screen.findByText(label));
 }
 
 async function fillValid() {
@@ -85,19 +84,20 @@ describe("liquefaction analysis page (mock)", () => {
 
   it("prefills a_max and Mw from site data with a note, and nothing else", async () => {
     renderPage();
-    await screen.findByRole("textbox", { name: tr["liquefaction.field.method"] });
+    await screen.findByText(tr["liquefaction.section.method"]);
     expect(screen.getByLabelText(tr["liquefaction.field.amax_g"])).toHaveValue("0.25");
     expect(screen.getByLabelText(tr["liquefaction.field.mw"])).toHaveValue("7.2");
-    expect(screen.getAllByText(tr["liquefaction.site_note"])).toHaveLength(2);
+    expect(screen.getAllByText(/^Proje ekranından/)).toHaveLength(2);
+    expect(screen.getAllByRole("link", { name: tr["liquefaction.site_change"] })).toHaveLength(2);
     for (const key of ["target_fs", "c_fc", "ic_cutoff", "default_fc", "gwt_seismic"]) {
       expect(screen.getByLabelText(tr[`liquefaction.field.${key}`], { exact: false })).toHaveValue("");
     }
-    expect(screen.getByRole("textbox", { name: tr["liquefaction.field.method"] })).toHaveValue("");
+    expect(screen.queryAllByRole("radio", { checked: true })).toHaveLength(0);
   });
 
   it("keeps Run disabled while coefficients are empty or out of range", async () => {
     renderPage();
-    await screen.findByRole("textbox", { name: tr["liquefaction.field.method"] });
+    await screen.findByText(tr["liquefaction.section.method"]);
     expect(runButton()).toBeDisabled();
     await fillValid();
     await waitFor(() => expect(runButton()).toBeEnabled());
@@ -171,12 +171,16 @@ describe("liquefaction analysis page (mock)", () => {
     await waitFor(() => expect(screen.queryByText(tr["liquefaction.error.profile_missing"])).not.toBeInTheDocument());
   });
 
-  it("validation issues name the field (placeholder is filled)", async () => {
+  it("marks each missing required field under the field and counts them in the action bar", async () => {
     renderPage();
-    await screen.findByRole("textbox", { name: tr["liquefaction.field.method"] });
-    const expected = `${tr["liquefaction.field.target_fs"]}: bir sayı girin.`;
-    expect(screen.getByText(expected)).toBeInTheDocument();
-    expect(screen.queryByText(/\{field\}|\{\{field\}\}/)).not.toBeInTheDocument();
+    await screen.findByText(tr["liquefaction.section.method"]);
+    // Method, target FS, C_FC and Ic are empty; a_max and Mw come from the project.
+    expect(screen.getAllByText(tr["liquefaction.required"])).toHaveLength(4);
+    expect(screen.getByText(tr["liquefaction.bar.missing"].replace("{count}", "4"))).toBeInTheDocument();
+    expect(screen.getAllByRole("button", { name: tr["liquefaction.check.go"] })).toHaveLength(4);
+    await fillValid();
+    await waitFor(() => expect(screen.queryByText(tr["liquefaction.required"])).not.toBeInTheDocument());
+    expect(screen.getByText(tr["liquefaction.bar.hint_ready"])).toBeInTheDocument();
   });
 
   it("other run errors go to the error alert", async () => {
@@ -203,7 +207,7 @@ describe("liquefaction analysis page (mock)", () => {
     );
     expect(await screen.findByText(trCatalog["error.engine_error"])).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: trCatalog["web.common.retry"] }));
-    expect(await screen.findByRole("textbox", { name: tr["liquefaction.field.method"] })).toBeInTheDocument();
+    expect(await screen.findByText(tr["liquefaction.section.method"])).toBeInTheDocument();
   });
 });
 
