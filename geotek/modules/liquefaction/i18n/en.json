@@ -30,6 +30,8 @@
   "liquefaction.run": "Run analysis",
   "liquefaction.results.title": "Liquefaction results",
   "liquefaction.results.back": "Change inputs",
+  "liquefaction.results.go_analysis": "Go to analysis",
+  "liquefaction.results.empty_title": "No result yet",
   "liquefaction.results.no_job": "There is no analysis to show. Run the analysis first.",
   "liquefaction.results.unavailable": "The result of this analysis could not be reached. Run the analysis again.",
   "liquefaction.results.stale": "The soil data changed after this calculation. Run it again for a current result.",

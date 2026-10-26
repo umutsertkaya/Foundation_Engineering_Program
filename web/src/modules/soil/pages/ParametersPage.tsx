@@ -253,8 +253,9 @@ export function ParametersPage() {
       <PageHeader
         title={t("soil.params.title")}
         lead={t("soil.params.subtitle")}
-        actions={profiles.length > 0 ? (
-        
+      />
+
+      {profiles.length > 0 && (
           <Group align="flex-end" gap="xs" wrap="wrap">
             <NativeSelect
               size="xs"
@@ -292,8 +293,7 @@ export function ParametersPage() {
               </Button>
             </Tooltip>
           </Group>
-        ) : undefined}
-      />
+      )}
 
       <ErrorAlert error={error} onClose={() => setError(null)} />
       {notice && (

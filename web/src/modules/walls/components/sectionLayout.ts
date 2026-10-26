@@ -121,6 +121,10 @@ const PAD_T = 22;
 const PAD_B = 30;
 const GUTTER_R = 116;
 const MAX_PLOT_H = 400;
+/** Pixels between the left edge of the plot and the wall face, reserved for the H / D dimensions. */
+const LEFT_PX = 125;
+/** Estimated pixel width of the embedment label (11 px bold), used to place its callout. */
+const D_LABEL_PX = 58;
 const MAX_SLOPE_DEG = 35;
 /**
  * Smallest dimension drawn [m]. Only guards against zero-size or negative values from a half-edited draft
@@ -229,18 +233,23 @@ export function buildSectionLayout(input: SectionInput): SectionLayout {
     wall.push([[kx0, 0], [kx0 + kw, 0], [kx0 + kw, -Math.max(EPS, key.depth)], [kx0, -Math.max(EPS, key.depth)]]);
   }
 
-  const margin = Math.max(1.2, 0.45 * B);
-  const xMin = -margin;
   const xMax = B + Math.max(1.5, 0.6 * B);
   const rise = (xMax - backTopX) * Math.tan(slope);
   const yTop = H + rise;
+  const keyDepth0 = key ? Math.max(EPS, key.depth) : 0;
+  const profileBottom0 =
+    soil && soil.profile.layers.length > 0 ? soil.profile.layers[soil.profile.layers.length - 1].bottom : H;
+  const below0 = soil ? Math.max(1.0, Math.min(Math.max(0, profileBottom0 - H), Math.max(1.5, 0.5 * H))) : 0.8;
+  const below = Math.max(below0, keyDepth0 + 0.5);
+  // The left margin must leave LEFT_PX of room for the H and D dimension lines, their labels and callouts.
+  let margin = Math.max(1.2, 0.45 * B);
+  for (let i = 0; i < 4; i++) {
+    const sc = Math.min((VIEW_W - PAD_L - GUTTER_R) / (xMax + margin), MAX_PLOT_H / (yTop + below));
+    margin = Math.max(margin, LEFT_PX / sc);
+  }
+  const xMin = -margin;
 
   const zones = soil ? computeZones(soil, H - D, H) : null;
-  const profileBottom =
-    soil && soil.profile.layers.length > 0 ? soil.profile.layers[soil.profile.layers.length - 1].bottom : H;
-  const keyDepth = key ? Math.max(EPS, key.depth) : 0;
-  const below0 = soil ? Math.max(1.0, Math.min(Math.max(0, profileBottom - H), Math.max(1.5, 0.5 * H))) : 0.8;
-  const below = Math.max(below0, keyDepth + 0.5);
   const zViewBottom = H + below;
 
   const worldW = xMax - xMin;
@@ -310,13 +319,13 @@ export function buildSectionLayout(input: SectionInput): SectionLayout {
     }
   }
 
-  const dimH = { x: sx(-0.7 * margin), y0: sy(0), y1: sy(H) };
-  const dimD = { x: sx(-0.3 * margin), y0: sy(0), y1: sy(D) };
+  const dimH = { x: plot.x0 + 16, y0: sy(0), y1: sy(H) };
+  const dimD = { x: sx(0) - 10, y0: sy(0), y1: sy(D) };
   const markers: SectionMarker[] = [];
   WALL_MARKER_FIELDS[isCantilever(wallType, geometry) ? "cantilever" : "gravity"].forEach((field, i) => {
     let at: Pt | null = null;
-    if (field === "height") at = [dimH.x, (dimH.y0 + dimH.y1) / 2 - 14];
-    else if (field === "embedment") at = D > 0 ? [dimD.x, (dimD.y0 + dimD.y1) / 2 - 14] : null;
+    if (field === "height") at = [dimH.x, dimH.y0 - dimH.y1 >= 130 ? dimH.y1 + 14 : (dimH.y0 + dimH.y1) / 2 - 46];
+    else if (field === "embedment") at = D > 0 ? [dimD.x - 6 - D_LABEL_PX - 14, (dimD.y0 + dimD.y1) / 2] : null;
     else if (markerWorld[field]) {
       const [x, y] = markerWorld[field];
       const [dx, dy] = markerShift[field] ?? [0, 0];

@@ -42,6 +42,7 @@ function Dimension({
   y1,
   label,
   rotate = false,
+  labelLeft = false,
 }: {
   x0: number;
   y0: number;
@@ -49,6 +50,8 @@ function Dimension({
   y1: number;
   label: string;
   rotate?: boolean;
+  /** Horizontal label drawn to the left of a vertical dimension line (right-aligned). */
+  labelLeft?: boolean;
 }) {
   const horizontal = y0 === y1;
   return (
@@ -67,10 +70,10 @@ function Dimension({
           <line x1={x0 - 4} y1={y0} x2={x0 + 4} y2={y0} />
           <line x1={x1 - 4} y1={y1} x2={x1 + 4} y2={y1} />
           <text
-            x={rotate ? x0 - 5 : x0 + 6}
+            x={rotate ? x0 - 5 : labelLeft ? x0 - 6 : x0 + 6}
             y={(y0 + y1) / 2 + (rotate ? 0 : 4)}
             transform={rotate ? `rotate(-90 ${x0 - 5} ${(y0 + y1) / 2})` : undefined}
-            textAnchor={rotate ? "middle" : "start"}
+            textAnchor={rotate ? "middle" : labelLeft ? "end" : "start"}
             fontSize={11}
             fontWeight={600}
             fill={TEXT}
@@ -103,9 +106,12 @@ export function WallCrossSection({ title, scheme: schemeProp, markers = false, f
 
   // Layer labels: retained side and foundation on the right, front side inside the drawing.
   const right = layout.bands.filter((b) => b.side !== "front");
-  const left = layout.bands.filter((b) => b.side === "front");
+  // Front-side bands repeat a layer already listed on the right; only a front-only layer gets its own label.
+  const listed = new Set(right.map((b) => b.layerId));
+  const frontOnly = layout.bands.filter((b) => b.side === "front" && !listed.has(b.layerId));
+  const labelled = [...right, ...frontOnly];
   const mid = (b: { y0: number; y1: number }) => (Math.max(b.y0, plot.y0) + b.y1) / 2;
-  const rightYs = spreadLabels(right.map(mid), 26, plot.y0 + 8, plot.y1 - 8);
+  const rightYs = spreadLabels(labelled.map(mid), 26, plot.y0 + 8, plot.y1 - 8);
 
   // Layer ids are internal (often 32-char UUIDs): show description, then USCS, then a short ordinal.
   const layerOrder = [...new Set(layout.bands.map((b) => b.layerId))];
@@ -115,6 +121,18 @@ export function WallCrossSection({ title, scheme: schemeProp, markers = false, f
   };
   const bandTitle = (b: (typeof layout.bands)[number]) =>
     `${b.layer.description?.trim() || b.layer.uscs || bandName(b, 40)} (${t(b.origin === "fill" ? "web.section.origin.fill" : "web.section.origin.profile")}) · z ${b.top.toFixed(2)}–${b.bottom.toFixed(2)} m`;
+
+  // The base label sits centred between the toe and heel callouts (or on the base centre without callouts).
+  const markerX = (field: string) => (markers ? layout.markers.find((m) => m.field === field)?.at[0] : undefined);
+  const BASE_LABEL_PX = 56;
+  let baseLabelX: number | null = layout.anchors.base && layout.B * layout.scale > 3 * MIN_LABEL_PX ? layout.anchors.base[0] : null;
+  if (baseLabelX !== null) {
+    const lo = (markerX("toe") ?? -Infinity) + 12;
+    const hi = (markerX("heel") ?? Infinity) - 12;
+    const from = Math.max(lo, layout.dims.B.x0 + 2);
+    const to = Math.min(hi, layout.dims.B.x1 - 2);
+    baseLabelX = to - from >= BASE_LABEL_PX ? (from + to) / 2 : null;
+  }
 
   const Wrapper = bare ? "div" : Card;
   const wrapperProps = bare ? {} : { withBorder: true, padding: "xs", radius: "sm" };
@@ -211,8 +229,8 @@ export function WallCrossSection({ title, scheme: schemeProp, markers = false, f
             {t("walls.section.stem")}
           </text>
         )}
-        {layout.anchors.base && layout.B * layout.scale > 3 * MIN_LABEL_PX && layout.baseThickness !== null && layout.baseThickness * layout.scale >= 12 && (
-          <text x={layout.anchors.base[0]} y={layout.anchors.base[1] + 3} textAnchor="middle" fontSize={9} fill={TEXT} {...HALO} data-part="label-base">
+        {baseLabelX !== null && layout.anchors.base && layout.baseThickness !== null && layout.baseThickness * layout.scale >= 12 && (
+          <text x={baseLabelX} y={layout.anchors.base[1] + 3} textAnchor="middle" fontSize={9} fill={TEXT} {...HALO} data-part="label-base">
             {t("walls.section.base")}
           </text>
         )}
@@ -236,7 +254,7 @@ export function WallCrossSection({ title, scheme: schemeProp, markers = false, f
         <Dimension x0={layout.dims.B.x0} y0={layout.dims.B.y} x1={layout.dims.B.x1} y1={layout.dims.B.y} label={t("web.section.base_label", { B: layout.B.toFixed(2) })} />
         <Dimension rotate x0={layout.dims.H.x} y0={layout.dims.H.y0} x1={layout.dims.H.x} y1={layout.dims.H.y1} label={t("web.section.height_label", { H: layout.H.toFixed(2) })} />
         {layout.D > 0 && (
-          <Dimension x0={layout.dims.D.x} y0={layout.dims.D.y0} x1={layout.dims.D.x} y1={layout.dims.D.y1} label={t("web.section.embedment_label", { D: layout.D.toFixed(2) })} />
+          <Dimension labelLeft x0={layout.dims.D.x} y0={layout.dims.D.y0} x1={layout.dims.D.x} y1={layout.dims.D.y1} label={t("web.section.embedment_label", { D: layout.D.toFixed(2) })} />
         )}
 
         {/* numbered callouts for the dimension fields */}
@@ -254,26 +272,23 @@ export function WallCrossSection({ title, scheme: schemeProp, markers = false, f
           })}
 
         {/* layer labels */}
-        {right.map((b, i) => {
+        {labelled.map((b, i) => {
           const y = rightYs[i];
+          const frontLabel = b.side === "front";
           return (
             <g key={`l-${b.key}`} data-part="layer-label" data-layer-id={b.layerId}>
-              <line x1={plot.x1} y1={mid(b)} x2={gutterX} y2={y - 3} stroke={DIM} strokeWidth={0.8} />
+              {!frontLabel && <line x1={plot.x1} y1={mid(b)} x2={gutterX} y2={y - 3} stroke={DIM} strokeWidth={0.8} />}
               <text x={gutterX + 2} y={y} fontSize={11} fontWeight={600} fill={TEXT}>
-                {bandName(b, 18)}
-                {b.origin === "fill" ? ` ${t("web.section.fill_tag")}` : ""}
+                {bandName(b, 17)}
               </text>
               <text x={gutterX + 2} y={y + 11} fontSize={9.5} fill={DIM}>
                 {`${b.top.toFixed(2)}–${b.bottom.toFixed(2)} m`}
+                {b.origin === "fill" ? ` · ${t("web.section.fill_tag").replace(/[()]/g, "")}` : ""}
+                {frontLabel ? ` · ${t("web.section.front_side")}` : ""}
               </text>
             </g>
           );
         })}
-        {left.map((b) => (
-          <text key={`lf-${b.key}`} x={plot.x0 + 4} y={mid(b) + 4} fontSize={10} fontWeight={600} fill={soilStyle(b.layer, scheme).ink} data-part="layer-label" data-layer-id={b.layerId}>
-            {bandName(b, 12)}
-          </text>
-        ))}
       </svg>
       {layout.warnings.includes("profile_short") && (
         <Text size="xs" c="orange" mt={4}>

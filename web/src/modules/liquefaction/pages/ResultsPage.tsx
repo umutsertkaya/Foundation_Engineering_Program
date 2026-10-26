@@ -196,13 +196,20 @@ export function ResultsPage() {
     </Button>
   );
 
+  const goAnalysis = (
+    <Button onClick={() => navigate("/m/liquefaction")}>{t("liquefaction.results.go_analysis")}</Button>
+  );
+  const emptyPage = (description: string) => (
+    <Stack gap="md" maw={1120}>
+      <PageHeader title={t("liquefaction.results.title")} />
+      <EmptyState title={t("liquefaction.results.empty_title")} description={description} action={goAnalysis} />
+    </Stack>
+  );
+
   if (needStored && error == null) {
     if (stored === null) return <Text size="sm">{t("web.common.loading")}</Text>;
     if (stored !== "none") return <ResultBody result={stored.result} stale={stored.stale} settings={stored.settings} back={back} />;
-    return (
-      <EmptyState title={t("liquefaction.results.title")}
-        description={t(jobId ? "liquefaction.results.unavailable" : "liquefaction.results.no_job")} action={back} />
-    );
+    return emptyPage(t(jobId ? "liquefaction.results.unavailable" : "liquefaction.results.no_job"));
   }
   if (error != null) {
     return (
@@ -223,7 +230,7 @@ export function ResultsPage() {
     );
   }
   if (state.status === "cancelled") {
-    return <EmptyState title={t("liquefaction.results.title")} description={t("liquefaction.results.cancelled")} action={back} />;
+    return emptyPage(t("liquefaction.results.cancelled"));
   }
   if (state.status !== "done") {
     return (

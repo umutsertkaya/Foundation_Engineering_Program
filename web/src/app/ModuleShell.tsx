@@ -1,6 +1,7 @@
 import { Suspense, useEffect, useState } from "react";
 import { Anchor, AppShell, Box, Burger, Button, Group, Loader, NavLink, Text } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
+import { IconHome } from "@tabler/icons-react";
 import { notifications } from "@mantine/notifications";
 import { IconDeviceFloppy } from "@tabler/icons-react";
 import { useTranslation } from "react-i18next";
@@ -25,7 +26,12 @@ export function ModuleShell() {
   const [navOpened, { toggle: toggleNav, close: closeNav }] = useDisclosure(false);
   useEffect(() => { setError(null); }, [moduleId]);
   useEffect(() => { closeNav(); }, [location.pathname, closeNav]);
-  const backButton = <Button variant="subtle" color="gray" c="var(--mantine-color-text)" onClick={() => navigate("/launcher")}>{t("shell.back_to_menu")}</Button>;
+  const backButton = (
+    <Button variant="subtle" color="gray" c="var(--mantine-color-text)" aria-label={t("shell.back_to_menu")} px={{ base: 8, sm: 14 }} onClick={() => navigate("/launcher")}>
+      <Box component="span" hiddenFrom="sm" style={{ display: "inline-flex" }}><IconHome size={18} aria-hidden="true" /></Box>
+      <Box component="span" visibleFrom="sm">{t("shell.back_to_menu")}</Box>
+    </Button>
+  );
 
   if (!manifest) {
     return <EmptyState title={t("shell.module_not_found")} description="" action={backButton} />;
@@ -65,24 +71,28 @@ export function ModuleShell() {
               to="/launcher"
               c="var(--mantine-color-text)"
               underline="never"
-              style={{ display: "inline-flex", alignItems: "center", gap: 10, fontWeight: 600, fontSize: 17, whiteSpace: "nowrap" }}
+              style={{ display: "inline-flex", alignItems: "center", gap: 10, fontWeight: 600, fontSize: 17, whiteSpace: "nowrap", minWidth: 0 }}
             >
               <Box component="span" c="primary" style={{ display: "inline-flex" }}><ModuleIcon size={22} /></Box>
-              {t(manifest.titleKey)}
+              <span style={{ overflow: "hidden", textOverflow: "ellipsis" }}>{t(manifest.titleKey)}</span>
             </Anchor>
             <Text size="sm" c="dimmed" truncate visibleFrom="sm">{project?.meta.name ?? session.file ?? ""}</Text>
+            <Box visibleFrom="sm" style={{ display: "contents" }}>
             <StatusChip tone={session.dirty ? "stale" : "current"}>
               {t(session.dirty ? "shell.chip_unsaved" : "shell.chip_saved")}
             </StatusChip>
+            </Box>
           </Group>
           <Group gap="xs" wrap="nowrap">
             <Button
               variant="default"
               loading={saving}
+              aria-label={t("shell.save")}
+              px={{ base: 10, sm: 14 }}
               leftSection={<IconDeviceFloppy size={16} aria-hidden="true" />}
               onClick={() => { void handleSave(); }}
             >
-              {t("shell.save")}
+              <Box component="span" visibleFrom="sm">{t("shell.save")}</Box>
             </Button>
             {backButton}
             <ViewMenu />

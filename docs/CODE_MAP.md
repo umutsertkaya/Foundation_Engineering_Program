@@ -659,7 +659,7 @@ graph LR
   shared["shared"]
   app -->|39| shared
   modules_anchored_wall -->|1| app
-  modules_anchored_wall -->|34| shared
+  modules_anchored_wall -->|35| shared
   modules_education -->|6| shared
   modules_liquefaction -->|30| shared
   modules_report -->|11| shared
@@ -713,7 +713,7 @@ Testler yalnız **Kullanan** sütununda görünür; “Test” sütunu o dosyay�
 |---|---:|---|---|---|
 | `app/App.tsx` | 30 | `app/AppChrome.tsx`, `app/ModuleShell.tsx`, `app/ProjectProvider.tsx`, `app/RequireProject.tsx`, `app/moduleRegistry.ts`, `app/pages/LauncherPage.tsx`, `app/pages/SettingsPage.tsx`, `app/pages/StartPage.tsx` | `app/main.tsx` | `test/shell.test.tsx`, `test/start_page.test.tsx` |
 | `app/AppChrome.tsx` | 83 | `shared/api/core.ts`, `shared/api/http.ts` | `app/App.tsx` | `test/app_chrome.test.tsx` |
-| `app/ModuleShell.tsx` | 123 | `app/ProjectProvider.tsx`, `app/ViewMenu.tsx`, `app/moduleRegistry.ts`, `shared/components/EmptyState.tsx`, `shared/components/ErrorAlert.tsx`, `shared/components/StatusChip.tsx`, `shared/hooks/usePreSaveHook.ts` | `app/App.tsx` | — |
+| `app/ModuleShell.tsx` | 133 | `app/ProjectProvider.tsx`, `app/ViewMenu.tsx`, `app/moduleRegistry.ts`, `shared/components/EmptyState.tsx`, `shared/components/ErrorAlert.tsx`, `shared/components/StatusChip.tsx`, `shared/hooks/usePreSaveHook.ts` | `app/App.tsx` | — |
 | `app/ProjectProvider.tsx` | 133 | `shared/api/client.ts`, `shared/api/core.ts`, `shared/api/http.ts`, `shared/api/types.ts` | `app/App.tsx`, `app/ModuleShell.tsx`, `app/RequireProject.tsx`, `app/pages/LauncherPage.tsx`, `app/pages/StartPage.tsx` | `test/shell.test.tsx` |
 | `app/RequireProject.tsx` | 13 | `app/ProjectProvider.tsx`, `shared/components/ErrorAlert.tsx` | `app/App.tsx` | — |
 | `app/ThemeToggle.tsx` | 19 | — | `app/ViewMenu.tsx`, `app/pages/StartPage.tsx` | — |
@@ -725,7 +725,7 @@ Testler yalnız **Kullanan** sütununda görünür; “Test” sütunu o dosyay�
 | `app/pages/LauncherPage.tsx` | 593 | `app/ProjectProvider.tsx`, `app/ViewMenu.tsx`, `app/launcherModel.ts`, `app/moduleRegistry.ts`, `shared/api/client.ts`, `shared/api/launcher.ts`, `shared/api/types.ts`, `shared/components/EmptyState.tsx`, `shared/components/ErrorAlert.tsx`, `shared/components/StatusChip.tsx`, `shared/moduleTypes.ts` | `app/App.tsx` | — |
 | `app/pages/SettingsPage.tsx` | 176 | `app/i18n.ts`, `shared/api/core.ts`, `shared/api/launcher.ts`, `shared/api/types.ts`, `shared/components/ErrorAlert.tsx`, `shared/components/PageHeader.tsx`, `shared/components/SectionCard.tsx` | `app/App.tsx` | — |
 | `app/pages/StartPage.tsx` | 892 | `app/ProjectProvider.tsx`, `app/ThemeToggle.tsx`, `app/i18n.ts`, `shared/api/client.ts`, `shared/api/core.ts`, `shared/api/launcher.ts`, `shared/api/types.ts`, `shared/components/EmptyState.tsx`, `shared/components/ErrorAlert.tsx`, `shared/components/PageHeader.tsx`, `shared/components/SectionCard.tsx`, `shared/components/StatusChip.tsx` | `app/App.tsx` | — |
-| `app/theme.ts` | 54 | — | `app/main.tsx` | `modules/liquefaction/__tests__/liquefaction.test.tsx`, `modules/liquefaction/__tests__/results.test.tsx`, `modules/sheet_pile/__tests__/sheet_pile.test.tsx` +25 |
+| `app/theme.ts` | 56 | — | `app/main.tsx` | `modules/liquefaction/__tests__/liquefaction.test.tsx`, `modules/liquefaction/__tests__/results.test.tsx`, `modules/sheet_pile/__tests__/sheet_pile.test.tsx` +25 |
 
 #### `modules/anchored_wall`
 
@@ -734,7 +734,7 @@ Testler yalnız **Kullanan** sütununda görünür; “Test” sütunu o dosyay�
 | `modules/anchored_wall/Root.tsx` | 13 | `modules/anchored_wall/pages/AnalysisPage.tsx`, `modules/anchored_wall/pages/AnchorPage.tsx` | `modules/anchored_wall/manifest.ts` | — |
 | `modules/anchored_wall/api.ts` | 35 | `modules/anchored_wall/types.ts`, `shared/api/http.ts` | `modules/anchored_wall/components/AnalysisForm.tsx`, `modules/anchored_wall/pages/AnalysisPage.tsx`, `modules/anchored_wall/pages/AnchorPage.tsx` | — |
 | `modules/anchored_wall/components/AnalysisForm.tsx` | 307 | `modules/anchored_wall/api.ts`, `modules/anchored_wall/components/AnchorFields.tsx`, `modules/anchored_wall/components/NumField.tsx`, `modules/anchored_wall/format.ts`, `modules/anchored_wall/inputs.ts`, `modules/anchored_wall/types.ts`, `shared/api/core.ts`, `shared/api/types.ts`, `shared/components/CollapsibleSection.tsx`, `shared/components/ErrorAlert.tsx`, `shared/components/FieldNote.tsx`, `shared/components/SectionCard.tsx`, `shared/components/ToggleRow.tsx` | `modules/anchored_wall/pages/AnalysisPage.tsx` | — |
-| `modules/anchored_wall/components/AnchorFields.tsx` | 210 | `modules/anchored_wall/components/NumField.tsx`, `modules/anchored_wall/format.ts`, `modules/anchored_wall/inputs.ts`, `modules/anchored_wall/types.ts` | `modules/anchored_wall/components/AnalysisForm.tsx`, `modules/anchored_wall/pages/AnchorPage.tsx` | — |
+| `modules/anchored_wall/components/AnchorFields.tsx` | 230 | `modules/anchored_wall/components/NumField.tsx`, `modules/anchored_wall/format.ts`, `modules/anchored_wall/inputs.ts`, `modules/anchored_wall/types.ts`, `shared/components/FieldNote.tsx` | `modules/anchored_wall/components/AnalysisForm.tsx`, `modules/anchored_wall/pages/AnchorPage.tsx` | — |
 | `modules/anchored_wall/components/MissingList.tsx` | 27 | — | `modules/anchored_wall/pages/AnalysisPage.tsx`, `modules/anchored_wall/pages/AnchorPage.tsx` | — |
 | `modules/anchored_wall/components/Notices.tsx` | 91 | `modules/anchored_wall/types.ts`, `shared/api/client.ts` | `modules/anchored_wall/components/ResultViews.tsx`, `modules/anchored_wall/pages/AnalysisPage.tsx`, `modules/anchored_wall/pages/AnchorPage.tsx` | — |
 | `modules/anchored_wall/components/NumField.tsx` | 19 | `modules/anchored_wall/inputs.ts` | `modules/anchored_wall/components/AnalysisForm.tsx`, `modules/anchored_wall/components/AnchorFields.tsx`, `modules/anchored_wall/pages/AnchorPage.tsx` | — |
@@ -804,7 +804,7 @@ Testler yalnız **Kullanan** sütununda görünür; “Test” sütunu o dosyay�
 | `modules/liquefaction/manifest.ts` | 18 | `modules/liquefaction/Root.tsx`, `shared/moduleTypes.ts` | — | — |
 | `modules/liquefaction/mock.ts` | 92 | `shared/api/mock/core.ts`, `shared/api/mock/dispatcher.ts`, `shared/api/mock/store.ts`, `shared/api/types.ts` | — | — |
 | `modules/liquefaction/pages/AnalysisPage.tsx` | 385 | `modules/liquefaction/api.ts`, `shared/api/client.ts`, `shared/api/core.ts`, `shared/api/types.ts`, `shared/components/ActionBar.tsx`, `shared/components/CollapsibleSection.tsx`, `shared/components/ErrorAlert.tsx`, `shared/components/FieldNote.tsx`, `shared/components/PageHeader.tsx`, `shared/components/SectionCard.tsx` | `modules/liquefaction/Root.tsx` | `modules/liquefaction/__tests__/liquefaction.test.tsx` |
-| `modules/liquefaction/pages/ResultsPage.tsx` | 397 | `modules/liquefaction/api.ts`, `modules/liquefaction/components/SoundingDetail.tsx`, `shared/api/client.ts`, `shared/api/types.ts`, `shared/components/EmptyState.tsx`, `shared/components/ErrorAlert.tsx`, `shared/components/KpiTile.tsx`, `shared/components/PageHeader.tsx`, `shared/components/SectionCard.tsx`, `shared/components/StatusChip.tsx`, `shared/components/VerdictBanner.tsx` | `modules/liquefaction/Root.tsx` | `modules/liquefaction/__tests__/results.test.tsx` |
+| `modules/liquefaction/pages/ResultsPage.tsx` | 404 | `modules/liquefaction/api.ts`, `modules/liquefaction/components/SoundingDetail.tsx`, `shared/api/client.ts`, `shared/api/types.ts`, `shared/components/EmptyState.tsx`, `shared/components/ErrorAlert.tsx`, `shared/components/KpiTile.tsx`, `shared/components/PageHeader.tsx`, `shared/components/SectionCard.tsx`, `shared/components/StatusChip.tsx`, `shared/components/VerdictBanner.tsx` | `modules/liquefaction/Root.tsx` | `modules/liquefaction/__tests__/results.test.tsx` |
 
 #### `modules/report`
 
@@ -874,16 +874,16 @@ Testler yalnız **Kullanan** sütununda görünür; “Test” sütunu o dosyay�
 | `modules/walls/api.ts` | 23 | `modules/walls/types.ts`, `shared/api/http.ts`, `shared/api/types.ts` | `modules/walls/pages/AtRestPage.tsx`, `modules/walls/pages/WallTypePicker.tsx`, `modules/walls/pages/WallWizardPage.tsx` | `modules/walls/__tests__/wall_wizard.test.tsx`, `test/app.test.tsx`, `test/module_paths.test.ts` +1 |
 | `modules/walls/components/AnalysisOptionsForm.tsx` | 178 | `modules/walls/settings.ts`, `modules/walls/types.ts` | `modules/walls/pages/WallWizardPage.tsx` | `modules/walls/__tests__/analysis_options.test.tsx` |
 | `modules/walls/components/AtRestDiagram.tsx` | 48 | `modules/walls/types.ts` | `modules/walls/pages/AtRestPage.tsx` | — |
-| `modules/walls/components/DimensionField.tsx` | 48 | — | `modules/walls/pages/WallWizardPage.tsx` | — |
+| `modules/walls/components/DimensionField.tsx` | 50 | — | `modules/walls/pages/WallWizardPage.tsx` | — |
 | `modules/walls/components/PermeabilityEditor.tsx` | 126 | `modules/walls/settings.ts`, `shared/api/types.ts`, `shared/soil/format.ts` | `modules/walls/pages/WallWizardPage.tsx` | `modules/walls/__tests__/permeability_editor.test.tsx` |
 | `modules/walls/components/ShearKeyFields.tsx` | 65 | `shared/api/types.ts`, `shared/components/FieldNote.tsx` | `modules/walls/pages/WallWizardPage.tsx` | `modules/walls/__tests__/shear_key.test.tsx` |
 | `modules/walls/components/ShearKeyResult.tsx` | 62 | `modules/walls/labels.ts`, `shared/api/types.ts` | `modules/walls/components/WallResultView.tsx` | `modules/walls/__tests__/shear_key.test.tsx` |
 | `modules/walls/components/WallCheckCards.tsx` | 177 | `modules/walls/labels.ts`, `shared/api/types.ts`, `shared/utils/utilisation.ts` | `modules/walls/components/WallChecksTable.tsx`, `modules/walls/components/WallResultView.tsx`, `modules/walls/pages/WallWizardPage.tsx` | `modules/walls/__tests__/check_cards.test.tsx` |
 | `modules/walls/components/WallChecksTable.tsx` | 130 | `modules/walls/components/WallCheckCards.tsx`, `modules/walls/labels.ts`, `shared/api/types.ts` | `modules/walls/components/WallResultView.tsx` | — |
-| `modules/walls/components/WallCrossSection.tsx` | 285 | `modules/walls/components/sectionLayout.ts`, `shared/soil/SoilPatternDefs.tsx`, `shared/soil/axis.ts`, `shared/soil/format.ts`, `shared/soil/soilStyle.ts` | `modules/walls/components/WallResultView.tsx`, `modules/walls/pages/WallWizardPage.tsx` | `modules/walls/__tests__/wall_section.test.tsx` |
+| `modules/walls/components/WallCrossSection.tsx` | 300 | `modules/walls/components/sectionLayout.ts`, `shared/soil/SoilPatternDefs.tsx`, `shared/soil/axis.ts`, `shared/soil/format.ts`, `shared/soil/soilStyle.ts` | `modules/walls/components/WallResultView.tsx`, `modules/walls/pages/WallWizardPage.tsx` | `modules/walls/__tests__/wall_section.test.tsx` |
 | `modules/walls/components/WallResultView.tsx` | 275 | `modules/walls/components/ShearKeyResult.tsx`, `modules/walls/components/WallCheckCards.tsx`, `modules/walls/components/WallChecksTable.tsx`, `modules/walls/components/WallCrossSection.tsx`, `modules/walls/labels.ts`, `shared/api/types.ts`, `shared/components/DisclosureRow.tsx`, `shared/components/SectionCard.tsx`, `shared/components/StatusChip.tsx`, `shared/components/VerdictBanner.tsx`, `shared/hooks/useAssumptionText.ts`, `shared/hooks/useWarningText.ts` | `modules/walls/pages/WallWizardPage.tsx` | `modules/walls/__tests__/check_cards.test.tsx` |
-| `modules/walls/components/WizardStepBar.tsx` | 80 | — | `modules/walls/pages/WallWizardPage.tsx` | `modules/walls/__tests__/step_bar.test.tsx` |
-| `modules/walls/components/sectionLayout.ts` | 351 | `shared/api/types.ts`, `shared/soil/zones.ts` | `modules/walls/components/WallCrossSection.tsx`, `modules/walls/pages/WallWizardPage.tsx` | `modules/walls/__tests__/shear_key.test.tsx`, `modules/walls/__tests__/wall_section.test.tsx` |
+| `modules/walls/components/WizardStepBar.tsx` | 81 | — | `modules/walls/pages/WallWizardPage.tsx` | `modules/walls/__tests__/step_bar.test.tsx` |
+| `modules/walls/components/sectionLayout.ts` | 360 | `shared/api/types.ts`, `shared/soil/zones.ts` | `modules/walls/components/WallCrossSection.tsx`, `modules/walls/pages/WallWizardPage.tsx` | `modules/walls/__tests__/shear_key.test.tsx`, `modules/walls/__tests__/wall_section.test.tsx` |
 | `modules/walls/labels.ts` | 153 | `shared/api/types.ts` | `modules/walls/components/ShearKeyResult.tsx`, `modules/walls/components/WallCheckCards.tsx`, `modules/walls/components/WallChecksTable.tsx`, `modules/walls/components/WallResultView.tsx` | `modules/walls/__tests__/labels.test.ts` |
 | `modules/walls/manifest.ts` | 18 | `modules/walls/Root.tsx`, `shared/moduleTypes.ts` | — | `modules/walls/__tests__/wall_picker.test.tsx` |
 | `modules/walls/mock.ts` | 298 | `modules/walls/settings.ts`, `modules/walls/types.ts`, `shared/api/mock/data.ts`, `shared/api/mock/dispatcher.ts`, `shared/api/mock/store.ts`, `shared/api/types.ts` | — | `modules/walls/__tests__/wall_wizard.test.tsx` |
@@ -917,7 +917,7 @@ Testler yalnız **Kullanan** sütununda görünür; “Test” sütunu o dosyay�
 | `shared/components/DisclosureRow.tsx` | 53 | — | `modules/anchored_wall/components/ResultViews.tsx`, `modules/anchored_wall/pages/AnalysisPage.tsx`, `modules/anchored_wall/pages/AnchorPage.tsx`, `modules/sheet_pile/components/ResultPanel.tsx`, `modules/walls/components/WallResultView.tsx` | — |
 | `shared/components/EmptyState.tsx` | 26 | — | `app/ModuleShell.tsx`, `app/pages/LauncherPage.tsx`, `app/pages/StartPage.tsx`, `modules/anchored_wall/pages/AnalysisPage.tsx`, `modules/anchored_wall/pages/AnchorPage.tsx` +11 | — |
 | `shared/components/ErrorAlert.tsx` | 36 | `shared/api/errorMessage.ts` | `app/ModuleShell.tsx`, `app/RequireProject.tsx`, `app/pages/LauncherPage.tsx`, `app/pages/SettingsPage.tsx`, `app/pages/StartPage.tsx` +17 | `test/error_alert.test.tsx` |
-| `shared/components/FieldNote.tsx` | 25 | — | `modules/anchored_wall/components/AnalysisForm.tsx`, `modules/liquefaction/pages/AnalysisPage.tsx`, `modules/walls/components/ShearKeyFields.tsx`, `modules/walls/pages/WallWizardPage.tsx` | `test/shared_components.test.tsx` |
+| `shared/components/FieldNote.tsx` | 25 | — | `modules/anchored_wall/components/AnalysisForm.tsx`, `modules/anchored_wall/components/AnchorFields.tsx`, `modules/liquefaction/pages/AnalysisPage.tsx`, `modules/walls/components/ShearKeyFields.tsx`, `modules/walls/pages/WallWizardPage.tsx` | `test/shared_components.test.tsx` |
 | `shared/components/KpiTile.tsx` | 25 | — | `modules/anchored_wall/components/ResultViews.tsx`, `modules/liquefaction/pages/ResultsPage.tsx`, `modules/sheet_pile/components/ResultPanel.tsx` | `test/shared_components.test.tsx` |
 | `shared/components/MissingFactorsForm.tsx` | 116 | `shared/api/types.ts` | `modules/walls/pages/WallWizardPage.tsx` | `test/missing_factors_form.test.tsx` |
 | `shared/components/PageHeader.tsx` | 39 | — | `app/pages/SettingsPage.tsx`, `app/pages/StartPage.tsx`, `modules/anchored_wall/pages/AnalysisPage.tsx`, `modules/anchored_wall/pages/AnchorPage.tsx`, `modules/education/pages/GalleryPage.tsx` +16 | `test/shared_components.test.tsx` |

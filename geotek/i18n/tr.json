@@ -459,6 +459,7 @@
   "layering.warning.no_data_interval": "{top} m ile {bottom} m arasında veri yok; aralık en yakın örneklerden ekstrapole edildi.",
   "layering.warning.thin_merged": "Asgari kalınlıktan ince bir tabaka komşu tabakayla birleştirildi.",
   "layering.warning.drainage_ic_based": "Drenaj davranışı yalnızca Ic < 2.6 ölçütünden (Robertson 2009) türetilmiştir; yükleme durumu için mühendis tarafından doğrulanmalıdır; 1. bölge drenajsız varsayılmıştır.",
+  "classification.mock_demo": "Gösterim verisi; hesap motoru sonucu değildir.",
   "layering.warning.processing_warnings": "Sondaj verisinin işlenmesi sırasında uyarılar oluştu; işlenmiş verileri inceleyin.",
   "layering.warning.invalid_ic": "Bazı örneklerde geçerli Ic yok; bu örnekler sınıflandırmada kullanılmadı.",
   "layering.warning.thin_retained": "{top}-{bottom} m tabakası asgari kalınlıktan ince olmasına rağmen korundu (SBTn bölgesi {raw_zone}).",
