@@ -1,6 +1,6 @@
 {
   "soil.title": "Soil investigation and parameters",
-  "soil.description": "SPT, CPT and laboratory data, soil classification, layering, engineering parameters and soil profiles.",
+  "soil.description": "Enter borehole, CPT and laboratory data. Define the layers and design parameters.",
   "soil.nav.site": "Site data",
   "soil.nav.profiles": "Soil profiles",
   "soil.nav.parameters": "Engineering parameters",

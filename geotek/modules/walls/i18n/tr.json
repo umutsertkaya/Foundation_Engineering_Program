@@ -1,6 +1,6 @@
 {
   "walls.title": "İstinat duvarı",
-  "walls.description": "Konsol ve ağırlık istinat duvarlarında statik ve depremli kayma, devrilme, taşıma gücü ve global stabilite tahkikleri.",
+  "walls.description": "Konsol ve ağırlık duvarında kayma, devrilme ve taşıma gücü.",
   "walls.type_picker.title": "İstinat duvarı tipi",
   "walls.type.cantilever": "Konsol duvar",
   "walls.type.cantilever.description": "Betonarme gövde ve temel plağından oluşan konsol istinat duvarı.",

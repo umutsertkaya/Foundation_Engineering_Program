@@ -1,47 +1,36 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
-  ActionIcon,
   Badge,
+  Box,
   Button,
   Card,
-  Container,
-  Grid,
   Group,
   Modal,
   NumberInput,
-  Paper,
-  SegmentedControl,
   Select,
   SimpleGrid,
   Stack,
-  Table,
   Text,
   TextInput,
   ThemeIcon,
   Title,
-  Tooltip,
+  VisuallyHidden,
 } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
-import {
-  IconArrowRight,
-  IconCheck,
-  IconDeviceFloppy,
-  IconLogout,
-  IconPencil,
-} from "@tabler/icons-react";
+import { IconArrowRight, IconBuildingBridge, IconDeviceFloppy } from "@tabler/icons-react";
 import { useTranslation } from "react-i18next";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { list_codes, set_project_site, update_project_meta } from "../../shared/api/client";
-import type { DesignCodeSummary, Language, ProjectMetaPatch, SiteSeismic } from "../../shared/api/types";
+import type { DesignCodeSummary, ProjectMetaPatch, SiteSeismic } from "../../shared/api/types";
 import { EmptyState } from "../../shared/components/EmptyState";
 import { ErrorAlert } from "../../shared/components/ErrorAlert";
-import { loadLanguageCatalog } from "../i18n";
-import { useModules } from "../moduleRegistry";
+import { StatusChip } from "../../shared/components/StatusChip";
+import type { WebModuleManifest } from "../../shared/moduleTypes";
 import { launcherAvailable, pickPath } from "../../shared/api/launcher";
+import { groupOfModule, LAUNCHER_GROUPS, moduleStatus, nextStep, type ModuleStatus, type StatusPart } from "../launcherModel";
+import { useModules } from "../moduleRegistry";
 import { useProjectSession } from "../ProjectProvider";
-import { ThemeToggle } from "../ThemeToggle";
-
-const LANG_STORAGE_KEY = "geotek.lang";
+import { ViewMenu } from "../ViewMenu";
 
 interface SiteDraft {
   pga_g: number | string;
@@ -75,19 +64,67 @@ function draftToSite(draft: SiteDraft): Omit<SiteSeismic, "source"> {
   };
 }
 
+const DOT_VAR: Record<ModuleStatus["tone"], string> = {
+  current: "ok", stale: "warn", missing: "warn", neutral: "neutral", bad: "bad", info: "info",
+};
+
+interface ModuleCardProps {
+  mod: WebModuleManifest;
+  status: ModuleStatus;
+  renderParts: (parts: StatusPart[]) => string;
+}
+
+/** Launcher card for one module: icon tile, title, one-line description and a status line with a coloured dot. */
+function ModuleCard({ mod, status, renderParts }: ModuleCardProps) {
+  const { t } = useTranslation();
+  const Icon = mod.icon;
+  const dot = DOT_VAR[status.tone];
+  return (
+    <Card
+      component={Link}
+      to={`/m/${mod.id}`}
+      data-module={mod.id}
+      p="md"
+      style={{ color: "inherit", textDecoration: "none", display: "flex", flexDirection: "column", gap: 12 }}
+      className="gt-module-card"
+    >
+      <Group align="flex-start" gap="md" wrap="nowrap">
+        <ThemeIcon size={40} radius="md" variant="light" color={mod.id === "education" ? "gray" : undefined}>
+          <Icon size={20} />
+        </ThemeIcon>
+        <Box style={{ flex: 1, minWidth: 0 }}>
+          <Text fz={16} fw={600}>{t(mod.titleKey)}</Text>
+          <Text size="sm" c="dimmed">{t(mod.descriptionKey)}</Text>
+        </Box>
+      </Group>
+      <Group
+        gap="sm"
+        wrap="nowrap"
+        pt={12}
+        mt="auto"
+        style={{ borderTop: "1px solid var(--gt-border-soft)", fontSize: 13 }}
+      >
+        <span
+          aria-hidden="true"
+          style={{ width: 8, height: 8, borderRadius: "50%", flex: "none", background: `var(--gt-${dot}-dot)` }}
+        />
+        <Text size="sm" style={{ flex: 1, minWidth: 0 }}>{renderParts(status.parts)}</Text>
+        {status.chip && <StatusChip tone={status.chip.tone} dot={false}>{t(status.chip.key)}</StatusChip>}
+      </Group>
+    </Card>
+  );
+}
+
 export function LauncherPage() {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const modules = useModules();
   const { session, project, save, saveAs, close, refresh, refreshSession } = useProjectSession();
-
-  const currentLang: Language = i18n.language === "en" ? "en" : "tr";
 
   const [error, setError] = useState<unknown>(null);
   const [saving, setSaving] = useState(false);
   const [closing, setClosing] = useState(false);
   const [confirmCloseOpen, setConfirmCloseOpen] = useState(false);
-  const [hoveredModuleId, setHoveredModuleId] = useState<string | null>(null);
 
   // Meta edit modal state
   const [editMetaOpen, setEditMetaOpen] = useState(false);
@@ -154,16 +191,6 @@ export function LauncherPage() {
     const next = { ...siteDraftRef.current, [key]: value };
     siteDraftRef.current = next;
     setSiteDraft(next);
-  };
-
-  const handleLanguageChange = (nextLang: Language) => {
-    try {
-      window.localStorage.setItem(LANG_STORAGE_KEY, nextLang);
-    } catch {
-      // Ignore storage errors
-    }
-    void i18n.changeLanguage(nextLang);
-    void loadLanguageCatalog(nextLang);
   };
 
   const [launcherActive, setLauncherActive] = useState(false);
@@ -287,284 +314,202 @@ export function LauncherPage() {
     }
   };
 
+  const codeName =
+    codes.find((c) => c.id === (project?.meta.design_code || defaultCode))?.name ??
+    (project?.meta.design_code || defaultCode);
+  const next = useMemo(() => nextStep(project), [project]);
+  const grouped = useMemo(
+    () => LAUNCHER_GROUPS.map((group) => ({ group, items: modules.filter((mod) => groupOfModule(mod.id) === group) })),
+    [modules],
+  );
+  const renderStatusParts = (parts: StatusPart[]) =>
+    parts.map((part) => t(part.key, part.values)).join(" · ");
+  const notEntered = (value?: string) =>
+    value ? <span>{value}</span> : <Text component="span" c="dimmed">{t("launcher.not_entered")}</Text>;
+
   return (
-    <Container size="xl" py="md">
-      <Stack gap="md">
-        {/* Header Bar */}
-        <Paper withBorder px="md" py="sm" radius="sm">
-          <Group justify="space-between" align="center" wrap="wrap" gap="sm">
-            <Group gap="sm" align="center" wrap="wrap">
-              <Title order={3}>{t("launcher.title")}</Title>
-              {project?.meta.name && (
-                <Text fw={600} size="sm" c="dimmed">
-                  {project.meta.name}
-                </Text>
-              )}
-              {session.dirty && (
-                <Badge color="yellow" variant="light">
-                  {t("shell.unsaved")}
-                </Badge>
-              )}
+    <Box>
+      <Box
+        component="header"
+        px="lg"
+        py="sm"
+        style={{ background: "var(--mantine-color-body)", borderBottom: "1px solid var(--gt-border)" }}
+      >
+        <Group justify="space-between" align="center" wrap="wrap" gap="sm">
+          <Group gap="sm" align="center" wrap="wrap">
+            <Group gap={10} wrap="nowrap">
+              <IconBuildingBridge size={22} color="var(--mantine-color-primary-6)" aria-hidden="true" />
+              <Text fw={600} fz={17}>{t("web.header.app_short")}</Text>
             </Group>
-
-            <Group gap="xs" wrap="wrap">
-              <Button
-                size="xs"
-                loading={saving}
-                leftSection={<IconDeviceFloppy size={16} />}
-                onClick={() => void handleSaveProject()}
-              >
-                {t("shell.save")}
-              </Button>
-              {launcherActive && (
-                <Button size="xs" variant="default" disabled={saving} onClick={() => void handleSaveAs()}>
-                  {t("shell.save_as")}
-                </Button>
-              )}
-              <SegmentedControl
-                size="xs"
-                aria-label={t("web.header.lang_switch")}
-                value={currentLang}
-                onChange={(val) => handleLanguageChange(val as Language)}
-                data={[
-                  { value: "tr", label: "TR" },
-                  { value: "en", label: "EN" },
-                ]}
-              />
-              <ThemeToggle />
-              <Button
-                size="xs"
-                variant="subtle"
-                color="red"
-                leftSection={<IconLogout size={16} />}
-                onClick={() => void handleCloseClick()}
-              >
-                {t("launcher.close_project")}
-              </Button>
-            </Group>
+            <VisuallyHidden component="h1">{t("launcher.title")}</VisuallyHidden>
+            {project?.meta.name && <Text c="dimmed">{project.meta.name}</Text>}
+            <StatusChip tone={session.dirty ? "stale" : "current"}>
+              {t(session.dirty ? "shell.chip_unsaved" : "shell.chip_saved")}
+            </StatusChip>
           </Group>
-        </Paper>
+          <Group gap="xs" wrap="wrap">
+            <Button
+              variant="default"
+              loading={saving}
+              leftSection={<IconDeviceFloppy size={16} aria-hidden="true" />}
+              onClick={() => void handleSaveProject()}
+            >
+              {t("shell.save")}
+            </Button>
+            {launcherActive && (
+              <Button variant="default" disabled={saving} onClick={() => void handleSaveAs()}>
+                {t("shell.save_as")}
+              </Button>
+            )}
+            <ViewMenu />
+            <Button variant="subtle" color="red" onClick={() => void handleCloseClick()}>
+              {t("launcher.close_project")}
+            </Button>
+          </Group>
+        </Group>
+      </Box>
 
-        {error != null && <ErrorAlert error={error} onRetry={() => void refresh({ silent: true }).catch(() => undefined)} />}
+      <Box maw={1320} mx="auto" px="lg" pt="xl" pb={48}>
+        {error != null && (
+          <Box mb="md">
+            <ErrorAlert error={error} onRetry={() => void refresh({ silent: true }).catch(() => undefined)} />
+          </Box>
+        )}
 
-        {/* Main 2-column content */}
-        <Grid gutter="md" align="flex-start">
-          {/* Left column (≈ 1/3) */}
-          <Grid.Col span={{ base: 12, md: 4 }}>
-            <Stack gap="md">
-              {/* Project Meta Card */}
-              <Card withBorder padding="md" radius="sm">
-                <Stack gap="sm">
-                  <Group justify="space-between" align="center">
-                    <Title order={4}>{t("launcher.project_heading")}</Title>
-                    <Button
-                      size="xs"
-                      variant="light"
-                      leftSection={<IconPencil size={14} />}
-                      onClick={openEditMetaModal}
-                    >
-                      {t("launcher.edit")}
-                    </Button>
-                  </Group>
+        <Group align="flex-start" gap="lg" wrap="wrap">
+          <Stack gap="md" style={{ flex: "1 1 300px", maxWidth: 380 }}>
+            <Card>
+              <Group justify="space-between" align="center" mb="sm">
+                <Title order={2} fz={15} fw={600}>{t("launcher.project_heading")}</Title>
+                <Button size="compact-md" variant="default" onClick={openEditMetaModal}>
+                  {t("launcher.edit")}
+                </Button>
+              </Group>
+              <Box style={{ display: "grid", gridTemplateColumns: "120px 1fr", gap: "8px 12px" }}>
+                <Text size="sm" c="dimmed">{t("web.project.name")}</Text>
+                <Text size="sm" fw={500}>{notEntered(project?.meta.name)}</Text>
+                <Text size="sm" c="dimmed">{t("web.project.number")}</Text>
+                <Text size="sm">{notEntered(project?.meta.number)}</Text>
+                <Text size="sm" c="dimmed">{t("web.project.engineer")}</Text>
+                <Text size="sm">{notEntered(project?.meta.engineer)}</Text>
+                <Text size="sm" c="dimmed">{t("launcher.design_code")}</Text>
+                <Text size="sm">{notEntered(codeName)}</Text>
+              </Box>
+            </Card>
 
-                  <Table withRowBorders={false} verticalSpacing={4}>
-                    <Table.Tbody>
-                      <Table.Tr>
-                        <Table.Td c="dimmed" pl={0}>
-                          {t("web.project.name")}
-                        </Table.Td>
-                        <Table.Td fw={600} pr={0}>
-                          {project?.meta.name || t("web.common.none")}
-                        </Table.Td>
-                      </Table.Tr>
-                      <Table.Tr>
-                        <Table.Td c="dimmed" pl={0}>
-                          {t("web.project.number")}
-                        </Table.Td>
-                        <Table.Td ff="monospace" pr={0}>
-                          {project?.meta.number || t("web.common.none")}
-                        </Table.Td>
-                      </Table.Tr>
-                      <Table.Tr>
-                        <Table.Td c="dimmed" pl={0}>
-                          {t("web.project.engineer")}
-                        </Table.Td>
-                        <Table.Td pr={0}>
-                          {project?.meta.engineer || t("web.common.none")}
-                        </Table.Td>
-                      </Table.Tr>
-                      <Table.Tr>
-                        <Table.Td c="dimmed" pl={0}>
-                          {t("start.new.design_code")}
-                        </Table.Td>
-                        <Table.Td
-                          ff="monospace"
-                          pr={0}
-                          style={{ textTransform: "uppercase" }}
-                        >
-                          {codes.find((c) => c.id === (project?.meta.design_code || defaultCode))?.name ?? (project?.meta.design_code || defaultCode || t("web.common.none"))}
-                        </Table.Td>
-                      </Table.Tr>
-                    </Table.Tbody>
-                  </Table>
-
-                  <Group gap="xs">
-                    <Badge variant="light">
-                      {t("launcher.profiles_count", {
-                        count: project?.counts.profiles ?? 0,
-                      })}
-                    </Badge>
-                    <Badge variant="light" color="teal">
-                      {t("launcher.structures_count", {
-                        count: project?.counts.structures ?? 0,
-                      })}
-                    </Badge>
-                  </Group>
-                </Stack>
-              </Card>
-
-              {/* Site Seismic Card */}
-              <Card withBorder padding="md" radius="sm">
-                <Stack
-                  gap="xs"
-                  onFocus={() => { siteFocused.current = true; }}
-                  onBlur={(event) => {
-                    siteFocused.current = event.currentTarget.contains(event.relatedTarget as Node | null);
-                  }}
-                >
-                  <Group justify="space-between" align="center">
-                    <Title order={4}>{t("launcher.site_heading")}</Title>
-                    <Tooltip label={t("ui.apply")}>
-                      <ActionIcon
-                        variant="light"
-                        size="sm"
-                        loading={savingSite}
-                        aria-label={t("ui.apply")}
-                        onClick={() => void handleSaveSite()}
-                      >
-                        <IconCheck size={14} />
-                      </ActionIcon>
-                    </Tooltip>
-                  </Group>
-
-                  <SimpleGrid cols={2} spacing="xs">
-                    <NumberInput
-                      size="xs"
-                      label={t("launcher.pga_g")}
-                      value={siteDraft.pga_g}
-                      step={0.05}
-                      decimalScale={3}
-                      onChange={(val) => updateSiteField("pga_g", val)}
-                      onBlur={() => void handleSaveSite()}
-                    />
-                    <NumberInput
-                      size="xs"
-                      label={t("launcher.mw")}
-                      value={siteDraft.mw}
-                      step={0.1}
-                      decimalScale={2}
-                      onChange={(val) => updateSiteField("mw", val)}
-                      onBlur={() => void handleSaveSite()}
-                    />
-                    <NumberInput
-                      size="xs"
-                      label={t("launcher.sds")}
-                      value={siteDraft.sds}
-                      step={0.05}
-                      decimalScale={3}
-                      onChange={(val) => updateSiteField("sds", val)}
-                      onBlur={() => void handleSaveSite()}
-                    />
-                    <NumberInput
-                      size="xs"
-                      label={t("launcher.sd1")}
-                      value={siteDraft.sd1}
-                      step={0.05}
-                      decimalScale={3}
-                      onChange={(val) => updateSiteField("sd1", val)}
-                      onBlur={() => void handleSaveSite()}
-                    />
-                  </SimpleGrid>
-
-                  <Select
-                    size="xs"
-                    label={t("launcher.site_class")}
-                    description={t("launcher.site_class_hint")}
-                    data={siteClassOptions}
-                    value={siteDraft.site_class || null}
-                    clearable
-                    onChange={(value) => {
-                      updateSiteField("site_class", value ?? "");
-                      void handleSaveSite();
-                    }}
+            <Card>
+              <Stack
+                gap="xs"
+                onFocus={() => { siteFocused.current = true; }}
+                onBlur={(event) => {
+                  siteFocused.current = event.currentTarget.contains(event.relatedTarget as Node | null);
+                }}
+              >
+                <Title order={2} fz={15} fw={600}>{t("launcher.site_heading")}</Title>
+                <Text size="xs" c="dimmed" mb={4}>{t("launcher.site_note")}</Text>
+                <SimpleGrid cols={2} spacing="sm">
+                  <NumberInput
+                    label={t("launcher.pga_g")}
+                    placeholder={t("launcher.empty_value")}
+                    value={siteDraft.pga_g}
+                    step={0.05}
+                    decimalScale={3}
+                    hideControls
+                    rightSection={<Text size="xs" c="dimmed">{t("launcher.unit_g")}</Text>}
+                    rightSectionPointerEvents="none"
+                    onChange={(val) => updateSiteField("pga_g", val)}
+                    onBlur={() => void handleSaveSite()}
                   />
-                </Stack>
-              </Card>
-            </Stack>
-          </Grid.Col>
-
-          {/* Right column (≈ 2/3) */}
-          <Grid.Col span={{ base: 12, md: 8 }}>
-            <Stack gap="sm">
-              <Title order={4}>{t("launcher.modules_heading")}</Title>
-              {modules.length === 0 ? (
-                <EmptyState title={t("shell.module_not_found")} description="" />
-              ) : (
-                <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="md">
-                  {modules.map((mod) => {
-                    const Icon = mod.icon;
-                    const isHovered = hoveredModuleId === mod.id;
-                    return (
-                      <Card
-                        key={mod.id}
-                        withBorder
-                        padding="lg"
-                        radius="sm"
-                        shadow={isHovered ? "md" : "xs"}
-                        onClick={() => navigate(`/m/${mod.id}`)}
-                        onMouseEnter={() => setHoveredModuleId(mod.id)}
-                        onMouseLeave={() =>
-                          setHoveredModuleId((prev) => (prev === mod.id ? null : prev))
-                        }
-                        style={{
-                          cursor: "pointer",
-                          transition: "box-shadow 150ms ease",
-                        }}
-                      >
-                        <Stack gap="md" h="100%" justify="space-between">
-                          <Group align="flex-start" gap="md" wrap="nowrap">
-                            <ThemeIcon size={54} radius="md" variant="light">
-                              <Icon size={36} />
-                            </ThemeIcon>
-                            <Stack gap={4} style={{ flex: 1 }}>
-                              <Title order={4}>{t(mod.titleKey)}</Title>
-                              <Text size="sm" c="dimmed">
-                                {t(mod.descriptionKey)}
-                              </Text>
-                            </Stack>
-                          </Group>
-
-                          <Button
-                            variant="light"
-                            fullWidth
-                            rightSection={<IconArrowRight size={16} />}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              navigate(`/m/${mod.id}`);
-                            }}
-                          >
-                            {t("launcher.open_module")}
-                          </Button>
-                        </Stack>
-                      </Card>
-                    );
-                  })}
+                  <NumberInput
+                    label={t("launcher.mw")}
+                    placeholder={t("launcher.empty_value")}
+                    value={siteDraft.mw}
+                    step={0.1}
+                    decimalScale={2}
+                    hideControls
+                    rightSection={<Text size="xs" c="dimmed">{t("launcher.unit_mw")}</Text>}
+                    rightSectionPointerEvents="none"
+                    onChange={(val) => updateSiteField("mw", val)}
+                    onBlur={() => void handleSaveSite()}
+                  />
+                  <NumberInput
+                    label={t("launcher.sds")}
+                    placeholder={t("launcher.empty_value")}
+                    value={siteDraft.sds}
+                    step={0.05}
+                    decimalScale={3}
+                    hideControls
+                    onChange={(val) => updateSiteField("sds", val)}
+                    onBlur={() => void handleSaveSite()}
+                  />
+                  <NumberInput
+                    label={t("launcher.sd1")}
+                    placeholder={t("launcher.empty_value")}
+                    value={siteDraft.sd1}
+                    step={0.05}
+                    decimalScale={3}
+                    hideControls
+                    onChange={(val) => updateSiteField("sd1", val)}
+                    onBlur={() => void handleSaveSite()}
+                  />
                 </SimpleGrid>
-              )}
-            </Stack>
-          </Grid.Col>
-        </Grid>
-      </Stack>
+                <Select
+                  label={t("launcher.site_class")}
+                  placeholder={t("launcher.site_class_placeholder")}
+                  data={siteClassOptions}
+                  value={siteDraft.site_class || null}
+                  clearable
+                  onChange={(value) => {
+                    updateSiteField("site_class", value ?? "");
+                    void handleSaveSite();
+                  }}
+                />
+              </Stack>
+            </Card>
+          </Stack>
+
+          <Stack gap="lg" style={{ flex: "999 1 620px", minWidth: 0 }}>
+            {next && (
+              <Card
+                p="md"
+                style={{ background: "var(--gt-info-bg)", borderColor: "var(--mantine-color-primary-2)" }}
+                data-next-step={next.kind}
+              >
+                <Group gap="md" wrap="wrap">
+                  <ThemeIcon size={40} radius="md" variant="filled">
+                    <IconArrowRight size={20} aria-hidden="true" />
+                  </ThemeIcon>
+                  <Box style={{ flex: 1, minWidth: 240 }}>
+                    <Text fw={600}>{t(next.titleKey)}</Text>
+                    <Text size="sm" c="dimmed">{t(next.textKey, next.textValues)}</Text>
+                  </Box>
+                  <Button onClick={() => navigate(`/m/${next.moduleId}`)}>{t(next.actionKey)}</Button>
+                </Group>
+              </Card>
+            )}
+
+            {modules.length === 0 ? (
+              <EmptyState title={t("shell.module_not_found")} description="" />
+            ) : (
+              grouped.filter(({ items }) => items.length > 0).map(({ group, items }) => (
+                <Stack key={group} gap="sm" component="section" aria-label={t(`launcher.group.${group}`)}>
+                  <Group gap={8} align="center">
+                    <Badge size="sm" variant="light" radius="xl">{LAUNCHER_GROUPS.indexOf(group) + 1}</Badge>
+                    <Text fz={12} fw={600} tt="uppercase" c="dimmed" style={{ letterSpacing: "0.06em" }}>
+                      {t(`launcher.group.${group}`)}
+                    </Text>
+                  </Group>
+                  <SimpleGrid cols={{ base: 1, sm: group === "soil" ? 1 : 2 }} spacing="md">
+                    {items.map((mod) => (
+                      <ModuleCard key={mod.id} mod={mod} status={moduleStatus(mod.id, project)} renderParts={renderStatusParts} />
+                    ))}
+                  </SimpleGrid>
+                </Stack>
+              ))
+            )}
+          </Stack>
+        </Group>
+      </Box>
 
       {/* Edit Project Meta Modal */}
       <Modal
@@ -642,7 +587,7 @@ export function LauncherPage() {
           </Group>
         </Stack>
       </Modal>
-    </Container>
+    </Box>
   );
 }
 

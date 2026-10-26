@@ -1,6 +1,6 @@
 {
   "education.title": "Learn",
-  "education.description": "Learning section explaining the formulas, assumptions and sources behind the program's calculations.",
+  "education.description": "Formulas, assumptions and sources of the methods in the program.",
   "education.nav.home": "Topics",
   "education.home.heading": "Learn",
   "education.home.intro": "The methods the program actually uses: formulas, assumptions, sources and figures. This section never changes any calculation.",

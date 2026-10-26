@@ -1,0 +1,75 @@
+/* GeoTek design tokens: page ground, status colours and control heights (light and dark). */
+:root {
+  --gt-ground: #f3f5f7;
+  --gt-border: #dce2e8;
+  --gt-border-soft: #eef1f4;
+  --gt-input-border: #cbd3db;
+  --gt-muted: #56636f;
+  --gt-primary-soft: #e7f0fc;
+  --gt-primary-soft-text: #0f4a99;
+  --gt-neutral-bg: #eef1f4;
+  --gt-neutral-text: #3b4752;
+  --gt-neutral-dot: #8a96a1;
+  --gt-ok-bg: #e6f4ec;
+  --gt-ok-text: #16623c;
+  --gt-ok-dot: #1e8a52;
+  --gt-warn-bg: #fff1df;
+  --gt-warn-text: #8f4504;
+  --gt-warn-dot: #c2620c;
+  --gt-warn-field-bg: #fff8ef;
+  --gt-bad-bg: #fdecea;
+  --gt-bad-text: #a3241a;
+  --gt-bad-dot: #b42318;
+  --gt-info-bg: #e7f0fc;
+  --gt-info-text: #0f4a99;
+  --gt-info-dot: #1b62c4;
+}
+
+:root[data-mantine-color-scheme="dark"] {
+  --gt-ground: #1a1b1e;
+  --gt-border: #373a40;
+  --gt-border-soft: #2c2e33;
+  --gt-input-border: #4a4e57;
+  --gt-muted: #a6adb7;
+  --gt-primary-soft: #1b2a41;
+  --gt-primary-soft-text: #8db4ee;
+  --gt-neutral-bg: #2c2e33;
+  --gt-neutral-text: #c9ced6;
+  --gt-neutral-dot: #7b8490;
+  --gt-ok-bg: #16301f;
+  --gt-ok-text: #7fd0a1;
+  --gt-ok-dot: #3fae73;
+  --gt-warn-bg: #3a2a12;
+  --gt-warn-text: #f2c07c;
+  --gt-warn-dot: #e08a2e;
+  --gt-warn-field-bg: #2e2412;
+  --gt-bad-bg: #3a1a18;
+  --gt-bad-text: #f19a92;
+  --gt-bad-dot: #e5584c;
+  --gt-info-bg: #1b2a41;
+  --gt-info-text: #8db4ee;
+  --gt-info-dot: #5189d6;
+}
+
+:root[data-mantine-color-scheme="light"] body {
+  background-color: var(--gt-ground);
+}
+
+/* Controls are 38px high in every place that uses the default size. */
+.mantine-Input-wrapper {
+  --input-height-sm: 2.375rem;
+}
+.mantine-Button-root {
+  --button-height-sm: 2.375rem;
+}
+
+.gt-mono {
+  font-family: var(--mantine-font-family-monospace);
+}
+
+.gt-module-card {
+  transition: border-color 120ms ease;
+}
+.gt-module-card:hover {
+  border-color: var(--mantine-color-primary-6);
+}

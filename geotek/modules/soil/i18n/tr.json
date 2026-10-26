@@ -1,6 +1,6 @@
 {
   "soil.title": "Zemin etüdü ve parametreler",
-  "soil.description": "SPT, CPT ve laboratuvar verileri, zemin sınıflandırması, tabakalama, mühendislik parametreleri ve zemin profilleri.",
+  "soil.description": "Sondaj, CPT ve laboratuvar verisini girin. Tabakaları ve tasarım parametrelerini belirleyin.",
   "soil.nav.site": "Arazi verileri",
   "soil.nav.profiles": "Zemin profilleri",
   "soil.nav.parameters": "Mühendislik parametreleri",

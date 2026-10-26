@@ -1,6 +1,6 @@
 {
   "report.title": "Report",
-  "report.description": "Builds a Word (docx) report from module results; stale results are not included.",
+  "report.description": "Prepare a Word report from the current results.",
   "report.pass": "Pass",
   "report.fail": "Fail",
   "report.col.item": "Item",

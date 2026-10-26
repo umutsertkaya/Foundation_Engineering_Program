@@ -1,6 +1,6 @@
 {
   "liquefaction.title": "Sıvılaşma",
-  "liquefaction.description": "SPT ve CPT verilerinden sıvılaşma tetiklenme analizi (Boulanger ve Idriss 2014, Youd vd. 2001), güvenlik sayısı ve LPI.",
+  "liquefaction.description": "SPT ve CPT ile güvenlik sayısı ve LPI.",
   "liquefaction.nav.analysis": "Analiz",
   "liquefaction.nav.results": "Sonuçlar",
   "liquefaction.analysis.title": "Sıvılaşma analizi",

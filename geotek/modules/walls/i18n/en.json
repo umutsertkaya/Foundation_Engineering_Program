@@ -1,6 +1,6 @@
 {
   "walls.title": "Retaining wall",
-  "walls.description": "Static and seismic sliding, overturning, bearing and global stability checks for cantilever and gravity walls.",
+  "walls.description": "Sliding, overturning and bearing checks for cantilever and gravity walls.",
   "walls.type_picker.title": "Retaining wall type",
   "walls.type.cantilever": "Cantilever wall",
   "walls.type.cantilever.description": "Reinforced concrete cantilever wall with a stem and base slab.",

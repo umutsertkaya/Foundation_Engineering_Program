@@ -1,6 +1,6 @@
 {
   "report.title": "Rapor",
-  "report.description": "Modül sonuçlarından Word (docx) raporu üretir; eski (stale) sonuçlar rapora alınmaz.",
+  "report.description": "Güncel sonuçlardan Word raporu hazırlayın.",
   "report.pass": "Sağlıyor",
   "report.fail": "Sağlamıyor",
   "report.col.item": "Kalem",

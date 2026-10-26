@@ -1,6 +1,6 @@
 {
   "anchored_wall.title": "Ankrajlı iksa",
-  "anchored_wall.description": "Zemin ankrajı tasarımı: serbest boy, kök boyu, tendon seçimi ve tasarım, deneme ve kilitleme yükleri.",
+  "anchored_wall.description": "Çok seviyeli ankrajlı kazıda ankraj yükü, gömme ve ankraj boyları.",
   "anchored_wall.design.heading": "Ankraj tasarımı",
   "anchored_wall.error.missing_inputs": "Gerekli girdiler eksik: {missing}",
   "anchored_wall.input.safety_factor": "Güvenlik sayısı FS (kök)",
