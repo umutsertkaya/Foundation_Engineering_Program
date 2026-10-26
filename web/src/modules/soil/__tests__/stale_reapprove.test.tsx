@@ -110,7 +110,7 @@ describe("withdrawn approval on the parameters page", () => {
     fireEvent.click(screen.getByTestId("param-reapprove-phi_eff"));
     await waitFor(() => expect(screen.getByTestId("param-state-phi_eff")).toHaveTextContent("Approved"));
     expect(control.reapprovePayloads).toEqual([[{ layer_id: LAYER, key: "phi_eff", expected_value: 30.8 }]]);
-    expect(screen.getByTestId("param-state-E")).toHaveTextContent("Stale");
+    expect(screen.getByTestId("param-state-E")).toHaveTextContent("Needs refresh");
   });
 
   it("lists gamma and gamma_sat cards first", async () => {
@@ -139,7 +139,7 @@ describe("withdrawn approval on the parameters page", () => {
 
     await waitFor(() => expect(screen.getByTestId("param-state-phi_eff")).toHaveTextContent("Approved"));
     expect(control.reapprovePayloads).toEqual([[{ layer_id: LAYER, key: "phi_eff", expected_value: 30.8 }]]);
-    expect(screen.getByTestId("param-state-E")).toHaveTextContent("Stale");
+    expect(screen.getByTestId("param-state-E")).toHaveTextContent("Needs refresh");
   });
 
   it("the review button is disabled while no withdrawn approval has a current value", async () => {
