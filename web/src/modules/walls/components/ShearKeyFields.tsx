@@ -1,5 +1,6 @@
-import { NumberInput, Select, SimpleGrid, Stack, Switch, Text } from "@mantine/core";
+import { Box, NumberInput, Select, SimpleGrid, Stack, Switch, Text } from "@mantine/core";
 import { useTranslation } from "react-i18next";
+import { FieldNote } from "../../../shared/components/FieldNote";
 import type { ShearKey } from "../../../shared/api/types";
 
 const DEFAULT_KEY: ShearKey = { position: "heel", width: 0.5, depth: 0.5 };
@@ -18,18 +19,19 @@ export function ShearKeyFields({ value, baseWidth, onChange }: Props) {
   const widthTooLarge = key !== null && key.width > baseWidth + 1e-9;
   return (
     <Stack gap="xs" data-testid="shear-key-fields">
+      <Box p="sm" style={{ borderRadius: 10, background: "var(--gt-ground)" }}>
       <Switch
-        size="sm"
+        size="md"
         label={t("walls.key.enable")}
         description={t("walls.key.enable_hint")}
         checked={key !== null}
         onChange={(e) => onChange(e.currentTarget.checked ? { ...DEFAULT_KEY, width: Math.min(DEFAULT_KEY.width, baseWidth) } : null)}
       />
+      </Box>
       {key !== null && (
         <>
           <SimpleGrid cols={3} spacing="xs">
             <Select
-              size="xs"
               label={t("walls.key.position")}
               allowDeselect={false}
               data={(["toe", "middle", "heel"] as const).map((p) => ({ value: p, label: t(`walls.key.position.${p}`) }))}
@@ -37,7 +39,6 @@ export function ShearKeyFields({ value, baseWidth, onChange }: Props) {
               onChange={(v) => v && onChange({ ...key, position: v as ShearKey["position"] })}
             />
             <NumberInput
-              size="xs"
               label={t("walls.key.width")}
               value={key.width}
               min={0.05}
@@ -47,7 +48,6 @@ export function ShearKeyFields({ value, baseWidth, onChange }: Props) {
               onChange={(v) => typeof v === "number" && Number.isFinite(v) && onChange({ ...key, width: v })}
             />
             <NumberInput
-              size="xs"
               label={t("walls.key.depth")}
               value={key.depth}
               min={0.05}
@@ -57,7 +57,7 @@ export function ShearKeyFields({ value, baseWidth, onChange }: Props) {
               onChange={(v) => typeof v === "number" && Number.isFinite(v) && onChange({ ...key, depth: v })}
             />
           </SimpleGrid>
-          <Text size="xs" c="dimmed">{t("walls.key.note")}</Text>
+          <FieldNote kind="help">{t("walls.key.note")}</FieldNote>
         </>
       )}
     </Stack>

@@ -1,11 +1,8 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import {
   Alert,
-  Badge,
+  Box,
   Button,
-  Card,
-  Checkbox,
-  Grid,
   Group,
   NumberInput,
   Progress,
@@ -13,8 +10,8 @@ import {
   Select,
   SimpleGrid,
   Stack,
+  Switch,
   Text,
-  Title,
 } from "@mantine/core";
 import { IconArrowLeft, IconPlayerPlay, IconSparkles } from "@tabler/icons-react";
 import { useTranslation } from "react-i18next";
@@ -38,10 +35,16 @@ import type {
   WallSettings,
   WallType,
 } from "../../../shared/api/types";
+import { ActionBar } from "../../../shared/components/ActionBar";
+import { CollapsibleSection } from "../../../shared/components/CollapsibleSection";
 import { EmptyState } from "../../../shared/components/EmptyState";
 import { ErrorAlert } from "../../../shared/components/ErrorAlert";
+import { FieldNote } from "../../../shared/components/FieldNote";
 import { MissingFactorsForm } from "../../../shared/components/MissingFactorsForm";
-import { StructureSoilSection } from "../../../shared/structureSoil/StructureSoilSection";
+import { PageHeader } from "../../../shared/components/PageHeader";
+import { SectionCard } from "../../../shared/components/SectionCard";
+import { StatusChip } from "../../../shared/components/StatusChip";
+import { VerdictBanner } from "../../../shared/components/VerdictBanner";
 import { useJob } from "../../../shared/hooks/useJob";
 import { usePreSaveHook } from "../../../shared/hooks/usePreSaveHook";
 import { useUndoable } from "../../../shared/hooks/useUndoable";
@@ -49,8 +52,10 @@ import { validateGwt, validateStructureSoil } from "../../../shared/soil/layerOp
 import type { GwtCase } from "../../../shared/soil/zones";
 import { StructureSoilStep, type SoilStepValidation } from "../../../shared/structureSoil/StructureSoilStep";
 import { AnalysisOptionsForm } from "../components/AnalysisOptionsForm";
-import { ShearKeyFields } from "../components/ShearKeyFields";
+import { DimensionField } from "../components/DimensionField";
 import { PermeabilityEditor } from "../components/PermeabilityEditor";
+import { ShearKeyFields } from "../components/ShearKeyFields";
+import { WALL_MARKER_FIELDS } from "../components/sectionLayout";
 import { WallCheckCards } from "../components/WallCheckCards";
 import { WallCrossSection } from "../components/WallCrossSection";
 import { StaleNotice, WallResultView } from "../components/WallResultView";
@@ -98,6 +103,8 @@ export function WallWizardPage() {
   const [loading, setLoading] = useState<boolean>(true);
   const [loadError, setLoadError] = useState<ApiError | null>(null);
   const [activeStep, setActiveStep] = useState<number>(0);
+  /** Dimension input that has focus; its callout is highlighted on the drawing. */
+  const [focusField, setFocusField] = useState<string | null>(null);
 
   const [wallType, setWallType] = useState<WallType>("cantilever");
   const [height, setHeight] = useState<number>(5.0);
@@ -459,290 +466,213 @@ export function WallWizardPage() {
       ? job.error?.missing_factors ?? []
       : [];
 
+  const markerFields = WALL_MARKER_FIELDS[wallType];
+  const markerN = (field: string) => {
+    const i = markerFields.indexOf(field);
+    return i < 0 ? undefined : i + 1;
+  };
+  const finite = (set: (v: number) => void) => (v: string | number) => {
+    if (typeof v === "number" && Number.isFinite(v)) set(v);
+  };
+
+  const baseWidth = wallType === "cantilever" ? cantileverGeo.toe + cantileverGeo.stem_bottom + cantileverGeo.heel : gravityGeo.base_width;
+  const resultChip = lastResult === null ? (
+    <StatusChip tone="neutral">{t("walls.status.draft")}</StatusChip>
+  ) : staleResult ? (
+    <StatusChip tone="stale">{t("walls.status.stale")}</StatusChip>
+  ) : (
+    <StatusChip tone="current">{t("walls.status.current")}</StatusChip>
+  );
+
+  const stepLabels = [
+    t("walls.wizard.step.geometry"),
+    t("walls.wizard.step.soil"),
+    t("walls.wizard.step.loads"),
+    t("walls.wizard.step.run"),
+    t("walls.wizard.step.result"),
+  ];
+
+  /** Dimension inputs of the wall; `grouped` adds the Height / Base / Stem headings of the first step. */
+  const dimensionFields = (grouped: boolean) => {
+  const dim = (
+    field: string,
+    label: string,
+    value: number,
+    onChange: (v: string | number) => void,
+    opts: { min?: number; max?: number; step?: number; decimalScale?: number; unit?: string } = {},
+  ) => (
+    <DimensionField
+      key={field}
+      field={field}
+      label={label}
+      value={value}
+      n={grouped ? markerN(field) : undefined}
+      focused={focusField === field}
+      onFocusField={setFocusField}
+      onChange={onChange}
+      {...opts}
+    />
+  );
+    const heading = (key: string) => (grouped ? <SubHeading>{t(key)}</SubHeading> : null);
+    const cols = (nodes: ReactNode[]) => <SimpleGrid cols={3} spacing="sm">{nodes}</SimpleGrid>;
+    return (
+      <>
+        {heading("walls.geo.group.height")}
+        {cols([
+          dim("height", t("ui.wall.height"), height, finite(setHeight), { min: 1, max: 15, step: 0.25 }),
+          dim("embedment", t("walls.geo.embedment"), embedment, finite(setEmbedment), { min: 0, max: 5, step: 0.1 }),
+          dim("slope", t("ui.wall.slope"), backfillSlope, finite(setBackfillSlope), { min: 0, max: 30, step: 1, decimalScale: 1, unit: "°" }),
+        ])}
+        {heading("walls.geo.group.base")}
+        {wallType === "cantilever"
+          ? cols([
+              dim("toe", t("ui.geo.toe"), cantileverGeo.toe, (v) => handleCantileverEdit("toe", v), { min: 0, max: 10, step: 0.05 }),
+              dim("heel", t("ui.geo.heel"), cantileverGeo.heel, (v) => handleCantileverEdit("heel", v), { min: 0.1, max: 15, step: 0.05 }),
+              dim("base_thickness", t("walls.geo.base_thickness"), cantileverGeo.base_thickness, (v) => handleCantileverEdit("base_thickness", v), { min: 0.1, max: 3, step: 0.05 }),
+            ])
+          : cols([dim("base_width", t("ui.geo.base_width"), gravityGeo.base_width, (v) => handleGravityEdit("base_width", v), { min: 0.2, max: 15, step: 0.05 })])}
+        {heading("walls.geo.group.stem")}
+        {wallType === "cantilever"
+          ? cols([
+              dim("stem_top", t("walls.geo.stem_top"), cantileverGeo.stem_top, (v) => handleCantileverEdit("stem_top", v), { min: 0.1, max: 3, step: 0.05 }),
+              dim("stem_bottom", t("walls.geo.stem_bottom"), cantileverGeo.stem_bottom, (v) => handleCantileverEdit("stem_bottom", v), { min: 0.1, max: 4, step: 0.05 }),
+            ])
+          : cols([
+              dim("top_width", t("ui.geo.top_width"), gravityGeo.top_width, (v) => handleGravityEdit("top_width", v), { min: 0.1, max: 10, step: 0.05 }),
+              dim("back_offset", t("ui.geo.back_offset"), gravityGeo.back_offset ?? 0, (v) => handleGravityEdit("back_offset", v), { min: 0, max: 5, step: 0.05 }),
+            ])}
+      </>
+    );
+  };
+
+  const nextStepLabel = activeStep < 4 ? stepLabels[activeStep + 1] : null;
+
   return (
     <Stack gap="md">
-      <Group justify="space-between" align="center">
-        <Group gap="xs">
-          <Button
-            size="compact-xs"
-            variant="subtle"
-            leftSection={<IconArrowLeft size={14} />}
-            onClick={() => navigate("/m/walls")}
-          >
-            {t("web.common.back_to_list")}
-          </Button>
-          <Title order={4}>{structure.name ?? structure.id}</Title>
-          <Badge size="xs" color="blue" variant="light">
-            {t("web.structures.kind.retaining_wall")}
-          </Badge>
-          <Badge
-            size="xs"
-            color={
-              geometrySource === "suggested"
-                ? "blue"
-                : geometrySource === "user"
-                  ? "teal"
-                  : "gray"
-            }
-            variant="outline"
-          >
-            {t(`ui.wall.source.${geometrySource}`)}
-          </Badge>
-        </Group>
-
-        <Group gap="xs">
-          <Badge size="xs" variant="light">
-            {analysisLevel === "advanced" ? t("ui.level.advanced") : t("ui.level.basic")}
-          </Badge>
-          <Badge size="xs" variant="outline" ff="monospace">
-            {designCode.toUpperCase()}
-          </Badge>
-        </Group>
-      </Group>
-
-      <WizardStepBar
-        ariaLabel={t("walls.wizard.steps")}
-        labels={[
-          t("web.wizard.step.geometry"),
-          t("web.wizard.step.soil"),
-          t("web.wizard.step.loads"),
-          t("web.wizard.step.run"),
-          t("web.wizard.step.result"),
-        ]}
-        active={activeStep}
-        onSelect={setActiveStep}
+      <PageHeader
+        back={{ to: "/m/walls", label: t("walls.wizard.back") }}
+        title={structure.name ?? structure.id}
+        status={resultChip}
+        actions={
+          <StatusChip tone="neutral" dot={false}>
+            {(analysisLevel === "advanced" ? t("ui.level.advanced") : t("ui.level.basic")) + " · " + designCode.toUpperCase()}
+          </StatusChip>
+        }
       />
+
+      <WizardStepBar ariaLabel={t("walls.wizard.steps")} labels={stepLabels} active={activeStep} onSelect={setActiveStep} />
+
       <div>
-        {/* Step 0: Tip/geometri */}
+        {/* Step 0: type and dimensions */}
         {activeStep === 0 && (
-<>
-          <Grid gutter="sm" mt="sm">
-            <Grid.Col span={{ base: 12, md: 5 }}>
-            <Card withBorder padding="sm" radius="sm">
-              <Stack gap="xs">
-                <Text fw={600} size="sm">
-                  {t("ui.wall.card.wall")} &amp; {t("ui.wall.card.geometry")}
-                </Text>
+          <Group align="flex-start" gap="md" wrap="wrap">
+            <Box style={{ flex: "1 1 380px", maxWidth: 480, minWidth: 0 }}>
+              <SectionCard title={t("walls.geo.title")} aside={<StatusChip tone="neutral" dot={false}>{t(`ui.wall.source.${geometrySource}`)}</StatusChip>}>
+                <Text fz={13} fw={500} mb={4}>{t("walls.geo.type")}</Text>
                 <SegmentedControl
-                  size="xs"
+                  fullWidth
                   value={wallType}
                   onChange={(v) => setWallType(v as WallType)}
+                  aria-label={t("walls.geo.type")}
                   data={[
                     { value: "cantilever", label: t("ui.wall.cantilever") },
                     { value: "gravity", label: t("ui.wall.gravity") },
                   ]}
                 />
-                <SimpleGrid cols={3} spacing="xs">
-                  <NumberInput
-                    size="xs"
-                    label={t("ui.wall.height")}
-                    value={height}
-                    min={1.0}
-                    max={15.0}
-                    step={0.25}
-                    decimalScale={2}
-                    onChange={(v) => {
-                      if (typeof v === "number" && Number.isFinite(v)) setHeight(v);
+                {dimensionFields(true)}
+                <Box mt="md">
+                  <ShearKeyFields
+                    value={wallType === "cantilever" ? cantileverGeo.key : gravityGeo.key}
+                    baseWidth={baseWidth}
+                    onChange={(key) => {
+                      if (wallType === "cantilever") setCantileverGeo((prev) => ({ ...prev, key }));
+                      else setGravityGeo((prev) => ({ ...prev, key }));
+                      setGeometrySource("user");
                     }}
                   />
-                  <NumberInput
-                    size="xs"
-                    label={t("ui.wall.embedment")}
-                    value={embedment}
-                    min={0.0}
-                    max={5.0}
-                    step={0.1}
-                    decimalScale={2}
-                    onChange={(v) => {
-                      if (typeof v === "number" && Number.isFinite(v)) setEmbedment(v);
-                    }}
-                  />
-                  <NumberInput
-                    size="xs"
-                    label={t("ui.wall.slope")}
-                    value={backfillSlope}
-                    min={0.0}
-                    max={30.0}
-                    step={1.0}
-                    decimalScale={1}
-                    onChange={(v) => {
-                      if (typeof v === "number" && Number.isFinite(v)) setBackfillSlope(v);
-                    }}
-                  />
-                </SimpleGrid>
+                </Box>
+              </SectionCard>
+            </Box>
 
-                {wallType === "cantilever" ? (
-                  <SimpleGrid cols={3} spacing="xs">
-                    <NumberInput
-                      size="xs"
-                      label={t("ui.geo.toe")}
-                      value={cantileverGeo.toe}
-                      min={0.0}
-                      max={10.0}
-                      step={0.05}
-                      decimalScale={2}
-                      onChange={(v) => handleCantileverEdit("toe", v)}
-                    />
-                    <NumberInput
-                      size="xs"
-                      label={t("ui.geo.heel")}
-                      value={cantileverGeo.heel}
-                      min={0.1}
-                      max={15.0}
-                      step={0.05}
-                      decimalScale={2}
-                      onChange={(v) => handleCantileverEdit("heel", v)}
-                    />
-                    <NumberInput
-                      size="xs"
-                      label={t("ui.geo.base_thickness")}
-                      value={cantileverGeo.base_thickness}
-                      min={0.1}
-                      max={3.0}
-                      step={0.05}
-                      decimalScale={2}
-                      onChange={(v) => handleCantileverEdit("base_thickness", v)}
-                    />
-                    <NumberInput
-                      size="xs"
-                      label={t("ui.geo.stem_top")}
-                      value={cantileverGeo.stem_top}
-                      min={0.1}
-                      max={3.0}
-                      step={0.05}
-                      decimalScale={2}
-                      onChange={(v) => handleCantileverEdit("stem_top", v)}
-                    />
-                    <NumberInput
-                      size="xs"
-                      label={t("ui.geo.stem_bottom")}
-                      value={cantileverGeo.stem_bottom}
-                      min={0.1}
-                      max={4.0}
-                      step={0.05}
-                      decimalScale={2}
-                      onChange={(v) => handleCantileverEdit("stem_bottom", v)}
-                    />
-                  </SimpleGrid>
-                ) : (
-                  <SimpleGrid cols={3} spacing="xs">
-                    <NumberInput
-                      size="xs"
-                      label={t("ui.geo.base_width")}
-                      value={gravityGeo.base_width}
-                      min={0.2}
-                      max={15.0}
-                      step={0.05}
-                      decimalScale={2}
-                      onChange={(v) => handleGravityEdit("base_width", v)}
-                    />
-                    <NumberInput
-                      size="xs"
-                      label={t("ui.geo.top_width")}
-                      value={gravityGeo.top_width}
-                      min={0.1}
-                      max={10.0}
-                      step={0.05}
-                      decimalScale={2}
-                      onChange={(v) => handleGravityEdit("top_width", v)}
-                    />
-                    <NumberInput
-                      size="xs"
-                      label={t("ui.geo.back_offset")}
-                      value={gravityGeo.back_offset ?? 0}
-                      min={0.0}
-                      max={5.0}
-                      step={0.05}
-                      decimalScale={2}
-                      onChange={(v) => handleGravityEdit("back_offset", v)}
-                    />
-                  </SimpleGrid>
-                )}
-                <ShearKeyFields
-                  value={wallType === "cantilever" ? cantileverGeo.key : gravityGeo.key}
-                  baseWidth={
-                    wallType === "cantilever"
-                      ? cantileverGeo.toe + cantileverGeo.stem_bottom + cantileverGeo.heel
-                      : gravityGeo.base_width
-                  }
-                  onChange={(key) => {
-                    if (wallType === "cantilever") setCantileverGeo((prev) => ({ ...prev, key }));
-                    else setGravityGeo((prev) => ({ ...prev, key }));
-                    setGeometrySource("user");
-                  }}
+            <Box style={{ flex: "999 1 480px", minWidth: 0 }}>
+              <SectionCard
+                title={t("walls.geo.section")}
+                aside={
+                  <Group gap={6}>
+                    <StatusChip tone="info" dot={false}>B = {baseWidth.toFixed(2)} m</StatusChip>
+                    {wallType === "cantilever" && (
+                      <StatusChip tone="neutral" dot={false}>
+                        {t("walls.geo.stem_height_chip", { value: currentGeometry && "stem_height" in currentGeometry ? currentGeometry.stem_height.toFixed(2) : "" })}
+                      </StatusChip>
+                    )}
+                  </Group>
+                }
+              >
+                <WallCrossSection
+                  bare
+                  hideTitle
+                  markers
+                  focusField={focusField}
+                  wallType={wallType}
+                  geometry={currentGeometry}
+                  height={height}
+                  backfillSlope={backfillSlope}
+                  soil={soilDraft.value}
+                  gwtCase={gwtView}
                 />
-              </Stack>
-            </Card>
-            </Grid.Col>
+                <FieldNote kind="help">{t("walls.geo.focus_hint")}</FieldNote>
+              </SectionCard>
+            </Box>
+          </Group>
+        )}
 
-            <Grid.Col span={{ base: 12, md: 7 }}>
-            <StructureSoilSection
+        {/* Step 1: soil */}
+        {activeStep === 1 && (
+          <>
+            <StructureSoilStep
+              structure={structure}
+              draft={soilDraft}
+              validation={soilValidation}
+              stale={stale}
               wallType={wallType}
               geometry={currentGeometry}
               height={height}
               backfillSlope={backfillSlope}
-              soil={soilDraft.value}
-              gwtCase={gwtView}
+              gwtView={gwtView}
+              onGwtViewChange={setGwtView}
+              onSaved={(saved) => {
+                setStructure(saved);
+                soilDraft.reset(saved.soil);
+                void refreshStale();
+              }}
             />
-            </Grid.Col>
-          </Grid>
-        </>
-)}
+            {soilDraft.value && (
+              <Stack gap="sm" mt="sm">
+                <PermeabilityEditor soil={soilDraft.value} onChange={(next) => soilDraft.set(next)} />
+              </Stack>
+            )}
+          </>
+        )}
 
-        {/* Step 1: Zemin */}
-        {activeStep === 1 && (
-<>
-          <StructureSoilStep
-            structure={structure}
-            draft={soilDraft}
-            validation={soilValidation}
-            stale={stale}
-            wallType={wallType}
-            geometry={currentGeometry}
-            height={height}
-            backfillSlope={backfillSlope}
-            gwtView={gwtView}
-            onGwtViewChange={setGwtView}
-            onSaved={(saved) => {
-              setStructure(saved);
-              soilDraft.reset(saved.soil);
-              void refreshStale();
-            }}
-          />
-          {soilDraft.value && (
-            <Stack gap="sm" mt="sm">
-              <PermeabilityEditor soil={soilDraft.value} onChange={(next) => soilDraft.set(next)} />
-            </Stack>
-          )}
-        </>
-)}
-        {/* Step 2: Yükler/deprem */}
+        {/* Step 2: loads and earthquake */}
         {activeStep === 2 && (
-<>
-          <SimpleGrid cols={{ base: 1, md: 2 }} spacing="sm" mt="sm">
-            <Stack gap="sm">
-            <Card withBorder padding="sm" radius="sm">
-              <Stack gap="xs">
-                <Text fw={600} size="sm">
-                  {t("ui.wall.card.loads")}
-                </Text>
-                <SimpleGrid cols={3} spacing="xs">
-                  <NumberInput
-                    size="xs"
+          <SimpleGrid cols={{ base: 1, md: 2 }} spacing="md">
+            <SectionCard title={t("walls.loads.title")}>
+              <Stack gap="md">
+                <SimpleGrid cols={2} spacing="sm">
+                  <DimensionField
+                    field="surcharge"
                     label={t("ui.wall.surcharge")}
+                    unit="kPa"
                     value={surcharge}
                     min={0}
                     max={200}
                     step={5}
                     decimalScale={1}
-                    onChange={(v) => {
-                      if (typeof v === "number" && Number.isFinite(v)) setSurcharge(v);
-                    }}
+                    onChange={finite(setSurcharge)}
                   />
                   <Select
-                    size="xs"
                     label={t("walls.loads.surcharge_basis")}
-                    description={t("walls.loads.surcharge_basis_hint")}
                     allowDeselect={false}
                     data={[
                       { value: "horizontal", label: t("walls.loads.surcharge_basis_horizontal") },
@@ -751,52 +681,57 @@ export function WallWizardPage() {
                     value={surchargeBasis}
                     onChange={(v) => setSurchargeBasis((v as "horizontal" | "inclined") ?? "horizontal")}
                   />
-                  <NumberInput
-                    size="xs"
-                    label={t("web.project.sds")}
-                    description={t("walls.loads.sds_hint")}
-                    error={sdsInRange(sds) ? undefined : t("walls.loads.sds_range")}
-                    value={sds ?? ""}
-                    step={0.05}
-                    decimalScale={3}
-                    onChange={(v) => setNullable(v, setSds)}
-                  />
-                  <NumberInput
-                    size="xs"
-                    label="r"
-                    description={t("walls.loads.r_hint")}
-                    error={rInRange(rFactor) ? undefined : t("walls.loads.r_range")}
-                    value={rFactor ?? ""}
-                    step={0.1}
-                    decimalScale={2}
-                    onChange={(v) => setNullable(v, setRFactor)}
-                  />
                 </SimpleGrid>
-                <Checkbox
-                  size="xs"
-                  label={t("ui.wall.global")}
+                <Text fz={12} c="dimmed" mt={-8}>{t("walls.loads.surcharge_basis_hint")}</Text>
+                <SimpleGrid cols={2} spacing="sm">
+                  <Box>
+                    <NumberInput
+                      label={t("web.project.sds")}
+                      error={sdsInRange(sds) ? undefined : t("walls.loads.sds_range")}
+                      value={sds ?? ""}
+                      step={0.05}
+                      decimalScale={3}
+                      onChange={(v) => setNullable(v, setSds)}
+                    />
+                    {sdsInRange(sds) && <FieldNote kind="help">{t("walls.loads.sds_hint")}</FieldNote>}
+                  </Box>
+                  <Box>
+                    <NumberInput
+                      label="r"
+                      error={rInRange(rFactor) ? undefined : t("walls.loads.r_range")}
+                      value={rFactor ?? ""}
+                      step={0.1}
+                      decimalScale={2}
+                      onChange={(v) => setNullable(v, setRFactor)}
+                    />
+                    {rInRange(rFactor) && <FieldNote kind="help">{t("walls.loads.r_hint")}</FieldNote>}
+                  </Box>
+                </SimpleGrid>
+                <ToggleRow
                   checked={includeGlobal}
-                  onChange={(e) => setIncludeGlobal(e.currentTarget.checked)}
+                  onChange={setIncludeGlobal}
+                  label={t("walls.loads.global")}
+                  hint={t("walls.loads.global_hint")}
                 />
               </Stack>
-            </Card>
+            </SectionCard>
 
-            <Card withBorder padding="sm" radius="sm">
-              <Stack gap="xs">
-                <Text fw={600} size="sm">
-                  {t("ui.code.title")} &amp; {t("ui.level")}
-                </Text>
-                <SegmentedControl
-                  size="xs"
-                  value={analysisLevel}
-                  onChange={(v) => setAnalysisLevel(v as "basic" | "advanced")}
-                  data={[
-                    { value: "basic", label: t("ui.level.basic") },
-                    { value: "advanced", label: t("ui.level.advanced") },
-                  ]}
-                />
+            <SectionCard title={t("walls.code.title")}>
+              <Stack gap="md">
+                <Box>
+                  <Text fz={13} fw={500} mb={4}>{t("ui.level")}</Text>
+                  <SegmentedControl
+                    fullWidth
+                    value={analysisLevel}
+                    onChange={(v) => setAnalysisLevel(v as "basic" | "advanced")}
+                    aria-label={t("ui.level")}
+                    data={[
+                      { value: "basic", label: t("ui.level.basic") },
+                      { value: "advanced", label: t("ui.level.advanced") },
+                    ]}
+                  />
+                </Box>
                 <Select
-                  size="xs"
                   label={t("ui.code.code")}
                   value={designCode}
                   onChange={(v) => {
@@ -805,191 +740,85 @@ export function WallWizardPage() {
                   data={codeOptions}
                 />
               </Stack>
-            </Card>
-            </Stack>
-
-            <AnalysisOptionsForm
-              value={analysisOptions}
-              onChange={setAnalysisOptions}
-              level={analysisLevel}
-              missingPermeability={layersWithoutPermeability(soilDraft.value)}
-              passiveConfirmed={passiveConfirmed}
-              onConfirmPassive={setPassiveConfirmed}
-              onGoToSoil={() => setActiveStep(1)}
-            />
+              <CollapsibleSection label={t("walls.options.advanced")} defaultOpened={analysisLevel === "advanced" && analysisOptions.use_passive}>
+                <AnalysisOptionsForm
+                  value={analysisOptions}
+                  onChange={setAnalysisOptions}
+                  level={analysisLevel}
+                  missingPermeability={layersWithoutPermeability(soilDraft.value)}
+                  passiveConfirmed={passiveConfirmed}
+                  onConfirmPassive={setPassiveConfirmed}
+                  onGoToSoil={() => setActiveStep(1)}
+                />
+              </CollapsibleSection>
+            </SectionCard>
           </SimpleGrid>
-        </>
-)}
+        )}
 
-        {/* Step 3: Öner/Kontrol */}
+        {/* Step 3: size / check */}
         {activeStep === 3 && (
-<>
-          <Stack gap="sm" mt="sm">
-            <Card withBorder padding="sm" radius="sm">
-              <Stack gap="sm">
-                <Group justify="space-between">
-                  <div>
-                    <Text fw={600} size="sm">
-                      {t("ui.wall.card.geometry")} ({t(`ui.wall.source.${geometrySource}`)})
-                    </Text>
-                    <Text size="xs" c="dimmed">
-                      {t("ui.wall.geometry_hint")}
-                    </Text>
-                  </div>
-
-                  <Group gap="xs">
-                    <Button
-                      size="xs"
-                      color="blue"
-                      loading={busy && lastRunMode === "suggest"}
-                      disabled={busy || passiveBlocked || seismicInvalid}
-                      leftSection={<IconSparkles size={14} />}
-                      onClick={() => void handleSuggest()}
-                    >
-                      {t("ui.wall.suggest")}
+          <Stack gap="md">
+            <SectionCard
+              title={t("walls.run.title")}
+              aside={
+                <Group gap="xs">
+                  <Button
+                    loading={busy && lastRunMode === "suggest"}
+                    disabled={busy || passiveBlocked || seismicInvalid}
+                    leftSection={<IconSparkles size={16} />}
+                    onClick={() => void handleSuggest()}
+                  >
+                    {t("ui.wall.suggest")}
+                  </Button>
+                  <Button
+                    variant="default"
+                    loading={busy && lastRunMode === "check"}
+                    disabled={busy || passiveBlocked || seismicInvalid}
+                    leftSection={<IconPlayerPlay size={16} />}
+                    onClick={() => void handleCheck()}
+                  >
+                    {t("ui.wall.check")}
+                  </Button>
+                  {isRunning && (
+                    <Button color="red" variant="subtle" onClick={() => void job.cancel()}>
+                      {t("web.wizard.cancel_job")}
                     </Button>
-                    <Button
-                      size="xs"
-                      variant="default"
-                      loading={busy && lastRunMode === "check"}
-                      disabled={busy || passiveBlocked || seismicInvalid}
-                      leftSection={<IconPlayerPlay size={14} />}
-                      onClick={() => void handleCheck()}
-                    >
-                      {t("ui.wall.check")}
-                    </Button>
-                    {isRunning && (
-                      <Button
-                        size="xs"
-                        color="red"
-                        variant="subtle"
-                        onClick={() => void job.cancel()}
-                      >
-                        {t("web.wizard.cancel_job")}
-                      </Button>
-                    )}
-                  </Group>
+                  )}
                 </Group>
-
-                {wallType === "cantilever" ? (
-                  <SimpleGrid cols={{ base: 2, sm: 5 }} spacing="xs">
-                    <NumberInput
-                      size="xs"
-                      label={t("ui.geo.toe")}
-                      value={cantileverGeo.toe}
-                      min={0}
-                      max={10}
-                      step={0.05}
-                      decimalScale={2}
-                      onChange={(v) => handleCantileverEdit("toe", v)}
-                    />
-                    <NumberInput
-                      size="xs"
-                      label={t("ui.geo.heel")}
-                      value={cantileverGeo.heel}
-                      min={0.1}
-                      max={15}
-                      step={0.05}
-                      decimalScale={2}
-                      onChange={(v) => handleCantileverEdit("heel", v)}
-                    />
-                    <NumberInput
-                      size="xs"
-                      label={t("ui.geo.base_thickness")}
-                      value={cantileverGeo.base_thickness}
-                      min={0.1}
-                      max={3}
-                      step={0.05}
-                      decimalScale={2}
-                      onChange={(v) => handleCantileverEdit("base_thickness", v)}
-                    />
-                    <NumberInput
-                      size="xs"
-                      label={t("ui.geo.stem_top")}
-                      value={cantileverGeo.stem_top}
-                      min={0.1}
-                      max={3}
-                      step={0.05}
-                      decimalScale={2}
-                      onChange={(v) => handleCantileverEdit("stem_top", v)}
-                    />
-                    <NumberInput
-                      size="xs"
-                      label={t("ui.geo.stem_bottom")}
-                      value={cantileverGeo.stem_bottom}
-                      min={0.1}
-                      max={4}
-                      step={0.05}
-                      decimalScale={2}
-                      onChange={(v) => handleCantileverEdit("stem_bottom", v)}
-                    />
-                  </SimpleGrid>
-                ) : (
-                  <SimpleGrid cols={3} spacing="xs">
-                    <NumberInput
-                      size="xs"
-                      label={t("ui.geo.base_width")}
-                      value={gravityGeo.base_width}
-                      min={0.2}
-                      max={15}
-                      step={0.05}
-                      decimalScale={2}
-                      onChange={(v) => handleGravityEdit("base_width", v)}
-                    />
-                    <NumberInput
-                      size="xs"
-                      label={t("ui.geo.top_width")}
-                      value={gravityGeo.top_width}
-                      min={0.1}
-                      max={10}
-                      step={0.05}
-                      decimalScale={2}
-                      onChange={(v) => handleGravityEdit("top_width", v)}
-                    />
-                    <NumberInput
-                      size="xs"
-                      label={t("ui.geo.back_offset")}
-                      value={gravityGeo.back_offset ?? 0}
-                      min={0}
-                      max={5}
-                      step={0.05}
-                      decimalScale={2}
-                      onChange={(v) => handleGravityEdit("back_offset", v)}
-                    />
-                  </SimpleGrid>
-                )}
-
-                {job.status !== "idle" && (
-                  <Stack gap={4}>
-                    <Group justify="space-between">
-                      <Text size="xs" fw={500}>
-                        {t("web.wizard.job_progress")}:{" "}
-                        {job.messageKey ? t(job.messageKey) : t(`walls.job.status.${job.status}`)}
-                      </Text>
-                      <Text size="xs" ff="monospace">
-                        {Math.round(job.progress * 100)}%
-                      </Text>
-                    </Group>
-                    <Progress
-                      value={Math.round(job.progress * 100)}
-                      size="sm"
-                      animated={isRunning}
-                      color={job.status === "failed" ? "red" : "blue"}
-                    />
-                  </Stack>
-                )}
-              </Stack>
-            </Card>
+              }
+            >
+              <Text size="sm" c="dimmed" mb="sm">{t("walls.run.geometry_hint")}</Text>
+              {dimensionFields(false)}
+              {job.status !== "idle" && (
+                <Stack gap={4} mt="md">
+                  <Group justify="space-between">
+                    <Text size="xs" fw={500}>
+                      {t("walls.run.progress")}: {job.messageKey ? t(job.messageKey) : t(`walls.job.status.${job.status}`)}
+                    </Text>
+                    <Text size="xs" ff="monospace">
+                      {Math.round(job.progress * 100)}%
+                    </Text>
+                  </Group>
+                  <Progress
+                    value={Math.round(job.progress * 100)}
+                    size="sm"
+                    animated={isRunning}
+                    color={job.status === "failed" ? "red" : "blue"}
+                  />
+                </Stack>
+              )}
+            </SectionCard>
 
             {runBlocked && (
-              <Alert color="orange" variant="light" withCloseButton onClose={() => setRunBlocked(null)}>
-                <Group justify="space-between" gap="xs">
-                  <Text size="xs">{runBlocked}</Text>
-                  <Button size="compact-xs" variant="light" onClick={() => setActiveStep(1)}>
-                    {t("web.wizard.step.soil")}
+              <VerdictBanner
+                tone="warn"
+                title={runBlocked}
+                action={
+                  <Button variant="default" size="compact-sm" onClick={() => setActiveStep(1)}>
+                    {t("walls.wizard.step.soil")}
                   </Button>
-                </Group>
-              </Alert>
+                }
+              />
             )}
 
             {missingFactors.length > 0 && (
@@ -1006,36 +835,42 @@ export function WallWizardPage() {
             {actionError != null && <ErrorAlert error={actionError} />}
 
             {seismicInvalid && (
-              <Alert color="orange" variant="light" p="xs" data-testid="seismic-run-blocked">
-                <Group justify="space-between" gap="xs">
-                  <Text size="xs">{t("walls.run.seismic_invalid")}</Text>
-                  <Button size="compact-xs" variant="light" onClick={() => setActiveStep(2)}>
-                    {t("web.wizard.step.loads")}
-                  </Button>
-                </Group>
-              </Alert>
+              <div data-testid="seismic-run-blocked">
+                <VerdictBanner
+                  tone="warn"
+                  title={t("walls.run.seismic_invalid")}
+                  action={
+                    <Button variant="default" size="compact-sm" onClick={() => setActiveStep(2)}>
+                      {t("walls.wizard.step.loads")}
+                    </Button>
+                  }
+                />
+              </div>
             )}
 
             {staleResult && <StaleNotice reason={staleReason} />}
 
             {passiveBlocked && (
-              <Alert color="orange" variant="light" p="xs" data-testid="passive-run-blocked">
-                <Group justify="space-between" gap="xs">
-                  <Text size="xs">{t("walls.run.passive_unconfirmed", { value: analysisOptions.passive_reduction.toFixed(2) })}</Text>
-                  <Button size="compact-xs" variant="light" onClick={() => setActiveStep(2)}>
-                    {t("web.wizard.step.loads")}
-                  </Button>
-                </Group>
-              </Alert>
+              <div data-testid="passive-run-blocked">
+                <VerdictBanner
+                  tone="warn"
+                  title={t("walls.run.passive_unconfirmed", { value: analysisOptions.passive_reduction.toFixed(2) })}
+                  action={
+                    <Button variant="default" size="compact-sm" onClick={() => setActiveStep(2)}>
+                      {t("walls.wizard.step.loads")}
+                    </Button>
+                  }
+                />
+              </div>
             )}
 
             {job.status === "cancelled" && (
-              <Alert color="gray" variant="light" p="xs" data-testid="job-cancelled">
-                <Text size="xs">{t("walls.run.cancelled")}</Text>
-              </Alert>
+              <div data-testid="job-cancelled">
+                <VerdictBanner tone="info" title={t("walls.run.cancelled")} />
+              </div>
             )}
 
-            <SimpleGrid cols={{ base: 1, lg: 2 }} spacing="sm">
+            <SimpleGrid cols={{ base: 1, lg: 2 }} spacing="md">
               <WallCrossSection
                 wallType={wallType}
                 geometry={currentGeometry}
@@ -1047,48 +882,65 @@ export function WallWizardPage() {
               {lastResult && <WallCheckCards result={lastResult} stale={staleResult} />}
             </SimpleGrid>
           </Stack>
-        </>
-)}
+        )}
 
-        {/* Step 4: Sonuç */}
+        {/* Step 4: result */}
         {activeStep === 4 && (
-<>
-          <Stack gap="sm" mt="sm">
+          <Stack gap="sm">
             {!lastResult ? (
               <EmptyState
-                title={t("web.wizard.step.result")}
-                description={t("web.wizard.no_result_yet")}
+                title={t("walls.wizard.step.result")}
+                description={t("walls.wizard.no_result_yet")}
                 action={
-                  <Button size="xs" onClick={() => setActiveStep(3)}>
-                    {t("web.wizard.step.run")}
+                  <Button onClick={() => setActiveStep(3)}>
+                    {t("walls.wizard.step.run")}
                   </Button>
                 }
               />
             ) : (
-              <WallResultView result={lastResult} stale={staleResult} staleReason={staleReason} />
+              <WallResultView
+                result={lastResult}
+                stale={staleResult}
+                staleReason={staleReason}
+                onEditGeometry={() => setActiveStep(0)}
+                onRerun={() => setActiveStep(3)}
+              />
             )}
           </Stack>
-        </>
-)}
+        )}
       </div>
 
-      <Group justify="space-between">
-        <Button
-          size="xs"
-          variant="default"
-          disabled={activeStep === 0}
-          onClick={() => setActiveStep((s) => Math.max(0, s - 1))}
-        >
-          {t("web.wizard.prev")}
-        </Button>
-        <Button
-          size="xs"
-          disabled={activeStep >= 4}
-          onClick={() => setActiveStep((s) => Math.min(4, s + 1))}
-        >
-          {t("web.wizard.next")}
-        </Button>
-      </Group>
+      <ActionBar text={t("walls.wizard.progress", { n: activeStep + 1, total: stepLabels.length })}>
+        <Group gap="xs">
+          {activeStep > 0 && (
+            <Button variant="default" onClick={() => setActiveStep((s) => Math.max(0, s - 1))}>
+              {t("walls.wizard.prev")}
+            </Button>
+          )}
+          {nextStepLabel && (
+            <Button onClick={() => setActiveStep((s) => Math.min(4, s + 1))}>
+              {t("walls.wizard.next", { step: nextStepLabel })}
+            </Button>
+          )}
+        </Group>
+      </ActionBar>
     </Stack>
+  );
+}
+
+function SubHeading({ children }: { children: ReactNode }) {
+  return (
+    <Text fz={12} fw={600} c="dimmed" tt="uppercase" mt="md" mb={8} style={{ letterSpacing: "0.06em" }}>
+      {children}
+    </Text>
+  );
+}
+
+/** Switch with a title and one line of explanation in a soft box (the "toggle row" of the page pattern). */
+function ToggleRow({ checked, onChange, label, hint }: { checked: boolean; onChange: (next: boolean) => void; label: string; hint: string }) {
+  return (
+    <Box p="sm" style={{ borderRadius: 10, background: "var(--gt-ground)" }}>
+      <Switch size="md" checked={checked} onChange={(e) => onChange(e.currentTarget.checked)} label={label} description={hint} />
+    </Box>
   );
 }

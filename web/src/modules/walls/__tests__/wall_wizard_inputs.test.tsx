@@ -33,7 +33,7 @@ const step = (name: string) => screen.findByRole("button", { name: new RegExp(na
 const storedWall = () => getMockStore().structures.find((s) => s.id === "wall-mock-1") as RetainingWallStructure;
 
 async function runCheck() {
-  fireEvent.click(await step(tr["web.wizard.step.run"]));
+  fireEvent.click(await step(tr["walls.wizard.step.run"]));
   fireEvent.click(await screen.findByRole("button", { name: tr["ui.wall.check"] }));
   await screen.findAllByTestId("check-card", undefined, { timeout: JOB_TIMEOUT });
   await waitFor(() => expect(screen.getByRole("button", { name: tr["ui.wall.check"] })).toBeEnabled());
@@ -50,7 +50,7 @@ describe("walls wizard: seismic inputs, design codes, save errors and stored res
 
   it("sends an emptied S_DS and r as null (no seismic case / by wall type) instead of a default", async () => {
     renderWizard();
-    fireEvent.click(await step(tr["web.wizard.step.loads"]));
+    fireEvent.click(await step(tr["walls.wizard.step.loads"]));
     const sds = await screen.findByLabelText(new RegExp(tr["web.project.sds"]));
     expect(sds).toHaveValue("0.5");
     fireEvent.change(sds, { target: { value: "" } });
@@ -62,12 +62,12 @@ describe("walls wizard: seismic inputs, design codes, save errors and stored res
 
   it("shows the backend range for r and S_DS and blocks the run while one is out of range", async () => {
     renderWizard();
-    fireEvent.click(await step(tr["web.wizard.step.loads"]));
+    fireEvent.click(await step(tr["walls.wizard.step.loads"]));
     fireEvent.change(await screen.findByLabelText(/^r/), { target: { value: "2.5" } });
     expect(await screen.findByText(tr["walls.loads.r_range"])).toBeInTheDocument();
     fireEvent.change(screen.getByLabelText(new RegExp(tr["web.project.sds"])), { target: { value: "3" } });
     expect(await screen.findByText(tr["walls.loads.sds_range"])).toBeInTheDocument();
-    fireEvent.click(await step(tr["web.wizard.step.run"]));
+    fireEvent.click(await step(tr["walls.wizard.step.run"]));
     expect(await screen.findByTestId("seismic-run-blocked")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: tr["ui.wall.check"] })).toBeDisabled();
     expect(screen.getByRole("button", { name: tr["ui.wall.suggest"] })).toBeDisabled();
@@ -75,7 +75,7 @@ describe("walls wizard: seismic inputs, design codes, save errors and stored res
 
   it("offers the design codes from the codes API (AASHTO is aashto_lrfd) and stores the chosen id", async () => {
     renderWizard();
-    fireEvent.click(await step(tr["web.wizard.step.loads"]));
+    fireEvent.click(await step(tr["walls.wizard.step.loads"]));
     fireEvent.click(await screen.findByRole("textbox", { name: tr["ui.code.code"] }));
     fireEvent.click(await screen.findByRole("option", { name: "AASHTO LRFD" }));
     expect(await screen.findByRole("option", { name: "TBDY 2018 Bölüm 16", hidden: true })).toBeInTheDocument();
@@ -90,7 +90,7 @@ describe("walls wizard: seismic inputs, design codes, save errors and stored res
     });
     try {
       const view = renderWizard();
-      fireEvent.click(await step(tr["web.wizard.step.run"]));
+      fireEvent.click(await step(tr["walls.wizard.step.run"]));
       const check = await screen.findByRole("button", { name: tr["ui.wall.check"] });
       fireEvent.click(check);
       fireEvent.click(check);
@@ -99,7 +99,7 @@ describe("walls wizard: seismic inputs, design codes, save errors and stored res
       view.unmount();
 
       renderWizard();
-      fireEvent.click(await step(tr["web.wizard.step.run"]));
+      fireEvent.click(await step(tr["walls.wizard.step.run"]));
       const again = await screen.findByRole("button", { name: tr["ui.wall.check"] });
       // The structure disappears behind the page's back: the save (PUT) fails with 404.
       const store = getMockStore();
@@ -119,7 +119,7 @@ describe("walls wizard: seismic inputs, design codes, save errors and stored res
     wall.analysis_level = "advanced";
     wall.settings = { ...wall.settings, design_code: "tbdy2018" };
     renderWizard();
-    fireEvent.click(await step(tr["web.wizard.step.run"]));
+    fireEvent.click(await step(tr["walls.wizard.step.run"]));
     fireEvent.click(await screen.findByRole("button", { name: tr["ui.wall.check"] }));
     const save = await screen.findByRole("button", { name: tr["ui.missing.save"] });
     // No factor is pre-filled: saving stays disabled until the user enters every value.
@@ -137,7 +137,7 @@ describe("walls wizard: seismic inputs, design codes, save errors and stored res
 
   it("top project Save persists a surcharge draft that was never run", async () => {
     renderWizard();
-    fireEvent.click(await step(tr["web.wizard.step.loads"]));
+    fireEvent.click(await step(tr["walls.wizard.step.loads"]));
     const field = await screen.findByRole("textbox", { name: tr["ui.wall.surcharge"] });
     const before = storedWall().inputs?.surcharge ?? 0;
     fireEvent.change(field, { target: { value: String(before + 7) } });
@@ -150,7 +150,7 @@ describe("walls wizard: seismic inputs, design codes, save errors and stored res
     const { surcharge: _drop, ...rest } = wall.inputs ?? {};
     wall.inputs = rest as typeof wall.inputs;
     renderWizard();
-    fireEvent.click(await step(tr["web.wizard.step.loads"]));
+    fireEvent.click(await step(tr["walls.wizard.step.loads"]));
     const field = await screen.findByRole("textbox", { name: tr["ui.wall.surcharge"] });
     expect((field as HTMLInputElement).value).toBe("0");
   });
@@ -163,7 +163,7 @@ describe("walls wizard: seismic inputs, design codes, save errors and stored res
     first.unmount();
 
     const second = renderWizard();
-    fireEvent.click(await step(tr["web.wizard.step.result"]));
+    fireEvent.click(await step(tr["walls.wizard.step.result"]));
     expect(await screen.findByTestId("result-verdict")).toBeInTheDocument();
     expect(screen.queryByTestId("result-stale")).toBeNull();
     second.unmount();
@@ -171,7 +171,7 @@ describe("walls wizard: seismic inputs, design codes, save errors and stored res
     // The soil source profile changed after the run: the project summary reports the structure stale.
     storedWall().soil.source_hash = "changed-source";
     renderWizard();
-    fireEvent.click(await step(tr["web.wizard.step.result"]));
+    fireEvent.click(await step(tr["walls.wizard.step.result"]));
     expect(await screen.findByTestId("result-stale")).toHaveTextContent(tr["walls.result.stale_inputs"]);
     expect(storedWall().result_hash).toBe(runHash);
   }, 30000);
@@ -180,14 +180,14 @@ describe("walls wizard: seismic inputs, design codes, save errors and stored res
     const profile = getMockStore().profiles.find((p) => p.id === "prof-mock-1")!;
     expect(profile.name).toBeTruthy();
     const first = renderWizard();
-    fireEvent.click(await step(tr["web.wizard.step.soil"]));
+    fireEvent.click(await step(tr["walls.wizard.step.soil"]));
     await waitFor(() => expect(screen.getByTestId("soil-source-name")).toHaveTextContent(profile.name ?? ""));
     expect(document.body.textContent).not.toContain("prof-mock-1");
     first.unmount();
 
     storedWall().soil.source_profile_id = "0123456789abcdef0123456789abcdef";
     renderWizard();
-    fireEvent.click(await step(tr["web.wizard.step.soil"]));
+    fireEvent.click(await step(tr["walls.wizard.step.soil"]));
     await waitFor(() => expect(screen.getByTestId("soil-source-name")).toHaveTextContent(tr["web.common.deleted_profile"]));
     expect(document.body.textContent).not.toContain("0123456789abcdef");
   });

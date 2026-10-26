@@ -132,7 +132,7 @@ describe("walls pages (mock)", () => {
 
   it("wizard back button goes to /m/walls", async () => {
     renderAt("/m/walls/s/wall-mock-1");
-    fireEvent.click(await screen.findByRole("button", { name: trCatalog["web.common.back_to_list"] }));
+    fireEvent.click(await screen.findByRole("link", { name: trCatalog["walls.wizard.back"] }));
     await waitFor(() => expect(screen.getByTestId("loc").textContent).toBe("/m/walls"));
   });
 

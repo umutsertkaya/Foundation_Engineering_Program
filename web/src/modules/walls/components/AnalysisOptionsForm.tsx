@@ -1,4 +1,4 @@
-import { Alert, Badge, Button, Card, Checkbox, Group, NumberInput, Radio, Stack, Switch, Text } from "@mantine/core";
+import { Alert, Badge, Button, Checkbox, Group, NumberInput, Radio, Stack, Switch, Text } from "@mantine/core";
 import { useTranslation } from "react-i18next";
 import { KV_SIGNS, SUBMERGED_MODES, UPLIFT_MODES } from "../settings";
 import type { AnalysisOptions } from "../types";
@@ -51,12 +51,8 @@ export function AnalysisOptionsForm({
   const basic = level === "basic";
 
   return (
-    <Card withBorder padding="sm" radius="sm" data-testid="analysis-options">
+    <div data-testid="analysis-options">
       <Stack gap="md">
-        <Text fw={600} size="sm">
-          {t("walls.options.title")}
-        </Text>
-
         <Section title={t("walls.options.kv.title")} hint={t("walls.options.kv.hint")}>
           <Radio.Group value={value.kv_sign} onChange={(v) => set("kv_sign", v as AnalysisOptions["kv_sign"])} name="kv_sign">
             <Stack gap={6}>
@@ -177,6 +173,6 @@ export function AnalysisOptionsForm({
           )}
         </Section>
       </Stack>
-    </Card>
+    </div>
   );
 }

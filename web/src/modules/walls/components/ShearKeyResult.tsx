@@ -6,14 +6,13 @@ import { caseLabel } from "../labels";
 const f = (v: number | null, d = 2) => (v === null || !Number.isFinite(v) ? "—" : v.toFixed(d));
 
 /** Per-case shear key results: sliding with and without the key on both candidate planes, key demands. */
-export function ShearKeyResult({ items }: { items: ShearKeyResultDTO[] }) {
+export function ShearKeyResult({ items, bare = false }: { items: ShearKeyResultDTO[]; bare?: boolean }) {
   const { t } = useTranslation();
   if (items.length === 0) return null;
-  return (
-    <Card withBorder padding="sm" radius="sm" data-testid="shear-key-result">
+  const body = (
       <Stack gap="xs">
         <Group justify="space-between">
-          <Title order={5}>{t("walls.key.result_title")}</Title>
+          {bare ? <span /> : <Title order={5}>{t("walls.key.result_title")}</Title>}
           <Text size="xs" c="dimmed">
             {t(`walls.key.position.${items[0].position}`)} · {f(items[0].width)} × {f(items[0].depth)} m
           </Text>
@@ -53,6 +52,11 @@ export function ShearKeyResult({ items }: { items: ShearKeyResultDTO[] }) {
         </Table>
         <Text size="xs" c="dimmed">{t("walls.key.result_note")}</Text>
       </Stack>
+  );
+  if (bare) return <div data-testid="shear-key-result">{body}</div>;
+  return (
+    <Card withBorder padding="sm" radius="sm" data-testid="shear-key-result">
+      {body}
     </Card>
   );
 }

@@ -11,6 +11,14 @@ export interface WallCrossSectionProps extends SectionInput {
   title?: string;
   /** Colour scheme of the soil palette; defaults to the active Mantine scheme. */
   scheme?: SoilScheme;
+  /** Draw the numbered callouts that match the numbers beside the dimension fields. */
+  markers?: boolean;
+  /** Field id (see `WALL_MARKER_FIELDS`) of the focused input: its callout is drawn in the accent colour. */
+  focusField?: string | null;
+  /** Hide the card title row (the page supplies its own heading). */
+  hideTitle?: boolean;
+  /** Draw without the card border and padding (the page supplies the container). */
+  bare?: boolean;
 }
 
 const HALO = {
@@ -81,7 +89,7 @@ function Dimension({
  * from `buildSectionLayout`. Purely presentational: it never measures the DOM, so the drawing is
  * deterministic; the fixed viewBox scales to the container width.
  */
-export function WallCrossSection({ title, scheme: schemeProp, ...input }: WallCrossSectionProps) {
+export function WallCrossSection({ title, scheme: schemeProp, markers = false, focusField = null, hideTitle = false, bare = false, ...input }: WallCrossSectionProps) {
   const { t } = useTranslation();
   const activeScheme = useSoilScheme();
   const scheme = schemeProp ?? activeScheme;
@@ -108,11 +116,15 @@ export function WallCrossSection({ title, scheme: schemeProp, ...input }: WallCr
   const bandTitle = (b: (typeof layout.bands)[number]) =>
     `${b.layer.description?.trim() || b.layer.uscs || bandName(b, 40)} (${t(b.origin === "fill" ? "web.section.origin.fill" : "web.section.origin.profile")}) · z ${b.top.toFixed(2)}–${b.bottom.toFixed(2)} m`;
 
+  const Wrapper = bare ? "div" : Card;
+  const wrapperProps = bare ? {} : { withBorder: true, padding: "xs", radius: "sm" };
   return (
-    <Card withBorder padding="xs" radius="sm" data-testid="wall-section">
-      <Text fw={600} size="sm" mb={4}>
-        {title ?? t("web.section.title")}
-      </Text>
+    <Wrapper {...(wrapperProps as object)} data-testid="wall-section">
+      {!hideTitle && (
+        <Text fw={600} size="sm" mb={4}>
+          {title ?? t("web.section.title")}
+        </Text>
+      )}
       <svg
         viewBox={`0 0 ${layout.width} ${layout.height}`}
         role="img"
@@ -227,6 +239,20 @@ export function WallCrossSection({ title, scheme: schemeProp, ...input }: WallCr
           <Dimension x0={layout.dims.D.x} y0={layout.dims.D.y0} x1={layout.dims.D.x} y1={layout.dims.D.y1} label={t("web.section.embedment_label", { D: layout.D.toFixed(2) })} />
         )}
 
+        {/* numbered callouts for the dimension fields */}
+        {markers &&
+          layout.markers.map((m) => {
+            const focused = focusField === m.field;
+            return (
+              <g key={m.field} data-part="marker" data-field={m.field} data-focused={focused || undefined}>
+                <circle cx={m.at[0]} cy={m.at[1]} r={focused ? 10 : 9} fill={focused ? "var(--mantine-color-blue-filled)" : "var(--mantine-color-text)"} />
+                <text x={m.at[0]} y={m.at[1] + 4} textAnchor="middle" fontSize={10} fontWeight={600} fill="var(--mantine-color-body)">
+                  {m.n}
+                </text>
+              </g>
+            );
+          })}
+
         {/* layer labels */}
         {right.map((b, i) => {
           const y = rightYs[i];
@@ -254,6 +280,6 @@ export function WallCrossSection({ title, scheme: schemeProp, ...input }: WallCr
           {t("web.section.warn_profile_short", { z: layout.H.toFixed(2) })}
         </Text>
       )}
-    </Card>
+    </Wrapper>
   );
 }
