@@ -44,7 +44,7 @@ export function DepthChart({ depth, series, ariaLabel, xLabel, yLabel, reference
   const ticks = [0, 0.25, 0.5, 0.75, 1];
 
   return (
-    <figure style={{ margin: 0 }}>
+    <figure style={{ margin: 0, fontSize: 13 }}>
       <svg role="img" aria-label={ariaLabel} viewBox="0 0 560 400" style={{ width: "100%", maxWidth: 560, color: "var(--mantine-color-text)" }}>
         <title>{ariaLabel}</title>
         <g fill="currentColor" fontSize={12}>
@@ -60,7 +60,7 @@ export function DepthChart({ depth, series, ariaLabel, xLabel, yLabel, reference
           <text transform="translate(18 190) rotate(-90)" textAnchor="middle">{yLabel}</text>
           {reference && points.length > 0 && (
             <g>
-              <path d={`M${x(reference.value)} 44 V334`} stroke="var(--mantine-color-dimmed)" strokeDasharray="3 4" />
+              <path d={`M${x(reference.value)} 44 V334`} stroke="var(--gt-muted)" strokeDasharray="3 4" />
               <text x={x(reference.value)} y={29} textAnchor="middle">{reference.label}</text>
             </g>
           )}
@@ -83,21 +83,21 @@ export function DepthChart({ depth, series, ariaLabel, xLabel, yLabel, reference
               <path d={path} fill="none" stroke={s.color} strokeWidth={2} strokeDasharray={s.dashArray} />
               {depth.map((d, i) => finite(d) && finite(s.values[i]) && isClipped(s.values[i] as number) && (
                 <path key={`clip-${i}`} d={`M${x(xMax) - 6} ${y(d) - 6} L${x(xMax) + 4} ${y(d)} L${x(xMax) - 6} ${y(d) + 6} Z`}
-                  fill={s.highlighted?.[i] ? "var(--mantine-color-red-6)" : s.color} data-testid="clipped-point">
+                  fill={s.highlighted?.[i] ? "var(--gt-bad-dot)" : s.color} data-testid="clipped-point">
                   <title>{(s.values[i] as number).toFixed(2)}</title>
                 </path>
               ))}
               {depth.map((d, i) => finite(d) && finite(s.values[i]) && !isClipped(s.values[i] as number) && (
                 <circle key={i} cx={x(s.values[i] as number)} cy={y(d)}
                   r={s.highlighted?.[i] ? 5 : 2.5}
-                  fill={s.highlighted?.[i] ? "var(--mantine-color-red-6)" : s.color}
+                  fill={s.highlighted?.[i] ? "var(--gt-bad-dot)" : s.color}
                   stroke="var(--mantine-color-body)" strokeWidth={1.5} />
               ))}
             </g>
           );
         })}
       </svg>
-      <figcaption style={{ display: "flex", gap: "1rem", flexWrap: "wrap" }}>
+      <figcaption style={{ display: "flex", gap: "1rem", flexWrap: "wrap", color: "var(--gt-muted)" }}>
         {series.map((s, si) => (
           <span key={`${si}-${s.label}`}>
             <svg aria-hidden="true" width={32} height={12} style={{ marginRight: 6 }}>
@@ -106,7 +106,7 @@ export function DepthChart({ depth, series, ariaLabel, xLabel, yLabel, reference
           </span>
         ))}
         {clipped && <span data-testid="clipped-note"><svg aria-hidden="true" width={16} height={12}><path d="M2 1 L13 6 L2 11 Z" fill="currentColor" /></svg>{xCap.label}</span>}
-        {highlightLabel && <span><svg aria-hidden="true" width={16} height={12}><circle cx={6} cy={6} r={5} fill="var(--mantine-color-red-6)" /></svg>{highlightLabel}</span>}
+        {highlightLabel && <span><svg aria-hidden="true" width={16} height={12}><circle cx={6} cy={6} r={5} fill="var(--gt-bad-dot)" /></svg>{highlightLabel}</span>}
       </figcaption>
     </figure>
   );

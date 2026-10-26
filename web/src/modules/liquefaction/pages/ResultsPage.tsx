@@ -1,20 +1,109 @@
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
-import { Alert, Button, Group, Progress, Select, Stack, Table, Text, Title } from "@mantine/core";
+import { Alert, Box, Button, Group, Progress, Stack, Text } from "@mantine/core";
 import { useTranslation } from "react-i18next";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { ApiError, cancel_job, get_job } from "../../../shared/api/client";
-import type { JobState, LiquefactionResultDTO, StoredLiquefactionDTO } from "../../../shared/api/types";
+import type {
+  JobState,
+  LiquefactionResultDTO,
+  LiquefactionSettingsDTO,
+  StoredLiquefactionDTO,
+} from "../../../shared/api/types";
 import { EmptyState } from "../../../shared/components/EmptyState";
 import { ErrorAlert } from "../../../shared/components/ErrorAlert";
+import { KpiTile } from "../../../shared/components/KpiTile";
+import { PageHeader } from "../../../shared/components/PageHeader";
+import { SectionCard } from "../../../shared/components/SectionCard";
+import { StatusChip, type StatusTone } from "../../../shared/components/StatusChip";
+import { VerdictBanner, type VerdictTone } from "../../../shared/components/VerdictBanner";
 import { get_liquefaction_result } from "../api";
 import { SoundingDetail } from "../components/SoundingDetail";
 
 const POLL_MS = 300;
 const TERMINAL = new Set<JobState["status"]>(["done", "failed", "cancelled"]);
+const MOCK_WARNING = "mock_result_not_a_calculation";
 
-function minFs(values: (number | null)[]): number | null {
-  const finite = values.filter((v): v is number => typeof v === "number" && Number.isFinite(v));
-  return finite.length ? Math.min(...finite) : null;
+type Translate = (key: string, opts?: Record<string, unknown>) => string;
+type Sounding = LiquefactionResultDTO["per_sounding"][string];
+
+interface SoundingSummary {
+  id: string;
+  minFs: number | null;
+  /** Depth of the point with the smallest FS; null when that depth is unknown. */
+  minDepth: number | null;
+  lpi: number | null;
+  category: Sounding["LPI_category"] | null;
+  incomplete: boolean;
+  liquefiable: number;
+  total: number;
+}
+
+const finite = (v: number | null | undefined): v is number => typeof v === "number" && Number.isFinite(v);
+
+function summarize(id: string, s: Sounding): SoundingSummary {
+  let minFs: number | null = null;
+  let minDepth: number | null = null;
+  s.FS.forEach((value, i) => {
+    if (!finite(value)) return;
+    if (minFs === null || value < minFs) {
+      minFs = value;
+      minDepth = finite(s.depth[i]) ? s.depth[i] : null;
+    }
+  });
+  return {
+    id,
+    minFs,
+    minDepth,
+    lpi: finite(s.LPI) ? s.LPI : null,
+    category: s.LPI_category ?? null,
+    incomplete: Boolean(s.LPI_incomplete),
+    liquefiable: s.status.filter((x) => x === "liquefiable").length,
+    total: s.status.length,
+  };
+}
+
+const CATEGORY_TONE: Record<NonNullable<Sounding["LPI_category"]>, StatusTone> = {
+  very_low: "current",
+  low: "current",
+  high: "stale",
+  very_high: "bad",
+};
+
+interface Verdict {
+  tone: VerdictTone;
+  title: string;
+  text?: string;
+}
+
+/** One sentence about the whole result; every number and name in it comes from the result itself. */
+function buildVerdict(summaries: SoundingSummary[], errorCount: number, t: Translate): Verdict {
+  const liquefiable = summaries.reduce((sum, s) => sum + s.liquefiable, 0);
+  const withFs = summaries.filter((s) => s.minFs !== null);
+  const worst = withFs.reduce<SoundingSummary | null>((acc, s) => (acc === null || (s.minFs as number) < (acc.minFs as number) ? s : acc), null);
+  const parts: string[] = [];
+  if (worst) {
+    const fs = (worst.minFs as number).toFixed(2);
+    parts.push(
+      worst.minDepth === null
+        ? t("liquefaction.results.verdict.min_fs_no_depth", { fs, id: worst.id })
+        : t("liquefaction.results.verdict.min_fs", { fs, id: worst.id, depth: worst.minDepth.toFixed(1) }),
+    );
+  }
+  const categories = summaries.filter((s) => s.category !== null);
+  if (categories.length > 0) {
+    const list = categories.map((s) => `${s.id}: ${t(`liquefaction.results.lpi_category.${s.category}`)}`).join(" · ");
+    parts.push(t("liquefaction.results.verdict.lpi", { list }));
+  }
+  const text = parts.length > 0 ? parts.join(" ") : undefined;
+  if (liquefiable > 0) {
+    const severe = summaries.some((s) => s.category === "high" || s.category === "very_high");
+    return { tone: severe ? "bad" : "warn", title: t("liquefaction.results.verdict.liquefiable", { count: liquefiable }), text };
+  }
+  if (errorCount > 0) {
+    return { tone: "warn", title: t("liquefaction.results.verdict.none_with_errors", { count: errorCount }), text };
+  }
+  if (worst) return { tone: "ok", title: t("liquefaction.results.verdict.none"), text };
+  return { tone: "info", title: t("liquefaction.results.verdict.no_fs"), text: t("liquefaction.results.verdict.no_fs_hint") };
 }
 
 export function ResultsPage() {
@@ -27,8 +116,9 @@ export function ResultsPage() {
   const [gone, setGone] = useState(false);
   const [error, setError] = useState<unknown>(null);
   const [stored, setStored] = useState<StoredLiquefactionDTO | "none" | null>(null);
-  /** Stale flag of the project's stored result once the job is done (soil edited since the run). */
+  /** Stale flag and settings of the project's stored result once the job is done (soil edited since the run). */
   const [doneStale, setDoneStale] = useState(false);
+  const [doneSettings, setDoneSettings] = useState<LiquefactionSettingsDTO | null>(null);
   const seq = useRef(0);
 
   useEffect(() => {
@@ -78,9 +168,14 @@ export function ResultsPage() {
     if (!jobDone) return;
     let live = true;
     setDoneStale(false);
+    setDoneSettings(null);
     // The finished job saved its result in the project; the stored copy carries the stale flag.
     get_liquefaction_result().then(
-      (r) => { if (live) setDoneStale(r.stale); },
+      (r) => {
+        if (!live) return;
+        setDoneStale(r.stale);
+        setDoneSettings(r.settings ?? null);
+      },
       () => undefined,
     );
     return () => { live = false; };
@@ -103,7 +198,7 @@ export function ResultsPage() {
 
   if (needStored && error == null) {
     if (stored === null) return <Text size="sm">{t("web.common.loading")}</Text>;
-    if (stored !== "none") return <ResultBody result={stored.result} stale={stored.stale} back={back} />;
+    if (stored !== "none") return <ResultBody result={stored.result} stale={stored.stale} settings={stored.settings} back={back} />;
     return (
       <EmptyState title={t("liquefaction.results.title")}
         description={t(jobId ? "liquefaction.results.unavailable" : "liquefaction.results.no_job")} action={back} />
@@ -111,7 +206,7 @@ export function ResultsPage() {
   }
   if (error != null) {
     return (
-      <Stack gap="md" maw={880}>
+      <Stack gap="md" maw={1120}>
         <ErrorAlert error={error} />
         {back}
       </Stack>
@@ -121,10 +216,9 @@ export function ResultsPage() {
 
   if (state.status === "failed") {
     return (
-      <Stack gap="md" maw={880}>
-        <Title order={2}>{t("liquefaction.results.title")}</Title>
+      <Stack gap="md" maw={1120}>
+        <PageHeader title={t("liquefaction.results.title")} actions={back} />
         {state.error ? <ErrorAlert error={new ApiError(400, state.error)} /> : <Alert color="red">{t("liquefaction.results.failed")}</Alert>}
-        {back}
       </Stack>
     );
   }
@@ -133,23 +227,34 @@ export function ResultsPage() {
   }
   if (state.status !== "done") {
     return (
-      <Stack gap="md" maw={880}>
-        <Title order={2}>{t("liquefaction.results.title")}</Title>
-        <Progress value={Math.round(state.progress * 100)} />
-        <Text size="sm">{state.message_key ? t(state.message_key) : t("liquefaction.results.running")}</Text>
-        <Group>
-          <Button variant="default" onClick={cancel}>
-            {t("liquefaction.results.cancel")}
-          </Button>
-        </Group>
+      <Stack gap="md" maw={1120}>
+        <PageHeader title={t("liquefaction.results.title")} />
+        <SectionCard title={t("liquefaction.results.running")}>
+          <Stack gap="sm">
+            <Progress value={Math.round(state.progress * 100)} />
+            <Text size="sm">{state.message_key ? t(state.message_key) : t("liquefaction.results.running")}</Text>
+            <Group>
+              <Button variant="default" onClick={cancel}>
+                {t("liquefaction.results.cancel")}
+              </Button>
+            </Group>
+          </Stack>
+        </SectionCard>
       </Stack>
     );
   }
 
-  return <ResultBody result={state.result as LiquefactionResultDTO | null} stale={doneStale} back={back} />;
+  return <ResultBody result={state.result as LiquefactionResultDTO | null} stale={doneStale} settings={doneSettings} back={back} />;
 }
 
-function ResultBody({ result, stale, back }: { result: LiquefactionResultDTO | null; stale?: boolean; back: ReactNode }) {
+interface ResultBodyProps {
+  result: LiquefactionResultDTO | null;
+  stale?: boolean;
+  settings?: LiquefactionSettingsDTO | null;
+  back: ReactNode;
+}
+
+function ResultBody({ result, stale, settings, back }: ResultBodyProps) {
   const { t } = useTranslation();
   const [selectedSounding, setSelectedSounding] = useState<string | null>(null);
   const ids = result ? Object.keys(result.per_sounding) : [];
@@ -159,50 +264,37 @@ function ResultBody({ result, stale, back }: { result: LiquefactionResultDTO | n
     return <EmptyState title={t("liquefaction.results.title")} description={t("liquefaction.results.empty")} action={back} />;
   }
 
+  const summaries = ids.map((id) => summarize(id, result.per_sounding[id]));
+  const isMock = ids.some((id) => result.per_sounding[id].warnings.includes(MOCK_WARNING));
+  const verdict = buildVerdict(summaries, errors.length, t as unknown as Translate);
+
   return (
-    <Stack gap="md" maw={880}>
-      <Title order={2}>{t("liquefaction.results.title")}</Title>
-      {stale && <Alert color="yellow" variant="light" data-testid="liq-stale">{t("liquefaction.results.stale")}</Alert>}
-      {ids.some((id) => result.per_sounding[id].warnings.includes("mock_result_not_a_calculation")) && (
-        <Alert color="yellow">{t("liquefaction.results.mock_note")}</Alert>
+    <Stack gap="md" maw={1120}>
+      <PageHeader
+        title={t("liquefaction.results.title")}
+        lead={t("liquefaction.results.lead")}
+        status={(
+          <Group gap={6}>
+            <StatusChip tone={stale ? "stale" : "current"}>{t(stale ? "liquefaction.results.chip_stale" : "liquefaction.results.chip_current")}</StatusChip>
+            {isMock && <StatusChip tone="info">{t("liquefaction.results.chip_mock")}</StatusChip>}
+          </Group>
+        )}
+        actions={back}
+      />
+      {stale && (
+        <div data-testid="liq-stale">
+          <VerdictBanner tone="warn" title={t("liquefaction.results.stale")} />
+        </div>
       )}
-      {ids.length > 0 && (
-        <Table>
-          <Table.Thead>
-            <Table.Tr>
-              <Table.Th>{t("liquefaction.results.sounding")}</Table.Th>
-              <Table.Th>{t("liquefaction.results.min_fs")}</Table.Th>
-              <Table.Th>{t("liquefaction.results.liquefiable_count")}</Table.Th>
-              <Table.Th>{t("liquefaction.results.lpi")}</Table.Th>
-              <Table.Th>{t("liquefaction.results.lpi_category")}</Table.Th>
-            </Table.Tr>
-          </Table.Thead>
-          <Table.Tbody>
-            {ids.map((id) => {
-              const s = result.per_sounding[id];
-              const fs = minFs(s.FS);
-              return (
-                <Table.Tr key={id}>
-                  <Table.Td>{id}</Table.Td>
-                  <Table.Td>{fs === null ? "—" : fs.toFixed(2)}</Table.Td>
-                  <Table.Td>{s.status.filter((x) => x === "liquefiable").length}</Table.Td>
-                  <Table.Td data-testid={`liq-lpi-${id}`}>
-                    {s.LPI == null ? "—" : s.LPI.toFixed(2)}
-                    {s.LPI_incomplete ? " *" : ""}
-                  </Table.Td>
-                  <Table.Td>{s.LPI_category ? t(`liquefaction.results.lpi_category.${s.LPI_category}`) : "—"}</Table.Td>
-                </Table.Tr>
-              );
-            })}
-          </Table.Tbody>
-        </Table>
-      )}
-      {ids.some((id) => result.per_sounding[id].LPI_incomplete) && (
+      {isMock && <Alert color="yellow" variant="light">{t("liquefaction.results.mock_note")}</Alert>}
+      <VerdictBanner tone={verdict.tone} title={verdict.title} text={verdict.text} />
+      {summaries.some((s) => s.incomplete) && (
         <Alert color="yellow" variant="light" data-testid="liq-lpi-incomplete">{t("liquefaction.results.lpi_incomplete")}</Alert>
       )}
-      {ids.length > 1 && (
-        <Select label={t("liquefaction.results.select_sounding")} data={ids}
-          value={activeSounding} onChange={setSelectedSounding} allowDeselect={false} />
+      {summaries.length > 0 && (
+        <Box style={{ display: "grid", gap: "var(--mantine-spacing-md)", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 400px), 1fr))" }}>
+          {summaries.map((s) => <SoundingTiles key={s.id} summary={s} selected={s.id === activeSounding} onSelect={() => setSelectedSounding(s.id)} />)}
+        </Box>
       )}
       {activeSounding && <SoundingDetail id={activeSounding} sounding={result.per_sounding[activeSounding]} />}
       {errors.length > 0 && (
@@ -216,7 +308,90 @@ function ResultBody({ result, stale, back }: { result: LiquefactionResultDTO | n
           </ul>
         </Alert>
       )}
-      {back}
+      {settings && <UsedInputs settings={settings} />}
     </Stack>
+  );
+}
+
+/** One sounding's key numbers; the whole group is the button that picks the sounding shown below. */
+function SoundingTiles({ summary, selected, onSelect }: { summary: SoundingSummary; selected: boolean; onSelect: () => void }) {
+  const { t } = useTranslation();
+  const { id, minFs, minDepth, lpi, category, incomplete, liquefiable, total } = summary;
+  return (
+    <Box
+      role="button"
+      tabIndex={0}
+      aria-pressed={selected}
+      aria-label={t("liquefaction.results.select_sounding", { id })}
+      data-testid={`liq-sounding-${id}`}
+      onClick={onSelect}
+      onKeyDown={(event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          onSelect();
+        }
+      }}
+      p="md"
+      style={{
+        cursor: "pointer",
+        borderRadius: 14,
+        border: `2px solid ${selected ? "var(--mantine-color-primary-6)" : "var(--gt-border)"}`,
+        background: "var(--mantine-color-body)",
+      }}
+    >
+      <Group justify="space-between" mb="sm" wrap="nowrap">
+        <Text ff="monospace" fw={600}>{id}</Text>
+        <Group gap={8} wrap="nowrap">
+          <Text size="xs" c="dimmed">{t("liquefaction.results.points", { count: total })}</Text>
+          {category && <StatusChip tone={CATEGORY_TONE[category]}>{t("liquefaction.results.lpi_chip", { category: t(`liquefaction.results.lpi_category.${category}`) })}</StatusChip>}
+        </Group>
+      </Group>
+      <Box style={{ display: "grid", gap: 8, gridTemplateColumns: "repeat(3, minmax(0, 1fr))" }}>
+        <KpiTile
+          label={t("liquefaction.results.min_fs")}
+          value={minFs === null ? "—" : minFs.toFixed(2)}
+          sub={minFs !== null && minDepth !== null ? t("liquefaction.results.at_depth", { depth: minDepth.toFixed(1) }) : undefined}
+        />
+        <div data-testid={`liq-lpi-${id}`}>
+          <KpiTile
+            label={t("liquefaction.results.lpi")}
+            value={lpi === null ? "—" : `${lpi.toFixed(2)}${incomplete ? " *" : ""}`}
+            sub={category ? t(`liquefaction.results.lpi_category.${category}`) : undefined}
+          />
+        </div>
+        <KpiTile
+          label={t("liquefaction.results.liquefiable_count")}
+          value={liquefiable}
+          unit={t("liquefaction.results.of_total", { total })}
+        />
+      </Box>
+    </Box>
+  );
+}
+
+/** The settings of the run, as stored with the result. */
+function UsedInputs({ settings }: { settings: LiquefactionSettingsDTO }) {
+  const { t } = useTranslation();
+  const rows: Array<[string, string]> = [
+    [t("liquefaction.field.method"), t(`liquefaction.method.${settings.method}`)],
+    [t("liquefaction.field.amax_g"), String(settings.amax_g)],
+    [t("liquefaction.field.mw"), String(settings.mw)],
+    [t("liquefaction.field.target_fs"), String(settings.target_fs)],
+    [t("liquefaction.field.c_fc"), String(settings.c_fc)],
+    [t("liquefaction.field.ic_cutoff"), String(settings.ic_cutoff)],
+  ];
+  if (settings.default_fc != null) rows.push([t("liquefaction.field.default_fc"), String(settings.default_fc)]);
+  if (settings.gwt_seismic != null) rows.push([t("liquefaction.field.gwt_seismic"), String(settings.gwt_seismic)]);
+  return (
+    <SectionCard title={t("liquefaction.results.inputs_title")}>
+        <Box component="dl" m={0} style={{ display: "grid", gridTemplateColumns: "max-content 1fr", gap: "6px 24px" }}>
+          {rows.map(([label, value]) => (
+            <Box key={label} style={{ display: "contents" }}>
+              <Text component="dt" size="sm" c="dimmed">{label}</Text>
+              <Text component="dd" size="sm" m={0} ff="monospace">{value}</Text>
+            </Box>
+          ))}
+        </Box>
+    </SectionCard>
   );
 }

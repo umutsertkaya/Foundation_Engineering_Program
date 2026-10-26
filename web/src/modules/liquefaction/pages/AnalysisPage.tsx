@@ -1,13 +1,18 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { Alert, Button, Group, NumberInput, Select, SimpleGrid, Stack, Text, Title } from "@mantine/core";
-import { IconInfoCircle } from "@tabler/icons-react";
+import { Alert, Anchor, Badge, Box, Button, Group, NumberInput, Radio, Select, SimpleGrid, Stack, Text } from "@mantine/core";
+import { IconCircleCheck, IconCircleDashed, IconInfoCircle } from "@tabler/icons-react";
 import { run_liquefaction, type LiquefactionSettingsDTO } from "../api";
 import { ApiError, get_project } from "../../../shared/api/client";
 import { list_project_profiles } from "../../../shared/api/core";
 import type { ProfileSummary } from "../../../shared/api/types";
+import { ActionBar } from "../../../shared/components/ActionBar";
+import { CollapsibleSection } from "../../../shared/components/CollapsibleSection";
 import { ErrorAlert } from "../../../shared/components/ErrorAlert";
+import { FieldNote } from "../../../shared/components/FieldNote";
+import { PageHeader } from "../../../shared/components/PageHeader";
+import { SectionCard } from "../../../shared/components/SectionCard";
 
 type Method = LiquefactionSettingsDTO["method"];
 type Field = number | string;
@@ -32,34 +37,52 @@ function optNum(v: Field): number | null {
   return v === "" ? null : num(v);
 }
 
+type FieldState = "ok" | "missing" | "invalid";
+
+interface Checks {
+  profile: FieldState;
+  method: FieldState;
+  amax: FieldState;
+  mw: FieldState;
+  fs: FieldState;
+  cfc: FieldState;
+  ic: FieldState;
+  fc: FieldState;
+  gwt: FieldState;
+}
+
+/** Message shown under a field whose value is present but not acceptable. */
+type Messages = Partial<Record<"amax" | "mw" | "fs" | "fc" | "gwt", string>>;
+
 /** Mirrors geotek/engine/liquefaction/analysis.py _check_inputs, plus finite-number checks. */
-function validate(f: Form, t: Translate): string[] {
-  const issues: string[] = [];
-  if (!f.method) issues.push(t("liquefaction.error.method_required"));
-  const required = (label: string, v: Field) => {
-    const ok = Number.isFinite(num(v));
-    if (!ok) issues.push(t("liquefaction.error.number_required", { field: label }));
-    return ok;
+function validate(f: Form, hasProfile: boolean, t: Translate): { checks: Checks; messages: Messages } {
+  const messages: Messages = {};
+  const required = (v: Field): boolean => Number.isFinite(num(v));
+  const ranged = (key: keyof Messages, v: Field, inRange: boolean, message: string): FieldState => {
+    if (!required(v)) return "missing";
+    if (!inRange) {
+      messages[key] = message;
+      return "invalid";
+    }
+    return "ok";
   };
-  if (required(t("liquefaction.field.amax_g"), f.amax) && !(num(f.amax) > 0 && num(f.amax) <= 2.0)) {
-    issues.push(t("liquefaction.error.amax_range"));
-  }
-  if (required(t("liquefaction.field.mw"), f.mw) && !(num(f.mw) >= 4.0 && num(f.mw) <= 9.5)) {
-    issues.push(t("liquefaction.error.mw_range"));
-  }
-  if (required(t("liquefaction.field.target_fs"), f.fs) && !(num(f.fs) >= 1.0)) {
-    issues.push(t("liquefaction.error.target_fs_min"));
-  }
-  required(t("liquefaction.field.c_fc"), f.cfc);
-  required(t("liquefaction.field.ic_cutoff"), f.ic);
-  const optional: Array<[string, Field]> = [
-    [t("liquefaction.field.default_fc"), f.fc],
-    [t("liquefaction.field.gwt_seismic"), f.gwt],
-  ];
-  for (const [label, v] of optional) {
-    if (v !== "" && !Number.isFinite(num(v))) issues.push(t("liquefaction.error.number_invalid", { field: label }));
-  }
-  return issues;
+  const optional = (key: "fc" | "gwt", v: Field): FieldState => {
+    if (v === "" || Number.isFinite(num(v))) return "ok";
+    messages[key] = t("liquefaction.error.number_invalid");
+    return "invalid";
+  };
+  const checks: Checks = {
+    profile: hasProfile ? "ok" : "missing",
+    method: f.method ? "ok" : "missing",
+    amax: ranged("amax", f.amax, num(f.amax) > 0 && num(f.amax) <= 2.0, t("liquefaction.error.amax_range")),
+    mw: ranged("mw", f.mw, num(f.mw) >= 4.0 && num(f.mw) <= 9.5, t("liquefaction.error.mw_range")),
+    fs: ranged("fs", f.fs, num(f.fs) >= 1.0, t("liquefaction.error.target_fs_min")),
+    cfc: required(f.cfc) ? "ok" : "missing",
+    ic: required(f.ic) ? "ok" : "missing",
+    fc: optional("fc", f.fc),
+    gwt: optional("gwt", f.gwt),
+  };
+  return { checks, messages };
 }
 
 export function AnalysisPage() {
@@ -136,8 +159,10 @@ export function AnalysisPage() {
   }
 
   const hasProfiles = profiles.length > 0;
-  const issues = validate({ method, amax, mw, fs, cfc, ic, fc, gwt }, t);
-  const canRun = hasProfiles && !!profileId && issues.length === 0 && !submitting;
+  const { checks, messages } = validate({ method, amax, mw, fs, cfc, ic, fc, gwt }, hasProfiles && !!profileId, t);
+  const missingCount = Object.values(checks).filter((state) => state !== "ok").length;
+  const canRun = missingCount === 0 && !submitting;
+  const selectedProfile = profiles.find((p) => p.id === profileId) ?? null;
 
   async function handleRun() {
     if (!canRun || !method) return;
@@ -166,85 +191,151 @@ export function AnalysisPage() {
   const noSource = runError instanceof ApiError && runError.code === "no_soil_source";
   const profileMissing = runError instanceof ApiError && runError.status === 404 && runError.code === "not_found";
 
+  const fromProject = (value: Field, site: number | null) => site !== null && value === site;
+  const required = (state: FieldState) => state === "missing" && <FieldNote kind="required">{t("liquefaction.required")}</FieldNote>;
+  const problem = (key: keyof Messages) => messages[key] && <FieldNote kind="error">{messages[key]}</FieldNote>;
+  const projectNote = (
+    <FieldNote kind="help">
+      {t("liquefaction.site_note")} ·{" "}
+      <Anchor component={Link} to="/launcher" size="xs">{t("liquefaction.site_change")}</Anchor>
+    </FieldNote>
+  );
+  const checklist: Array<{ id: string; label: string; state: FieldState }> = [
+    { id: "liq-profile", label: t("liquefaction.check.profile"), state: checks.profile },
+    { id: "liq-method", label: t("liquefaction.check.method"), state: checks.method },
+    { id: "liq-amax", label: t("liquefaction.check.amax"), state: checks.amax },
+    { id: "liq-mw", label: t("liquefaction.check.mw"), state: checks.mw },
+    { id: "liq-fs", label: t("liquefaction.check.target_fs"), state: checks.fs },
+    { id: "liq-cfc", label: t("liquefaction.check.c_fc"), state: checks.cfc },
+    { id: "liq-ic", label: t("liquefaction.check.ic_cutoff"), state: checks.ic },
+  ];
+
   return (
-    <Stack gap="lg" maw={880}>
-      <Stack gap={4}>
-        <Title order={2}>{t("liquefaction.analysis.title")}</Title>
-        <Text c="dimmed">{t("liquefaction.analysis.subtitle")}</Text>
-      </Stack>
+    <Stack gap="md" maw={1120}>
+      <PageHeader title={t("liquefaction.analysis.title")} lead={t("liquefaction.analysis.subtitle")} />
 
-      {hasProfiles ? (
-        <Select
-          label={t("liquefaction.profile.label")}
-          value={profileId}
-          onChange={setProfileId}
-          allowDeselect={false}
-          data={profiles.map((p) => ({
-            value: p.id,
-            label: p.id === activeId ? `${p.name} (${t("liquefaction.profile.active")})` : p.name,
-          }))}
-        />
-      ) : (
-        <Alert color="blue" variant="light" icon={<IconInfoCircle size={18} />}>
-          {t("liquefaction.profile.none")}
-        </Alert>
-      )}
+      <Box style={{ display: "grid", gap: "var(--mantine-spacing-md)", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", alignItems: "start" }}>
+        <Stack gap="md" style={{ gridColumn: "span 2", minWidth: 0 }}>
+          <SectionCard step={1} title={t("liquefaction.section.soil")}>
+            {hasProfiles ? (
+              <Stack gap="xs">
+                <Select
+                  id="liq-profile"
+                  label={t("liquefaction.profile.label")}
+                  value={profileId}
+                  onChange={setProfileId}
+                  allowDeselect={false}
+                  data={profiles.map((p) => ({
+                    value: p.id,
+                    label: p.id === activeId ? `${p.name} (${t("liquefaction.profile.active")})` : p.name,
+                  }))}
+                />
+                {selectedProfile && (
+                  <Group gap="xs" align="center">
+                    <Text size="sm" c="dimmed">{t("liquefaction.profile.sources")}</Text>
+                    {selectedProfile.source_ids.length === 0
+                      ? <Text size="sm" c="dimmed">{t("web.common.none")}</Text>
+                      : selectedProfile.source_ids.map((id) => <Badge key={id} variant="light" color="gray" tt="none">{id}</Badge>)}
+                    <Text size="sm" c="dimmed">· {t("web.soil.layer_count", { count: selectedProfile.layer_count })}</Text>
+                  </Group>
+                )}
+              </Stack>
+            ) : (
+              <Alert color="blue" variant="light" icon={<IconInfoCircle size={18} />}>
+                {t("liquefaction.profile.none")}
+              </Alert>
+            )}
+          </SectionCard>
 
-      <Select
-        label={t("liquefaction.field.method")}
-        placeholder={t("liquefaction.field.method_placeholder")}
-        value={method}
-        onChange={(v) => setMethod(v as Method | null)}
-        allowDeselect={false}
-        data={[
-          { value: "bi2014", label: t("liquefaction.method.bi2014") },
-          { value: "youd2001", label: t("liquefaction.method.youd2001") },
-        ]}
-      />
+          <SectionCard step={2} title={t("liquefaction.section.earthquake")}>
+            <SimpleGrid cols={{ base: 1, sm: 2 }}>
+              <div>
+                <NumberInput id="liq-amax" label={t("liquefaction.field.amax_g")} value={amax} onChange={setAmax} decimalScale={4} />
+                {fromProject(amax, sitePga) && projectNote}
+                {required(checks.amax)}
+                {problem("amax")}
+              </div>
+              <div>
+                <NumberInput id="liq-mw" label={t("liquefaction.field.mw")} value={mw} onChange={setMw} decimalScale={3} />
+                {fromProject(mw, siteMw) && projectNote}
+                {required(checks.mw)}
+                {problem("mw")}
+              </div>
+              <div>
+                <NumberInput label={t("liquefaction.field.gwt_seismic")} value={gwt} onChange={setGwt} decimalScale={2} />
+                <FieldNote kind="help">{t("liquefaction.help.gwt_seismic")}</FieldNote>
+                {problem("gwt")}
+              </div>
+            </SimpleGrid>
+          </SectionCard>
 
-      <SimpleGrid cols={{ base: 1, sm: 2 }}>
-        <NumberInput
-          label={t("liquefaction.field.amax_g")}
-          value={amax}
-          onChange={setAmax}
-          decimalScale={4}
-          description={sitePga !== null && amax === sitePga ? t("liquefaction.site_note") : undefined}
-        />
-        <NumberInput
-          label={t("liquefaction.field.mw")}
-          value={mw}
-          onChange={setMw}
-          decimalScale={3}
-          description={siteMw !== null && mw === siteMw ? t("liquefaction.site_note") : undefined}
-        />
-        <NumberInput label={t("liquefaction.field.target_fs")} value={fs} onChange={setFs} decimalScale={3} />
-        <NumberInput label={t("liquefaction.field.c_fc")} value={cfc} onChange={setCfc} decimalScale={4} />
-        <NumberInput label={t("liquefaction.field.ic_cutoff")} value={ic} onChange={setIc} decimalScale={3} />
-        <NumberInput
-          label={t("liquefaction.field.default_fc")}
-          description={t("liquefaction.help.default_fc")}
-          value={fc}
-          onChange={setFc}
-          decimalScale={2}
-        />
-        <NumberInput
-          label={t("liquefaction.field.gwt_seismic")}
-          description={t("liquefaction.help.gwt_seismic")}
-          value={gwt}
-          onChange={setGwt}
-          decimalScale={2}
-        />
-      </SimpleGrid>
+          <SectionCard step={3} title={t("liquefaction.section.method")}>
+            <Stack gap="md">
+              <div>
+                <Radio.Group id="liq-method" label={t("liquefaction.field.method")} value={method} onChange={(v) => setMethod(v as Method)}>
+                  <SimpleGrid cols={{ base: 1, sm: 2 }} mt={6}>
+                    {(["bi2014", "youd2001"] as const).map((value) => (
+                      <Radio.Card key={value} value={value} radius="md" p="sm">
+                        <Group wrap="nowrap" align="flex-start" gap="sm">
+                          <Radio.Indicator />
+                          <div>
+                            <Text fw={500} size="sm">{t(`liquefaction.method.${value}`)}</Text>
+                            <Text size="xs" c="dimmed">{t("liquefaction.method.tests")}</Text>
+                          </div>
+                        </Group>
+                      </Radio.Card>
+                    ))}
+                  </SimpleGrid>
+                </Radio.Group>
+                {required(checks.method)}
+              </div>
+              <SimpleGrid cols={{ base: 1, sm: 2 }}>
+                <div>
+                  <NumberInput id="liq-fs" label={t("liquefaction.field.target_fs")} value={fs} onChange={setFs} decimalScale={3} />
+                  <FieldNote kind="help">{t("liquefaction.help.target_fs")}</FieldNote>
+                  {required(checks.fs)}
+                  {problem("fs")}
+                </div>
+                <div>
+                  <NumberInput id="liq-cfc" label={t("liquefaction.field.c_fc")} value={cfc} onChange={setCfc} decimalScale={4} />
+                  <FieldNote kind="help">{t("liquefaction.help.c_fc")}</FieldNote>
+                  {required(checks.cfc)}
+                </div>
+                <div>
+                  <NumberInput id="liq-ic" label={t("liquefaction.field.ic_cutoff")} value={ic} onChange={setIc} decimalScale={3} />
+                  <FieldNote kind="help">{t("liquefaction.help.ic_cutoff")}</FieldNote>
+                  {required(checks.ic)}
+                </div>
+              </SimpleGrid>
+              <CollapsibleSection label={t("liquefaction.advanced")}>
+                <NumberInput label={t("liquefaction.field.default_fc")} value={fc} onChange={setFc} decimalScale={2} maw={320} />
+                <FieldNote kind="help">{t("liquefaction.help.default_fc")}</FieldNote>
+                {problem("fc")}
+              </CollapsibleSection>
+            </Stack>
+          </SectionCard>
+        </Stack>
 
-      {issues.length > 0 && (
-        <Alert color="yellow" variant="light" title={t("liquefaction.error.issues_title")}>
-          <ul style={{ margin: 0, paddingLeft: 18 }}>
-            {issues.map((msg, i) => (
-              <li key={i}>{msg}</li>
+        <SectionCard title={t("liquefaction.check.title")}>
+          <Stack gap="xs" component="ul" m={0} p={0} style={{ listStyle: "none" }}>
+            {checklist.map((item) => (
+              <Group key={item.id} component="li" justify="space-between" wrap="nowrap" gap="xs">
+                <Group gap={8} wrap="nowrap">
+                  {item.state === "ok"
+                    ? <IconCircleCheck size={18} color="var(--gt-ok-dot)" aria-hidden="true" />
+                    : <IconCircleDashed size={18} color="var(--gt-warn-dot)" aria-hidden="true" />}
+                  <Text size="sm" c={item.state === "ok" ? "dimmed" : undefined}>{item.label}</Text>
+                </Group>
+                {item.state !== "ok" && (
+                  <Button size="compact-xs" variant="subtle" onClick={() => focusField(item.id)}>
+                    {t("liquefaction.check.go")}
+                  </Button>
+                )}
+              </Group>
             ))}
-          </ul>
-        </Alert>
-      )}
+          </Stack>
+        </SectionCard>
+      </Box>
 
       {runError != null &&
         (noSource ? (
@@ -272,11 +363,23 @@ export function AnalysisPage() {
           <ErrorAlert error={runError} />
         ))}
 
-      <Group justify="flex-end">
+      <ActionBar
+        summary={missingCount > 0 ? t("liquefaction.bar.missing", { count: missingCount }) : undefined}
+        text={t(missingCount > 0 ? "liquefaction.bar.hint_missing" : "liquefaction.bar.hint_ready")}
+      >
         <Button disabled={!canRun} loading={submitting} onClick={handleRun}>
           {t("liquefaction.run")}
         </Button>
-      </Group>
+      </ActionBar>
     </Stack>
   );
+}
+
+/** Moves keyboard focus to the field (or the first control inside a group) with this id. */
+function focusField(id: string) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  const target = el.matches("input, button, textarea") ? el : el.querySelector<HTMLElement>("input, button");
+  (target ?? el).focus();
+  el.scrollIntoView?.({ block: "center", behavior: "smooth" });
 }
