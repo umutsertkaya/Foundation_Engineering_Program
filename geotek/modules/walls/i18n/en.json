@@ -295,5 +295,12 @@
   "walls.wizard.step.soil": "Soil",
   "walls.wizard.step.loads": "Loads",
   "walls.wizard.step.run": "Check",
-  "walls.wizard.step.result": "Result"
+  "walls.wizard.step.result": "Result",
+  "walls.list.lead": "Your saved retaining walls. Open one or add a new one.",
+  "walls.list.empty_title": "No walls yet",
+  "walls.list.empty_desc": "Add a new wall to get started.",
+  "walls.list.not_run": "Not calculated",
+  "walls.type_picker.basics": "Name and height",
+  "walls.type_picker.pick_first": "Pick a wall type first",
+  "walls.at_rest.inputs": "Inputs"
 }

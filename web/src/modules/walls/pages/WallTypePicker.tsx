@@ -1,4 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { PageHeader } from "../../../shared/components/PageHeader";
+import { SectionCard } from "../../../shared/components/SectionCard";
+import { ActionBar } from "../../../shared/components/ActionBar";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import {
@@ -201,10 +204,7 @@ export function WallTypePicker() {
 
   return (
     <Stack gap="lg" maw={880}>
-      <Stack gap={4}>
-        <Title order={2}>{t("walls.type_picker.title")}</Title>
-        <Text c="dimmed">{t("walls.type_picker.subtitle")}</Text>
-      </Stack>
+      <PageHeader title={t("walls.type_picker.title")} lead={t("walls.type_picker.subtitle")} />
 
       <SimpleGrid
         cols={{ base: 1, sm: 2 }}
@@ -269,6 +269,8 @@ export function WallTypePicker() {
         })}
       </SimpleGrid>
 
+      <SectionCard title={t("walls.type_picker.basics")}>
+      <Stack gap="sm">
       <TextInput
         label={t("walls.type_picker.name")}
         placeholder={selectedInfo ? t(selectedInfo.title_key) : undefined}
@@ -287,10 +289,11 @@ export function WallTypePicker() {
         step={0.25}
         decimalScale={2}
       />
+      </Stack>
+      </SectionCard>
 
-      <Card withBorder padding="md" radius="md">
+      <SectionCard title={t("walls.soil_source.title")}>
         <Stack gap="sm">
-          <Text fw={600}>{t("walls.soil_source.title")}</Text>
           {hasProfiles ? (
             <Radio.Group
               value={manual ? "manual" : "copy"}
@@ -359,20 +362,22 @@ export function WallTypePicker() {
             </Stack>
           )}
         </Stack>
-      </Card>
+      </SectionCard>
 
       {submitError != null && <ErrorAlert error={submitError} />}
 
-      <Group justify="flex-end">
-        {cancelButton}
-        <Button
-          disabled={!selected || submitting || manualInvalid || copyInvalid}
-          loading={submitting}
-          onClick={handleCreate}
-        >
-          {t("walls.type_picker.create")}
-        </Button>
-      </Group>
+      <ActionBar text={selectedInfo ? t(selectedInfo.title_key) : t("walls.type_picker.pick_first")}>
+        <Group gap="xs">
+          {cancelButton}
+          <Button
+            disabled={!selected || submitting || manualInvalid || copyInvalid}
+            loading={submitting}
+            onClick={handleCreate}
+          >
+            {t("walls.type_picker.create")}
+          </Button>
+        </Group>
+      </ActionBar>
     </Stack>
   );
 }

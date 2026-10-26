@@ -13,7 +13,6 @@ export const manifest: WebModuleManifest = {
   Root,
   nav: [
     { path: "", labelKey: "walls.nav.list", end: true, matchPrefixes: ["s/"] },
-    { path: "new", labelKey: "walls.nav.new" },
     { path: "at-rest", labelKey: "walls.nav.at_rest" },
   ],
 };

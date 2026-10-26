@@ -1,21 +1,14 @@
 import { useCallback, useEffect, useState } from "react";
-import {
-  Alert,
-  Badge,
-  Button,
-  Card,
-  Group,
-  SimpleGrid,
-  Stack,
-  Text,
-  Title,
-} from "@mantine/core";
+import { Alert, Button, Group, SimpleGrid, Stack, Text } from "@mantine/core";
 import { IconArrowRight, IconPlus } from "@tabler/icons-react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { ApiError, list_structures } from "../../../shared/api/client";
 import type { StructureSummary } from "../../../shared/api/types";
 import { EmptyState } from "../../../shared/components/EmptyState";
+import { PageHeader } from "../../../shared/components/PageHeader";
+import { SectionCard } from "../../../shared/components/SectionCard";
+import { StatusChip } from "../../../shared/components/StatusChip";
 
 export function WallListPage() {
   const { t } = useTranslation();
@@ -44,27 +37,22 @@ export function WallListPage() {
     void loadStructures();
   }, [loadStructures]);
 
+  const statusLabel = (s: StructureSummary) =>
+    s.stale ? t("walls.status.stale") : s.has_result ? t("walls.status.current") : t("walls.list.not_run");
+
   if (loading && structures.length === 0) {
     return <Text size="sm">{t("web.common.loading")}</Text>;
   }
 
+  const newButton = (
+    <Button leftSection={<IconPlus size={16} aria-hidden="true" />} onClick={() => navigate("/m/walls/new")}>
+      {t("walls.nav.new")}
+    </Button>
+  );
+
   return (
     <Stack gap="md">
-      <Group justify="space-between" align="flex-start">
-        <div>
-          <Title order={3}>{t("walls.nav.list")}</Title>
-          <Text size="sm" c="dimmed">
-            {t("web.structures.subtitle")}
-          </Text>
-        </div>
-        <Button
-          size="xs"
-          leftSection={<IconPlus size={14} />}
-          onClick={() => navigate("/m/walls/new")}
-        >
-          {t("walls.nav.new")}
-        </Button>
-      </Group>
+      <PageHeader title={t("walls.nav.list")} lead={t("walls.list.lead")} actions={newButton} />
 
       {error && (
         <Alert color="red" title={t(`error.${error.code}`)}>
@@ -73,74 +61,32 @@ export function WallListPage() {
       )}
 
       {structures.length === 0 ? (
-        <EmptyState
-          title={t("web.structures.empty_title")}
-          description={t("web.structures.empty_desc")}
-          action={
-            <Button
-              size="xs"
-              leftSection={<IconPlus size={14} />}
-              onClick={() => navigate("/m/walls/new")}
-            >
-              {t("walls.nav.new")}
-            </Button>
-          }
-        />
+        <EmptyState title={t("walls.list.empty_title")} description={t("walls.list.empty_desc")} action={newButton} />
       ) : (
-        <SimpleGrid cols={{ base: 1, md: 2 }} spacing="sm">
+        <SimpleGrid cols={{ base: 1, md: 2 }} spacing="md">
           {structures.map((s) => (
-            <Card key={s.id} withBorder padding="sm" radius="sm">
-              <Stack gap="xs">
-                <Group justify="space-between" wrap="nowrap">
-                  <Text fw={700} size="sm">
-                    {s.name}
-                  </Text>
-                  <Button
-                    size="compact-xs"
-                    variant="light"
-                    rightSection={<IconArrowRight size={13} />}
-                    onClick={() => navigate(`/m/walls/s/${s.id}`)}
-                  >
-                    {t("web.common.open")}
-                  </Button>
-                </Group>
-
-                <Group gap={6}>
-                  <Badge size="xs" color="blue" variant="light">
-                    {t(`web.structures.kind.${s.kind}`)}
-                  </Badge>
-                  {s.wall_type && (
-                    <Badge size="xs" color="indigo" variant="outline">
-                      {s.wall_type === "cantilever"
-                        ? t("ui.wall.cantilever")
-                        : t("ui.wall.gravity")}
-                    </Badge>
-                  )}
-                  <Badge
-                    size="xs"
-                    color={s.stale ? "amber" : "green"}
-                    variant="light"
-                  >
-                    {s.stale
-                      ? t("web.structures.badge.stale")
-                      : t("web.structures.badge.fresh")}
-                  </Badge>
-                  <Badge
-                    size="xs"
-                    color={s.has_result ? "teal" : "gray"}
-                    variant="outline"
-                  >
-                    {s.has_result
-                      ? t("web.structures.badge.has_result")
-                      : t("web.structures.badge.no_result")}
-                  </Badge>
-                </Group>
-              </Stack>
-            </Card>
+            <SectionCard
+              key={s.id}
+              title={s.name}
+              aside={<StatusChip tone={s.stale ? "stale" : s.has_result ? "current" : "neutral"}>{statusLabel(s)}</StatusChip>}
+            >
+              <Group justify="space-between" wrap="nowrap">
+                <Text size="sm" c="dimmed">
+                  {s.wall_type ? t(`ui.wall.${s.wall_type}`) : t(`web.structures.kind.${s.kind}`)}
+                </Text>
+                <Button
+                  variant="default"
+                  size="compact-sm"
+                  rightSection={<IconArrowRight size={14} aria-hidden="true" />}
+                  onClick={() => navigate(`/m/walls/s/${s.id}`)}
+                >
+                  {t("web.common.open")}
+                </Button>
+              </Group>
+            </SectionCard>
           ))}
         </SimpleGrid>
       )}
-
     </Stack>
   );
 }

@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
-import { Button, Group, NumberInput, Select, Stack, Table, Text, Title } from "@mantine/core";
+import { Button, Group, NumberInput, Select, Stack, Table, Text } from "@mantine/core";
 import { useTranslation } from "react-i18next";
 import { list_project_profiles } from "../../../shared/api/core";
 import type { ProfileSummary } from "../../../shared/api/types";
+import { PageHeader } from "../../../shared/components/PageHeader";
+import { SectionCard } from "../../../shared/components/SectionCard";
 import { ErrorAlert } from "../../../shared/components/ErrorAlert";
 import { analyze_at_rest } from "../api";
 import { AtRestDiagram } from "../components/AtRestDiagram";
@@ -65,15 +67,11 @@ export function AtRestPage() {
 
   return (
     <Stack gap="md" data-testid="at-rest-page">
-      <div>
-        <Title order={3}>{t("walls.at_rest.title")}</Title>
-        <Text size="sm" c="dimmed">
-          {t("walls.at_rest.subtitle")}
-        </Text>
-      </div>
+      <PageHeader title={t("walls.at_rest.title")} lead={t("walls.at_rest.subtitle")} />
 
       {profiles !== null && profiles.length === 0 && <Text size="sm">{t("walls.at_rest.no_profiles")}</Text>}
 
+      <SectionCard title={t("walls.at_rest.inputs")}>
       <Group align="flex-end" gap="sm">
         <Select
           label={t("walls.at_rest.profile")}
@@ -101,15 +99,17 @@ export function AtRestPage() {
           {t("walls.at_rest.run")}
         </Button>
       </Group>
+      </SectionCard>
 
       {error !== null && <ErrorAlert error={error} />}
 
       {result && (
         <Stack gap="md" data-testid="at-rest-result">
-          <Title order={5}>{t("walls.at_rest.diagram")}</Title>
-          <AtRestDiagram result={result} />
+          <SectionCard title={t("walls.at_rest.diagram")}>
+            <AtRestDiagram result={result} />
+          </SectionCard>
 
-          <Title order={5}>{t("walls.at_rest.layers")}</Title>
+          <SectionCard title={t("walls.at_rest.layers")}>
           <Table withTableBorder data-testid="at-rest-layers">
             <Table.Thead>
               <Table.Tr>
@@ -130,8 +130,9 @@ export function AtRestPage() {
               ))}
             </Table.Tbody>
           </Table>
+          </SectionCard>
 
-          <Title order={5}>{t("walls.at_rest.components")}</Title>
+          <SectionCard title={t("walls.at_rest.components")}>
           <Table withTableBorder data-testid="at-rest-components">
             <Table.Thead>
               <Table.Tr>
@@ -155,6 +156,7 @@ export function AtRestPage() {
               </Table.Tr>
             </Table.Tbody>
           </Table>
+          </SectionCard>
 
           {result.warnings.map((w) => (
             <Text key={w} size="xs" c="orange">

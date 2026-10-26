@@ -295,5 +295,12 @@
   "walls.wizard.step.soil": "Zemin",
   "walls.wizard.step.loads": "Yükler",
   "walls.wizard.step.run": "Kontrol",
-  "walls.wizard.step.result": "Sonuç"
+  "walls.wizard.step.result": "Sonuç",
+  "walls.list.lead": "Kayıtlı istinat duvarlarınız. Birini açın ya da yenisini ekleyin.",
+  "walls.list.empty_title": "Henüz duvar yok",
+  "walls.list.empty_desc": "Yeni duvar ekleyerek başlayın.",
+  "walls.list.not_run": "Hesaplanmadı",
+  "walls.type_picker.basics": "Ad ve yükseklik",
+  "walls.type_picker.pick_first": "Önce bir duvar tipi seçin",
+  "walls.at_rest.inputs": "Girdiler"
 }
