@@ -313,3 +313,25 @@ def shear_moment_plot(z: list[float], shear: list[float], moment: list[float], *
                          textcoords="offset points", xytext=(6, -10), color=BAD, fontsize=8)
     fig.tight_layout()
     return _png(fig)
+
+
+def apparent_envelope_plot(z: list[float], p: list[float], *, excavation_height: float,
+                           anchor_depths: list[float], labels: dict[str, str]) -> bytes | None:
+    """Apparent pressure envelope against depth with the anchor levels dashed."""
+    if len(z) < 2 or len(z) != len(p) or not _finite(z + p) or excavation_height <= 0:
+        return None
+    fig, ax = plt.subplots(figsize=(3.8, 3.6))
+    ax.fill_betweenx(z, 0, p, color=NAVY, alpha=0.2, lw=0)
+    ax.plot(p, z, color=NAVY, lw=1.6)
+    for depth in anchor_depths:
+        ax.axhline(depth, color="#888", ls="--", lw=0.8)
+    ax.axhline(excavation_height, color="#888", ls=":", lw=1)
+    ax.set_ylim(excavation_height * 1.03, 0)
+    ax.set_xlabel(labels["x"])
+    ax.set_ylabel(labels["y"])
+    ax.set_title(labels["title"], fontsize=9)
+    ax.annotate(f"{max(p):.1f} kPa", (max(p), z[1] if len(z) > 1 else 0), textcoords="offset points",
+                xytext=(-4, -10), ha="right", fontsize=8, color=NAVY)
+    ax.grid(alpha=0.3)
+    fig.tight_layout()
+    return _png(fig)

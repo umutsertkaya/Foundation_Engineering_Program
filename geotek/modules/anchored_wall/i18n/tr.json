@@ -334,5 +334,10 @@
   "anchored_wall.result.more": "Diğer sonuçlar",
   "anchored_wall.result.diagrams": "Moment ve kesme grafikleri",
   "anchored_wall.result.assumptions_title": "Varsayımlar ve uyarılar ({n})",
-  "anchored_wall.unit.kn_per_anchor": "kN / ankraj"
+  "anchored_wall.unit.kn_per_anchor": "kN / ankraj",
+  "anchored_wall.envelope.title": "Görünür basınç zarfı",
+  "anchored_wall.envelope.aria": "Görünür basınç zarfı, derinliğe göre",
+  "anchored_wall.envelope.axis": "Basınç [kPa]",
+  "anchored_wall.envelope.caption": "Duvar yüksekliği boyunca görünür basınç zarfı. Kesikli çizgiler ankraj seviyeleridir. Zarf yatay zemin için ampirik bir tasarım diyagramıdır, gerçek basınç dağılımı değildir.",
+  "anchored_wall.fig.envelope_caption": "Duvar yüksekliği boyunca görünür basınç zarfı. Kesikli çizgiler ankraj seviyeleridir. Zarf yatay zemin için ampirik bir tasarım diyagramıdır, gerçek basınç dağılımı değildir."
 }

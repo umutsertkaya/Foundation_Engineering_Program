@@ -158,6 +158,7 @@ def test_anchored_wall_report_embeds_section_and_diagram_figures():
 
     data = report.build_docx(_anchored_project(), ["anchored_wall:analysis"], language="en")
     doc = Document(io.BytesIO(data))
-    assert len(doc.inline_shapes) == 2
+    assert len(doc.inline_shapes) == 3  # section, shear/moment, apparent pressure envelope
     text = "\n".join(p.text for p in doc.paragraphs)
     assert "Anchored wall section (to scale)" in text and "could not be drawn" not in text
+    assert "Apparent pressure envelope over the wall height" in text

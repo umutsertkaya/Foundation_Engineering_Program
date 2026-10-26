@@ -67,6 +67,7 @@ describe("anchored wall analysis page", () => {
     expect(await screen.findByTestId("aw-analysis-result")).toBeInTheDocument();
     expect(screen.getByTestId("aw-section")).toBeInTheDocument();
     expect(screen.getByTestId("aw-diagrams")).toBeInTheDocument();
+    expect(screen.getByTestId("aw-envelope-diagram")).toBeInTheDocument();
     expect(screen.getByTestId("aw-warnings")).toHaveTextContent(i18n.t("anchored_wall.warning.mock_result"));
     expect(screen.getByTestId("aw-status")).toHaveTextContent(i18n.t("anchored_wall.status.ready"));
     // editing an input after the run marks the shown result as out of date

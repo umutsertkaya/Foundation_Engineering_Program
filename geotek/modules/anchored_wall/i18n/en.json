@@ -334,5 +334,10 @@
   "anchored_wall.result.more": "More results",
   "anchored_wall.result.diagrams": "Moment and shear diagrams",
   "anchored_wall.result.assumptions_title": "Assumptions and warnings ({n})",
-  "anchored_wall.unit.kn_per_anchor": "kN / anchor"
+  "anchored_wall.unit.kn_per_anchor": "kN / anchor",
+  "anchored_wall.envelope.title": "Apparent pressure envelope",
+  "anchored_wall.envelope.aria": "Apparent pressure envelope against depth",
+  "anchored_wall.envelope.axis": "Pressure [kPa]",
+  "anchored_wall.envelope.caption": "Apparent pressure envelope over the wall height. Dashed lines are the anchor levels. The envelope is an empirical design diagram for level ground, not the real pressure distribution.",
+  "anchored_wall.fig.envelope_caption": "Apparent pressure envelope over the wall height. Dashed lines are the anchor levels. The envelope is an empirical design diagram for level ground, not the real pressure distribution."
 }
