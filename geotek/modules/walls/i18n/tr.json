@@ -73,7 +73,7 @@
   "walls.options.passive.confirm": "{value} değerini mühendis seçimi olarak onaylıyorum",
   "walls.options.passive.code_note": "Tasarım kodunun kendi pasif katkı katsayısı (örn. TBDY 0,3) bu azaltmaya ek olarak ayrıca uygulanır.",
   "walls.perm.title": "Zemin geçirimliliği (k)",
-  "walls.perm.hint": "Hidrolik iletkenlik k [m/s], Yükler/deprem adımındaki “Geçirimliliğe göre” seçeneği için gereklidir. Bilimsel gösterim kullanın (örn. 1e-5); boş hücre “k girilmedi” demektir. Sınıflandırmayı hesap motoru yapar ve sonuçta uyarıları verir.",
+  "walls.perm.hint": "Hidrolik iletkenlik k [m/s], Yükler adımındaki “Geçirimliliğe göre” seçeneği için gereklidir. Bilimsel gösterim kullanın (örn. 1e-5); boş hücre “k girilmedi” demektir. Sınıflandırmayı hesap motoru yapar ve sonuçta uyarıları verir.",
   "walls.perm.col.layer": "Katman",
   "walls.perm.col.origin": "Kaynak",
   "walls.perm.col.depth": "Derinlik (m)",
@@ -164,7 +164,7 @@
   "walls.job.status.cancelled": "İptal edildi",
   "walls.job.status.idle": "Beklemede",
   "walls.perm.invalid_cleared": "Geçersiz giriş silindi; bu katman için k girilmemiş sayılır. k > 0 olan bir sayı girin (örn. 1e-5).",
-  "walls.run.passive_unconfirmed": "Pasif direnç açık ve azaltma katsayısı {value} bu oturumda onaylanmadı. Hesap notları bu değeri “mühendis seçimi” olarak yazar; Yükler/deprem adımında onaylayın.",
+  "walls.run.passive_unconfirmed": "Pasif direnç açık ve azaltma katsayısı {value} bu oturumda onaylanmadı. Hesap notları bu değeri “mühendis seçimi” olarak yazar; Yükler adımında onaylayın.",
   "walls.result.stale_inputs": "Girdiler bu sonuçtan sonra değişti; gösterilen sonuç güncel değil. Yeniden hesaplayın.",
   "walls.result.stale_job": "Son hesap tamamlanmadı (hata, iptal veya sürüyor); gösterilen sonuç önceki çalıştırmaya aittir.",
   "walls.result.section_geometry_only": "Kesit yalnızca sonuç geometrisini gösterir; sonuç, hesapta kullanılan zemin katmanlarını ve dolgu eğimini taşımaz.",
@@ -176,7 +176,7 @@
   "walls.loads.r_hint": "Boş = duvar tipine göre (TBDY Tablo 16.7)",
   "walls.loads.sds_range": "S_DS 0'dan büyük ve 3'ten küçük olmalıdır.",
   "walls.loads.r_range": "r 0'dan büyük ve en fazla 2 olmalıdır.",
-  "walls.run.seismic_invalid": "Bir deprem girdisi aralık dışında; Yükler/deprem adımında düzeltin veya boşaltın.",
+  "walls.run.seismic_invalid": "Bir deprem girdisi aralık dışında; Yükler adımında düzeltin veya boşaltın.",
   "walls.warning.shear_key_bearing": "Taşıma gücünde diş derinliği gömülmeye eklenmedi (bilinçli tutucu kabul: taşıma gücü olduğundan küçük hesaplanır)",
   "walls.warning.shear_key_water": "Yeraltı suyu diş ucundan yukarıda ({depth} m): diş tabanındaki ek hidrostatik kaldırma ve diş ucu düzlemindeki su itkileri hesaba katıldı; su basıncı hidrostatik varsayıldı, diş çevresindeki sızıntı (akış ağı) hesaplanmadı",
   "walls.warning.shear_key_reduces_sliding": "Diş ucundan geçen yüzey, dişsiz taban yüzeyinden daha düşük kayma güvenliği veriyor (kayma güvenliği iki yüzeyin küçüğüdür); diş altındaki zemin dayanımını ve taban sürtünmesi varsayımını kontrol edin",
@@ -302,5 +302,7 @@
   "walls.list.not_run": "Hesaplanmadı",
   "walls.type_picker.basics": "Ad ve yükseklik",
   "walls.type_picker.pick_first": "Önce bir duvar tipi seçin",
-  "walls.at_rest.inputs": "Girdiler"
+  "walls.at_rest.inputs": "Girdiler",
+  "walls.table.required": "gerekli {value}",
+  "walls.table.limit": "sınır {value}"
 }

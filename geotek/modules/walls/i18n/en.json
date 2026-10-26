@@ -302,5 +302,7 @@
   "walls.list.not_run": "Not calculated",
   "walls.type_picker.basics": "Name and height",
   "walls.type_picker.pick_first": "Pick a wall type first",
-  "walls.at_rest.inputs": "Inputs"
+  "walls.at_rest.inputs": "Inputs",
+  "walls.table.required": "required {value}",
+  "walls.table.limit": "limit {value}"
 }

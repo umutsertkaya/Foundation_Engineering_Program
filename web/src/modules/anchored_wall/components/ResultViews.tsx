@@ -78,7 +78,7 @@ export function AnchorResultView({ result }: { result: AnchorDesignResult }) {
             <Checks checks={result.checks} />
           </DisclosureRow>
         )}
-        <DisclosureRow title={t("anchored_wall.result.assumptions_title", { n: result.assumptions.length })} defaultOpened={result.warnings.length > 0}>
+        <DisclosureRow title={t("anchored_wall.result.assumptions_title", { n: result.assumptions.length + result.warnings.length })} defaultOpened={result.warnings.length > 0}>
           <Notices warnings={result.warnings} assumptions={result.assumptions} sources={result.sources} />
         </DisclosureRow>
       </DisclosureList>
@@ -228,7 +228,7 @@ export function AnalysisResultView({ result, soil }: { result: AnalysisResult; s
           </DisclosureRow>
         )}
         {(warnings.length > 0 || assumptions.length > 0 || (result.sources?.length ?? 0) > 0) && (
-          <DisclosureRow title={t("anchored_wall.result.assumptions_title", { n: assumptions.length })} defaultOpened={warnings.length > 0}>
+          <DisclosureRow title={t("anchored_wall.result.assumptions_title", { n: assumptions.length + warnings.length })} defaultOpened={warnings.length > 0}>
             <Notices warnings={warnings} assumptions={assumptions} sources={result.sources} />
           </DisclosureRow>
         )}

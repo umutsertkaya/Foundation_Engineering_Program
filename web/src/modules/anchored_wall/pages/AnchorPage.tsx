@@ -138,11 +138,13 @@ export function AnchorPage() {
       </SimpleGrid>
 
       {runError != null && (isCoded(runError) ? <StopAlert error={runError} /> : <ErrorAlert error={runError} />)}
-      <DisclosureList>
-        <DisclosureRow title={t("anchored_wall.missing.list_title", { n: missing.length })}>
-          <MissingList keys={missing} />
-        </DisclosureRow>
-      </DisclosureList>
+      {missing.length > 0 && (
+        <DisclosureList>
+          <DisclosureRow title={t("anchored_wall.missing.list_title", { n: missing.length })}>
+            <MissingList keys={missing} />
+          </DisclosureRow>
+        </DisclosureList>
+      )}
 
       <ActionBar
         summary={missing.length > 0 ? t("anchored_wall.missing.count", { n: missing.length }) : undefined}
