@@ -152,7 +152,7 @@ describe("launcher site blur", () => {
     fireEvent.change(pga, { target: { value: "0.77" } });
     fireEvent.blur(pga);
     await waitFor(async () => expect((await get_session()).dirty).toBe(true));
-    await waitFor(() => expect(screen.getByText(i18n.t("shell.unsaved"))).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByText(i18n.t("shell.chip_unsaved"))).toBeInTheDocument());
     // The page was not unmounted by the refresh: same element, value retained.
     expect(screen.getByLabelText(i18n.t("launcher.pga_g"))).toBe(pga);
     expect(pga).toHaveValue("0.77");
@@ -161,7 +161,7 @@ describe("launcher site blur", () => {
   it("selects the site class from the TBDY list and saves it", async () => {
     Element.prototype.scrollIntoView = vi.fn();
     renderApp("/launcher");
-    const select = await screen.findByRole("textbox", { name: new RegExp(i18n.t("launcher.site_class")) });
+    const select = await screen.findByRole("textbox", { name: new RegExp("^" + i18n.t("launcher.site_class").replace(/[()]/g, "\\$&")) });
     fireEvent.click(select);
     fireEvent.click(await screen.findByRole("option", { name: i18n.t("launcher.site_class.ZD") }));
     await waitFor(async () => expect((await get_project()).site.site_class).toBe("ZD"));

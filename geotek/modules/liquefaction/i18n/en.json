@@ -1,6 +1,6 @@
 {
   "liquefaction.title": "Liquefaction",
-  "liquefaction.description": "Liquefaction triggering from SPT and CPT data (Boulanger & Idriss 2014, Youd et al. 2001), factor of safety and LPI.",
+  "liquefaction.description": "Factor of safety and LPI from SPT and CPT data.",
   "liquefaction.nav.analysis": "Analysis",
   "liquefaction.nav.results": "Results",
   "liquefaction.analysis.title": "Liquefaction analysis",

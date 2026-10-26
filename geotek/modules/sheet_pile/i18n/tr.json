@@ -1,6 +1,6 @@
 {
   "sheet_pile.title": "Palplanş / iksa",
-  "sheet_pile.description": "Konsol ve tek ankrajlı palplanş perdelerinde gömme derinliği, ankraj kuvveti ve iç kuvvetler.",
+  "sheet_pile.description": "Konsol veya tek ankrajlı perdede gömme boyu, moment ve ankraj kuvveti.",
   "sheet_pile.nav.list": "Perdeler",
   "sheet_pile.list.subtitle": "Projedeki palplanş perdeleri.",
   "sheet_pile.list.empty_title": "Henüz palplanş perdesi yok",
