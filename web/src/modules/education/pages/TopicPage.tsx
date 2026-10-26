@@ -3,6 +3,8 @@ import { Link, Navigate, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { TOPICS, loc } from "../content";
 import type { Block } from "../content/types";
+import { PageHeader } from "../../../shared/components/PageHeader";
+import { StatusChip } from "../../../shared/components/StatusChip";
 import { FIGURES } from "../figures";
 import { Formula, Rich } from "../math/Formula";
 
@@ -146,11 +148,11 @@ export function TopicPage() {
   return (
     <Stack gap="md" maw={820}>
       <Anchor component={Link} to=".." relative="path" size="sm">← {t("education.back")}</Anchor>
-      <Group>
-        <Title order={2}>{loc(topic.title, lang)}</Title>
-        <Badge variant="light">{t(`education.level.${topic.level}`)}</Badge>
-      </Group>
-      <Text c="dimmed"><Rich t={loc(topic.summary, lang)} /></Text>
+      <PageHeader
+        title={loc(topic.title, lang)}
+        status={<StatusChip tone="info" dot={false}>{t(`education.level.${topic.level}`)}</StatusChip>}
+        lead={<Rich t={loc(topic.summary, lang)} />}
+      />
       {topic.student ? (
         <Tabs defaultValue="student">
           <Tabs.List>

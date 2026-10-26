@@ -1,14 +1,12 @@
 import { useCallback, useEffect, useState } from "react";
 import {
   Button,
-  Card,
   Container,
   Group,
   Loader,
   Select,
   Stack,
   TextInput,
-  Title,
 } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
 import { IconArrowLeft, IconDeviceFloppy, IconFolderSearch, IconRotate } from "@tabler/icons-react";
@@ -18,6 +16,8 @@ import { get_settings, put_settings } from "../../shared/api/core";
 import type { Language } from "../../shared/api/types";
 import { launcherAvailable, pickPath } from "../../shared/api/launcher";
 import { ErrorAlert } from "../../shared/components/ErrorAlert";
+import { PageHeader } from "../../shared/components/PageHeader";
+import { SectionCard } from "../../shared/components/SectionCard";
 import { loadLanguageCatalog } from "../i18n";
 
 const LANG_STORAGE_KEY = "geotek.lang";
@@ -96,23 +96,26 @@ export function SettingsPage() {
   return (
     <Container size={720} py="xl">
       <Stack gap="md">
-        <Group justify="space-between" align="center">
-          <Title order={2}>{t("settings.title")}</Title>
-          <Button
-            variant="default"
-            leftSection={<IconArrowLeft size={16} />}
-            onClick={() => navigate("/start")}
-          >
-            {t("settings.back")}
-          </Button>
-        </Group>
+        <PageHeader
+          title={t("settings.title")}
+          lead={t("settings.lead")}
+          actions={
+            <Button
+              variant="default"
+              leftSection={<IconArrowLeft size={16} />}
+              onClick={() => navigate("/start")}
+            >
+              {t("settings.back")}
+            </Button>
+          }
+        />
 
         {error != null && <ErrorAlert error={error} onRetry={() => void loadSettings()} />}
 
         {loading ? (
           <Loader />
         ) : (
-          <Card withBorder padding="md" radius="sm">
+          <SectionCard title={t("settings.card_title")}>
             <Stack gap="md">
               <Group align="flex-end" gap="xs" wrap="wrap">
                 <TextInput
@@ -164,7 +167,7 @@ export function SettingsPage() {
                 </Button>
               </Group>
             </Stack>
-          </Card>
+          </SectionCard>
         )}
       </Stack>
     </Container>
