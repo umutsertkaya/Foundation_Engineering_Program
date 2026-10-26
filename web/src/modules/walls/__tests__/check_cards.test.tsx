@@ -161,7 +161,7 @@ describe("WallResultView", () => {
 
   it("draws the section from the result geometry only (no soil), deriving type and height from it", () => {
     renderThemed(<WallResultView result={result({ geometry: GRAVITY, checks: CHECKS })} />);
-    const svg = document.querySelector("svg")!;
+    const svg = document.querySelector("svg[aria-label]")!;
     expect(svg.querySelector('[data-part="wall"]')).not.toBeNull(); // gravity body, whatever the wizard draft says
     expect(svg.querySelectorAll('[data-part="band"]')).toHaveLength(0);
     expect(svg.querySelectorAll('[data-part="water"]')).toHaveLength(0);

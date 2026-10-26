@@ -1,0 +1,21 @@
+/* Numbered callout shown before a dimension label; the number comes from data-n so it is not part of the label text. */
+.gt-wall-mk {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  margin-right: 6px;
+  border-radius: 50%;
+  background: var(--mantine-color-text);
+  color: var(--mantine-color-body);
+  font-size: 11px;
+  font-weight: 600;
+  vertical-align: middle;
+}
+.gt-wall-mk::after {
+  content: attr(data-n);
+}
+.gt-wall-mk[data-focused="true"] {
+  background: var(--mantine-color-blue-filled);
+}

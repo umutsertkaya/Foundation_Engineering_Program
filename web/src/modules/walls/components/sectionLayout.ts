@@ -24,6 +24,20 @@ import {
 } from "../../../shared/soil/zones";
 
 export type Pt = [number, number];
+
+/** Dimension fields that get a numbered callout on the drawing; the list order is the number (1-based). */
+export const WALL_MARKER_FIELDS: Record<WallType, readonly string[]> = {
+  cantilever: ["height", "embedment", "toe", "heel", "base_thickness", "stem_top", "stem_bottom"],
+  gravity: ["height", "embedment", "base_width", "top_width", "back_offset"],
+};
+
+export interface SectionMarker {
+  field: string;
+  /** 1-based callout number (position in `WALL_MARKER_FIELDS`). */
+  n: number;
+  /** Pixel position of the callout centre. */
+  at: Pt;
+}
 export type BandSide = "backfill" | "front" | "foundation";
 
 export interface SectionInput {
@@ -94,6 +108,8 @@ export interface SectionLayout {
     H: { x: number; y0: number; y1: number };
     D: { x: number; y0: number; y1: number };
   };
+  /** Numbered callouts for the editable dimensions (see `WALL_MARKER_FIELDS`). */
+  markers: SectionMarker[];
   warnings: ("profile_short" | "front_depth")[];
   /** True when a soil model was given (bands and water are meaningful). */
   hasSoil: boolean;
@@ -141,6 +157,10 @@ export function buildSectionLayout(input: SectionInput): SectionLayout {
   let heelWidth: number | null = null;
   let stemCentre: Pt | null = null;
   let wallCentre: Pt | null = null;
+  /** World positions [m] of the callouts that sit on the drawing; dimension-line ones are added after scaling. */
+  const markerWorld: Record<string, Pt> = {};
+  /** Pixel offsets [px] added after scaling so a callout clears the outline it points at. */
+  const markerShift: Record<string, Pt> = {};
 
   if (isCantilever(wallType, geometry)) {
     const toe = Math.max(0, geometry.toe);
@@ -171,6 +191,13 @@ export function buildSectionLayout(input: SectionInput): SectionLayout {
     toeWidth = toe;
     heelWidth = heel;
     stemCentre = [(xFrontTop + xBack) / 2, tb + (H - tb) / 2];
+    markerWorld.toe = [toe / 2, tb / 2];
+    markerWorld.heel = [B - heel / 2, tb / 2];
+    markerWorld.base_thickness = [B, tb / 2];
+    markerShift.base_thickness = [12, 0];
+    markerWorld.stem_top = [xBack - stemTop / 2, H];
+    markerShift.stem_top = [0, -12];
+    markerWorld.stem_bottom = [toe + stemBottom / 2, tb + (H - tb) * 0.1];
   } else {
     const grav = geometry as GravityGeometry;
     B = Math.max(EPS, grav.base_width);
@@ -187,6 +214,12 @@ export function buildSectionLayout(input: SectionInput): SectionLayout {
     backAt = (y) => B + ((xBackTop - B) * y) / H;
     backTopX = xBackTop;
     wallCentre = [(xFrontTop + xBackTop + B) / 3, H / 2];
+    markerWorld.base_width = [B / 2, 0];
+    markerShift.base_width = [0, 14];
+    markerWorld.top_width = [xFrontTop + topW / 2, H];
+    markerShift.top_width = [0, -12];
+    markerWorld.back_offset = [xBackTop + backOffset / 2, H];
+    markerShift.back_offset = [14, -12];
   }
 
   const key = geometry.key ?? null;
@@ -277,6 +310,21 @@ export function buildSectionLayout(input: SectionInput): SectionLayout {
     }
   }
 
+  const dimH = { x: sx(-0.7 * margin), y0: sy(0), y1: sy(H) };
+  const dimD = { x: sx(-0.3 * margin), y0: sy(0), y1: sy(D) };
+  const markers: SectionMarker[] = [];
+  WALL_MARKER_FIELDS[isCantilever(wallType, geometry) ? "cantilever" : "gravity"].forEach((field, i) => {
+    let at: Pt | null = null;
+    if (field === "height") at = [dimH.x, (dimH.y0 + dimH.y1) / 2 - 14];
+    else if (field === "embedment") at = D > 0 ? [dimD.x, (dimD.y0 + dimD.y1) / 2 - 14] : null;
+    else if (markerWorld[field]) {
+      const [x, y] = markerWorld[field];
+      const [dx, dy] = markerShift[field] ?? [0, 0];
+      at = [sx(x) + dx, sy(y) + dy];
+    }
+    if (at) markers.push({ field, n: i + 1, at: [r2(at[0]), r2(at[1])] });
+  });
+
   return {
     width: r2(width), height: r2(height), scale: r2(scale), B, H, D,
     baseThickness, toeWidth, heelWidth,
@@ -293,9 +341,10 @@ export function buildSectionLayout(input: SectionInput): SectionLayout {
     },
     dims: {
       B: { x0: sx(0), x1: sx(B), y: sy(-below * 0.4) },
-      H: { x: sx(-0.7 * margin), y0: sy(0), y1: sy(H) },
-      D: { x: sx(-0.3 * margin), y0: sy(0), y1: sy(D) },
+      H: dimH,
+      D: dimD,
     },
+    markers,
     warnings: zones ? zones.warnings : [],
     hasSoil: soil !== null,
   };

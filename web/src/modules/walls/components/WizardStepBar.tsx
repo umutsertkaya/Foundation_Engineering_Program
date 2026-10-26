@@ -9,12 +9,12 @@ export interface WizardStepBarProps {
   ariaLabel: string;
 }
 
-const LIST: CSSProperties = { display: "grid", gap: 4, listStyle: "none", margin: 0, padding: 0 };
+const LIST: CSSProperties = { display: "grid", gap: 6, listStyle: "none", margin: 0, padding: 0 };
 
 /**
- * Wizard step bar: one equal-width grid cell per step (never a wrapping flex row, which clipped the
- * last label at 800 px). The number sits above its label, which may wrap at spaces inside the cell, so
- * every step stays fully visible and clickable at any page width.
+ * Compact wizard step bar: one equal-width grid cell per step (never a wrapping flex row, which clipped the
+ * last label at 800 px). Each cell is a bordered box with the step number (a check once the step is behind
+ * the active one) and its label, so every step stays fully visible and clickable at any page width.
  */
 export function WizardStepBar({ labels, active, onSelect, ariaLabel }: WizardStepBarProps) {
   return (
@@ -22,7 +22,6 @@ export function WizardStepBar({ labels, active, onSelect, ariaLabel }: WizardSte
       <ol style={{ ...LIST, gridTemplateColumns: `repeat(${labels.length}, minmax(0, 1fr))` }}>
         {labels.map((label, i) => {
           const state = i === active ? "active" : i < active ? "done" : "todo";
-          const filled = state !== "todo";
           return (
             <li key={label} style={{ minWidth: 0 }}>
               <UnstyledButton
@@ -31,49 +30,42 @@ export function WizardStepBar({ labels, active, onSelect, ariaLabel }: WizardSte
                 onClick={() => onSelect(i)}
                 style={{
                   display: "flex",
-                  flexDirection: "column",
                   alignItems: "center",
-                  gap: 4,
+                  gap: 8,
                   width: "100%",
-                  padding: "6px 4px",
-                  textAlign: "center",
-                  borderRadius: "var(--mantine-radius-sm)",
-                  borderBottom: `3px solid ${
-                    state === "active"
-                      ? "var(--mantine-color-blue-filled)"
-                      : state === "done"
-                        ? "var(--mantine-color-blue-light-color)"
-                        : "var(--mantine-color-default-border)"
-                  }`,
+                  padding: state === "active" ? "7px 9px" : "8px 10px",
+                  borderRadius: 10,
+                  background: "var(--mantine-color-body)",
+                  border: state === "active" ? "2px solid var(--gt-info-dot)" : "1px solid var(--gt-border)",
+                  color: state === "active" ? "var(--gt-primary-soft-text)" : "var(--gt-neutral-text)",
                 }}
               >
                 <span
                   aria-hidden="true"
                   style={{
                     flex: "0 0 auto",
-                    width: 20,
-                    height: 20,
+                    width: 22,
+                    height: 22,
                     borderRadius: "50%",
                     display: "inline-flex",
                     alignItems: "center",
                     justifyContent: "center",
-                    fontSize: 11,
-                    fontWeight: 700,
-                    background: filled ? "var(--mantine-color-blue-filled)" : "transparent",
-                    color: filled ? "var(--mantine-color-white)" : "var(--mantine-color-dimmed)",
-                    border: `1px solid ${filled ? "var(--mantine-color-blue-filled)" : "var(--mantine-color-default-border)"}`,
+                    fontSize: 12,
+                    fontWeight: 600,
+                    background:
+                      state === "active" ? "var(--gt-info-dot)" : state === "done" ? "var(--gt-ok-bg)" : "var(--gt-neutral-bg)",
+                    color: state === "active" ? "#fff" : state === "done" ? "var(--gt-ok-text)" : "var(--gt-neutral-text)",
                   }}
                 >
-                  {state === "done" ? <IconCheck size={12} stroke={3} /> : i + 1}
+                  {state === "done" ? <IconCheck size={13} stroke={3} /> : i + 1}
                 </span>
                 <span
                   style={{
                     minWidth: 0,
-                    fontSize: "var(--mantine-font-size-xs)",
-                    fontWeight: state === "active" ? 700 : 500,
+                    fontSize: 13,
+                    fontWeight: state === "active" ? 600 : 400,
                     lineHeight: 1.25,
                     overflowWrap: "break-word",
-                    color: state === "todo" ? "var(--mantine-color-dimmed)" : "var(--mantine-color-text)",
                   }}
                 >
                   {label}

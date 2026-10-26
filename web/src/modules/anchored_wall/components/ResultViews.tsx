@@ -1,19 +1,16 @@
-import { Badge, Card, Group, SimpleGrid, Stack, Table, Text, Title } from "@mantine/core";
+import { Badge, Group, SimpleGrid, Stack, Table, Text } from "@mantine/core";
 import { useTranslation } from "react-i18next";
 import { fmt } from "../format";
 import type { AnalysisResult, AnchorCheck, AnchorDesignResult, StructureSoil } from "../types";
+import { DisclosureList, DisclosureRow } from "../../../shared/components/DisclosureRow";
+import { KpiTile } from "../../../shared/components/KpiTile";
+import { SectionCard } from "../../../shared/components/SectionCard";
+import { StatusChip } from "../../../shared/components/StatusChip";
 import { Notices, type LabelledNotice } from "./Notices";
 import { ForceDiagrams, WallSection } from "./WallSection";
 
-function Stat({ label, value, unit }: { label: string; value: string; unit?: string }) {
-  return (
-    <Card withBorder padding="xs" radius="sm">
-      <Text size="xs" c="dimmed">{label}</Text>
-      <Text fw={700}>
-        {value} {unit && value !== "—" && <Text span size="xs" c="dimmed">{unit}</Text>}
-      </Text>
-    </Card>
-  );
+function Stat({ label, value, unit, sub }: { label: string; value: string; unit?: string; sub?: string }) {
+  return <KpiTile label={label} value={value} unit={unit && value !== "—" ? unit : undefined} sub={sub} />;
 }
 
 /** Check rows; ``prefixes[i]`` labels row i (the anchor level of a per-level check). */
@@ -57,7 +54,7 @@ export function AnchorResultView({ result }: { result: AnchorDesignResult }) {
   const tendon = result.tendon;
   return (
     <Stack gap="sm" data-testid="aw-anchor-result">
-      <SimpleGrid cols={{ base: 2, sm: 4 }}>
+      <SimpleGrid cols={{ base: 1, xs: 2 }} spacing="sm">
         <Stat label={t("anchored_wall.result.design_load")} value={fmt(result.design_load, 1)} unit="kN" />
         <Stat label={t("anchored_wall.result.lock_off_load")} value={fmt(result.lock_off_load, 1)} unit="kN" />
         <Stat label={t("anchored_wall.result.test_load")} value={fmt(result.test_load, 1)} unit="kN" />
@@ -75,10 +72,28 @@ export function AnchorResultView({ result }: { result: AnchorDesignResult }) {
           source: tendon.source,
         })}
       </Text>
-      <Checks checks={result.checks} />
-      <Notices warnings={result.warnings} assumptions={result.assumptions} sources={result.sources} />
+      <DisclosureList>
+        {result.checks.length > 0 && (
+          <DisclosureRow title={t("anchored_wall.report.check")} defaultOpened>
+            <Checks checks={result.checks} />
+          </DisclosureRow>
+        )}
+        <DisclosureRow title={t("anchored_wall.result.assumptions_title", { n: result.assumptions.length + result.warnings.length })} defaultOpened={result.warnings.length > 0}>
+          <Notices warnings={result.warnings} assumptions={result.assumptions} sources={result.sources} />
+        </DisclosureRow>
+      </DisclosureList>
     </Stack>
   );
+}
+
+/** Depth of the largest absolute bending moment along the wall, read from the result's own series. */
+function momentDepth(result: AnalysisResult): number | null {
+  if (result.z.length === 0 || result.z.length !== result.moment.length) return null;
+  let best = 0;
+  result.moment.forEach((m, i) => {
+    if (Math.abs(m) > Math.abs(result.moment[best])) best = i;
+  });
+  return result.z[best];
 }
 
 export function AnalysisResultView({ result, soil }: { result: AnalysisResult; soil: StructureSoil }) {
@@ -93,92 +108,131 @@ export function AnalysisResultView({ result, soil }: { result: AnalysisResult; s
   ];
   const levelNotices = (kind: "warnings" | "assumptions"): LabelledNotice[] =>
     result.levels.flatMap((lv) => (lv.design?.[kind] ?? []).map((n) => ({ ...n, prefix: levelLabel(lv.depth) })));
+  const warnings = dedupe([...result.warnings, ...levelNotices("warnings")]);
+  const assumptions = dedupe([...result.assumptions, ...levelNotices("assumptions")]);
+  const mAt = momentDepth(result);
   return (
     <Stack gap="md" data-testid="aw-analysis-result">
-      <Group justify="space-between">
-        <Title order={4}>{t("anchored_wall.result.title")}</Title>
-        <Badge variant="light">{t(`anchored_wall.method.${result.method}`)}</Badge>
-      </Group>
-      <SimpleGrid cols={{ base: 2, sm: 4 }}>
-        <Stat label={t("anchored_wall.result.embedment_theoretical")} value={fmt(result.embedment_theoretical)} unit="m" />
-        <Stat label={t("anchored_wall.result.embedment")} value={fmt(result.embedment)} unit="m" />
-        <Stat label={t("anchored_wall.result.wall_length")} value={fmt(result.wall_length)} unit="m" />
-        <Stat label={t("anchored_wall.result.base_reaction")} value={fmt(result.base_reaction, 1)} unit="kN/m" />
-        <Stat label={t("anchored_wall.result.m_max")} value={fmt(result.m_max, 1)} unit="kNm/m" />
-        <Stat label={t("anchored_wall.result.v_max")} value={fmt(result.v_max, 1)} unit="kN/m" />
-        {soldier && <Stat label={t("anchored_wall.result.m_max_member")} value={fmt(result.m_max_member, 1)} unit="kNm" />}
-        {soldier && <Stat label={t("anchored_wall.result.v_max_member")} value={fmt(result.v_max_member, 1)} unit="kN" />}
-        <Stat label={t("anchored_wall.result.required_section_modulus")} value={fmt(result.required_section_modulus_cm3, 1)} unit={soldier ? t("anchored_wall.unit.cm3_pile") : "cm³/m"} />
-      </SimpleGrid>
-      {result.envelope && (
-        <Text size="sm" data-testid="aw-envelope">
-          {t("anchored_wall.report.envelope", {
-            kind: t(`anchored_wall.envelope.${result.envelope.kind}`),
-            p: fmt(result.envelope.p_max, 1),
-            thrust: fmt(result.envelope.total_thrust, 1),
-          })}
-        </Text>
-      )}
+      <SectionCard
+        title={t("anchored_wall.section.drawing")}
+        aside={<StatusChip tone="neutral" dot={false}>{t(`anchored_wall.method.${result.method}`)}</StatusChip>}
+      >
+        <WallSection result={result} soil={soil} />
+      </SectionCard>
 
-      <Title order={5}>{t("anchored_wall.report.levels")}</Title>
-      <Table withTableBorder data-testid="aw-levels">
-        <Table.Thead>
-          <Table.Tr>
-            <Table.Th>{t("anchored_wall.report.level_depth")}</Table.Th>
-            <Table.Th>{t("anchored_wall.report.level_inclination")}</Table.Th>
-            <Table.Th>{t("anchored_wall.report.level_spacing")}</Table.Th>
-            <Table.Th>{t("anchored_wall.report.level_load_per_m")}</Table.Th>
-            <Table.Th>{t("anchored_wall.result.design_load")}</Table.Th>
-            {designed && <Table.Th>{t("anchored_wall.result.free_length")}</Table.Th>}
-            {designed && <Table.Th>{t("anchored_wall.result.bond_length")}</Table.Th>}
-            {designed && <Table.Th>{t("anchored_wall.result.tendon")}</Table.Th>}
-          </Table.Tr>
-        </Table.Thead>
-        <Table.Tbody>
+      <SectionCard title={t("anchored_wall.result.title")}>
+        <SimpleGrid cols={{ base: 1, xs: 2 }} spacing="sm">
           {result.levels.map((lv, i) => (
-            <Table.Tr key={i}>
-              <Table.Td>{fmt(lv.depth)}</Table.Td>
-              <Table.Td>{fmt(lv.inclination_deg, 1)}</Table.Td>
-              <Table.Td>{fmt(lv.spacing)}</Table.Td>
-              <Table.Td>{fmt(lv.horizontal_load_per_m, 1)}</Table.Td>
-              <Table.Td>{fmt(lv.axial_load_per_anchor, 1)}</Table.Td>
-              {designed && <Table.Td>{lv.design ? fmt(lv.design.free_length) : "—"}</Table.Td>}
-              {designed && <Table.Td>{lv.design ? fmt(lv.design.bond_length) : "—"}</Table.Td>}
-              {designed && (
-                <Table.Td>
-                  {lv.design ? `${lv.design.tendon.count} × ${lv.design.tendon.label}` : (
-                    <Badge color="red" variant="light">
-                      {(lv.design_missing ?? []).length > 0
-                        ? t("anchored_wall.error.missing_inputs", { missing: (lv.design_missing ?? []).join(", ") })
-                        : lv.design_error ?? "—"}
-                    </Badge>
-                  )}
-                </Table.Td>
-              )}
-            </Table.Tr>
+            <Stat
+              key={i}
+              label={t("anchored_wall.result.level_load", { n: i + 1 })}
+              value={fmt(lv.axial_load_per_anchor, 0)}
+              unit={t("anchored_wall.unit.kn_per_anchor")}
+              sub={t("anchored_wall.result.level_at", { depth: fmt(lv.depth) })}
+            />
           ))}
-        </Table.Tbody>
-      </Table>
+          <Stat
+            label={t("anchored_wall.result.embedment")}
+            value={fmt(result.embedment)}
+            unit="m"
+            sub={t("anchored_wall.result.wall_length_sub", { value: fmt(result.wall_length) })}
+          />
+          <Stat
+            label={t("anchored_wall.result.m_max")}
+            value={fmt(result.m_max, 0)}
+            unit="kNm/m"
+            sub={mAt != null ? t("anchored_wall.result.at_depth", { value: fmt(mAt) }) : undefined}
+          />
+        </SimpleGrid>
+      </SectionCard>
 
-      {result.basal_heave && (
-        <Text size="sm" data-testid="aw-basal">
-          {t("anchored_wall.report.basal_heave", {
-            fs: fmt(result.basal_heave.fs, 2),
-            required: fmt(result.basal_heave.fs_required, 1),
-            nc: fmt(result.basal_heave.nc, 2),
-            su: fmt(result.basal_heave.su_below, 1),
-            b: fmt(result.basal_heave.b_eff, 2),
-          })}
-        </Text>
-      )}
-      <Checks checks={allChecks.map((r) => r.check)} prefixes={allChecks.map((r) => r.prefix)} />
-      <WallSection result={result} soil={soil} />
-      <ForceDiagrams result={result} />
-      <Notices
-        warnings={dedupe([...result.warnings, ...levelNotices("warnings")])}
-        assumptions={dedupe([...result.assumptions, ...levelNotices("assumptions")])}
-        sources={result.sources}
-      />
+      <DisclosureList>
+        <DisclosureRow title={t("anchored_wall.result.more")}>
+          <SimpleGrid cols={{ base: 2, sm: 3 }} spacing="sm">
+            <Stat label={t("anchored_wall.result.embedment_theoretical")} value={fmt(result.embedment_theoretical)} unit="m" />
+            <Stat label={t("anchored_wall.result.base_reaction")} value={fmt(result.base_reaction, 1)} unit="kN/m" />
+            <Stat label={t("anchored_wall.result.v_max")} value={fmt(result.v_max, 1)} unit="kN/m" />
+            {soldier && <Stat label={t("anchored_wall.result.m_max_member")} value={fmt(result.m_max_member, 1)} unit="kNm" />}
+            {soldier && <Stat label={t("anchored_wall.result.v_max_member")} value={fmt(result.v_max_member, 1)} unit="kN" />}
+            <Stat label={t("anchored_wall.result.required_section_modulus")} value={fmt(result.required_section_modulus_cm3, 1)} unit={soldier ? t("anchored_wall.unit.cm3_pile") : "cm³/m"} />
+          </SimpleGrid>
+          {result.envelope && (
+            <Text size="sm" mt="sm" data-testid="aw-envelope">
+              {t("anchored_wall.report.envelope", {
+                kind: t(`anchored_wall.envelope.${result.envelope.kind}`),
+                p: fmt(result.envelope.p_max, 1),
+                thrust: fmt(result.envelope.total_thrust, 1),
+              })}
+            </Text>
+          )}
+          {result.basal_heave && (
+            <Text size="sm" mt="sm" data-testid="aw-basal">
+              {t("anchored_wall.report.basal_heave", {
+                fs: fmt(result.basal_heave.fs, 2),
+                required: fmt(result.basal_heave.fs_required, 1),
+                nc: fmt(result.basal_heave.nc, 2),
+                su: fmt(result.basal_heave.su_below, 1),
+                b: fmt(result.basal_heave.b_eff, 2),
+              })}
+            </Text>
+          )}
+        </DisclosureRow>
+        <DisclosureRow title={t("anchored_wall.report.levels")}>
+          <Table withTableBorder data-testid="aw-levels">
+            <Table.Thead>
+              <Table.Tr>
+                <Table.Th>{t("anchored_wall.report.level_depth")}</Table.Th>
+                <Table.Th>{t("anchored_wall.report.level_inclination")}</Table.Th>
+                <Table.Th>{t("anchored_wall.report.level_spacing")}</Table.Th>
+                <Table.Th>{t("anchored_wall.report.level_load_per_m")}</Table.Th>
+                <Table.Th>{t("anchored_wall.result.design_load")}</Table.Th>
+                {designed && <Table.Th>{t("anchored_wall.result.free_length")}</Table.Th>}
+                {designed && <Table.Th>{t("anchored_wall.result.bond_length")}</Table.Th>}
+                {designed && <Table.Th>{t("anchored_wall.result.tendon")}</Table.Th>}
+              </Table.Tr>
+            </Table.Thead>
+            <Table.Tbody>
+              {result.levels.map((lv, i) => (
+                <Table.Tr key={i}>
+                  <Table.Td>{fmt(lv.depth)}</Table.Td>
+                  <Table.Td>{fmt(lv.inclination_deg, 1)}</Table.Td>
+                  <Table.Td>{fmt(lv.spacing)}</Table.Td>
+                  <Table.Td>{fmt(lv.horizontal_load_per_m, 1)}</Table.Td>
+                  <Table.Td>{fmt(lv.axial_load_per_anchor, 1)}</Table.Td>
+                  {designed && <Table.Td>{lv.design ? fmt(lv.design.free_length) : "—"}</Table.Td>}
+                  {designed && <Table.Td>{lv.design ? fmt(lv.design.bond_length) : "—"}</Table.Td>}
+                  {designed && (
+                    <Table.Td>
+                      {lv.design ? `${lv.design.tendon.count} × ${lv.design.tendon.label}` : (
+                        <Badge color="red" variant="light">
+                          {(lv.design_missing ?? []).length > 0
+                            ? t("anchored_wall.error.missing_inputs", { missing: (lv.design_missing ?? []).join(", ") })
+                            : lv.design_error ?? "—"}
+                        </Badge>
+                      )}
+                    </Table.Td>
+                  )}
+                </Table.Tr>
+              ))}
+            </Table.Tbody>
+          </Table>
+        </DisclosureRow>
+        {allChecks.length > 0 && (
+          <DisclosureRow title={t("anchored_wall.report.check")}>
+            <Checks checks={allChecks.map((r) => r.check)} prefixes={allChecks.map((r) => r.prefix)} />
+          </DisclosureRow>
+        )}
+        {result.z.length >= 2 && (
+          <DisclosureRow title={t("anchored_wall.result.diagrams")}>
+            <ForceDiagrams result={result} />
+          </DisclosureRow>
+        )}
+        {(warnings.length > 0 || assumptions.length > 0 || (result.sources?.length ?? 0) > 0) && (
+          <DisclosureRow title={t("anchored_wall.result.assumptions_title", { n: assumptions.length + warnings.length })} defaultOpened={warnings.length > 0}>
+            <Notices warnings={warnings} assumptions={assumptions} sources={result.sources} />
+          </DisclosureRow>
+        )}
+      </DisclosureList>
     </Stack>
   );
 }

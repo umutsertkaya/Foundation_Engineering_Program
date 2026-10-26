@@ -3,6 +3,7 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { MemoryRouter, Route, Routes, useLocation } from "react-router-dom";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import trCatalog from "../../../../../geotek/i18n/tr.json";
+import wallsCatalog from "../../../../../geotek/modules/walls/i18n/tr.json";
 import { setMockMode } from "../../../shared/api/client";
 import * as client from "../../../shared/api/client";
 import { resetMockState, resetMockStateEmptyProject } from "../../../shared/api/mock";
@@ -132,7 +133,7 @@ describe("walls pages (mock)", () => {
 
   it("wizard back button goes to /m/walls", async () => {
     renderAt("/m/walls/s/wall-mock-1");
-    fireEvent.click(await screen.findByRole("button", { name: trCatalog["web.common.back_to_list"] }));
+    fireEvent.click(await screen.findByRole("link", { name: wallsCatalog["walls.wizard.back"] }));
     await waitFor(() => expect(screen.getByTestId("loc").textContent).toBe("/m/walls"));
   });
 

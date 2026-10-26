@@ -1,8 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Alert, Badge, Button, Group, List, Stack, Table, Text, Title } from "@mantine/core";
-import { IconArrowLeft } from "@tabler/icons-react";
+import { Alert, Badge, Button, Group, List, SimpleGrid, Stack, Table, Text } from "@mantine/core";
 import { useTranslation } from "react-i18next";
-import { useNavigate, useParams, useSearchParams } from "react-router-dom";
+import { useParams, useSearchParams } from "react-router-dom";
 import {
   ApiError,
   get_structure,
@@ -11,6 +10,12 @@ import {
   update_structure,
 } from "../../../shared/api/client";
 import type { GroundwaterCondition, SheetPileStructure, StructureSummary } from "../../../shared/api/types";
+import { ActionBar } from "../../../shared/components/ActionBar";
+import { CollapsibleSection } from "../../../shared/components/CollapsibleSection";
+import { PageHeader } from "../../../shared/components/PageHeader";
+import { SectionCard } from "../../../shared/components/SectionCard";
+import { StatusChip } from "../../../shared/components/StatusChip";
+import { VerdictBanner } from "../../../shared/components/VerdictBanner";
 import { EmptyState } from "../../../shared/components/EmptyState";
 import { ErrorAlert } from "../../../shared/components/ErrorAlert";
 import { useProfileName } from "../../../shared/hooks/useProfileName";
@@ -64,7 +69,6 @@ function GroundwaterSummary({ soil }: { soil: SheetPileStructure["soil"] }) {
 
 export function SheetPileDetailPage() {
   const { t } = useTranslation();
-  const navigate = useNavigate();
   const { sid } = useParams();
   const [params, setParams] = useSearchParams();
   const jobId = params.get("job");
@@ -153,18 +157,14 @@ export function SheetPileDetailPage() {
     await refreshSummary();
   });
 
-  const back = (
-    <Button size="xs" variant="subtle" leftSection={<IconArrowLeft size={14} />} onClick={() => navigate("/m/sheet_pile")}>
-      {t("web.common.back_to_list")}
-    </Button>
-  );
+  const backLink = { to: "/m/sheet_pile", label: t("web.common.back_to_list") };
 
   if (loading && !structure) return <Text size="sm">{t("web.common.loading")}</Text>;
 
   if (error != null) {
     return (
       <Stack gap="md">
-        {back}
+        <PageHeader title={t("sheet_pile.title")} back={backLink} />
         <ErrorAlert error={error} onRetry={() => void load()} />
       </Stack>
     );
@@ -173,7 +173,7 @@ export function SheetPileDetailPage() {
   if (!structure || !inputs) {
     return (
       <Stack gap="md">
-        {back}
+        <PageHeader title={t("sheet_pile.title")} back={backLink} />
         <EmptyState title={t("sheet_pile.detail.not_found_title")} description={t("sheet_pile.detail.not_found_desc")} />
       </Stack>
     );
@@ -227,28 +227,21 @@ export function SheetPileDetailPage() {
   const source = soil.source_profile_id ?? null;
   const missingFactors = actionError instanceof ApiError ? actionError.missing_factors : [];
 
-  return (
-    <Stack gap="md" maw={880}>
-      {back}
-      <Group justify="space-between">
-        <Title order={3}>{structure.name}</Title>
-        <Group gap="xs">
-          {summary?.stale && (
-            <Badge color="amber" variant="light">
-              {t("web.structures.badge.stale")}
-            </Badge>
-          )}
-          <Badge variant="light" color={summary?.has_result ? "teal" : "gray"}>
-            {t(summary?.has_result ? "web.structures.badge.has_result" : "web.structures.badge.no_result")}
-          </Badge>
-        </Group>
-      </Group>
+  const inputsInvalid = missingInputs(inputs, null).length > 0 || missing.some((key) => key.startsWith("range:"));
+  const stale = Boolean(summary?.stale);
+  const statusChip = stale ? (
+    <StatusChip tone="stale">{t("sheet_pile.status.stale")}</StatusChip>
+  ) : summary?.has_result ? (
+    <StatusChip tone="current">{t("sheet_pile.status.current")}</StatusChip>
+  ) : (
+    <StatusChip tone="neutral">{t("sheet_pile.status.draft")}</StatusChip>
+  );
+  const hasResult = (Boolean(jobId) && !jobGone) || Boolean(structure.result);
 
-      {summary?.stale && (
-        <Alert color="yellow" variant="light" title={t("sheet_pile.detail.result_stale_title")}>
-          <Text size="sm">{t("sheet_pile.detail.result_stale")}</Text>
-        </Alert>
-      )}
+  return (
+    <Stack gap="md">
+      <PageHeader title={structure.name} status={statusChip} back={backLink} />
+
       {summary?.source_stale && source && (
         <Alert color="blue" variant="light" title={t("sheet_pile.detail.source_stale_title")}>
           <Group justify="space-between">
@@ -260,46 +253,85 @@ export function SheetPileDetailPage() {
         </Alert>
       )}
 
-      <Title order={5}>{t("sheet_pile.create.section_inputs")}</Title>
-      <InputsForm value={inputs} onChange={setInputs} missing={missing} />
+      <SimpleGrid cols={{ base: 1, md: 2 }} spacing="md" style={{ alignItems: "start" }}>
+        <Stack gap="md">
+          <InputsForm value={inputs} onChange={setInputs} missing={missing} />
 
-      <Title order={5}>{t("sheet_pile.create.section_soil")}</Title>
-      <Text size="sm" data-testid="soil-source">
-        {source
-          ? t("sheet_pile.detail.soil_from_profile", { name: sourceName ?? "" })
-          : t("sheet_pile.detail.soil_manual")}
-      </Text>
-      <GroundwaterSummary soil={soil} />
-      <Table withTableBorder>
-        <Table.Thead>
-          <Table.Tr>
-            <Table.Th>{t("sheet_pile.soil.top")}</Table.Th>
-            <Table.Th>{t("sheet_pile.soil.bottom")}</Table.Th>
-            <Table.Th>{t("sheet_pile.soil.gamma")}</Table.Th>
-            <Table.Th>{t("sheet_pile.soil.phi")}</Table.Th>
-            <Table.Th>{t("sheet_pile.soil.c")}</Table.Th>
-          </Table.Tr>
-        </Table.Thead>
-        <Table.Tbody>
-          {soil.profile.layers.map((l) => (
-            <Table.Tr key={l.id}>
-              <Table.Td>{round(l.top, 3)}</Table.Td>
-              <Table.Td>{round(l.bottom, 3)}</Table.Td>
-              <Table.Td>{round(l.gamma, 2)}</Table.Td>
-              <Table.Td>
-                {l.design?.phi_eff != null ? round(l.design.phi_eff, 2) : (
-                  <Badge color="red" variant="light">
-                    {t("sheet_pile.detail.missing_value")}
-                  </Badge>
-                )}
-              </Table.Td>
-              <Table.Td>{round(l.design?.c_eff ?? 0, 2)}</Table.Td>
-            </Table.Tr>
-          ))}
-        </Table.Tbody>
-      </Table>
+          <SectionCard step={3} title={t("sheet_pile.card.soil")}>
+            <Stack gap="sm">
+              <Text size="sm" data-testid="soil-source">
+                {source
+                  ? t("sheet_pile.detail.soil_from_profile", { name: sourceName ?? "" })
+                  : t("sheet_pile.detail.soil_manual")}
+              </Text>
+              <CollapsibleSection label={t("sheet_pile.detail.soil_details")}>
+                <Stack gap="sm">
+                  <GroundwaterSummary soil={soil} />
+                  <Table withTableBorder>
+                    <Table.Thead>
+                      <Table.Tr>
+                        <Table.Th>{t("sheet_pile.soil.top")}</Table.Th>
+                        <Table.Th>{t("sheet_pile.soil.bottom")}</Table.Th>
+                        <Table.Th>{t("sheet_pile.soil.gamma")}</Table.Th>
+                        <Table.Th>{t("sheet_pile.soil.phi")}</Table.Th>
+                        <Table.Th>{t("sheet_pile.soil.c")}</Table.Th>
+                      </Table.Tr>
+                    </Table.Thead>
+                    <Table.Tbody>
+                      {soil.profile.layers.map((l) => (
+                        <Table.Tr key={l.id}>
+                          <Table.Td>{round(l.top, 3)}</Table.Td>
+                          <Table.Td>{round(l.bottom, 3)}</Table.Td>
+                          <Table.Td>{round(l.gamma, 2)}</Table.Td>
+                          <Table.Td>
+                            {l.design?.phi_eff != null ? round(l.design.phi_eff, 2) : (
+                              <Badge color="red" variant="light">
+                                {t("sheet_pile.detail.missing_value")}
+                              </Badge>
+                            )}
+                          </Table.Td>
+                          <Table.Td>{round(l.design?.c_eff ?? 0, 2)}</Table.Td>
+                        </Table.Tr>
+                      ))}
+                    </Table.Tbody>
+                  </Table>
+                </Stack>
+              </CollapsibleSection>
+              <MissingList keys={missing} />
+            </Stack>
+          </SectionCard>
+        </Stack>
 
-      <MissingList keys={missing} />
+        <Stack gap="md">
+          {stale && (
+            <VerdictBanner
+              tone="warn"
+              title={t("sheet_pile.detail.result_stale_title")}
+              text={t("sheet_pile.detail.result_stale")}
+              action={
+                <Button size="compact-sm" onClick={() => void run()} disabled={missing.length > 0 || dirty || busy}>
+                  {t("sheet_pile.detail.rerun")}
+                </Button>
+              }
+            />
+          )}
+          {!hasResult && (
+            <EmptyState title={t("sheet_pile.detail.no_result_title")} description={t("sheet_pile.detail.no_result_desc")} />
+          )}
+          {jobId && (
+            <div style={stale ? { opacity: 0.5 } : undefined}>
+              <JobPanel jobId={jobId} onDone={() => void onJobDone()} onGone={() => setJobGone(true)} structure={structure} />
+            </div>
+          )}
+          {(!jobId || jobGone) && structure.result && (
+            <div style={stale ? { opacity: 0.5 } : undefined}>
+              <Text size="sm" c="dimmed" mb="xs">{t("sheet_pile.result.saved")}</Text>
+              <ResultPanel result={structure.result} structure={structure} />
+            </div>
+          )}
+        </Stack>
+      </SimpleGrid>
+
       {dirty && <Text size="xs" c="dimmed">{t("sheet_pile.detail.unsaved")}</Text>}
       {actionError != null && <ErrorAlert error={actionError} />}
       {missingFactors.length > 0 && (
@@ -315,31 +347,19 @@ export function SheetPileDetailPage() {
         </Alert>
       )}
 
-      <Group>
-        <Button variant="default" onClick={() => void save()} disabled={!dirty || busy || missingInputs(inputs, null).length > 0 || missing.some((key) => key.startsWith("range:"))}>
-          {t("sheet_pile.detail.save")}
-        </Button>
-        <Button onClick={() => void run()} disabled={missing.length > 0 || dirty || busy}>
-          {t("sheet_pile.detail.run")}
-        </Button>
-      </Group>
-
-      {jobId && (
-        <Stack gap="xs">
-          <Title order={5}>{t("sheet_pile.result.title")}</Title>
-          <div style={summary?.stale ? { opacity: 0.5 } : undefined}>
-            <JobPanel jobId={jobId} onDone={() => void onJobDone()} onGone={() => setJobGone(true)} structure={structure} />
-          </div>
-        </Stack>
-      )}
-      {(!jobId || jobGone) && structure.result && (
-        <Stack gap="xs">
-          <Title order={5}>{t("sheet_pile.result.saved")}</Title>
-          <div style={summary?.stale ? { opacity: 0.5 } : undefined}>
-            <ResultPanel result={structure.result} structure={structure} />
-          </div>
-        </Stack>
-      )}
+      <ActionBar
+        summary={missing.length > 0 ? t("sheet_pile.detail.missing_count", { n: missing.length }) : undefined}
+        text={missing.length === 0 ? (dirty ? t("sheet_pile.detail.unsaved_short") : t("sheet_pile.detail.ready")) : undefined}
+      >
+        <Group>
+          <Button variant="default" onClick={() => void save()} disabled={!dirty || busy || inputsInvalid}>
+            {t("sheet_pile.detail.save")}
+          </Button>
+          <Button onClick={() => void run()} disabled={missing.length > 0 || dirty || busy}>
+            {t("sheet_pile.detail.run")}
+          </Button>
+        </Group>
+      </ActionBar>
     </Stack>
   );
 }
