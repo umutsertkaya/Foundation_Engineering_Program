@@ -4,16 +4,13 @@ import {
   Alert,
   Badge,
   Button,
-  Card,
   Group,
   Menu,
   Modal,
   MultiSelect,
   Paper,
-  ScrollArea,
   Stack,
   Text,
-  Title,
   Tooltip,
   UnstyledButton,
 } from "@mantine/core";
@@ -37,6 +34,11 @@ import {
 import { create_profile, get_profile_with_live_approvals, list_investigations, list_profiles, update_profile } from "../api";
 import type { ProfileOrigin, ProfileSummary, SoilLayer, SoilProfile } from "../../../shared/api/types";
 import { EmptyState } from "../../../shared/components/EmptyState";
+import { PageHeader } from "../../../shared/components/PageHeader";
+import { SectionCard } from "../../../shared/components/SectionCard";
+import { StatusChip } from "../../../shared/components/StatusChip";
+import { VerdictBanner } from "../../../shared/components/VerdictBanner";
+import { layerParamStatus } from "../../../shared/soil/layerStatus";
 import { useUndoable } from "../../../shared/hooks/useUndoable";
 import { CommitTextInput } from "../../../shared/soil/CommitInputs";
 import { GwtEditor } from "../../../shared/soil/GwtEditor";
@@ -156,6 +158,11 @@ export function ProfilesPage() {
   );
   const gwtIssues = useMemo(() => (profile ? validateGwt(profile.gwt) : []), [profile]);
   const invalid = layerIssues.length + gwtIssues.length > 0;
+  // Layers whose required design parameter (phi' drained, s_u undrained) is not entered or approved yet.
+  const missingLayerIds = useMemo(
+    () => (profile ? profile.layers.filter((l) => layerParamStatus(l) === "missing").map((l) => l.id) : []),
+    [profile],
+  );
 
   const patch = (p: Partial<SoilProfile>) => {
     if (profile) draft.set({ ...profile, ...p });
@@ -276,83 +283,52 @@ export function ProfilesPage() {
     </Menu>
   );
 
-  const listPanel = (
-    <Paper withBorder radius="sm" p={6} style={{ width: 250, flexShrink: 0 }}>
-      <Text size="xs" fw={700} c="dimmed" tt="uppercase" px={6} py={4}>
-        {t("web.soil.list_title", { count: profiles.length })}
-      </Text>
-      <ScrollArea.Autosize mah={640} type="auto">
-        <Stack gap={2}>
-          {isNew && (
-            <Paper radius="sm" p={8} bg="var(--mantine-color-blue-light)">
-              <Text size="sm" fw={600} lineClamp={2}>
-                {profile?.name || t("web.soil.new_profile_name")}
-              </Text>
-              <Badge size="xs" color="orange" variant="light" mt={4}>
-                {t("web.soil.unsaved")}
-              </Badge>
-            </Paper>
-          )}
-          {profiles.map((p) => {
-            const selected = !isNew && p.id === selectedId;
-            const active = p.id === activeId;
-            return (
-              <UnstyledButton
-                key={p.id}
-                onClick={() => {
-                  if (p.id !== selectedId || isNew) guard(() => void openProfile(p.id));
-                }}
-                aria-current={selected || undefined}
-                data-testid={`profile-item-${p.id}`}
-                style={{
-                  display: "block",
-                  borderRadius: "var(--mantine-radius-sm)",
-                  padding: 8,
-                  background: selected ? "var(--mantine-color-blue-light)" : undefined,
-                  borderLeft: selected
-                    ? "3px solid var(--mantine-color-blue-filled)"
-                    : "3px solid transparent",
-                }}
-              >
-                <Group gap={6} wrap="nowrap" align="flex-start">
-                  {active ? (
-                    <Tooltip label={t("web.soil.active_badge")}>
-                      <IconStarFilled size={14} color="var(--mantine-color-yellow-filled)" style={{ flexShrink: 0, marginTop: 2 }} />
-                    </Tooltip>
-                  ) : (
-                    <span style={{ width: 14, flexShrink: 0 }} />
-                  )}
-                  <div style={{ minWidth: 0 }}>
-                    <Text size="sm" fw={selected ? 700 : 500} lineClamp={2} title={p.name}>
-                      {p.name}
-                    </Text>
-                    <Group gap={4} mt={3} wrap="wrap">
-                      <OriginBadge origin={p.origin} />
-                      <Badge size="xs" variant="outline" color="gray" style={{ flexShrink: 0 }}>
-                        {t("web.soil.layer_count", { count: p.layer_count })}
-                      </Badge>
-                    </Group>
-                  </div>
-                </Group>
-              </UnstyledButton>
-            );
-          })}
-        </Stack>
-      </ScrollArea.Autosize>
-    </Paper>
+  const switcher = (
+    <Group gap="xs" wrap="wrap" role="group" aria-label={t("web.soil.list_title", { count: profiles.length })}>
+      {isNew && (
+        <StatusChip tone="info" dot={false}>{profile?.name || t("web.soil.new_profile_name")} · {t("web.soil.unsaved")}</StatusChip>
+      )}
+      {profiles.map((p) => {
+        const selected = !isNew && p.id === selectedId;
+        const active = p.id === activeId;
+        return (
+          <UnstyledButton
+            key={p.id}
+            onClick={() => {
+              if (p.id !== selectedId || isNew) guard(() => void openProfile(p.id));
+            }}
+            aria-current={selected || undefined}
+            data-testid={`profile-item-${p.id}`}
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 8,
+              height: 38,
+              padding: "0 14px",
+              borderRadius: 8,
+              fontWeight: selected ? 600 : 500,
+              border: `1px solid ${selected ? "var(--mantine-color-primary-6)" : "var(--gt-border)"}`,
+              background: selected ? "var(--gt-primary-soft)" : "var(--mantine-color-body)",
+              color: selected ? "var(--gt-primary-soft-text)" : "inherit",
+            }}
+          >
+            {active && (
+              <Tooltip label={t("web.soil.active_badge")}>
+                <IconStarFilled size={14} color="var(--mantine-color-yellow-filled)" style={{ flexShrink: 0 }} />
+              </Tooltip>
+            )}
+            <span title={p.name}>{p.name}</span>
+            <OriginBadge origin={p.origin} />
+            <Text span size="xs" c="dimmed">{t("web.soil.layer_count", { count: p.layer_count })}</Text>
+          </UnstyledButton>
+        );
+      })}
+    </Group>
   );
 
   return (
     <Stack gap="sm">
-      <Group justify="space-between" align="flex-end" wrap="wrap">
-        <div>
-          <Title order={3}>{t("web.soil.title")}</Title>
-          <Text size="sm" c="dimmed">
-            {t("web.soil.subtitle")}
-          </Text>
-        </div>
-        {newMenu}
-      </Group>
+      <PageHeader title={t("web.soil.title")} lead={t("web.soil.subtitle")} actions={newMenu} />
 
       {error && (
         <Alert color="red" title={t(`error.${error.code}`)} withCloseButton onClose={() => setError(null)}>
@@ -371,13 +347,32 @@ export function ProfilesPage() {
           }
         />
       ) : (
-        <Group align="flex-start" wrap="nowrap" gap="sm">
-          {listPanel}
+        <Stack gap="md">
+          {switcher}
 
           {profile ? (
-            <Stack gap="sm" style={{ flex: 1, minWidth: 0 }}>
-              {/* header */}
-              <Card withBorder padding="sm" radius="sm">
+            <>
+              {missingLayerIds.length > 0 && (
+                <VerdictBanner
+                  tone="warn"
+                  title={t("web.soil.missing_banner", { count: missingLayerIds.length })}
+                  action={(
+                    <Button size="xs" variant="default" data-testid="goto-missing" onClick={() => setSelectedLayerId(missingLayerIds[0])}>
+                      {t("web.soil.goto_missing")}
+                    </Button>
+                  )}
+                />
+              )}
+
+              <SectionCard
+                title={t("web.soil.profile_card")}
+                aside={(
+                  <Group gap={6}>
+                    {!isNew && profile.id === activeId && <StatusChip tone="current">{t("web.soil.active_badge")}</StatusChip>}
+                    {draft.dirty && <StatusChip tone="stale">{t("web.soil.unsaved")}</StatusChip>}
+                  </Group>
+                )}
+              >
                 <Group justify="space-between" align="flex-start" wrap="wrap" gap="sm">
                   <Stack gap={6} style={{ flex: "1 1 360px", minWidth: 0 }}>
                     <CommitTextInput
@@ -403,98 +398,35 @@ export function ProfilesPage() {
                       clearable
                       data-testid="profile-sources"
                     />
-                    <Group gap={6} wrap="wrap">
-                      <OriginBadge origin={profile.origin ?? "manual"} />
-                      {!isNew && profile.id === activeId && (
-                        <Badge size="xs" color="yellow" variant="filled" leftSection={<IconStarFilled size={10} />}>
-                          {t("web.soil.active_badge")}
-                        </Badge>
-                      )}
-                      {draft.dirty && (
-                        <Badge size="xs" color="orange" variant="light">
-                          {t("web.soil.unsaved")}
-                        </Badge>
-                      )}
-                    </Group>
                   </Stack>
                   <Group gap={6} wrap="wrap">
                     {!isNew && profile.id !== activeId && (
-                      <Button
-                        size="xs"
-                        variant="default"
-                        leftSection={<IconStar size={14} />}
-                        onClick={() => void handleSetActive()}
-                      >
+                      <Button size="xs" variant="default" leftSection={<IconStar size={14} />} onClick={() => void handleSetActive()}>
                         {t("web.soil.set_active")}
                       </Button>
                     )}
                     {!isNew && (
-                      <Button
-                        size="xs"
-                        variant="default"
-                        leftSection={<IconCopy size={14} />}
-                        disabled={invalid || busy}
-                        onClick={() => void handleDuplicate()}
-                      >
+                      <Button size="xs" variant="default" leftSection={<IconCopy size={14} />} disabled={invalid || busy} onClick={() => void handleDuplicate()}>
                         {t("web.soil.duplicate")}
                       </Button>
                     )}
-                    <Button
-                      size="xs"
-                      variant="default"
-                      leftSection={<IconX size={14} />}
-                      disabled={(!draft.dirty && !isNew) || busy}
-                      onClick={handleDiscard}
-                    >
+                    <Button size="xs" variant="default" leftSection={<IconX size={14} />} disabled={(!draft.dirty && !isNew) || busy} onClick={handleDiscard}>
                       {t("web.soil.discard")}
                     </Button>
-                    <Tooltip
-                      label={t("web.soil.save_blocked")}
-                      disabled={!invalid}
-                      withArrow
-                    >
-                      <Button
-                        size="xs"
-                        leftSection={<IconDeviceFloppy size={14} />}
-                        disabled={invalid || (!draft.dirty && !isNew)}
-                        loading={busy}
-                        onClick={() => void handleSave()}
-                      >
+                    <Tooltip label={t("web.soil.save_blocked")} disabled={!invalid} withArrow>
+                      <Button size="xs" leftSection={<IconDeviceFloppy size={14} />} disabled={invalid || (!draft.dirty && !isNew)} loading={busy} onClick={() => void handleSave()}>
                         {t("web.soil.save")}
                       </Button>
                     </Tooltip>
                   </Group>
                 </Group>
                 {notice && !draft.dirty && (
-                  <Text size="xs" c="green" mt={4}>
-                    {notice}
-                  </Text>
+                  <Text size="xs" c="green" mt={4}>{notice}</Text>
                 )}
-              </Card>
+              </SectionCard>
 
-              {/* groundwater + legend */}
-              <Card withBorder padding="sm" radius="sm">
-                <Group justify="space-between" align="flex-end" wrap="wrap" gap="sm">
-                  <Stack gap={4}>
-                    <Text size="sm" fw={600}>
-                      {t("web.soil.gwt.title")}
-                    </Text>
-                    <GwtEditor
-                      value={profile.gwt}
-                      onChange={(gwt) => patch({ gwt })}
-                      error={gwtIssues.length > 0 ? t(layerErrorKey(gwtIssues[0].code)) : null}
-                    />
-                  </Stack>
-                  <LayerLegend layers={profile.layers} showGwt />
-                </Group>
-              </Card>
-
-              {/* column + editor */}
-              <Group align="flex-start" gap="sm" wrap="wrap">
-                <Card withBorder padding="xs" radius="sm" style={{ flex: "0 0 auto" }}>
-                  <Text size="xs" fw={700} c="dimmed" mb={4}>
-                    {t("web.soil.column_title")}
-                  </Text>
+              <Group align="flex-start" gap="md" wrap="wrap">
+                <SectionCard title={t("web.soil.column_title")}>
                   <SoilColumn
                     layers={profile.layers}
                     gwt={Number.isFinite(profile.gwt.depth_insitu) ? profile.gwt : null}
@@ -503,17 +435,9 @@ export function ProfilesPage() {
                     width={250}
                     height={540}
                   />
-                </Card>
-                <Card withBorder padding="sm" radius="sm" style={{ flex: "1 1 560px", minWidth: 0 }}>
-                  <Stack gap="xs">
-                    <Group justify="space-between" wrap="nowrap">
-                      <Text size="sm" fw={600}>
-                        {t("ui.profile.layers")}
-                      </Text>
-                      <Text size="xs" c="dimmed">
-                        {t("ui.profile.layers_hint")}
-                      </Text>
-                    </Group>
+                </SectionCard>
+                <div style={{ flex: "1 1 560px", minWidth: 0 }}>
+                  <SectionCard title={t("ui.profile.layers")} aside={<Text size="xs" c="dimmed">{t("ui.profile.layers_hint")}</Text>}>
                     <LayerEditor
                       layers={profile.layers}
                       onChange={setLayers}
@@ -526,18 +450,29 @@ export function ProfilesPage() {
                       gwtDepth={profile.gwt.depth_insitu}
                       ariaLabel={t("ui.profile.layers")}
                     />
-                  </Stack>
-                </Card>
+                    <div style={{ marginTop: 12 }}>
+                      <LayerLegend layers={profile.layers} showGwt />
+                    </div>
+                  </SectionCard>
+                </div>
               </Group>
-            </Stack>
+
+              <SectionCard title={t("web.soil.gwt.title")}>
+                <GwtEditor
+                  value={profile.gwt}
+                  onChange={(gwt) => patch({ gwt })}
+                  error={gwtIssues.length > 0 ? t(layerErrorKey(gwtIssues[0].code)) : null}
+                />
+              </SectionCard>
+            </>
           ) : (
-            <Paper withBorder p="xl" radius="sm" style={{ flex: 1 }}>
+            <Paper withBorder p="xl" radius="md">
               <Text size="sm" c="dimmed">
                 {busy ? t("web.common.loading") : t("web.soil.select_hint")}
               </Text>
             </Paper>
           )}
-        </Group>
+        </Stack>
       )}
 
       <Modal
