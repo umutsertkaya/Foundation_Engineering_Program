@@ -49,6 +49,8 @@ export const theme = createTheme({
     Card: Card.extend({ defaultProps: { withBorder: true, radius: "md", padding: "lg" } }),
     Button: Button.extend({ defaultProps: { radius: "sm", fw: 500 } }),
     Input: Input.extend({ defaultProps: { radius: "sm" } }),
+    // Help text sits under the field so inputs on one row line up whatever the help length.
+    InputWrapper: Input.Wrapper.extend({ defaultProps: { inputWrapperOrder: ["label", "input", "description", "error"] } }),
     Badge: Badge.extend({ defaultProps: { variant: "light", radius: "xl", fw: 500, tt: "none" } }),
   },
 });

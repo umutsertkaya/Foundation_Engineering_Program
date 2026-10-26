@@ -459,6 +459,7 @@
   "layering.warning.no_data_interval": "No data between {top} m and {bottom} m; the interval is extrapolated from the nearest samples.",
   "layering.warning.thin_merged": "A layer thinner than the minimum thickness was merged with a neighbour.",
   "layering.warning.drainage_ic_based": "Drainage behaviour is derived only from Ic < 2.6 (Robertson 2009) and must be confirmed for the loading case; zone 1 is assumed undrained.",
+  "classification.mock_demo": "Demo data; not an engine result.",
   "layering.warning.processing_warnings": "Processing of the investigation data produced warnings; review the processed data.",
   "layering.warning.invalid_ic": "Some samples have no valid Ic and were not used for classification.",
   "layering.warning.thin_retained": "Layer {top}-{bottom} m is thinner than the minimum thickness but was retained (SBTn zone {raw_zone}).",

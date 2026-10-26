@@ -19,11 +19,11 @@ const LIST: CSSProperties = { display: "grid", gap: 6, listStyle: "none", margin
 export function WizardStepBar({ labels, active, onSelect, ariaLabel }: WizardStepBarProps) {
   return (
     <nav aria-label={ariaLabel} data-testid="wizard-step-bar">
-      <ol style={{ ...LIST, gridTemplateColumns: `repeat(${labels.length}, minmax(0, 1fr))` }}>
+      <ol className="gt-stepbar" style={{ ...LIST, gridTemplateColumns: `repeat(${labels.length}, minmax(0, 1fr))` }}>
         {labels.map((label, i) => {
           const state = i === active ? "active" : i < active ? "done" : "todo";
           return (
-            <li key={label} style={{ minWidth: 0 }}>
+            <li key={label} data-state={state} style={{ minWidth: 0 }}>
               <UnstyledButton
                 data-state={state}
                 aria-current={i === active ? "step" : undefined}
@@ -60,6 +60,7 @@ export function WizardStepBar({ labels, active, onSelect, ariaLabel }: WizardSte
                   {state === "done" ? <IconCheck size={13} stroke={3} /> : i + 1}
                 </span>
                 <span
+                  className="gt-step-label"
                   style={{
                     minWidth: 0,
                     fontSize: 13,

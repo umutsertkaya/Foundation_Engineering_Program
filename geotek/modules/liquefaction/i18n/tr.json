@@ -30,6 +30,8 @@
   "liquefaction.run": "Analizi çalıştır",
   "liquefaction.results.title": "Sıvılaşma sonuçları",
   "liquefaction.results.back": "Girdileri değiştir",
+  "liquefaction.results.go_analysis": "Analize git",
+  "liquefaction.results.empty_title": "Henüz sonuç yok",
   "liquefaction.results.no_job": "Gösterilecek analiz yok. Önce analizi çalıştırın.",
   "liquefaction.results.unavailable": "Bu analizin sonucuna ulaşılamadı. Analizi yeniden çalıştırın.",
   "liquefaction.results.stale": "Zemin verisi bu hesaptan sonra değişti. Güncel sonuç için yeniden çalıştırın.",

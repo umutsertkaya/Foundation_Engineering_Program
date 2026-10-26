@@ -25,7 +25,7 @@ export function PageHeader({ title, lead, status, actions, back }: PageHeaderPro
         </Anchor>
       )}
       <Group justify="space-between" align="flex-end" gap="md" wrap="wrap">
-        <Box style={{ flex: 1, minWidth: 280 }}>
+        <Box style={{ flex: "1 1 460px", minWidth: 280 }}>
           <Group gap="sm" align="center">
             <Title order={1} fz={24} fw={600}>{title}</Title>
             {status}

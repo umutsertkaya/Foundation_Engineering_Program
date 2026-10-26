@@ -27,11 +27,13 @@ export function DimensionField({
   return (
     <NumberInput
       label={
-        <>
+        <span style={{ display: "block" }}>
           {n != null && <span className="gt-wall-mk" data-n={n} data-focused={focused} aria-hidden="true" />}
           {label}
-        </>
+        </span>
       }
+      // Two-line label slot with the text at the bottom, so inputs on one row line up whatever the label length.
+      styles={{ label: { display: "flex", alignItems: "flex-end", minHeight: 42 } }}
       description={description}
       value={value}
       min={min}

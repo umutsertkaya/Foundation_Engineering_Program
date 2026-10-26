@@ -73,3 +73,11 @@
 .gt-module-card:hover {
   border-color: var(--mantine-color-primary-6);
 }
+
+/* Wizard step bar on phones: numbers only, the active step keeps its label. */
+@media (max-width: 640px) {
+  .gt-stepbar { display: flex !important; }
+  .gt-stepbar > li { flex: 0 0 auto; }
+  .gt-stepbar > li[data-state="active"] { flex: 1 1 auto; }
+  .gt-stepbar > li:not([data-state="active"]) .gt-step-label { display: none; }
+}
